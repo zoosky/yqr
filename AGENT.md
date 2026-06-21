@@ -165,11 +165,34 @@ The project enforces strict clippy lints. See `Cargo.toml` for the full configur
 
 ## Project Structure
 
-Use `tree` tool.
+Run `tree -I 'target|.git'` for the live layout. The key files:
 
-Important annotated directories:
-
-Todo
+```
+yqr/
+├── src/
+│   ├── main.rs        # Binary entry; maps results to jq-style exit codes
+│   ├── cli.rs         # clap (derive) args + --version strings
+│   ├── lib.rs         # Public API: eval_str, render, re-exports
+│   ├── error.rs       # YqrError enum + exit-code mapping
+│   ├── lexer.rs       # Filter source -> Token stream
+│   ├── ast.rs         # Filter AST node definitions
+│   ├── parser.rs      # Recursive-descent Tokens -> Ast
+│   └── eval.rs        # Evaluator: Ast x Value -> stream of Values
+├── benches/eval.rs    # Criterion benchmarks (parse, end-to-end eval_str)
+├── tests/
+│   ├── cli.rs         # Black-box tests of the compiled binary
+│   └── integration.rs # Library end-to-end tests via the public API
+├── build.rs           # Stamps git hash / build time / target into --version
+├── specs/features/    # Feature specs (yqr.fNNN-*.md)
+├── .agent/            # Agent toolkit: skills, command, hook, settings
+├── .github/
+│   ├── workflows/     # ci.yml, benchmark.yml
+│   └── scripts/       # local-ci.sh (local CI mirror)
+├── Cargo.toml
+├── rust-toolchain.toml  # Pins the 1.96 toolchain
+├── AGENT.md
+└── README.md
+```
 
 ## Module Organization
 
@@ -299,7 +322,11 @@ cargo +nightly install cargo-doc-md
 
 ### Key Crates in This Project
 
-Todo
+| Crate | Purpose | Doc Path |
+|-------|---------|----------|
+| clap | CLI argument parser (derive feature) | `target/doc-md/clap/` |
+| rust-yaml | YAML parsing and emission (`Value` model) | `target/doc-md/rust_yaml/` |
+| criterion | Benchmark harness (dev-dependency) | `target/doc-md/criterion/` |
 
 ## Dependencies Policy
 
