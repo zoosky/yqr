@@ -23,7 +23,7 @@
 13. **Feature Spec to Code Traceability**: When implementing a feature spec from `specs/features/`, add a `// Feature fNNN` code comment (not `///` or `//!`) near the item. The code should read like documentation of the feature, but feature IDs must never appear in doc comments (see rule 19).
 14. Never ever start implementing a feature without a specs/feature spec unless you ask the user if you really should to this.
 15. **Content Documentation**: When yqr gains a new user-facing feature, **both** of the following are required:
-    - **a) Usage guide**: Update the relevant documentation pages in `docs/content/` so users know thFor template-related features
+    - **a) Usage guide**: Update the relevant documentation pages in `docs/content/` so users know the feature exists and how to use it:
       - Other relevant pages as appropriate
       - Keep documentation consistent with existing style and structure
 
@@ -35,17 +35,17 @@
 
 17. **Feature Status Updates Before PR**: Prior to creating a pull request, you **must** update:
     - **a) The feature spec** (`specs/features/yqr-fNNN-*.md`): Set `**Status:**` to `Done` and check off acceptance criteria for any feature completed by the PR.
-    - **b) The status tracker** (`specs/features/yqr-f0000-feature-status.md`): Update the feature's status in its epic table, the epic's progress line, and the summary totals at the yqrttom of the file.
+    - **b) The status tracker** (`specs/features/yqr-f0000-feature-status.md`): Update the feature's status in its epic table, the epic's progress line, and the summary totals at the bottom of the file.
     - This ensures the spec files and status tracker always reflect the true state of the codebase at the time code is merged.
-2. **Implementation Specs (`specs/implementation/`)**: This folder contains system specifications, fact sheets, and non-functional requirements (e.g., port allocation, thread safety, extension points, license key management). These documents are the **source of truth** for cross-cutting concerns. When making changes that affect these specs, update the relevant document to stay in sync with the codebase. When adding a new cross-cutting concern or system-wide convention, create a new `yqr-mNNN-*.md` file here.
-3. **No Internal Spec References in User-Facing Output** (Feature f136): Feature IDs (`Feature fNNN`), spec paths (`specs/features/...`), and internal tracker references must **never** appear in:
+18. **Implementation Specs (`specs/implementation/`)**: This folder contains system specifications, fact sheets, and non-functional requirements (e.g., port allocation, thread safety, extension points, license key management). These documents are the **source of truth** for cross-cutting concerns. When making changes that affect these specs, update the relevant document to stay in sync with the codebase. When adding a new cross-cutting concern or system-wide convention, create a new `yqr-mNNN-*.md` file here.
+19. **No Internal Spec References in User-Facing Output** (Feature f136): Feature IDs (`Feature fNNN`), spec paths (`specs/features/...`), and internal tracker references must **never** appear in:
     - **Rust doc comments** (`///` or `//!`) -- these render in `cargo doc` and `accent docs` output. Use plain `// Feature fNNN` code comments instead for traceability.
     - **Site documentation** (`docs/content/`) -- wrap in HTML comments (`<!-- Feature fNNN -->`) so they are invisible in rendered HTML but preserved for grep.
     - **CLI output** -- help text, error messages, and printed output must not contain feature IDs.
     - The `specs/` directory, `AGENT.md`, and `#[cfg(test)]` blocks are exempt (they are developer-only).
-4. **Admit and stop when a URL is unreachable**: When a user provides a URL (research link, upstream repo, issue, doc page, etc.), **always actually fetch it** via `WebFetch`, `gh api`, or another appropriate tool before citing it. If the fetch fails (network error, 404, auth required, blocked by tool restrictions, redirect loop, etc.), **stop and tell the user explicitly** that the URL could not be accessed and ask how to proceed. Never fabricate content, version numbers, changelog entries, API shapes, or repository metadata from training data or inference. This applies to research docs, code comments, PR descriptions, and spec updates alike -- unverified claims about external sources are worse than a visible blocker.
+20. **Admit and stop when a URL is unreachable**: When a user provides a URL (research link, upstream repo, issue, doc page, etc.), **always actually fetch it** via `WebFetch`, `gh api`, or another appropriate tool before citing it. If the fetch fails (network error, 404, auth required, blocked by tool restrictions, redirect loop, etc.), **stop and tell the user explicitly** that the URL could not be accessed and ask how to proceed. Never fabricate content, version numbers, changelog entries, API shapes, or repository metadata from training data or inference. This applies to research docs, code comments, PR descriptions, and spec updates alike -- unverified claims about external sources are worse than a visible blocker.
 
-6. **Admit when a file is not accessible**: If a file is not accessible — over the web, on disk, or because its format cannot be read with the available tooling — admit it and ask the user for help. Never silently work around it (e.g. by installing tools unprompted or reconstructing the contents from inference). This extends rule 20 from URLs to files of every kind.
+21. **Admit when a file is not accessible**: If a file is not accessible — over the web, on disk, or because its format cannot be read with the available tooling — admit it and ask the user for help. Never silently work around it (e.g. by installing tools unprompted or reconstructing the contents from inference). This extends rule 20 from URLs to files of every kind.
 
 ### Workflow for Every Change
 
@@ -189,7 +189,7 @@ main.rs -> cli.rs (Clap dispatch)
 
 ### Performance Work
 
-1. Add or update benchmarks in `../yqr/benches/`
+1. Add or update benchmarks in `benches/`
 2. Establish baseline: run the full bench suite (step 5 of "Before Every Change") with `-- --save-baseline before` appended
 3. Make changes
 4. Compare: same suite with `-- --baseline before` appended
@@ -441,7 +441,7 @@ The agent PR review workflow requires an Anthropic API key configured as a GitHu
 # Generate agent documentation
 
 cargo run -- docs agent-readme
-cargo run -- docs the agent-md
+cargo run -- docs agent-md
 
 ```
 
