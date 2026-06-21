@@ -27,14 +27,14 @@ Shows for each worktree:
 ## Example Output
 
 ```
-Git Worktrees for accent
+Git Worktrees for yqr
 ===========================================
 
-Path: /Users/dev/accentcms-prj/accentcms
+Path: /Users/dev/projects/yqr
   HEAD: abc1234
-  Branch: master
+  Branch: main
 
-Path: /Users/dev/accentcms-prj/accentcms-feature-auth
+Path: /Users/dev/projects/yqr-feature-auth
   HEAD: def5678
   Branch: feature/auth
 

@@ -102,6 +102,22 @@ yqr is a high-performance, large YAML file query & transformation tool written i
 
 Todo
 
+## Agent Toolkit (`.agent/`)
+
+Project-specific agent configuration, reusable skills, and hooks live in `.agent/`:
+
+- **`.agent/skills/`** — invokable skills for common workflows:
+  - `cargo-quality` — run the full quality gate (fmt, clippy, test, bench)
+  - `cargo-doc` — look up crate docs in Markdown from `target/doc-md/` (see "Crate Documentation Lookup" below)
+  - `benchmark` — run and analyze the criterion benchmarks
+  - `dep-upgrade` — upgrade dependencies one at a time with impact analysis
+  - `security-audit` — audit dependencies and review for vulnerabilities
+  - `pr-prepare` — quality checks, commit, and PR creation
+  - `worktree-create` / `worktree-list` / `worktree-remove` / `worktree-sync` — manage git worktrees for parallel development (these expect helper scripts under `scripts/`, which are not present yet)
+- **`.agent/commands/codereview.md`** — multi-agent pull-request code review.
+- **`.agent/hooks/notify-sound.sh`** — `Stop`-hook chime (macOS) for when the agent needs input.
+- **`.agent/settings.json`** — shared permissions, env vars, and hooks. Per-machine overrides belong in `.agent/settings.local.json`, which is git-ignored and must never be committed.
+
 ## Code Quality Requirements
 
 ### Before Every Change

@@ -27,8 +27,8 @@
     ],
     "deny": [
       "Bash(rm:-rf:*)",
-      "Bash(git:push:origin:master)",
-      "Bash(git:push:-u:origin:master)",
+      "Bash(git:push:origin:main)",
+      "Bash(git:push:-u:origin:main)",
       "Bash(git:push:--force:*)"
     ]
   },
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/notify-sound.sh\"",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agent/hooks/notify-sound.sh\"",
             "timeout": 5
           }
         ]

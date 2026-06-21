@@ -1,11 +1,11 @@
 ---
 name: worktree-sync
-description: Sync a worktree with the latest master branch using rebase. Use to update your branch with upstream changes.
+description: Sync a worktree with the latest main branch using rebase. Use to update your branch with upstream changes.
 ---
 
 # Sync Git Worktree
 
-Sync a worktree with the latest master branch using rebase.
+Sync a worktree with the latest main branch using rebase.
 
 ## Usage
 
@@ -32,9 +32,9 @@ scripts/worktree-sync.sh
 ## What It Does
 
 1. Checks for uncommitted changes (requires clean working directory)
-2. Fetches latest from `origin/master`
-3. Shows how many commits ahead/behind master
-4. Rebases your branch on top of `origin/master`
+2. Fetches latest from `origin/main`
+3. Shows how many commits ahead/behind main
+4. Rebases your branch on top of `origin/main`
 
 ## Conflict Handling
 
@@ -49,6 +49,6 @@ If rebase conflicts occur, the script will:
 ## When to Use
 
 - Before starting significant new work
-- When master has important updates you need
+- When main has important updates you need
 - Before creating a PR (to ensure clean merge)
 - Regularly during long-running feature work

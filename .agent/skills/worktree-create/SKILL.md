@@ -18,12 +18,12 @@ scripts/worktree-create.sh <branch-name> [base-branch]
 ## Arguments
 
 - `branch-name` (required): Name for the new branch (e.g., `feature/my-feature`, `fix/bug-123`)
-- `base-branch` (optional): Branch to base off of (default: `master`)
+- `base-branch` (optional): Branch to base off of (default: `main`)
 
 ## Examples
 
 ```bash
-# Create worktree for a new feature based on master
+# Create worktree for a new feature based on main
 scripts/worktree-create.sh feature/add-auth
 
 # Create worktree based on a different branch
@@ -33,14 +33,14 @@ scripts/worktree-create.sh fix/bug-123 develop
 ## What It Does
 
 1. Fetches latest from origin
-2. Creates a new directory at `../accent-<branch-name>/`
+2. Creates a new directory at `../yqr-<branch-name>/`
 3. Creates a new branch from the base branch (or uses existing branch)
 4. Sets up the worktree ready for development
 
 ## Output Location
 
 Worktrees are created in the parent directory with the naming pattern:
-`../accent-<branch-name>/` (slashes in branch names become dashes)
+`../yqr-<branch-name>/` (slashes in branch names become dashes)
 
 ## When to Use
 
