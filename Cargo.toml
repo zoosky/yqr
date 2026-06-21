@@ -9,6 +9,8 @@ repository = "https://github.com/zoosky/yqr"
 readme = "README.md"
 keywords = ["yaml", "jq", "cli", "query", "filter"]
 categories = ["command-line-utilities", "parsing"]
+# Dev-only files kept out of the published crate.
+exclude = [".agent/", ".github/", "specs/", "AGENT.md"]
 
 [[bin]]
 name = "yqr"
