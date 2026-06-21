@@ -1,81 +1,59 @@
 name: Continuous Benchmarking
 
-# Feature f073a: Benchmarks run on merge to main only, on self-hosted runner.
-# Consistent hardware eliminates noisy-neighbor variance from GitHub VMs.
+# Runs the criterion benchmark suite on merge to main and tracks results over
+# time, alerting if a commit regresses performance. Only triggers on
+# Rust-relevant changes; never runs on PRs.
 on:
   push:
     branches: [main]
     paths:
-      - '**/*.rs'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
+      - "**/*.rs"
+      - "**/Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/benchmark.yml"
 
 permissions:
   contents: write
-  pull-requests: write
 
 env:
   CARGO_TERM_COLOR: always
-  # Private mmdr fork requires git-CLI auth; see ci.yml for details.
-  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
 
 jobs:
   benchmark:
-    name: Performance Benchmarks
-    runs-on: [self-hosted, linux, x64, rust]
-    timeout-minutes: 45
+    name: Criterion benchmarks
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      # Rust toolchain and cargo cache are pre-installed on the runner.
-      # sccache and persistent target dir configured via runner .env.
+      - name: Install Rust toolchain (1.96)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.96"
 
-      - name: Configure git for private mmdr fork
-        env:
-          MMDR_PAT: ${{ secrets.GH_FORK_PAT }}
-        run: |
-          if [ -n "$MMDR_PAT" ]; then
-            git config --global url."https://oauth2:${MMDR_PAT}@github.com/".insteadOf "https://github.com/"
-          fi
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-bench-
 
       - name: Run benchmarks
         run: |
-          # Feature f161b: `diagrams` bench is gated on the `diagrams`
-          # feature flag, which is part of `edition-standard` (the
-          # default profile here).
-          # Feature f175a: `admin` bench requires the `admin` feature
-          # flag, also part of `edition-standard`.
-          #
-          # The `bench` profile inherits `[profile.release]`'s fat LTO
-          # (`lto = true`, `codegen-units = 1`), so every bench binary is a
-          # multi-GB single-unit LTO link of the whole `accent` crate. Building
-          # all eight concurrently (cargo's default) stacks several of those
-          # links at once and the kernel OOM-killer SIGKILLs the heaviest
-          # (`admin`), which surfaced as intermittent `sccache: Compile
-          # terminated by signal 9` / `could not compile (bench "admin")`
-          # failures. Pre-build each bench serially with --no-run so only one
-          # LTO link is resident at a time; the final combined invocation then
-          # just runs the already-built binaries (no rebuild, identical numbers).
-          for bench in admin cache content diagrams e2e markdown media template; do
-            cargo bench --bench "$bench" --no-run
-          done
-          cargo bench --bench admin --bench cache --bench content --bench diagrams --bench e2e --bench markdown --bench media --bench template -- --output-format bencher 2>&1 | tee full-output.txt
-          grep -E "^test .+ bench:" full-output.txt > benchmark-output.txt || true
-          echo "Captured $(wc -l < benchmark-output.txt) benchmark result lines"
-          cat benchmark-output.txt
+          cargo bench --bench eval --locked -- --output-format bencher | tee bench-full.txt
+          grep -E '^test .+ bench:' bench-full.txt > bench-output.txt || true
 
-      - name: Clean working tree for gh-pages switch
-        run: git checkout -- Cargo.lock
-
-      - name: Store benchmark result
+      - name: Store result and alert on regressions
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          tool: 'cargo'
-          output-file-path: benchmark-output.txt
+          tool: cargo
+          output-file-path: bench-output.txt
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          alert-threshold: '130%'
+          alert-threshold: "130%"
           comment-on-alert: true
           fail-on-alert: false
           benchmark-data-dir-path: dev/bench
