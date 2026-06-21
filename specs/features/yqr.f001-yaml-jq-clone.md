@@ -1,4 +1,4 @@
-# Feature 0001 — `yqr`: a jq clone for YAML
+# Feature 001 — `yqr`: a jq clone for YAML
 
 Status: **In progress** (foundation landed)
 Owner: yqr maintainers
