@@ -1,7 +1,7 @@
 # yqr
 
-`yqr` ("YAML query in Rust") is a jq-style
-command-line processor for **YAML**. It reads a YAML document from a file or
+`yqr` ("YAML query in Rust") is a jq-style Swiss Army knife for **YAML**.
+It reads a YAML document from a file or
 stdin, applies a jq-like filter expression, and emits the result(s) as YAML (or
 raw text).
 
