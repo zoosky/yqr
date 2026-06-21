@@ -39,7 +39,7 @@
     - This ensures the spec files and status tracker always reflect the true state of the codebase at the time code is merged.
 18. **Implementation Specs (`specs/implementation/`)**: This folder contains system specifications, fact sheets, and non-functional requirements (e.g., port allocation, thread safety, extension points, license key management). These documents are the **source of truth** for cross-cutting concerns. When making changes that affect these specs, update the relevant document to stay in sync with the codebase. When adding a new cross-cutting concern or system-wide convention, create a new `yqr-mNNN-*.md` file here.
 19. **No Internal Spec References in User-Facing Output** (Feature f136): Feature IDs (`Feature fNNN`), spec paths (`specs/features/...`), and internal tracker references must **never** appear in:
-    - **Rust doc comments** (`///` or `//!`) -- these render in `cargo doc` and `accent docs` output. Use plain `// Feature fNNN` code comments instead for traceability.
+    - **Rust doc comments** (`///` or `//!`) -- these render in `cargo doc` output. Use plain `// Feature fNNN` code comments instead for traceability.
     - **Site documentation** (`docs/content/`) -- wrap in HTML comments (`<!-- Feature fNNN -->`) so they are invisible in rendered HTML but preserved for grep.
     - **CLI output** -- help text, error messages, and printed output must not contain feature IDs.
     - The `specs/` directory, `AGENT.md`, and `#[cfg(test)]` blocks are exempt (they are developer-only).
@@ -316,8 +316,7 @@ Todo
 The following should pass in CI:
 
 ```yaml
-.github/scripts/local-ci-fast.sh 
-- cargo doc --no-deps   # Documentation builds
+bash .github/scripts/local-ci.sh   # fmt, clippy, build, test, bench compile, doc
 ```
 
 ## GitHub Actions Workflows
