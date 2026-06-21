@@ -62,7 +62,7 @@ grep -r "<crate_name>" src/ --include="*.rs" -l
 #    (after updating Cargo.toml)
 
 # 4. Edit Cargo.toml to the new version
-#    e.g., change `pulldown-cmark = "0.12"` to `pulldown-cmark = "0.13"`
+#    e.g., change `rust-yaml = "1.1"` to `rust-yaml = "1.2"`
 
 # 5. Update the lock file
 cargo update <crate>
@@ -95,11 +95,11 @@ For each upgrade, assess:
 After processing all upgrades, produce a summary table:
 
 ```
-| Crate         | From   | To     | Type    | Status    | Notes                    |
-|---------------|--------|--------|---------|-----------|--------------------------|
-| clap          | 4.5.54 | 4.5.58 | patch   | Upgraded  | No API changes           |
-| pulldown-cmark| 0.12   | 0.13   | major   | Deferred  | Breaking: Parser API changed |
-| reqwest       | 0.12   | 0.13   | major   | Upgraded  | Feature flag renamed     |
+| Crate      | From   | To     | Type    | Status    | Notes                        |
+|------------|--------|--------|---------|-----------|------------------------------|
+| clap       | 4.6.1  | 4.6.3  | patch   | Upgraded  | No API changes               |
+| rust-yaml  | 1.1.0  | 1.2.0  | minor   | Upgraded  | Additive, no breakage        |
+| criterion  | 0.5    | 0.8    | major   | Upgraded  | dev-dep; bench API unchanged |
 ```
 
 ## Rules

@@ -18,10 +18,6 @@
       "Bash(gh pr merge:*)",
       "Bash(git checkout:*)",
       "Bash(git pull:*)",
-      "Bash(./scripts/worktree-create.sh:*)",
-      "Bash(./scripts/worktree-list.sh)",
-      "Bash(./scripts/worktree-remove.sh:*)",
-      "Bash(./scripts/worktree-sync.sh:*)",
       "Bash(curl:*)",
       "Bash(wget:*)"
     ],

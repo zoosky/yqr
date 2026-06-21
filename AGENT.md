@@ -98,9 +98,11 @@ gh pr create --title "My change" --body "Description"
 
 yqr is a high-performance, large YAML file query & transformation tool written in Rust. 
 
-### Running the Server
+### Running the CLI
 
-Todo
+```bash
+cargo run -- '<filter>' [file.yaml]   # omit the file to read YAML from stdin
+```
 
 ## Agent Toolkit (`.agent/`)
 
@@ -113,7 +115,6 @@ Project-specific agent configuration, reusable skills, and hooks live in `.agent
   - `dep-upgrade` — upgrade dependencies one at a time with impact analysis
   - `security-audit` — audit dependencies and review for vulnerabilities
   - `pr-prepare` — quality checks, commit, and PR creation
-  - `worktree-create` / `worktree-list` / `worktree-remove` / `worktree-sync` — manage git worktrees for parallel development (these expect helper scripts under `scripts/`, which are not present yet)
 - **`.agent/commands/codereview.md`** — multi-agent pull-request code review.
 - **`.agent/hooks/notify-sound.sh`** — `Stop`-hook chime (macOS) for when the agent needs input.
 - **`.agent/settings.json`** — shared permissions, env vars, and hooks. Per-machine overrides belong in `.agent/settings.local.json`, which is git-ignored and must never be committed.
@@ -140,7 +141,7 @@ cargo test
 cargo bench --no-run
 
 # 5. Run benchmarks to catch performance regressions (perf-sensitive PRs only)
-cargo bench --bench admin --bench cache --bench content --bench diagrams --bench e2e --bench markdown --bench media --bench template
+cargo bench
 ```
 
 ### Clippy Configuration
@@ -176,8 +177,8 @@ Todo
 
 1. **Separation of concerns**: Each module has a single responsibility
 2. **Public API in lib.rs**: Export only what's needed for library users
-3. **Error handling**: Use `thiserror` for custom error types, propagate with `?`
-4. **Async-first**: Use `async`/`await` throughout for I/O operations, unless there is a large data files, streaming concern.
+3. **Error handling**: one crate-wide error enum (`YqrError`) with a `Result` alias; propagate with `?`
+4. **Keep it synchronous**: yqr is a small synchronous CLI — do not introduce an async runtime (`tokio`/`async`) unless a feature genuinely requires it
 
 ### Module Dependencies
 
@@ -215,45 +216,30 @@ main.rs -> cli.rs (Clap dispatch)
 
 ### Error Handling
 
+yqr uses a single hand-rolled error enum (`src/error.rs`) with a `Result` alias
+and an `exit_code()` mapping — keep dependencies minimal rather than pulling in
+`thiserror`.
+
 ```rust
-// Use thiserror for error types
-#[derive(Debug, thiserror::Error)]
-pub enum ContentError {
-    #[error("page not found: {0}")]
-    NotFound(String),
+pub type Result<T> = std::result::Result<T, YqrError>;
 
-    #[error("invalid frontmatter: {0}")]
-    InvalidFrontmatter(#[from] serde_yaml::Error),
-
-    #[error("io error: {0}")]
-    Io(#[from] std::io::Error),
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum YqrError {
+    Lex(String),
+    Parse(String),
+    Eval(String),
+    Io(String),
 }
 
-// Use Result type alias
-pub type Result<T> = std::result::Result<T, ContentError>;
-```
-
-### Async Code
-
-```rust
-// Prefer async functions
-pub async fn load_page(path: &Path) -> Result<Page> {
-    let content = tokio::fs::read_to_string(path).await?;
-    // ...
+impl YqrError {
+    /// jq-style process exit code for this error category.
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            YqrError::Lex(_) | YqrError::Parse(_) => 3,
+            YqrError::Eval(_) | YqrError::Io(_) => 5,
+        }
+    }
 }
-```
-
-### Async Handler Guard Safety
-
-`state.config()` returns a `std::sync::RwLockReadGuard` which is `!Send`. Holding it across an `.await` makes the handler future `!Send`, which axum rejects with an opaque `Handler<_, _> not satisfied` error. **Always** read config into owned values inside a block scope:
-
-```rust
-let (max_bytes, content_dir) = {
-    let cfg = state.config();
-    (cfg.admin.media.max_upload_mb * 1_048_576, cfg.content.directory.clone())
-};
-// Guard dead here. Safe to .await below.
-let index = state.get_all_pages().await;
 ```
 
 ### Testing
@@ -265,12 +251,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_frontmatter() {
-        // ...
-    }
-
-    #[tokio::test]
-    async fn test_async_operation() {
+    fn parses_field_access() {
         // ...
     }
 }
@@ -289,15 +270,15 @@ Docs are organized as one directory per crate with Markdown files per module:
 ```
 target/doc-md/
   index.md                    # main index of all crates
-  axum/index.md               # Crate root docs
-  axum/routing.md             # axum::routing module
-  tokio/sync/index.md         # tokio::sync module
-  serde_json/index.md         # serde_json crate root
+  clap/index.md               # Crate root docs
+  clap/builder.md             # clap::builder module
+  rust_yaml/index.md          # rust_yaml crate root
+  criterion/index.md          # criterion crate root
 ```
 
 To find docs for a crate, read `target/doc-md/<crate_name>/index.md`.
 For a specific module, read `target/doc-md/<crate_name>/<module>.md`.
-Hyphens in crate names become underscores in directory names (e.g., `tower-http` -> `tower_http`).
+Hyphens in crate names become underscores in directory names (e.g., `rust-yaml` -> `rust_yaml`).
 
 ### Regenerating Docs
 

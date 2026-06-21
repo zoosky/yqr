@@ -12,13 +12,7 @@ Complete workflow for preparing and submitting a PR.
 Run all quality gates:
 
 ```bash
-cargo fmt && cargo clippy -- -D warnings && cargo test && cargo bench --bench cache --bench content --bench e2e --bench markdown --bench template
-```
-
-When changes touch templates, content, serve handlers, build command, or render logic, also run parity tests:
-
-```bash
-cd tests/playwright && npm test && npm run test:pagination
+cargo fmt && cargo clippy -- -D warnings && cargo test && cargo bench
 ```
 
 ## Create Feature Branch (if needed)
@@ -70,14 +64,13 @@ Before submitting:
 - [ ] `cargo fmt` - code formatted
 - [ ] `cargo clippy -- -D warnings` - no warnings
 - [ ] `cargo test` - all tests pass
-- [ ] `cargo bench --bench cache --bench content --bench e2e --bench markdown --bench template` - benchmarks pass
-- [ ] `cd tests/playwright && npm test && npm run test:pagination` - parity tests pass (if templates/content/serve/build/render changed)
+- [ ] `cargo bench` - benchmarks pass
 - [ ] Commit messages are clear
 - [ ] PR description explains changes
 
 ## After PR Creation
 
 - CI will run automatically
-- Claude will review the PR (if configured)
+- Automated review runs if configured
 - Address any feedback
 - Squash and merge when approved

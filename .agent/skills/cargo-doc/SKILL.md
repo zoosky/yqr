@@ -16,15 +16,15 @@ Docs are organized as one directory per crate with Markdown files per module:
 ```
 target/doc-md/
   index.md                    # Master index of all crates
-  axum/index.md               # Crate root docs
-  axum/routing.md             # axum::routing module
-  tokio/sync/index.md         # tokio::sync module
-  serde_json/index.md         # serde_json crate root
+  clap/index.md               # Crate root docs
+  clap/builder.md             # clap::builder module
+  rust_yaml/index.md          # rust_yaml crate root
+  criterion/index.md          # criterion crate root
 ```
 
 To find docs for a crate, read `target/doc-md/<crate_name>/index.md`.
 For a specific module, read `target/doc-md/<crate_name>/<module>.md`.
-Hyphens in crate names become underscores in directory names (e.g., `tower-http` -> `tower_http`).
+Hyphens in crate names become underscores in directory names (e.g., `rust-yaml` -> `rust_yaml`).
 
 ## Regenerating Docs
 
@@ -54,15 +54,6 @@ cargo +nightly install cargo-doc-md
 
 | Crate | Purpose | Doc Path |
 |-------|---------|----------|
-| axum | HTTP framework | `target/doc-md/axum/` |
-| tokio | Async runtime | `target/doc-md/tokio/` |
-| minijinja | Template engine | `target/doc-md/minijinja/` |
-| pulldown-cmark | Markdown parser | `target/doc-md/pulldown_cmark/` |
-| extism | WASM plugin runtime | `target/doc-md/extism/` |
-| serde / serde_json | Serialization | `target/doc-md/serde/`, `target/doc-md/serde_json/` |
-| notify | File system watcher | `target/doc-md/notify/` |
-| moka | Concurrent cache | `target/doc-md/moka/` |
-| toml | TOML parsing | `target/doc-md/toml/` |
-| tracing | Structured logging | `target/doc-md/tracing/` |
-| clap | CLI argument parser | `target/doc-md/clap/` |
-| tower-http | HTTP middleware | `target/doc-md/tower_http/` |
+| clap | CLI argument parser (derive) | `target/doc-md/clap/` |
+| rust-yaml | YAML parser / emitter | `target/doc-md/rust_yaml/` |
+| criterion | Benchmark harness (dev-dependency) | `target/doc-md/criterion/` |

@@ -28,13 +28,12 @@ cargo audit
 4. **File operations**: Path traversal protection
 5. **Secrets**: No hardcoded credentials or API keys
 
-## Common Issues in Rust Web Apps
+## Common Issues for a CLI like yqr
 
-- Path traversal in file serving (`../` attacks)
-- Template injection in user content
-- Denial of service via large payloads
-- Missing rate limiting
-- CORS misconfiguration
+- Path traversal when reading the input-file argument
+- Denial of service / OOM from extremely large or deeply nested YAML input
+- Panics on malformed input (return `YqrError` rather than `unwrap`/`panic!`)
+- Unsafe blocks (yqr has none today — keep it that way unless justified)
 
 ## When to Use
 

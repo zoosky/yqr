@@ -5,52 +5,47 @@ description: Run and analyze performance benchmarks. Use when working on perform
 
 # Performance Benchmarking
 
-Run Criterion benchmarks and analyze performance.
+Run the Criterion benchmarks and analyze performance.
 
 ## Running Benchmarks
 
 ```bash
-# Run all benchmarks
+# Run the whole suite
 cargo bench
 
-# Run specific benchmark
-cargo bench -- markdown
-cargo bench -- template
-cargo bench -- cache
-cargo bench -- e2e
+# Run a single benchmark by name filter
+cargo bench --bench eval -- parse
+cargo bench --bench eval -- eval_str/field_access
+cargo bench --bench eval -- eval_str/iterate_100
 ```
 
 ## Comparing Against Baseline
 
 ```bash
-# Save baseline before changes
-cargo bench -- --save-baseline before
+# Save a baseline before changes
+cargo bench --bench eval -- --save-baseline before
 
 # Make your changes...
 
-# Compare against baseline
-cargo bench -- --baseline before
+# Compare against the baseline
+cargo bench --bench eval -- --baseline before
 ```
 
-## Key Benchmarks
+## Benchmarks
 
-| Benchmark | File | What It Measures |
-|-----------|------|------------------|
-| markdown | `benches/markdown.rs` | Markdown-to-HTML conversion |
-| template | `benches/template.rs` | MiniJinja template rendering |
-| cache | `benches/cache.rs` | Cache read/write operations |
-| e2e | `benches/e2e.rs` | Full request-response cycle |
+| Benchmark group | File | What it measures |
+|-----------------|------|------------------|
+| `parse/*` | `benches/eval.rs` | Compiling a filter (`parser::parse`) |
+| `eval_str/*` | `benches/eval.rs` | End-to-end `eval_str` (parse filter + load YAML + evaluate) |
 
 ## Performance Guidelines
 
 - No regressions in hot paths (>5% slower requires justification)
-- Markdown rendering: target <1ms for typical pages
-- Cache hits: target <100μs
-- Template rendering: target <500μs
+- Keep filter parsing allocation-light
+- Prefer iterating over buffering when handling large documents
 
 ## When to Use
 
 - Before merging performance-sensitive changes
-- When optimizing code
-- To establish baseline before refactoring
-- During performance investigations
+- When optimizing the lexer / parser / evaluator
+- To establish a baseline before refactoring
