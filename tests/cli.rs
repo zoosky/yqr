@@ -83,3 +83,30 @@ fn help_flag_succeeds() {
     assert_eq!(out.status, 0);
     assert!(out.stdout.contains("jq-style"));
 }
+
+#[test]
+fn short_version_is_plain() {
+    let out = run(&["-V"], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stdout,
+        format!("yqr {}\n", env!("CARGO_PKG_VERSION")),
+        "-V should print just the crate version"
+    );
+}
+
+#[test]
+fn long_version_includes_build_info() {
+    let out = run(&["--version"], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    // The long version embeds the crate version plus build provenance from
+    // build.rs (commit, timestamp, target). Assert on stable substrings.
+    assert!(
+        out.stdout
+            .starts_with(&format!("yqr {}", env!("CARGO_PKG_VERSION"))),
+        "stdout: {}",
+        out.stdout
+    );
+    assert!(out.stdout.contains("built "), "stdout: {}", out.stdout);
+    assert!(out.stdout.contains("target: "), "stdout: {}", out.stdout);
+}

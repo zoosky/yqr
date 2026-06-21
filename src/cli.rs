@@ -2,6 +2,22 @@
 
 use clap::Parser;
 
+/// Short version (`-V`): just the crate version, e.g. `0.1.0`.
+const SHORT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// Long version (`--version`): the crate version plus the build provenance
+/// captured by `build.rs` — git commit, build timestamp (UTC), and target
+/// triple. Rendered by clap as `yqr <LONG_VERSION>`.
+const LONG_VERSION: &str = concat!(
+    env!("CARGO_PKG_VERSION"),
+    " (",
+    env!("GIT_HASH"),
+    ", built ",
+    env!("BUILD_TIME"),
+    ")\ntarget: ",
+    env!("BUILD_TARGET"),
+);
+
 /// A jq-style command-line processor for YAML.
 ///
 /// Reads a YAML document from a file or stdin, applies a jq-style filter, and
@@ -9,7 +25,8 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 #[command(
     name = "yqr",
-    version,
+    version = SHORT_VERSION,
+    long_version = LONG_VERSION,
     about = "A jq-style command-line processor for YAML",
     long_about = None,
 )]
