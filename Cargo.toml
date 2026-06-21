@@ -1,0 +1,27 @@
+[package]
+name = "yqr"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96"
+description = "A jq-style command-line processor for YAML"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/zoosky/yqr"
+readme = "README.md"
+keywords = ["yaml", "jq", "cli", "query", "filter"]
+categories = ["command-line-utilities", "parsing"]
+
+[[bin]]
+name = "yqr"
+path = "src/main.rs"
+
+[lib]
+name = "yqr"
+path = "src/lib.rs"
+
+[dependencies]
+clap = { version = "4.6.1", features = ["derive"] }
+rust-yaml = "1.1.0"
+
+[profile.release]
+lto = "thin"
+strip = true
