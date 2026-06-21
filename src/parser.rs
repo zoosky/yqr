@@ -1,7 +1,6 @@
 //! Recursive-descent parser: [`Token`]s → [`Ast`].
 //!
-//! Grammar implemented for milestone M0
-//! (see `specs/features/0001-yaml-jq-clone.md`):
+//! Grammar implemented for milestone M0:
 //!
 //! ```text
 //! pipeline := term ('|' term)*

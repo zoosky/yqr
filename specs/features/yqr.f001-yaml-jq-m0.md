@@ -1,4 +1,4 @@
-# Feature 001 — `yqr`: a jq clone for YAML
+# Feature 001 — `yqr`: a Swiss Army knife for YAML
 
 Status: **In progress** (foundation landed)
 Owner: yqr maintainers
