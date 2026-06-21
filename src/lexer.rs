@@ -2,8 +2,7 @@
 //!
 //! Turns a filter string such as `.items[0].name?` into a flat [`Token`]
 //! stream that the [`crate::parser`] consumes. The lexer is intentionally tiny;
-//! it only recognizes the tokens needed by the M0 grammar (see
-//! `specs/features/0001-yaml-jq-clone.md`).
+//! it only recognizes the tokens needed by the M0 grammar.
 
 use crate::error::{Result, YqrError};
 

@@ -1,9 +1,24 @@
 name: CI
 
+# Only run when Rust-relevant files change; docs/spec/config-only changes
+# (Markdown, LICENSE files, other workflows, etc.) skip CI entirely.
+# GitHub Actions does not support YAML anchors, so the path list is repeated.
 on:
   push:
     branches: ["**"]
+    paths:
+      - "**/*.rs"
+      - "**/Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/ci.yml"
   pull_request:
+    paths:
+      - "**/*.rs"
+      - "**/Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/ci.yml"
 
 env:
   CARGO_TERM_COLOR: always

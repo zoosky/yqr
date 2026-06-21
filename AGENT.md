@@ -39,7 +39,7 @@
     - This ensures the spec files and status tracker always reflect the true state of the codebase at the time code is merged.
 18. **Implementation Specs (`specs/implementation/`)**: This folder contains system specifications, fact sheets, and non-functional requirements (e.g., port allocation, thread safety, extension points, license key management). These documents are the **source of truth** for cross-cutting concerns. When making changes that affect these specs, update the relevant document to stay in sync with the codebase. When adding a new cross-cutting concern or system-wide convention, create a new `yqr-mNNN-*.md` file here.
 19. **No Internal Spec References in User-Facing Output** (Feature f136): Feature IDs (`Feature fNNN`), spec paths (`specs/features/...`), and internal tracker references must **never** appear in:
-    - **Rust doc comments** (`///` or `//!`) -- these render in `cargo doc` and `accent docs` output. Use plain `// Feature fNNN` code comments instead for traceability.
+    - **Rust doc comments** (`///` or `//!`) -- these render in `cargo doc` output. Use plain `// Feature fNNN` code comments instead for traceability.
     - **Site documentation** (`docs/content/`) -- wrap in HTML comments (`<!-- Feature fNNN -->`) so they are invisible in rendered HTML but preserved for grep.
     - **CLI output** -- help text, error messages, and printed output must not contain feature IDs.
     - The `specs/` directory, `AGENT.md`, and `#[cfg(test)]` blocks are exempt (they are developer-only).
@@ -98,9 +98,26 @@ gh pr create --title "My change" --body "Description"
 
 yqr is a high-performance, large YAML file query & transformation tool written in Rust. 
 
-### Running the Server
+### Running the CLI
 
-Todo
+```bash
+cargo run -- '<filter>' [file.yaml]   # omit the file to read YAML from stdin
+```
+
+## Agent Toolkit (`.agent/`)
+
+Project-specific agent configuration, reusable skills, and hooks live in `.agent/`:
+
+- **`.agent/skills/`** — invokable skills for common workflows:
+  - `cargo-quality` — run the full quality gate (fmt, clippy, test, bench)
+  - `cargo-doc` — look up crate docs in Markdown from `target/doc-md/` (see "Crate Documentation Lookup" below)
+  - `benchmark` — run and analyze the criterion benchmarks
+  - `dep-upgrade` — upgrade dependencies one at a time with impact analysis
+  - `security-audit` — audit dependencies and review for vulnerabilities
+  - `pr-prepare` — quality checks, commit, and PR creation
+- **`.agent/commands/codereview.md`** — multi-agent pull-request code review.
+- **`.agent/hooks/notify-sound.sh`** — `Stop`-hook chime (macOS) for when the agent needs input.
+- **`.agent/settings.json`** — shared permissions, env vars, and hooks. Per-machine overrides belong in `.agent/settings.local.json`, which is git-ignored and must never be committed.
 
 ## Code Quality Requirements
 
@@ -124,7 +141,7 @@ cargo test
 cargo bench --no-run
 
 # 5. Run benchmarks to catch performance regressions (perf-sensitive PRs only)
-cargo bench --bench admin --bench cache --bench content --bench diagrams --bench e2e --bench markdown --bench media --bench template
+cargo bench
 ```
 
 ### Clippy Configuration
@@ -148,11 +165,34 @@ The project enforces strict clippy lints. See `Cargo.toml` for the full configur
 
 ## Project Structure
 
-Use `tree` tool.
+Run `tree -I 'target|.git'` for the live layout. The key files:
 
-Important annotated directories:
-
-Todo
+```
+yqr/
+├── src/
+│   ├── main.rs        # Binary entry; maps results to jq-style exit codes
+│   ├── cli.rs         # clap (derive) args + --version strings
+│   ├── lib.rs         # Public API: eval_str, render, re-exports
+│   ├── error.rs       # YqrError enum + exit-code mapping
+│   ├── lexer.rs       # Filter source -> Token stream
+│   ├── ast.rs         # Filter AST node definitions
+│   ├── parser.rs      # Recursive-descent Tokens -> Ast
+│   └── eval.rs        # Evaluator: Ast x Value -> stream of Values
+├── benches/eval.rs    # Criterion benchmarks (parse, end-to-end eval_str)
+├── tests/
+│   ├── cli.rs         # Black-box tests of the compiled binary
+│   └── integration.rs # Library end-to-end tests via the public API
+├── build.rs           # Stamps git hash / build time / target into --version
+├── specs/features/    # Feature specs (yqr.fNNN-*.md)
+├── .agent/            # Agent toolkit: skills, command, hook, settings
+├── .github/
+│   ├── workflows/     # ci.yml, benchmark.yml
+│   └── scripts/       # local-ci.sh (local CI mirror)
+├── Cargo.toml
+├── rust-toolchain.toml  # Pins the 1.96 toolchain
+├── AGENT.md
+└── README.md
+```
 
 ## Module Organization
 
@@ -160,8 +200,8 @@ Todo
 
 1. **Separation of concerns**: Each module has a single responsibility
 2. **Public API in lib.rs**: Export only what's needed for library users
-3. **Error handling**: Use `thiserror` for custom error types, propagate with `?`
-4. **Async-first**: Use `async`/`await` throughout for I/O operations, unless there is a large data files, streaming concern.
+3. **Error handling**: one crate-wide error enum (`YqrError`) with a `Result` alias; propagate with `?`
+4. **Keep it synchronous**: yqr is a small synchronous CLI — do not introduce an async runtime (`tokio`/`async`) unless a feature genuinely requires it
 
 ### Module Dependencies
 
@@ -199,45 +239,30 @@ main.rs -> cli.rs (Clap dispatch)
 
 ### Error Handling
 
+yqr uses a single hand-rolled error enum (`src/error.rs`) with a `Result` alias
+and an `exit_code()` mapping — keep dependencies minimal rather than pulling in
+`thiserror`.
+
 ```rust
-// Use thiserror for error types
-#[derive(Debug, thiserror::Error)]
-pub enum ContentError {
-    #[error("page not found: {0}")]
-    NotFound(String),
+pub type Result<T> = std::result::Result<T, YqrError>;
 
-    #[error("invalid frontmatter: {0}")]
-    InvalidFrontmatter(#[from] serde_yaml::Error),
-
-    #[error("io error: {0}")]
-    Io(#[from] std::io::Error),
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum YqrError {
+    Lex(String),
+    Parse(String),
+    Eval(String),
+    Io(String),
 }
 
-// Use Result type alias
-pub type Result<T> = std::result::Result<T, ContentError>;
-```
-
-### Async Code
-
-```rust
-// Prefer async functions
-pub async fn load_page(path: &Path) -> Result<Page> {
-    let content = tokio::fs::read_to_string(path).await?;
-    // ...
+impl YqrError {
+    /// jq-style process exit code for this error category.
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            YqrError::Lex(_) | YqrError::Parse(_) => 3,
+            YqrError::Eval(_) | YqrError::Io(_) => 5,
+        }
+    }
 }
-```
-
-### Async Handler Guard Safety
-
-`state.config()` returns a `std::sync::RwLockReadGuard` which is `!Send`. Holding it across an `.await` makes the handler future `!Send`, which axum rejects with an opaque `Handler<_, _> not satisfied` error. **Always** read config into owned values inside a block scope:
-
-```rust
-let (max_bytes, content_dir) = {
-    let cfg = state.config();
-    (cfg.admin.media.max_upload_mb * 1_048_576, cfg.content.directory.clone())
-};
-// Guard dead here. Safe to .await below.
-let index = state.get_all_pages().await;
 ```
 
 ### Testing
@@ -249,12 +274,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_frontmatter() {
-        // ...
-    }
-
-    #[tokio::test]
-    async fn test_async_operation() {
+    fn parses_field_access() {
         // ...
     }
 }
@@ -273,15 +293,15 @@ Docs are organized as one directory per crate with Markdown files per module:
 ```
 target/doc-md/
   index.md                    # main index of all crates
-  axum/index.md               # Crate root docs
-  axum/routing.md             # axum::routing module
-  tokio/sync/index.md         # tokio::sync module
-  serde_json/index.md         # serde_json crate root
+  clap/index.md               # Crate root docs
+  clap/builder.md             # clap::builder module
+  rust_yaml/index.md          # rust_yaml crate root
+  criterion/index.md          # criterion crate root
 ```
 
 To find docs for a crate, read `target/doc-md/<crate_name>/index.md`.
 For a specific module, read `target/doc-md/<crate_name>/<module>.md`.
-Hyphens in crate names become underscores in directory names (e.g., `tower-http` -> `tower_http`).
+Hyphens in crate names become underscores in directory names (e.g., `rust-yaml` -> `rust_yaml`).
 
 ### Regenerating Docs
 
@@ -302,7 +322,11 @@ cargo +nightly install cargo-doc-md
 
 ### Key Crates in This Project
 
-Todo
+| Crate | Purpose | Doc Path |
+|-------|---------|----------|
+| clap | CLI argument parser (derive feature) | `target/doc-md/clap/` |
+| rust-yaml | YAML parsing and emission (`Value` model) | `target/doc-md/rust_yaml/` |
+| criterion | Benchmark harness (dev-dependency) | `target/doc-md/criterion/` |
 
 ## Dependencies Policy
 
@@ -316,8 +340,7 @@ Todo
 The following should pass in CI:
 
 ```yaml
-.github/scripts/local-ci-fast.sh 
-- cargo doc --no-deps   # Documentation builds
+bash .github/scripts/local-ci.sh   # fmt, clippy, build, test, bench compile, doc
 ```
 
 ## GitHub Actions Workflows

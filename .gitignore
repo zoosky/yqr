@@ -2,3 +2,6 @@
 **/*.rs.bk
 Cargo.lock.orig
 *.pdb
+
+# Per-machine agent settings: local paths/secrets, never commit
+.agent/settings.local.json

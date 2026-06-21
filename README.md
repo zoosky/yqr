@@ -1,17 +1,13 @@
 # yqr
 
-`yqr` ("YAML query in Rust") is a [jq](https://jqlang.github.io/jq/)-style
-command-line processor for **YAML**. It reads a YAML document from a file or
+`yqr` ("YAML query in Rust") is a jq-style Swiss Army knife for **YAML**.
+It reads a YAML document from a file or
 stdin, applies a jq-like filter expression, and emits the result(s) as YAML (or
 raw text).
 
 It operates natively on YAML via the
 [`rust-yaml`](https://crates.io/crates/rust-yaml) parser — no lossy round trip
 through JSON — and uses [`clap`](https://crates.io/crates/clap) for its CLI.
-
-> **Status:** foundation milestone (M0). The core path/pipe subset of jq is
-> implemented. See [`specs/features/0001-yaml-jq-clone.md`](specs/features/0001-yaml-jq-clone.md)
-> for the full plan and roadmap.
 
 ## Install / build
 
@@ -24,7 +20,7 @@ cargo build --release
 
 ## Usage
 
-```
+```sh
 yqr [OPTIONS] <FILTER> [FILE]
 
 Arguments:
