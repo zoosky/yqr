@@ -158,6 +158,18 @@ The project enforces strict clippy lints. See `Cargo.toml` for the full configur
 - **Integration tests**: Located in `tests/` directory
 - **Coverage target**: Aim for >80% code coverage
 - **Property-based tests**: Use `proptest` for complex logic where applicable
+- **Fidelity harness** (`tests/fidelity.rs`): A backend-agnostic round-trip
+  harness that checks the a001 byte-for-byte property (`parse -> emit == input`)
+  across YAML backend libraries, one case per b001 formatting dimension
+  (comments, blank lines, indent, quote/block/flow style, CRLF, BOM, multi-doc,
+  anchors, numbers, key order). It pins bug b001 (the shipped `rust-yaml` path is
+  lossy) and research r002 (the optional `noyalib` CST round-trips byte-for-byte).
+  Add a backend by implementing the `Backend` trait and registering it in
+  `backends()`.
+  - Default run (rust-yaml only, minimal deps):
+    `cargo test --test fidelity -- --nocapture`
+  - Include the experimental `noyalib` CST backend (gated, off by default):
+    `cargo test --test fidelity --features backend-noyalib -- --nocapture --test-threads=1`
 
 ### Benchmarking Requirements
 

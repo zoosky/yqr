@@ -17,6 +17,10 @@ scalar types are preserved as faithfully as the underlying parser allows.
 
 ## 2. Goals
 
+- **Fidelity first (Cohort B).** Comments, key ordering, and invisible
+  characters (blank lines, indentation/quote style, trailing whitespace, BOM,
+  line endings) survive input → output; yqr never rewrites bytes it did not
+  change. Ratified in `yqr-a001`; this outranks jq compatibility on conflict.
 - Familiar jq surface syntax so existing jq muscle memory transfers.
 - Native YAML in / YAML out (no lossy detour through JSON).
 - Streaming, multi-value results just like jq (a filter can yield 0..N values).
@@ -29,9 +33,13 @@ scalar types are preserved as faithfully as the underlying parser allows.
 
 - Full jq language coverage (reduce/foreach, path expressions, `@base64` and
   the rest of the builtin zoo, modules/imports, SQL-style builtins).
-- Comment-preserving round trips (the parser supports it; wiring it through is
-  a later milestone).
 - Performance tuning / zero-copy evaluation.
+
+> **Note (a001):** comment- and format-preserving round trips were previously
+> listed here as a non-goal. They are now a **core goal** (see §2) following the
+> Cohort-B prioritization in `yqr-a001`. The current `Value`-round-trip pipeline
+> does not yet meet this; closing that gap is the next priority (see
+> `yqr-r001` §9).
 
 ## 4. Dependencies & toolchain
 
