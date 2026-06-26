@@ -265,8 +265,26 @@ but it cannot deliver byte fidelity and yqr does not use it:
   `load_all_str_with_comments`**.
 - yqr's `load_str` does not invoke it at all (`src/lib.rs:29-31`).
 
+There **is** an opt-in round-trip path —
+`Yaml::with_loader(LoaderType::RoundTrip)` with `config.preserve_comments`
+(and `preserve_quotes`), via `load_str_with_comments` → `dump_str_with_comments`.
+It is not the default (`Yaml::new()` is the lossy `Safe` loader, and
+`with_loader(RoundTrip)` does **not** auto-enable `preserve_comments`), and it
+does not close the gap. Tested against this bug's corpus, the round-trip path:
+preserves leading/standalone comments and key order, but still loses inline
+comments, blank lines, quote style (despite `preserve_quotes`), block/flow style,
+indentation width, CRLF, trailing whitespace, the trailing newline, number
+lexemes, multi-document, and anchors — **0 of 14 dimensions round-trip
+byte-for-byte**. Worse, `dump_str_with_comments` currently **duplicates and
+relocates comments**: it strips inline comments from the body and appends a
+trailing block repeating each comment several times (minimal repro: input
+`# header\nname: app   # inline\nport: 8080\n`). Reported upstream as
+[elioetibr/rust-yaml#72](https://github.com/elioetibr/rust-yaml/issues/72)
+(alongside the maintainer's existing #29 quote-style and #40 comment-edit issues).
+
 So even adopting the comment API would, at best, re-emit normalized comments on a
-still-reformatted document — not the byte-faithful output `yqr-a001` requires.
+still-reformatted document — and today it mis-emits them outright — not the
+byte-faithful output `yqr-a001` requires.
 
 ### 6.5 Multi-document loss is a `load_str` API choice
 
@@ -368,7 +386,7 @@ they need independent tracking:
 | Option | Closes | Verdict |
 |--------|--------|---------|
 | A. Tune `BasicEmitter` / set `YamlConfig` | a few normalization cases | **Insufficient** — cannot reach §2 (see §7); most knobs are dead (§6.7) |
-| B. Adopt `CommentedValue` / comment composer | normalized comments only | **Insufficient** — still reformats; single-doc; lossy strings (§6.4) |
+| B. Adopt `CommentedValue` / `RoundTrip` loader | normalized comments only | **Insufficient (and buggy today)** — still reformats; single-doc; lossy strings; `dump_str_with_comments` duplicates/relocates comments ([rust-yaml#72](https://github.com/elioetibr/rust-yaml/issues/72)) (§6.4) |
 | C. Switch `load_str`→`load_all_str` + `dump_all_str` | multi-document survival | **Partial** — fixes data loss in §5.1/13 only; everything else still normalized |
 | D. **Source/span layer over the scanner token stream** (slice unchanged bytes, splice only edits) | the whole guarantee | **Recommended** — the `yqr-a001` §4 architecture; the only path to §2 |
 
@@ -403,6 +421,9 @@ This bug is resolved when:
 | `Value` semantic enum (no spans/style) | `value.rs:227-242` |
 | `IndentStyle` default `Spaces(2)` | `value.rs:65-68` |
 | `CommentedValue` wraps plain `Value` | `value.rs:127-134` |
+| `LoaderType` (default `Safe`); `RoundTrip` variant | `yaml.rs:48-57,75` |
+| `with_loader` does not enable `preserve_comments` | `yaml.rs:145-149` |
+| Opt-in comment round-trip API | `yaml.rs:229-249` (`load_str_with_comments`/`dump_str_with_comments`) |
 | Quote-style collapse + type coercion (yqr's path) | `composer.rs:320-341` |
 | `007`→`Int(7)`; null spellings; hex/oct/bin | `resolver.rs:68,104,111+` |
 | Block-scalar dedent/chomp at parse | `parser/mod.rs:1559-1607` |
