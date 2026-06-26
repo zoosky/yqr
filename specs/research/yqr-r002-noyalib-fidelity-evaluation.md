@@ -49,10 +49,13 @@ do not yet commit.**
   corpus files byte-for-byte and performs the exact a001 §4.2 surgical edit —
   where `rust-yaml` fails **13 of 14** (§5).
 - **But** three findings block adopting it as-is: (1) a **reproduced BOM bug** —
-  a BOM followed by any multi-node document is a hard parse error in 0.0.8; (2)
-  it is **0.0.8 with a self-declared "every minor bump may be breaking" policy**
-  and 1.0 deferred to ~2028, single-maintainer; (3) **no large-file CST
-  performance/memory data exists** and each edit copies the whole source.
+  a BOM followed by any multi-node document is a hard parse error in 0.0.8
+  (**fix now in-flight upstream**: PR
+  [sebastienrousseau/noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118),
+  open, not yet merged/released); (2) it is **0.0.8 with a self-declared "every
+  minor bump may be breaking" policy** and 1.0 deferred to ~2028,
+  single-maintainer; (3) **no large-file CST performance/memory data exists** and
+  each edit copies the whole source.
 - `noyalib` has **no jq evaluator**, so it can never fully replace yqr's engine —
   only a **hybrid** (noyalib for the fidelity/CST layer, yqr's own evaluator) is
   viable.
@@ -148,6 +151,20 @@ it (their BOM tests are single-key only). Failing loudly is better than
 `rust-yaml`'s silent corruption, but it is still a blocker until fixed upstream or
 pre-normalized by yqr (stripping a leading BOM before parse is trivial).
 
+**Root cause and upstream fix (in-flight).** The scanner consumes the BOM but
+counts its three bytes toward the column of the following content (and treats the
+BOM's last byte as the character before a first-line `#`), so the first node lands
+at column 3 and a following sibling at column 0 is misread as a dedent below the
+document. Fix submitted upstream as PR
+[sebastienrousseau/noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)
+(the project has GitHub issues disabled, so a PR is the only channel): it makes a
+leading BOM zero-width in the three column/comment sites and adds scanner
+regression tests. Verified locally against this corpus — all BOM forms
+(multi-key, sequence, nested, BOM+CRLF, BOM+comment, single) then round-trip
+byte-identically. **Status: open, not yet merged or released**, so 0.0.8 from
+crates.io still exhibits the bug; the blocker is downgraded but not cleared until
+a fixed version ships and yqr pins it.
+
 ## 6. How the fidelity works (mechanism, verified in source)
 
 `noyalib`'s CST is byte-faithful **by construction**, not by careful emitter
@@ -212,7 +229,7 @@ tuning:
 | Anchors/aliases/merge keys | Yes (preserved, not expanded) | source bytes kept; edits near `&`/`*`/`!` escalate to full re-parse; empirical 09 |
 | Number/type fidelity | Yes (CST path) | never re-serialized; `007`, out-of-i64, hi-precision floats round-trip. Note: the **typed `Value`** path can still lose precision — yqr must not route untouched numbers through it |
 | Key order (+ duplicate keys) | Yes | verbatim emission; empirical 08 |
-| **BOM** | **No / broken** | single-node OK, BOM+multi-node = parse error (§5.3) |
+| **BOM** | **No / broken in 0.0.8** (fix in-flight, PR #118) | single-node OK; BOM+multi-node = parse error in 0.0.8; fixed by [#118](https://github.com/sebastienrousseau/noyalib/pull/118), pending merge/release (§5.3) |
 
 ## 8. API fit for yqr
 
@@ -316,7 +333,7 @@ measured** before committing (§13).
 | jq evaluator | Keep yqr's | **Missing — infeasible** | **Keep yqr's** |
 | Implementation effort | High (re-implement + prove) | n/a | **Medium (adapter + bridge)** |
 | Dependency risk | Low (stay on current dep) | High (0.0.x core) | **Medium (contained behind adapter)** |
-| BOM | We control it | Broken (0.0.8) | Broken until fixed/pre-normalized |
+| BOM | We control it | Broken in 0.0.8 (fix in-flight #118) | Broken in 0.0.8 until #118 ships, or pre-normalized |
 | Large-file perf | We control it | Unknown | **Unknown — must measure** |
 | Foundation built on | the lib that caused `b001` | proven CST design | proven CST design |
 
@@ -329,8 +346,10 @@ loses on dependency maturity — which the gating plan in §13 is designed to ma
 
 **Blockers before any adoption:**
 
-1. **BOM bug** (§5.3) — fixed upstream, or yqr pre-strips a leading BOM and
-   restores it on emit. Cheap to work around but must be explicit.
+1. **BOM bug** (§5.3) — fix submitted upstream (PR
+   [#118](https://github.com/sebastienrousseau/noyalib/pull/118), open); adoption
+   waits on it merging and a release, or yqr pre-strips a leading BOM and restores
+   it on emit. Cheap to work around but must be explicit.
 2. **0.0.x churn** — pin the **exact** version; wrap the CST behind a thin
    internal `yqr` adapter trait so a break/abandonment is contained and Option A
    stays reachable.
@@ -357,9 +376,11 @@ complete than what `rust-yaml`'s scanner tokens offer.
 
 ## 14. Follow-up actions
 
-- File a `noyalib` upstream issue for the BOM + multi-node parse error (with the
-  §5.3 minimal repros), per `yqr` rule 20 (verify before citing — these were
-  reproduced locally).
+- [x] **Done** — upstream fix for the BOM + multi-node parse error submitted as
+  PR [sebastienrousseau/noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)
+  (issues are disabled on the repo, so a PR is the only channel). Track it to
+  merge/release; when a fixed `noyalib` version ships, bump yqr's pin and flip the
+  `bom-multinode` expectation in `tests/fidelity.rs` from `Error` to `Identical`.
 - File a `yqr` implementation/feature spec for the **fidelity adapter trait**
   (the seam in `yqr-a001` §4.3) so Option A and Option C share one interface.
 - Fold the §9 corrections about `noyalib`'s scanner/CST into the eventual
