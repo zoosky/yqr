@@ -195,14 +195,27 @@ Suggested near-term feature specs to file (each gets its own `yqr.fNNN`):
 
 ## 8. Open questions
 
-- **Number model:** should `1 + 1` yield `Int(2)` or coerce toward jq's single
-  `f64` number? Affects every arithmetic/compare/sort feature. (Inherited open
-  question from `yqr.f001` §9.)
-- **Regex engine:** jq uses Oniguruma; matching its flag/semantics in Rust
-  (`regex` crate) is an approximation, not parity. Scope as "jq-like", not
-  "jq-identical".
-- **Comment preservation × transformation:** what should happen to comments on
-  nodes that a filter deletes, moves, or synthesizes? Needs a policy before
-  wiring `CommentedValue`.
-- **`def` / modules:** is user-defined-function support in scope at all, or is
-  `yqr` deliberately a "builtins-only" subset? Decision gates M4 size.
+> **Resolved.** These questions were ratified in `yqr-a001` (Fidelity-First,
+> Surgical-Edit Model). Summary below; see a001 for rationale.
+
+- **Number model:** **preserve types** — `Int op Int → Int` when exact, `Float`
+  only when genuinely fractional; compare/sort by value. Fidelity forbids
+  turning `replicas: 3` into `3.0`.
+- **Comment preservation × transformation:** preserved via **source spans**, not
+  `CommentedValue` strings. Untouched nodes are copied byte-for-byte; deleted
+  nodes take their comments; synthesized nodes get none.
+- **Regex engine:** "jq-like" on the Rust `regex` crate; explicit errors on
+  unsupported constructs (lookaround/backrefs). Not jq-identical.
+- **`def` / modules:** local `def` functions eventually in scope; module system
+  (`import`/`include`) is a non-goal absent real demand.
+
+## 9. Prioritization update (a001)
+
+`yqr-a001` makes **fidelity the top priority for Cohort B**. This reorders the
+near-term plan: the source-preserving **read path (slice-on-emit)** and the
+**`yqr .` byte-for-byte round-trip** property come *before* the construction/
+builtin features above, since today's `Value`-round-trip silently reformats
+files. A new feature spec should capture this:
+
+- **f002** (reprioritized) — Source-preserving read path + round-trip guarantee
+  + multi-document/BOM/CRLF fidelity. *(implements a001 §4.1, §2)*
