@@ -2,7 +2,7 @@
 
 **Status:** Draft
 **Owner:** yqr maintainers
-**Last updated:** 2026-06-26
+**Last updated:** 2026-07-03
 **Implements:** `yqr-a001` §4.3 (the source/span implementation seam)
 **Related:** `yqr-b001` (the fidelity bug this unblocks), `yqr-r001` §9, `yqr-r002` (the rust-yaml-vs-noyalib backend decision this abstracts over)
 
@@ -286,7 +286,24 @@ pre-formats to `Verbatim`. Structural edits are a later extension.
 
 ### 7.1 Backend A — rust-yaml token+span layer (ships first)
 
-| Method | Implementation |
+> **Update (2026-07-03): backend A may reduce to a thin adapter.** The span
+> layer described below was implemented **upstream** and submitted as
+> [rust-yaml#73](https://github.com/elioetibr/rust-yaml/pull/73)
+> (`rust_yaml::RoundTripDocument`: source verbatim + event×token span index +
+> `span_of`/`get`/`set`/`replace_span` + `parse_all` multi-doc + BOM handling;
+> yaml-test-suite fidelity property 1,501/0). If #73 merges and releases, this
+> backend becomes an adapter mapping the seam onto the upstream API —
+> `source()` → `RoundTripDocument::source()`, `doc_*` → `parse_all` slices,
+> `value()` → `RoundTripDocument::value()` (upstream honors the parse-once
+> contract via `load_all_str`), `resolve()` → `span_of(&[PathSegment])` with
+> `None` mapped to `Absent`/`Synthetic`/`Unaddressable` by consulting `value()`,
+> `splice()` → `replace_span`. Caveats vs. this spec: upstream paths are
+> `PathSegment::Key(&str)`/`Index(usize)` (no negative indices — resolve in
+> yqr), and merge-key/alias-interior nodes resolve to no span (map to
+> `Unaddressable`, matching §5). Only if #73 is rejected does the in-yqr build
+> below proceed.
+
+| Method | Implementation (in-yqr build, if #73 does not land) |
 |---|---|
 | `source()` | the owned input `String`, verbatim |
 | `doc_count` / `doc_span` | from `DocumentStart`/`DocumentEnd` token positions (marker-less input = one implicit doc; last doc → EOF incl. trailing trivia) |

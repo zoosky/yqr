@@ -3,7 +3,7 @@
 **Status:** Open (confirmed, reproducible)
 **Severity:** High — violates the core product guarantee ratified in `yqr-a001`
 **Owner:** yqr maintainers
-**Last updated:** 2026-06-26
+**Last updated:** 2026-07-03
 **Affects:** every `yqr` invocation (read/query *and* identity); blocks `yqr-a001` §2
 **Related:** `yqr-a001` (Fidelity-First architecture), `yqr-r001` §5 (YAML-native gaps), `yqr.f001` §2 (Goals)
 **Component:** `rust-yaml` 1.1.0 (load/compose/emit pipeline) as consumed by `src/lib.rs`
@@ -345,6 +345,14 @@ This is the substrate for the **source-preserving, span-based** model in
 original bytes for unchanged/selected regions, and **splice** only the bytes that
 actually change. That makes untouched regions byte-identical *by construction*.
 
+**Update (2026-07-03): this fix has been built and submitted upstream.** PR
+[rust-yaml#73](https://github.com/elioetibr/rust-yaml/pull/73) adds an additive
+`RoundTripDocument` (source kept verbatim + event×token span index +
+`set`/`replace_span` splice edits + `parse_all` multi-doc + BOM handling),
+implementing exactly this substrate inside `rust-yaml` itself. Verified over the
+official yaml-test-suite: 1,501 accepted inputs reproduced byte-for-byte, 0
+violations. Status: open, pending review/release.
+
 ## 9. Corrections to `yqr-a001` assumptions
 
 The source review confirmed `a001`'s core thesis but corrected four specifics
@@ -388,7 +396,7 @@ they need independent tracking:
 | A. Tune `BasicEmitter` / set `YamlConfig` | a few normalization cases | **Insufficient** — cannot reach §2 (see §7); most knobs are dead (§6.7) |
 | B. Adopt `CommentedValue` / `RoundTrip` loader | normalized comments only | **Insufficient (and buggy today)** — still reformats; single-doc; lossy strings; `dump_str_with_comments` duplicates/relocates comments ([rust-yaml#72](https://github.com/elioetibr/rust-yaml/issues/72)) (§6.4) |
 | C. Switch `load_str`→`load_all_str` + `dump_all_str` | multi-document survival | **Partial** — fixes data loss in §5.1/13 only; everything else still normalized |
-| D. **Source/span layer over the scanner token stream** (slice unchanged bytes, splice only edits) | the whole guarantee | **Recommended** — the `yqr-a001` §4 architecture; the only path to §2 |
+| D. **Source/span layer over the scanner token stream** (slice unchanged bytes, splice only edits) | the whole guarantee | **Recommended** — the `yqr-a001` §4 architecture; the only path to §2. Now submitted **upstream** as `RoundTripDocument` ([rust-yaml#73](https://github.com/elioetibr/rust-yaml/pull/73), open); if merged, yqr consumes it instead of building the layer in-house (§8) |
 
 **Recommendation:** pursue Option D (tracked by the `f002` source-preserving
 read-path spec proposed in `yqr-r001` §9). Option C is a cheap, independent win

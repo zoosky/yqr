@@ -345,6 +345,18 @@ working implementation of a001's architecture; A re-implements it on the very
 library that caused `b001`. C wins on effort and on correctness-of-design, and
 loses on dependency maturity — which the gating plan in §13 is designed to manage.
 
+**Update (2026-07-03): Option A's economics changed.** The span layer was built
+and submitted **upstream to rust-yaml itself** as `RoundTripDocument` — PR
+[rust-yaml#73](https://github.com/elioetibr/rust-yaml/pull/73) (source kept
+verbatim + event×token span index + `set`/`replace_span` splices + `parse_all`
+multi-doc + BOM handling; yaml-test-suite fidelity property: 1,501 accepted
+inputs byte-identical, 0 violations). If #73 merges and releases, Option A drops
+from "High (re-implement + prove)" to **"Low (adapter over an upstream API)"** —
+the same containment shape as Option C, but on the dependency yqr already ships
+and with no new crates. The A-vs-C decision then hinges mainly on noyalib's
+maturity risk vs rust-yaml's review/release timeline. Tracked in `yqr-m002`
+§7.1.
+
 ## 13. Decisive risks and the gating plan
 
 **Blockers before any adoption:**
@@ -372,9 +384,11 @@ loses on dependency maturity — which the gating plan in §13 is designed to ma
 
 **Decision rule:** if the BOM bug is resolved/worked-around and the corpus + perf
 gates pass, adopt **C (hybrid)** behind the adapter with a pinned version.
-Otherwise, build **A** in-house — but use `noyalib`'s green-tree-of-lengths +
-`Arc<str>` source + splice design (§6) as the proven blueprint, which is more
-complete than what `rust-yaml`'s scanner tokens offer.
+Otherwise, take **A** — which no longer means building in-house from scratch: if
+[rust-yaml#73](https://github.com/elioetibr/rust-yaml/pull/73) merges, A is an
+adapter over the upstream `RoundTripDocument` API (see the §12 update); only if
+#73 is rejected does A fall back to an in-house build using `noyalib`'s
+green-tree-of-lengths + `Arc<str>` source + splice design (§6) as the blueprint.
 
 ## 14. Follow-up actions
 
