@@ -30,7 +30,7 @@ rust-yaml = "1.1.0"
 # Test-only comparison backend for the fidelity harness (tests/fidelity.rs).
 # Optional and off by default (enabled via the `backend-noyalib` feature), so it
 # is never built in a normal/published build. Experimental: see research r002.
-noyalib = { version = "0.0.8", optional = true }
+noyalib = { version = "0.0.12", optional = true }
 
 [dev-dependencies]
 criterion = "0.8.2"

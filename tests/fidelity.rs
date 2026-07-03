@@ -206,7 +206,9 @@ const CORPUS: &[Case] = &[
     },
     Case {
         // A UTF-8 BOM followed by multiple top-level nodes. noyalib 0.0.8
-        // rejects this (r002 5.3); rust-yaml folds the BOM into the first key.
+        // rejected this (r002 5.3); fixed in 0.0.12 (noyalib#123), it now
+        // round-trips. rust-yaml folds the BOM into the first key (bytes
+        // survive but `.a` no longer resolves).
         name: "bom-multinode",
         input: "\u{FEFF}a: 1\nb: 2\n",
     },
@@ -299,23 +301,18 @@ fn rust_yaml_round_trip_is_lossy() {
 }
 
 /// Pins research r002: `noyalib`'s CST reproduces the source byte-for-byte for
-/// every corpus dimension EXCEPT the known BOM-with-multiple-nodes parse bug,
-/// which is expected to error in 0.0.8. A change in either direction (a newly
-/// failing dimension, or the BOM bug being fixed) will fail this test and flag
-/// that the r002 evaluation needs updating.
+/// **every** corpus dimension. The BOM-with-multiple-nodes parse bug that failed
+/// on 0.0.8 (r002 §5.3) was fixed upstream in 0.0.12 (noyalib#123), so it now
+/// round-trips like the rest. If any dimension regresses, this test fails and
+/// flags that the r002 evaluation needs updating.
 #[cfg(feature = "backend-noyalib")]
 #[test]
 fn noyalib_cst_round_trip_is_faithful() {
     let backend = NoyalibCst;
     for case in CORPUS {
-        let expected = if case.name == "bom-multinode" {
-            Fidelity::Error
-        } else {
-            Fidelity::Identical
-        };
         assert_eq!(
             backend.classify(case.input),
-            expected,
+            Fidelity::Identical,
             "noyalib fidelity changed for `{}` -- update r002 if intentional",
             case.name,
         );
