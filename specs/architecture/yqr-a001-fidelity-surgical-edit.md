@@ -103,6 +103,11 @@ A new module owns the source/span layer (proposed `src/source.rs` or a
 exposes spans) rather than on `Value` (which does not). `Value` remains the
 evaluation currency; it is wrapped/paired with spans, not replaced.
 
+This seam is specified in `yqr-m002` (Fidelity-Engine Adapter): a backend-agnostic
+`FidelityEngine` + `FidelityEdit` trait pair that both a rust-yaml span layer and
+noyalib's CST (see `yqr-r002`) implement, so the engine choice never leaks into
+the evaluator.
+
 ## 5. Consequences
 
 - **Breaking the v0.1.1 contract is intended.** Current `yqr .` reformats; under
