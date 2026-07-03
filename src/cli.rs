@@ -40,6 +40,15 @@ pub struct Cli {
     /// Output raw strings instead of YAML-quoted ones.
     #[arg(short = 'r', long = "raw-output")]
     pub raw_output: bool,
+
+    /// Fidelity engine for byte-preserving reads (available: 'noyalib').
+    ///
+    /// With an engine selected, untouched nodes are emitted as their original
+    /// source bytes: comments, quoting, indentation, and line endings survive,
+    /// and the identity filter reproduces the input byte-for-byte. When
+    /// omitted, yqr uses its standard (re-serializing) pipeline.
+    #[arg(long = "engine", value_name = "ENGINE")]
+    pub engine: Option<String>,
 }
 
 impl Cli {
@@ -74,5 +83,12 @@ mod tests {
         assert_eq!(cli.filter, ".");
         assert_eq!(cli.file, None);
         assert!(!cli.raw_output);
+        assert_eq!(cli.engine, None);
+    }
+
+    #[test]
+    fn parses_engine_flag() {
+        let cli = Cli::try_parse_from(["yqr", "--engine", "noyalib", "."]).unwrap();
+        assert_eq!(cli.engine.as_deref(), Some("noyalib"));
     }
 }

@@ -80,6 +80,37 @@ echo 'name: yqr' | yqr '.name[]?'   # prints nothing, exits 0
 Planned: object/array construction, builtins (`length`, `keys`, `select`,
 `map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
 
+## Byte-preserving reads (`--engine`)
+
+By default yqr re-serializes results, which normalizes formatting (comments,
+quoting, indentation are lost). With a **fidelity engine** selected, untouched
+nodes are emitted as their **original source bytes** instead:
+
+```bash
+# Build with the engine backend (off by default to keep the build minimal)
+cargo build --release --features backend-noyalib
+
+# Identity reproduces the file byte-for-byte -- comments, blank lines,
+# quoting, block scalars, CRLF, BOM, and multi-document streams survive
+yqr --engine noyalib '.' config.yaml | diff config.yaml -   # no diff
+
+# Projections keep the original spelling
+echo "zip: 007" | yqr --engine noyalib '.zip'      # => 007   (not 7)
+echo "s: 'hi'"  | yqr --engine noyalib '.s'        # => 'hi'  (quotes kept)
+```
+
+Results that are computed rather than selected (and nodes the engine cannot
+address faithfully — entries merged in via `<<`, alias references, values
+under duplicate keys) fall back to the regular typed rendering. Multi-document
+inputs run the filter against every document. `-r` keeps its usual meaning and
+prints string *values*.
+
+Two caveats: projecting a nested **block collection** emits its original bytes,
+whose continuation lines keep their source indentation — the slice is faithful
+but may not re-parse as a standalone YAML document. And the engine's parser is
+stricter than the default one in a few corners (e.g. classic-Mac CR-only line
+endings are rejected).
+
 ## Architecture
 
 ```

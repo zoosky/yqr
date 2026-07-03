@@ -9,6 +9,7 @@ use std::io::{self, Read, Write};
 use std::process::ExitCode;
 
 use cli::Cli;
+use yqr::fidelity::{self, BackendId};
 use yqr::{YqrError, eval_str, render};
 
 fn main() -> ExitCode {
@@ -30,6 +31,17 @@ fn main() -> ExitCode {
 
 fn run(args: &Cli) -> Result<String, YqrError> {
     let input = read_input(args.file.as_deref())?;
+    if let Some(engine) = args.engine.as_deref() {
+        let backend = match engine {
+            "noyalib" => BackendId::NoyalibCst,
+            other => {
+                return Err(YqrError::io(format!(
+                    "unknown engine {other:?} (available: noyalib)"
+                )));
+            }
+        };
+        return fidelity::run(backend, &args.filter, &input, args.raw_output);
+    }
     let values = eval_str(&args.filter, &input)?;
     render(&values, args.raw_output)
 }

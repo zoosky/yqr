@@ -27,9 +27,10 @@ harness = false
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
 rust-yaml = "1.1.0"
-# Test-only comparison backend for the fidelity harness (tests/fidelity.rs).
-# Optional and off by default (enabled via the `backend-noyalib` feature), so it
-# is never built in a normal/published build. Experimental: see research r002.
+# Fidelity engine backend (src/fidelity/noyalib.rs) and comparison backend for
+# the round-trip harness (tests/fidelity.rs). Optional and off by default
+# (enabled via the `backend-noyalib` feature), so the default build stays
+# dependency-minimal. See research r002 for the evaluation.
 noyalib = { version = "0.0.12", optional = true }
 
 [dev-dependencies]

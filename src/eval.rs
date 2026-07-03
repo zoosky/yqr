@@ -1,27 +1,52 @@
 //! The evaluation engine: applies an [`Ast`] to a [`Value`], producing a
 //! stream (`Vec<Value>`) of results, mirroring jq's model where any filter can
 //! yield zero or more outputs.
+//!
+//! Every result additionally carries *provenance*: the concrete [`Path`] it
+//! was derived from, or `None` when it was computed rather than selected. The
+//! fidelity engine uses that path to emit untouched nodes by slicing their
+//! original bytes; the classic pipeline simply discards it.
 
 use rust_yaml::Value;
 
 use crate::ast::Ast;
 use crate::error::{Result, YqrError};
+use crate::fidelity::{Path, PathSeg};
+
+/// A result value paired with the concrete path it was selected from
+/// (`None` for computed values with no single source node).
+pub(crate) type Traced = (Value, Option<Path>);
 
 /// Evaluate `ast` against a single input `value`, returning the output stream.
 pub fn eval(ast: &Ast, value: &Value) -> Result<Vec<Value>> {
+    // Feature f002: `eval` is a thin projection of the traced evaluation.
+    Ok(eval_traced(ast, value, None)?
+        .into_iter()
+        .map(|(v, _)| v)
+        .collect())
+}
+
+/// Evaluate `ast` against `value`, threading the concrete path each produced
+/// value was derived from. `path` is the provenance of `value` itself
+/// (`None` disables path tracking entirely, which is the classic pipeline).
+pub(crate) fn eval_traced(ast: &Ast, value: &Value, path: Option<&Path>) -> Result<Vec<Traced>> {
     match ast {
-        Ast::Identity => Ok(vec![value.clone()]),
-        Ast::Field(name) => Ok(vec![field(value, name)?]),
-        Ast::Index(idx) => Ok(vec![index(value, *idx)?]),
-        Ast::Iterate => iterate(value),
+        Ast::Identity => Ok(vec![(value.clone(), path.cloned())]),
+        Ast::Field(name) => {
+            let out = field(value, name)?;
+            let child = path.map(|p| p.child(PathSeg::Key(name.clone())));
+            Ok(vec![(out, child)])
+        }
+        Ast::Index(idx) => Ok(vec![index(value, *idx, path)?]),
+        Ast::Iterate => iterate(value, path),
         Ast::Pipe(lhs, rhs) => {
             let mut out = Vec::new();
-            for v in eval(lhs, value)? {
-                out.extend(eval(rhs, &v)?);
+            for (v, p) in eval_traced(lhs, value, path)? {
+                out.extend(eval_traced(rhs, &v, p.as_ref())?);
             }
             Ok(out)
         }
-        Ast::Optional(inner) => match eval(inner, value) {
+        Ast::Optional(inner) => match eval_traced(inner, value, path) {
             Ok(vs) => Ok(vs),
             Err(_) => Ok(Vec::new()),
         },
@@ -55,16 +80,20 @@ fn field(value: &Value, name: &str) -> Result<Value> {
     }
 }
 
-fn index(value: &Value, idx: i64) -> Result<Value> {
+fn index(value: &Value, idx: i64, path: Option<&Path>) -> Result<Traced> {
     match value {
-        Value::Null => Ok(Value::Null),
+        Value::Null => Ok((Value::Null, None)),
         Value::Sequence(items) => {
             let len = items.len() as i64;
             let resolved = if idx < 0 { len + idx } else { idx };
             if resolved < 0 || resolved >= len {
-                Ok(Value::Null)
+                // Out of range yields null with no source node to slice.
+                Ok((Value::Null, None))
             } else {
-                Ok(items[resolved as usize].clone())
+                #[allow(clippy::cast_sign_loss)] // just checked 0 <= resolved
+                let i = resolved as usize;
+                let child = path.map(|p| p.child(PathSeg::Index(i)));
+                Ok((items[i].clone(), child))
             }
         }
         other => Err(YqrError::eval(format!(
@@ -75,10 +104,25 @@ fn index(value: &Value, idx: i64) -> Result<Value> {
     }
 }
 
-fn iterate(value: &Value) -> Result<Vec<Value>> {
+fn iterate(value: &Value, path: Option<&Path>) -> Result<Vec<Traced>> {
     match value {
-        Value::Sequence(items) => Ok(items.clone()),
-        Value::Mapping(map) => Ok(map.values().cloned().collect()),
+        Value::Sequence(items) => Ok(items
+            .iter()
+            .enumerate()
+            .map(|(i, v)| (v.clone(), path.map(|p| p.child(PathSeg::Index(i)))))
+            .collect()),
+        Value::Mapping(map) => Ok(map
+            .iter()
+            .map(|(k, v)| {
+                // Only string keys are path-addressable; values under other
+                // key types are still yielded, just without provenance.
+                let child = match k {
+                    Value::String(s) => path.map(|p| p.child(PathSeg::Key(s.clone()))),
+                    _ => None,
+                };
+                (v.clone(), child)
+            })
+            .collect()),
         other => Err(YqrError::eval(format!(
             "cannot iterate over {}",
             type_name(other)
@@ -98,6 +142,11 @@ mod tests {
     fn run(filter: &str, yaml: &str) -> Result<Vec<Value>> {
         let ast = crate::parser::parse(filter).expect("valid filter");
         eval(&ast, &load(yaml))
+    }
+
+    fn run_traced(filter: &str, yaml: &str) -> Vec<Traced> {
+        let ast = crate::parser::parse(filter).expect("valid filter");
+        eval_traced(&ast, &load(yaml), Some(&Path::root())).expect("evaluates")
     }
 
     #[test]
@@ -171,5 +220,59 @@ mod tests {
     #[test]
     fn field_on_scalar_errors() {
         assert!(matches!(run(".foo", "5"), Err(YqrError::Eval(_))));
+    }
+
+    // -- provenance threading -------------------------------------------------
+
+    #[test]
+    fn identity_carries_root_path() {
+        let out = run_traced(".", "a: 1");
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0].1, Some(Path::root()));
+    }
+
+    #[test]
+    fn field_and_index_extend_the_path() {
+        let out = run_traced(".items[0]", "items:\n  - x\n  - y");
+        assert_eq!(
+            out[0].1,
+            Some(
+                Path::root()
+                    .child(PathSeg::Key("items".into()))
+                    .child(PathSeg::Index(0))
+            )
+        );
+    }
+
+    #[test]
+    fn negative_index_resolves_in_the_path() {
+        let out = run_traced(".[-1]", "[10, 20, 30]");
+        assert_eq!(out[0].1, Some(Path::root().child(PathSeg::Index(2))));
+    }
+
+    #[test]
+    fn out_of_range_index_has_no_path() {
+        let out = run_traced(".[9]", "[1, 2]");
+        assert_eq!(out[0], (Value::Null, None));
+    }
+
+    #[test]
+    fn iteration_branches_paths_per_element() {
+        let out = run_traced(".[]", "a: 1\nb: 2");
+        let paths: Vec<_> = out.into_iter().map(|(_, p)| p).collect();
+        assert_eq!(
+            paths,
+            vec![
+                Some(Path::root().child(PathSeg::Key("a".into()))),
+                Some(Path::root().child(PathSeg::Key("b".into()))),
+            ]
+        );
+    }
+
+    #[test]
+    fn untracked_evaluation_yields_no_paths() {
+        let ast = crate::parser::parse(".a").expect("valid filter");
+        let out = eval_traced(&ast, &load("a: 1"), None).unwrap();
+        assert_eq!(out[0].1, None);
     }
 }
