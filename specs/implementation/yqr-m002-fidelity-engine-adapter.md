@@ -302,6 +302,14 @@ pre-formats to `Verbatim`. Structural edits are a later extension.
 > yqr), and merge-key/alias-interior nodes resolve to no span (map to
 > `Unaddressable`, matching §5). Only if #73 is rejected does the in-yqr build
 > below proceed.
+>
+> **Update (2026-07-04): backend A SHIPPED as the adapter** (`yqr-f003`).
+> `src/fidelity/rustyaml.rs` maps the seam onto `rust_yaml_rt::RoundTripDocument`
+> from the fork's `feat/roundtrip-document` branch, behind the
+> `backend-rust-yaml` feature and the `--engine rust-yaml` switch. It never
+> produces `Unaddressable` (keys resolve by scalar text), keeps full typed keys
+> (no collision guard), and resolves duplicates last-wins. The in-yqr token
+> walk below was not needed.
 
 | Method | Implementation (in-yqr build, if #73 does not land) |
 |---|---|

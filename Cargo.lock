@@ -552,6 +552,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust-yaml"
+version = "1.1.0"
+source = "git+https://github.com/zoosky/rust-yaml.git?branch=feat%2Froundtrip-document#06e3f1e73ceaed17e5b611cbaa20ecc17c8e7e4e"
+dependencies = [
+ "base64",
+ "indexmap",
+ "memmap2",
+ "regex",
+]
+
+[[package]]
 name = "rustc-hash"
 version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -806,7 +817,8 @@ dependencies = [
  "clap",
  "criterion",
  "noyalib",
- "rust-yaml",
+ "rust-yaml 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rust-yaml 1.1.0 (git+https://github.com/zoosky/rust-yaml.git?branch=feat%2Froundtrip-document)",
 ]
 
 [[package]]
