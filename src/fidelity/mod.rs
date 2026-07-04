@@ -30,6 +30,9 @@ use crate::error::Result;
 #[cfg(feature = "backend-noyalib")]
 mod noyalib;
 
+#[cfg(feature = "backend-rust-yaml")]
+mod rustyaml;
+
 /// A half-open byte range `[start, end)` into [`FidelityEngine::source`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Span {
@@ -169,17 +172,21 @@ pub enum Resolved<'a> {
 pub enum BackendId {
     /// noyalib's lossless CST (feature `backend-noyalib`).
     NoyalibCst,
+    /// The rust-yaml fork's source-preserving `RoundTripDocument` (feature
+    /// `backend-rust-yaml`).
+    RustYamlRoundTrip,
 }
 
 impl BackendId {
     /// Every backend yqr knows about, whether or not it is compiled in.
-    pub const ALL: &'static [BackendId] = &[BackendId::NoyalibCst];
+    pub const ALL: &'static [BackendId] = &[BackendId::NoyalibCst, BackendId::RustYamlRoundTrip];
 
     /// The name used on the command line and in messages.
     #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {
             BackendId::NoyalibCst => "noyalib",
+            BackendId::RustYamlRoundTrip => "rust-yaml",
         }
     }
 
@@ -271,6 +278,20 @@ pub fn open(backend: BackendId, input: &str) -> Result<Box<dyn FidelityEngine>> 
                 Err(crate::error::YqrError::io(
                     "engine 'noyalib' is not available in this build \
                      (rebuild with: cargo build --features backend-noyalib)",
+                ))
+            }
+        }
+        BackendId::RustYamlRoundTrip => {
+            #[cfg(feature = "backend-rust-yaml")]
+            {
+                Ok(Box::new(rustyaml::RustYamlEngine::open(input)?))
+            }
+            #[cfg(not(feature = "backend-rust-yaml"))]
+            {
+                let _ = input;
+                Err(crate::error::YqrError::io(
+                    "engine 'rust-yaml' is not available in this build \
+                     (rebuild with: cargo build --features backend-rust-yaml)",
                 ))
             }
         }
@@ -370,6 +391,15 @@ mod tests {
     fn open_reports_missing_backend() {
         match open(BackendId::NoyalibCst, "a: 1\n") {
             Err(err) => assert!(err.to_string().contains("backend-noyalib")),
+            Ok(_) => panic!("expected the backend to be unavailable"),
+        }
+    }
+
+    #[cfg(not(feature = "backend-rust-yaml"))]
+    #[test]
+    fn open_reports_missing_rust_yaml_backend() {
+        match open(BackendId::RustYamlRoundTrip, "a: 1\n") {
+            Err(err) => assert!(err.to_string().contains("backend-rust-yaml")),
             Ok(_) => panic!("expected the backend to be unavailable"),
         }
     }

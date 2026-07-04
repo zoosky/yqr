@@ -132,6 +132,8 @@ it from the caller: deliberate, so the `resolve` seam stays backend-agnostic.
 - Mutation (`FidelityEdit`) — no assignment grammar in yqr yet.
 - Backend A (rust-yaml) — an adapter over upstream #73 when it merges/releases
   (`yqr-m002` §7.1 update); in-yqr token walk only if #73 is rejected.
+  **Update (2026-07-04): shipped as `yqr-f003`** (the fork's `RoundTripDocument`
+  behind `--engine rust-yaml`).
 - Per-node fidelity warnings on stderr (candidate follow-up).
 - `docs/content/` usage pages — the repo has no docs site yet; README carries
   the usage notes for now.

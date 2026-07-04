@@ -32,6 +32,13 @@ rust-yaml = "1.1.0"
 # (enabled via the `backend-noyalib` feature), so the default build stays
 # dependency-minimal. See research r002 for the evaluation.
 noyalib = { version = "0.0.12", optional = true }
+# Fidelity engine backend A (src/fidelity/rustyaml.rs) and comparison backend
+# for the round-trip harness: our rust-yaml fork's source-preserving
+# `RoundTripDocument` API. It is the *same* crate yqr already depends on from
+# crates.io, brought in under a distinct name from the fork branch so the
+# default (crates.io) build is untouched. Optional and off by default (enabled
+# via the `backend-rust-yaml` feature). See bug b001 §8 and impl m002 §7.1.
+rust-yaml-rt = { package = "rust-yaml", git = "https://github.com/zoosky/rust-yaml.git", branch = "feat/roundtrip-document", optional = true }
 
 [dev-dependencies]
 criterion = "0.8.2"
@@ -43,6 +50,9 @@ rust-yaml = "1.1.0"
 [features]
 # Adds the noyalib CST backend to the fidelity harness. Off by default.
 backend-noyalib = ["dep:noyalib"]
+# Adds the rust-yaml fork's RoundTripDocument backend (backend A) to the
+# fidelity engine and harness. Off by default.
+backend-rust-yaml = ["dep:rust-yaml-rt"]
 
 [profile.release]
 lto = "thin"

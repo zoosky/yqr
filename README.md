@@ -84,46 +84,52 @@ Planned: object/array construction, builtins (`length`, `keys`, `select`,
 
 By default yqr re-serializes results, which normalizes formatting (comments,
 quoting, indentation are lost). With a **fidelity engine** selected, untouched
-nodes are emitted as their **original source bytes** instead:
+nodes are emitted as their **original source bytes** instead. Two engines are
+available, each behind its own off-by-default feature:
+
+- `--engine rust-yaml` — our rust-yaml fork's source-preserving
+  `RoundTripDocument` (feature `backend-rust-yaml`). Mapping keys keep their
+  full typed value, so nothing collides and special-character keys are
+  addressable.
+- `--engine noyalib` — noyalib's lossless CST (feature `backend-noyalib`).
 
 ```bash
-# Build with the engine backend (off by default to keep the build minimal)
-cargo build --release --features backend-noyalib
+# Build with an engine backend (off by default to keep the build minimal)
+cargo build --release --features backend-rust-yaml
 
 # Identity reproduces the file byte-for-byte -- comments, blank lines,
 # quoting, block scalars, CRLF, BOM, and multi-document streams survive
-yqr --engine noyalib '.' config.yaml | diff config.yaml -   # no diff
+yqr --engine rust-yaml '.' config.yaml | diff config.yaml -   # no diff
 
 # Projections keep the original spelling
-echo "zip: 007" | yqr --engine noyalib '.zip'      # => 007   (not 7)
-echo "s: 'hi'"  | yqr --engine noyalib '.s'        # => 'hi'  (quotes kept)
+echo "zip: 007" | yqr --engine rust-yaml '.zip'      # => 007   (not 7)
+echo "s: 'hi'"  | yqr --engine rust-yaml '.s'        # => 'hi'  (quotes kept)
 ```
 
-Results that are computed rather than selected (and nodes the engine cannot
-address faithfully — entries merged in via `<<`, alias references, values
-under duplicate keys) fall back to the regular typed rendering. Multi-document
-inputs run the filter against every document. `-r` keeps its usual meaning and
-prints string *values*.
+Results that are computed rather than selected (and nodes an engine cannot
+address faithfully — entries merged in via `<<`, alias references) fall back to
+the regular typed rendering. Multi-document inputs run the filter against every
+document. `-r` keeps its usual meaning and prints string *values*.
 
-Engine-mode caveats:
+Engine-mode notes:
 
 - Projected nested **block collections** are emitted at their original
   indentation (the slice is extended to the line start), so the output is
   uniformly indented and re-parses to the selected value.
-- The engine's value model has **string-only mapping keys**: non-string keys
-  (`true:`, `8080:`) are matched by their spelling, which can answer filters
-  differently than the default pipeline. Distinct keys that collide after
-  string conversion (`1` and `"1"`) are refused with an error rather than
-  silently dropping an entry.
-- Under **duplicate keys**, the selected value is always the last occurrence
-  (matching jq), but its emitted spelling can come from an earlier
-  equal-valued duplicate.
-- Comments **above the first key** of a projected block collection belong to
-  the parent's byte range and are not part of the projection.
 - **Empty input** produces no output in engine mode (byte-identity with the
   empty file), where the default pipeline prints `null`.
-- The engine's parser is stricter in a few corners (e.g. classic-Mac CR-only
-  line endings are rejected).
+- With `--engine rust-yaml`, mapping keys keep their **full typed value**, so
+  distinct keys never collide, special-character keys (`a.b`) are addressable,
+  and duplicate keys emit the last occurrence's real bytes. (An anchored
+  scalar projects its value without the `&anchor` label.) Current limitation: a
+  stream ending in a `...` document-end marker **after a block collection** is
+  rejected (a fork parser bug being fixed upstream).
+- With `--engine noyalib`, the value model has **string-only mapping keys**:
+  non-string keys (`true:`, `8080:`) are matched by spelling; distinct keys
+  that collide after string conversion (`1` and `"1"`) are refused with an
+  error; and under equal-valued duplicate keys the emitted spelling can come
+  from an earlier duplicate. Its parser is also stricter in a few corners
+  (e.g. classic-Mac CR-only line endings are rejected).
 
 ## Architecture
 
