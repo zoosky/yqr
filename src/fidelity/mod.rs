@@ -133,9 +133,6 @@ impl Path {
 pub enum Unaddressable {
     /// The key uses characters the backend's path layer cannot express.
     SpecialCharKey(String),
-    /// The backend recognizes the path but has no span for this node kind;
-    /// the payload names the kind for diagnostics.
-    Unindexed(&'static str),
 }
 
 /// Outcome of resolving a concrete path against one document.
@@ -175,12 +172,33 @@ pub enum BackendId {
 }
 
 impl BackendId {
+    /// Every backend yqr knows about, whether or not it is compiled in.
+    pub const ALL: &'static [BackendId] = &[BackendId::NoyalibCst];
+
     /// The name used on the command line and in messages.
     #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {
             BackendId::NoyalibCst => "noyalib",
         }
+    }
+
+    /// Look up a backend by its command-line name. This is the single place
+    /// engine names are interpreted, so the CLI, error messages, and the
+    /// [`open`] dispatch cannot drift apart.
+    #[must_use]
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.iter().copied().find(|b| b.as_str() == name)
+    }
+
+    /// Comma-separated list of all engine names, for error messages.
+    #[must_use]
+    pub fn known_names() -> String {
+        Self::ALL
+            .iter()
+            .map(|b| b.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
     }
 }
 

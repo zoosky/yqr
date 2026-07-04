@@ -105,11 +105,25 @@ under duplicate keys) fall back to the regular typed rendering. Multi-document
 inputs run the filter against every document. `-r` keeps its usual meaning and
 prints string *values*.
 
-Two caveats: projecting a nested **block collection** emits its original bytes,
-whose continuation lines keep their source indentation — the slice is faithful
-but may not re-parse as a standalone YAML document. And the engine's parser is
-stricter than the default one in a few corners (e.g. classic-Mac CR-only line
-endings are rejected).
+Engine-mode caveats:
+
+- Projected nested **block collections** are emitted at their original
+  indentation (the slice is extended to the line start), so the output is
+  uniformly indented and re-parses to the selected value.
+- The engine's value model has **string-only mapping keys**: non-string keys
+  (`true:`, `8080:`) are matched by their spelling, which can answer filters
+  differently than the default pipeline. Distinct keys that collide after
+  string conversion (`1` and `"1"`) are refused with an error rather than
+  silently dropping an entry.
+- Under **duplicate keys**, the selected value is always the last occurrence
+  (matching jq), but its emitted spelling can come from an earlier
+  equal-valued duplicate.
+- Comments **above the first key** of a projected block collection belong to
+  the parent's byte range and are not part of the projection.
+- **Empty input** produces no output in engine mode (byte-identity with the
+  empty file), where the default pipeline prints `null`.
+- The engine's parser is stricter in a few corners (e.g. classic-Mac CR-only
+  line endings are rejected).
 
 ## Architecture
 

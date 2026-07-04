@@ -40,6 +40,14 @@ impl NoyalibEngine {
         let mut offsets = Vec::with_capacity(docs.len());
         let mut cursor = 0usize;
         for doc in &docs {
+            // Compare content, not just lengths: every span downstream is
+            // rebased on these offsets, so a document whose slice diverged
+            // from the input would silently mis-map every projection.
+            if !input[cursor..].starts_with(doc.source()) {
+                return Err(YqrError::io(format!(
+                    "fidelity violation: document slice at byte {cursor} does not match the input"
+                )));
+            }
             offsets.push(cursor);
             cursor += doc.source().len();
         }
@@ -50,7 +58,27 @@ impl NoyalibEngine {
             )));
         }
 
-        let values = docs.iter().map(|d| lower_value(&d.as_value())).collect();
+        let values: Vec<Value> = docs.iter().map(|d| lower_value(&d.as_value())).collect();
+
+        // The engine's value model has string-only mapping keys, so distinct
+        // YAML keys that share a spelling (`1` and `"1"`) would collapse into
+        // one entry — silent data loss. Cross-check entry counts against the
+        // default loader (best effort: skipped when it cannot parse the input
+        // or disagrees about document boundaries) and refuse loudly instead.
+        let scanned = input.strip_prefix('\u{feff}').unwrap_or(input);
+        if let Ok(classic) = rust_yaml::Yaml::new().load_all_str(scanned)
+            && classic.len() == values.len()
+            && classic
+                .iter()
+                .zip(&values)
+                .any(|(c, l)| entry_counts_diverge(c, l))
+        {
+            return Err(YqrError::eval(
+                "engine 'noyalib' cannot represent this document faithfully: \
+                 distinct mapping keys collide after string conversion \
+                 (e.g. `1` and `\"1\"` as keys of the same mapping)",
+            ));
+        }
 
         Ok(Self {
             source: input.to_string(),
@@ -152,12 +180,19 @@ impl FidelityEngine for NoyalibEngine {
 }
 
 impl NoyalibEngine {
-    /// Accept a resolved span only when its bytes demonstrably denote the
-    /// value the evaluator selected: the slice (tried verbatim, then with its
-    /// original leading columns restored, so block slices re-indent) must
-    /// re-parse to `expected`. This is the wrong-node guard — without it a
-    /// span could silently emit bytes of a different node than the typed view
-    /// evaluated (e.g. under duplicate keys).
+    /// Accept a resolved span only when the bytes that will actually be
+    /// emitted demonstrably denote the value the evaluator selected: the
+    /// emitted slice must re-parse to `expected`. This is the wrong-node
+    /// guard — without it a span could silently emit bytes of a different
+    /// node than the typed view evaluated (e.g. under duplicate keys).
+    ///
+    /// A nested block collection's span starts at its first key, leaving the
+    /// first line's indentation just left of the span while later lines keep
+    /// theirs — such a slice is misleading on its own (a downstream parser
+    /// mis-nests it). When the bytes between the line start and the span are
+    /// pure indentation, the span is **extended to the line start** so the
+    /// emitted slice is uniformly indented, still verbatim source, and
+    /// verified in exactly the form it is emitted.
     fn verified_found(&self, span: Span, expected: &Value) -> Option<Resolved<'_>> {
         let bytes = span.slice(&self.source);
         if bytes.trim().is_empty() {
@@ -168,15 +203,41 @@ impl NoyalibEngine {
         if reparses_to(bytes, expected) {
             return Some(Resolved::Found { span, bytes });
         }
-        // A block-structured slice loses its first line's indentation (it
-        // lives to the left of the span); restore the original leading
-        // columns for the verification parse only.
         let line_start = self.source[..span.start].rfind('\n').map_or(0, |i| i + 1);
-        let padded = format!("{}{bytes}", " ".repeat(span.start - line_start));
-        if reparses_to(&padded, expected) {
-            return Some(Resolved::Found { span, bytes });
+        let prefix = &self.source[line_start..span.start];
+        if !prefix.is_empty() && prefix.bytes().all(|b| b == b' ') {
+            let extended = Span::new(line_start, span.end);
+            let extended_bytes = extended.slice(&self.source);
+            if reparses_to(extended_bytes, expected) {
+                return Some(Resolved::Found {
+                    span: extended,
+                    bytes: extended_bytes,
+                });
+            }
         }
         None
+    }
+}
+
+/// Whether two typed views of the same document disagree on any collection's
+/// entry count — the signature of distinct keys collapsing under the engine's
+/// string-only key model. Scalars are never compared (the two loaders type
+/// them differently by design); only structure is.
+fn entry_counts_diverge(classic: &Value, lowered: &Value) -> bool {
+    match (classic, lowered) {
+        (Value::Mapping(a), Value::Mapping(b)) => {
+            a.len() != b.len()
+                || a.values()
+                    .zip(b.values())
+                    .any(|(x, y)| entry_counts_diverge(x, y))
+        }
+        (Value::Sequence(a), Value::Sequence(b)) => {
+            a.len() != b.len()
+                || a.iter()
+                    .zip(b.iter())
+                    .any(|(x, y)| entry_counts_diverge(x, y))
+        }
+        _ => false,
     }
 }
 
@@ -411,18 +472,68 @@ mod tests {
     }
 
     #[test]
-    fn block_mapping_projection_survives_verification() {
-        // The padded re-parse must accept block slices whose first line's
-        // indentation lives outside the span.
+    fn block_mapping_projection_extends_to_uniform_indentation() {
+        // A block slice whose first line's indentation lies left of the raw
+        // span is extended to the line start, so the EMITTED bytes are
+        // uniformly indented, verbatim source, and re-parse to the selected
+        // value (a mis-indented slice would silently re-nest downstream).
         let e = engine("config:\n  debug: true\n  level: info\nafter: 1\n");
         let path = Path::root().child(PathSeg::Key("config".into()));
         match e.resolve(0, &path).unwrap() {
             Resolved::Found { bytes, .. } => {
-                assert!(bytes.starts_with("debug: true"));
-                assert!(bytes.contains("level: info"));
+                assert_eq!(bytes, "  debug: true\n  level: info");
+                let reparsed = ::noyalib::cst::parse_document(bytes).expect("emitted parses");
+                assert_eq!(
+                    lower_value(&reparsed.as_value()),
+                    e.value(0).unwrap().get_str("config").unwrap().clone(),
+                    "emitted bytes must denote the selected value"
+                );
             }
             other => panic!("expected Found, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn block_sequence_projection_is_not_misleading() {
+        // Regression: '- alpha\n    - beta' (first line dedented) silently
+        // re-parses as ["alpha - beta"]; the extended span must prevent it.
+        let e = engine("spec:\n  items:\n    - alpha\n    - beta\n");
+        let path = Path::root()
+            .child(PathSeg::Key("spec".into()))
+            .child(PathSeg::Key("items".into()));
+        match e.resolve(0, &path).unwrap() {
+            Resolved::Found { bytes, .. } => {
+                assert_eq!(bytes, "    - alpha\n    - beta");
+                let reparsed = ::noyalib::cst::parse_document(bytes).expect("emitted parses");
+                let expected = Value::Sequence(vec![
+                    Value::String("alpha".into()),
+                    Value::String("beta".into()),
+                ]);
+                assert_eq!(lower_value(&reparsed.as_value()), expected);
+            }
+            other => panic!("expected Found, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn colliding_keys_are_refused_loudly() {
+        // `1` and `"1"` are distinct YAML keys but collide in the engine's
+        // string-only key model; silent entry loss must be an error instead.
+        assert!(NoyalibEngine::open("1: a\n\"1\": b\n").is_err());
+    }
+
+    #[test]
+    fn non_colliding_numeric_keys_still_load() {
+        // A lone numeric key stringifies without losing entries; allowed
+        // (documented divergence from the classic pipeline's typed keys).
+        let e = engine("8080: service\n");
+        assert_eq!(e.doc_count(), 1);
+    }
+
+    #[test]
+    fn merge_keys_do_not_trip_the_collision_check() {
+        let e = engine("defaults: &d\n  timeout: 30\nservice:\n  <<: *d\n  name: web\n");
+        assert_eq!(e.doc_count(), 1);
     }
 
     #[test]

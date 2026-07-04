@@ -150,3 +150,16 @@ fn engine_without_backend_reports_missing_feature() {
         out.stderr
     );
 }
+
+#[test]
+fn unknown_engine_is_diagnosed_before_reading_input() {
+    // A bad --engine must fail even when the input file does not exist:
+    // engine validation happens before input is consumed.
+    let out = run(&["--engine", "bogus", ".", "/nonexistent/input.yaml"], "");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("unknown engine"),
+        "stderr: {}",
+        out.stderr
+    );
+}

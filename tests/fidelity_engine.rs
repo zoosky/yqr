@@ -140,7 +140,54 @@ fn special_char_key_degrades_to_typed_rendering() {
 
 #[test]
 fn empty_input_produces_no_output() {
+    // Intentional divergence from the classic pipeline (which prints null):
+    // in engine mode the identity of an empty file is the empty file.
     assert_eq!(fid(".", "", false), "");
+}
+
+#[test]
+fn projected_block_collection_reparses_to_selected_value() {
+    // Regression: a first-line-dedented slice ('- alpha\n    - beta') would
+    // silently re-parse downstream as the one-element list ["alpha - beta"].
+    // The emitted slice must be uniformly indented and denote the value.
+    let input = "spec:\n  items:\n    - alpha\n    - beta\n";
+    let out = fid(".spec.items", input, false);
+    assert_eq!(out, "    - alpha\n    - beta\n");
+    let reparsed = yqr::eval_str(".", &out).expect("emitted output is valid YAML");
+    assert_eq!(
+        reparsed[0],
+        yqr::Value::Sequence(vec![
+            yqr::Value::String("alpha".into()),
+            yqr::Value::String("beta".into()),
+        ]),
+    );
+}
+
+#[test]
+fn projected_block_mapping_reparses_standalone() {
+    let input = "config:\n  debug: true\n  level: info\nafter: 1\n";
+    let out = fid(".config", input, false);
+    assert_eq!(out, "  debug: true\n  level: info\n");
+    assert!(
+        yqr::eval_str(".debug", &out).is_ok(),
+        "output must re-parse"
+    );
+}
+
+#[test]
+fn colliding_stringified_keys_error_instead_of_dropping_entries() {
+    // `1` and `"1"` are distinct YAML keys; the engine's string-only key
+    // model would silently collapse them, so it must refuse instead.
+    let err = run(BackendId::NoyalibCst, ".[]", "1: a\n\"1\": b\n", false)
+        .expect_err("collision must be an error");
+    assert!(err.to_string().contains("collide"), "got: {err}");
+}
+
+#[test]
+fn non_string_keys_match_by_spelling() {
+    // Documented engine divergence: the classic pipeline keys this entry by
+    // Bool(true), so `.true` misses; the engine matches the spelling.
+    assert_eq!(fid(".true", "true: yes\n", false), "yes\n");
 }
 
 #[test]

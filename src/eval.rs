@@ -32,11 +32,7 @@ pub fn eval(ast: &Ast, value: &Value) -> Result<Vec<Value>> {
 pub(crate) fn eval_traced(ast: &Ast, value: &Value, path: Option<&Path>) -> Result<Vec<Traced>> {
     match ast {
         Ast::Identity => Ok(vec![(value.clone(), path.cloned())]),
-        Ast::Field(name) => {
-            let out = field(value, name)?;
-            let child = path.map(|p| p.child(PathSeg::Key(name.clone())));
-            Ok(vec![(out, child)])
-        }
+        Ast::Field(name) => Ok(vec![field(value, name, path)?]),
         Ast::Index(idx) => Ok(vec![index(value, *idx, path)?]),
         Ast::Iterate => iterate(value, path),
         Ast::Pipe(lhs, rhs) => {
@@ -65,12 +61,19 @@ fn type_name(v: &Value) -> &'static str {
     }
 }
 
-fn field(value: &Value, name: &str) -> Result<Value> {
+fn field(value: &Value, name: &str, path: Option<&Path>) -> Result<Traced> {
     match value {
-        Value::Null => Ok(Value::Null),
+        Value::Null => Ok((Value::Null, None)),
         Value::Mapping(map) => {
             let key = Value::String(name.to_string());
-            Ok(map.get(&key).cloned().unwrap_or(Value::Null))
+            // Absent members share one convention with out-of-range indexing:
+            // null with no provenance (there is no source node to slice).
+            Ok(map.get(&key).map_or((Value::Null, None), |v| {
+                (
+                    v.clone(),
+                    path.map(|p| p.child(PathSeg::Key(name.to_string()))),
+                )
+            }))
         }
         other => Err(YqrError::eval(format!(
             "cannot index {} with field {:?}",
@@ -267,6 +270,14 @@ mod tests {
                 Some(Path::root().child(PathSeg::Key("b".into()))),
             ]
         );
+    }
+
+    #[test]
+    fn missing_field_has_no_path() {
+        // Same convention as out-of-range indexing: absent -> null without
+        // provenance (there is no source node the engine could slice).
+        let out = run_traced(".nope", "a: 1");
+        assert_eq!(out[0], (Value::Null, None));
     }
 
     #[test]

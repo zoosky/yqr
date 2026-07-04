@@ -93,12 +93,32 @@ selected; on any disagreement the engine degrades to `Synthetic` (visible typed
 fallback). The identity/root path is exempt (byte-exact by construction; held
 on 45+ adversarial inputs).
 
-Known, documented limitations that remain: nested block-collection slices are
-faithful but not standalone-parseable (first line's indentation lives outside
-the span); the noyalib parser rejects a few inputs the default engine accepts
+A second (xhigh) review pass hardened the guard further:
+
+- **Emitted == verified.** The guard originally verified a *padded*
+  reconstruction but emitted the unpadded slice — a nested block sequence
+  printed as `- alpha\n    - beta`, which downstream parsers silently re-parse
+  as `["alpha - beta"]`. Now the span is **extended to the line start** when
+  the prefix is pure indentation, so the emitted bytes are uniformly indented
+  verbatim source and are verified in exactly the emitted form.
+- **Key-collision refusal.** The engine's value model has string-only mapping
+  keys; distinct YAML keys colliding after string conversion (`1` and `"1"`)
+  would silently drop an entry. `open()` cross-checks collection entry counts
+  against the default loader (best effort) and refuses loudly instead.
+- **Per-document content check** in `open()` (not just summed lengths), and
+  absent-node provenance unified across field/index in the evaluator.
+- CI and the local mirror now run the test suite with `--all-features`, so the
+  gated backend tests actually execute in the pipeline.
+
+Known, documented limitations that remain (details and upstream asks in
+`yqr-b002`): non-string keys are matched by spelling (filter results can
+differ from the classic pipeline even without collisions); under equal-valued
+duplicate keys the emitted spelling can come from the shadowed occurrence;
+comments above a block collection's first key belong to the parent's range;
+empty input emits nothing (byte-identity) where the classic pipeline prints
+`null`; the noyalib parser rejects a few inputs the default engine accepts
 (CR-only line endings); anchor/tag property bytes (`&x 1`, `!!str 007`) are
-part of a node's slice by design. Upstream follow-up candidates for noyalib:
-`span_at` first-wins duplicate-key resolution and `|+` kept-blank exclusion.
+part of a node's slice by design.
 
 ## 5. Non-goals (deferred)
 
