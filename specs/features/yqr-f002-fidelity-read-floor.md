@@ -120,6 +120,13 @@ empty input emits nothing (byte-identity) where the classic pipeline prints
 (CR-only line endings); anchor/tag property bytes (`&x 1`, `!!str 007`) are
 part of a node's slice by design.
 
+Review findings deliberately **not** code-changed (recorded follow-ups):
+`run()` accumulates its output in a `String` rather than streaming to the
+writer, and `value(doc)` returns an owned clone of the lowered tree — both
+acceptable at CLI scale, revisit for large files (see `yqr-m002` §12). The
+backend re-derives the typed node internally (`walk_value`) instead of taking
+it from the caller: deliberate, so the `resolve` seam stays backend-agnostic.
+
 ## 5. Non-goals (deferred)
 
 - Mutation (`FidelityEdit`) — no assignment grammar in yqr yet.
