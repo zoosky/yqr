@@ -110,3 +110,56 @@ fn long_version_includes_build_info() {
     assert!(out.stdout.contains("built "), "stdout: {}", out.stdout);
     assert!(out.stdout.contains("target: "), "stdout: {}", out.stdout);
 }
+
+#[test]
+fn unknown_engine_is_an_io_error() {
+    let out = run(&["--engine", "bogus", "."], "a: 1\n");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("unknown engine"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[cfg(feature = "backend-noyalib")]
+#[test]
+fn engine_identity_reproduces_input_bytes() {
+    let input = "# comment\nname: web   # inline\n\nreplicas: 3\n";
+    let out = run(&["--engine", "noyalib", "."], input);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, input, "identity must be byte-for-byte");
+}
+
+#[cfg(feature = "backend-noyalib")]
+#[test]
+fn engine_projection_keeps_original_spelling() {
+    let out = run(&["--engine", "noyalib", ".zip"], "zip: 007\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "007\n");
+}
+
+#[cfg(not(feature = "backend-noyalib"))]
+#[test]
+fn engine_without_backend_reports_missing_feature() {
+    let out = run(&["--engine", "noyalib", "."], "a: 1\n");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("backend-noyalib"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn unknown_engine_is_diagnosed_before_reading_input() {
+    // A bad --engine must fail even when the input file does not exist:
+    // engine validation happens before input is consumed.
+    let out = run(&["--engine", "bogus", ".", "/nonexistent/input.yaml"], "");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("unknown engine"),
+        "stderr: {}",
+        out.stderr
+    );
+}

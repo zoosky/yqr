@@ -23,6 +23,11 @@ cargo build --all-targets --locked
 echo "=== test ==="
 cargo test --all-targets --locked
 
+# Feature-gated code (the fidelity engine backend) is invisible to the
+# default-feature run; without this pass its tests never execute.
+echo "=== test (all features) ==="
+cargo test --all-targets --all-features --locked
+
 # Compile the criterion benches without running them so a bench that references
 # a renamed function fails here, not silently on a later perf run.
 echo "=== bench (compile only) ==="

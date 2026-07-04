@@ -5,15 +5,19 @@
 //! - [`lexer`] turns a filter string into tokens,
 //! - [`parser`] turns tokens into an [`ast::Ast`],
 //! - [`eval`] applies an `Ast` to a [`rust_yaml::Value`], producing a stream of
-//!   output values.
+//!   output values,
+//! - [`fidelity`] provides byte-preserving execution over pluggable engine
+//!   backends (untouched nodes are emitted as their original source bytes).
 //!
 //! The two convenience entry points most callers want are [`eval_str`] (parse a
 //! filter and run it over a YAML string, returning values) and
-//! [`render`] (turn output values back into a YAML/raw string).
+//! [`render`] (turn output values back into a YAML/raw string). For
+//! byte-preserving output, see [`fidelity::run`].
 
 pub mod ast;
 pub mod error;
 pub mod eval;
+pub mod fidelity;
 pub mod lexer;
 pub mod parser;
 

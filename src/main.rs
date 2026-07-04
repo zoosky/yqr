@@ -9,6 +9,7 @@ use std::io::{self, Read, Write};
 use std::process::ExitCode;
 
 use cli::Cli;
+use yqr::fidelity::{self, BackendId};
 use yqr::{YqrError, eval_str, render};
 
 fn main() -> ExitCode {
@@ -29,7 +30,25 @@ fn main() -> ExitCode {
 }
 
 fn run(args: &Cli) -> Result<String, YqrError> {
+    // Validate the engine choice before consuming stdin/the file, so a typo
+    // in --engine is diagnosed immediately instead of after reading input.
+    let backend = args
+        .engine
+        .as_deref()
+        .map(|engine| {
+            BackendId::parse(engine).ok_or_else(|| {
+                YqrError::io(format!(
+                    "unknown engine {engine:?} (available: {})",
+                    BackendId::known_names()
+                ))
+            })
+        })
+        .transpose()?;
+
     let input = read_input(args.file.as_deref())?;
+    if let Some(backend) = backend {
+        return fidelity::run(backend, &args.filter, &input, args.raw_output);
+    }
     let values = eval_str(&args.filter, &input)?;
     render(&values, args.raw_output)
 }

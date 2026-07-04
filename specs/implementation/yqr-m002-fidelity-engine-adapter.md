@@ -1,6 +1,6 @@
 # Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)
 
-**Status:** Draft
+**Status:** In Progress (read floor shipped on backend C via `yqr-f002`; backend A pending rust-yaml#73; write tier unstarted)
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-03
 **Implements:** `yqr-a001` §4.3 (the source/span implementation seam)
@@ -337,8 +337,17 @@ re-exported from `lib.rs` via `pub mod fidelity;`:
 
 ## 9. First increment
 
-**Ship the read floor only, on backend A (rust-yaml spans) — no new dependency;
-this is exactly what `b001` needs.**
+> **Update (2026-07-03): the read floor SHIPPED — on backend C, inverting the
+> ordering below.** Implemented by `yqr-f002`: `src/fidelity/` (seam + `open` +
+> `run` driver), the noyalib backend behind `backend-noyalib`, provenance
+> threading in the evaluator, and the CLI `--engine noyalib` switch. The
+> ordering inverted because noyalib 0.0.12 is released and verified while
+> backend A's substrate ([rust-yaml#73](https://github.com/elioetibr/rust-yaml/pull/73))
+> is still in review — backend A follows as an adapter when #73 lands (§7.1).
+> Deviations from the sketch in this section are recorded in `yqr-f002` §2.
+
+**Original plan: ship the read floor only, on backend A (rust-yaml spans) — no
+new dependency; this is exactly what `b001` needs.**
 
 1. Add `src/fidelity/mod.rs` (traits + value types + `open`).
 2. Implement `FidelityEngine` for `RustYamlEngine`: `source()` verbatim;

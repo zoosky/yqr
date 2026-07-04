@@ -58,3 +58,8 @@ jobs:
 
       - name: Test
         run: cargo test --all-targets --locked
+
+      # Feature-gated code (the fidelity engine backend) is invisible to the
+      # default-feature run; without this pass its tests never execute in CI.
+      - name: Test (all features)
+        run: cargo test --all-targets --all-features --locked
