@@ -6,7 +6,7 @@
 **Last updated:** 2026-07-04
 **Affects:** the `--engine noyalib` fidelity read path (`yqr-f002`); irrelevant to the default pipeline
 **Component:** `noyalib` 0.0.12 (`cst::Document::span_at`, `Document::as_value`, the `Value` mapping model)
-**Related:** `yqr-f002` §4a (mitigations), `yqr-r002` (evaluation), `yqr-m002` §7.2 (backend C), upstream precedent [noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)/[#123](https://github.com/sebastienrousseau/noyalib/pull/123) (BOM fix, merged)
+**Related:** `yqr-f002` §4a (mitigations), `yqr-r002` (evaluation), `yqr-m002` §7.2 (backend C), upstream precedent [noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)/[#123](https://github.com/sebastienrousseau/noyalib/pull/123) (BOM fix, merged); deficiency 2.1 fix filed as [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143) (open)
 
 ## 1. Summary
 
@@ -39,6 +39,17 @@ bytes of a node the typed view did not select (wrong-node hazard).
 
 **Upstream ask:** make `span_at` resolution policy match `as_value`
 (last-wins), or expose occurrence-aware addressing.
+
+**Upstream status:** filed as [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143)
+(open). The fix roots deeper than `span_at` alone: the loader appended a
+span entry per source occurrence while the `IndexMap` collapsed
+duplicates, de-syncing `Value::Mapping` from its parallel `SpanTree`, so
+`span_at`/`get`/`Spanned<T>`/`remove` all mis-paired for keys at or after
+a duplicate. The PR makes both the loader (replace span entry in place)
+and the green-tree walker (`walk_mapping`) last-wins. When it releases,
+simplify the §4 2.1 re-parse guard (the wrong-node class disappears at
+the source; the guard need only cover the residual equal-valued-spelling
+case).
 
 ### 2.2 Implicit nulls yield degenerate indicator spans
 
@@ -138,7 +149,7 @@ span APIs need adversarial corpora.
 Ordered by value to yqr (each is a small, testable PR in the #118 mold):
 
 1. **2.1** `span_at` last-wins (or occurrence-aware) — removes the whole
-   wrong-node class at the source.
+   wrong-node class at the source. **Filed: [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143) (open).**
 2. **2.3** include kept trailing blanks in block-scalar spans.
 3. **2.2** return `None` for byte-less implicit nodes.
 4. **2.4** full-block span variant (line start + leading trivia).
@@ -148,6 +159,7 @@ Ordered by value to yqr (each is a small, testable PR in the #118 mold):
 ## 6. Acceptance criteria
 
 - [ ] Each deficiency reported upstream (PR or discussion, issues disabled).
+      2.1 filed as [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143); 2.2–2.7 pending.
 - [ ] For every upstream fix that lands and releases: bump the pin, remove or
       simplify the corresponding adapter guard, and keep the regression tests
       (they must pass against the fixed backend too).
