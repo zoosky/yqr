@@ -11,7 +11,7 @@ status tracker convention).
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
 | [b001](yqr-b001-roundtrip-discards-whitespace-and-formatting.md) | Round-trip through `rust-yaml` discards whitespace, comments, and formatting | High | Open (default pipeline; engine path mitigated by `yqr-f002`, upstream fix in-flight as rust-yaml#73) | `yqr-a001`, `yqr-r001`, `yqr.f001` |
-| [b002](yqr-b002-noyalib-cst-span-and-key-model-deficiencies.md) | noyalib CST deficiencies: span boundaries, duplicate-key policy, string-only key model | Medium | Open (upstream; yqr-side mitigations shipped) | `yqr-f002`, `yqr-r002`, `yqr-m002` |
+| [b002](yqr-b002-noyalib-cst-span-and-key-model-deficiencies.md) | noyalib CST deficiencies: span boundaries, duplicate-key policy, string-only key model | Medium | Open (upstream; yqr-side mitigations shipped; deficiency 2.1 fix filed as noyalib#143) | `yqr-f002`, `yqr-r002`, `yqr-m002` |
 
 ## Resolved
 
