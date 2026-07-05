@@ -22,12 +22,19 @@ fn run(args: &[&str], stdin: &str) -> Output {
         .spawn()
         .expect("failed to spawn yqr");
 
-    child
-        .stdin
-        .take()
-        .expect("stdin")
-        .write_all(stdin.as_bytes())
-        .expect("write stdin");
+    // Write the input, then drop the handle to close the pipe (so a reading
+    // child sees EOF). A child that rejects its arguments and exits *before*
+    // reading stdin closes its read end first, which surfaces here as a
+    // `BrokenPipe`; that is not a test failure — the child's exit status and
+    // output are what the assertions inspect.
+    {
+        let mut sin = child.stdin.take().expect("stdin");
+        match sin.write_all(stdin.as_bytes()) {
+            Ok(()) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::BrokenPipe => {}
+            Err(e) => panic!("write stdin: {e}"),
+        }
+    }
 
     let out = child.wait_with_output().expect("wait");
     Output {
