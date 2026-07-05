@@ -160,10 +160,11 @@ impl FidelityEngine for NoyalibEngine {
                     return Ok(found);
                 }
                 // The slice disagrees with the value the evaluator selected
-                // (duplicate keys resolve first-wins in the span layer but
-                // last-wins in the typed view; implicit nulls yield indicator
-                // bytes; keep-chomped block scalars lose kept blank lines;
-                // aliases slice as dangling `*name`). Degrade visibly.
+                // (implicit nulls yield indicator bytes; keep-chomped block
+                // scalars lose kept blank lines; aliases slice as dangling
+                // `*name`). Degrade visibly. (Duplicate keys used to disagree
+                // here too -- span_at was first-wins while the typed view is
+                // last-wins -- but noyalib 0.0.13 made span_at last-wins.)
                 return Ok(Resolved::Synthetic);
             }
         }
@@ -184,7 +185,8 @@ impl NoyalibEngine {
     /// emitted demonstrably denote the value the evaluator selected: the
     /// emitted slice must re-parse to `expected`. This is the wrong-node
     /// guard — without it a span could silently emit bytes of a different
-    /// node than the typed view evaluated (e.g. under duplicate keys).
+    /// node than the typed view evaluated (e.g. an implicit null's indicator
+    /// bytes, or a keep-chomped block scalar missing its kept blank lines).
     ///
     /// A nested block collection's span starts at its first key, leaving the
     /// first line's indentation just left of the span while later lines keep
@@ -413,22 +415,29 @@ mod tests {
     }
 
     #[test]
-    fn duplicate_keys_never_yield_first_occurrence_bytes() {
-        // span_at resolves duplicates first-wins while the typed view is
-        // last-wins; the verification guard must refuse the stale slice.
+    fn duplicate_keys_resolve_to_last_occurrence() {
+        // noyalib 0.0.13 resolves duplicate keys last-wins in span_at, matching
+        // the typed view (the fix folded in from noyalib#143). The guard now
+        // verifies the last occurrence's real bytes instead of degrading.
         let e = engine("k: one\nk: two\n");
         let path = Path::root().child(PathSeg::Key("k".into()));
-        assert!(
-            matches!(e.resolve(0, &path).unwrap(), Resolved::Synthetic),
-            "duplicate-key slice must degrade, never emit the wrong node"
-        );
+        match e.resolve(0, &path).unwrap() {
+            Resolved::Found { bytes, .. } => assert_eq!(bytes, "two"),
+            other => panic!("expected Found, got {other:?}"),
+        }
     }
 
     #[test]
-    fn duplicate_collection_keys_degrade_too() {
+    fn duplicate_collection_keys_resolve_to_last_occurrence() {
+        // The last `m`'s single-line block re-parses standalone at column 0, so
+        // the guard emits it verbatim (the 2-space indent was contextual
+        // nesting under `m:`, not part of the value).
         let e = engine("m:\n  a: 1\nm:\n  a: 2\n");
         let path = Path::root().child(PathSeg::Key("m".into()));
-        assert!(matches!(e.resolve(0, &path).unwrap(), Resolved::Synthetic));
+        match e.resolve(0, &path).unwrap() {
+            Resolved::Found { bytes, .. } => assert_eq!(bytes, "a: 2"),
+            other => panic!("expected Found, got {other:?}"),
+        }
     }
 
     #[test]

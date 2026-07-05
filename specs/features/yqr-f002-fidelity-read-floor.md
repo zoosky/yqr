@@ -112,13 +112,17 @@ A second (xhigh) review pass hardened the guard further:
 
 Known, documented limitations that remain (details and upstream asks in
 `yqr-b002`): non-string keys are matched by spelling (filter results can
-differ from the classic pipeline even without collisions); under equal-valued
-duplicate keys the emitted spelling can come from the shadowed occurrence;
-comments above a block collection's first key belong to the parent's range;
-empty input emits nothing (byte-identity) where the classic pipeline prints
-`null`; the noyalib parser rejects a few inputs the default engine accepts
-(CR-only line endings); anchor/tag property bytes (`&x 1`, `!!str 007`) are
-part of a node's slice by design.
+differ from the classic pipeline even without collisions); comments above a
+block collection's first key belong to the parent's range; empty input emits
+nothing (byte-identity) where the classic pipeline prints `null`; the noyalib
+parser rejects a few inputs the default engine accepts (CR-only line endings);
+anchor/tag property bytes (`&x 1`, `!!str 007`) are part of a node's slice by
+design.
+
+(The duplicate-key wrong-node hazard — `span_at` first-wins vs the last-wins
+typed view — was resolved upstream in **noyalib 0.0.13** (b002 §2.1); yqr
+consumed the bump, and a duplicate-key projection now emits the last
+occurrence's real bytes.)
 
 Review findings deliberately **not** code-changed (recorded follow-ups):
 `run()` accumulates its output in a `String` rather than streaming to the
