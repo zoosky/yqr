@@ -31,7 +31,7 @@ rust-yaml = "1.1.0"
 # the round-trip harness (tests/fidelity.rs). Optional and off by default
 # (enabled via the `backend-noyalib` feature), so the default build stays
 # dependency-minimal. See research r002 for the evaluation.
-noyalib = { version = "0.0.12", optional = true }
+noyalib = { version = "0.0.13", optional = true }
 # Fidelity engine backend A (src/fidelity/rustyaml.rs) and comparison backend
 # for the round-trip harness: our rust-yaml fork's source-preserving
 # `RoundTripDocument` API. It is the *same* crate yqr already depends on from

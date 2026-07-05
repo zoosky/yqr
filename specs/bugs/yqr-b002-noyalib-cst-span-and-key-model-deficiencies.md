@@ -1,12 +1,12 @@
 # Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model
 
-**Status:** Open (upstream; yqr-side mitigations shipped)
+**Status:** Open (upstream; yqr-side mitigations shipped; deficiency 2.1 RESOLVED in noyalib 0.0.13 and consumed by yqr; 2.2–2.7 pending)
 **Severity:** Medium — every hazard is contained by mitigations in yqr's engine adapter, but fidelity or semantics degrade where noyalib's model falls short
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-04
 **Affects:** the `--engine noyalib` fidelity read path (`yqr-f002`); irrelevant to the default pipeline
 **Component:** `noyalib` 0.0.12 (`cst::Document::span_at`, `Document::as_value`, the `Value` mapping model)
-**Related:** `yqr-f002` §4a (mitigations), `yqr-r002` (evaluation), `yqr-m002` §7.2 (backend C), upstream precedent [noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)/[#123](https://github.com/sebastienrousseau/noyalib/pull/123) (BOM fix, merged); deficiency 2.1 fix filed as [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143) (open)
+**Related:** `yqr-f002` §4a (mitigations), `yqr-r002` (evaluation), `yqr-m002` §7.2 (backend C), upstream precedent [noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)/[#123](https://github.com/sebastienrousseau/noyalib/pull/123) (BOM fix, merged); deficiency 2.1 fix ([noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143), closed) folded into the **noyalib 0.0.13** release (PR #145)
 
 ## 1. Summary
 
@@ -25,31 +25,39 @@ candidate**, following the accepted #118/#123 precedent.
 
 ## 2. Deficiencies (each confirmed on 0.0.12)
 
-### 2.1 `span_at` resolves duplicate keys first-wins; `as_value` is last-wins
+### 2.1 `span_at` resolves duplicate keys first-wins; `as_value` is last-wins — **RESOLVED (noyalib 0.0.13)**
 
 ```text
 k: one
 k: two
 ```
 
-`as_value()` yields `k = "two"` (last-wins, matching YAML loaders and jq), but
-`span_at("k")` returns the span of the **first** `k`'s value. The two accessors
-of one document disagree about which node a path denotes — the consumer gets
+`as_value()` yielded `k = "two"` (last-wins, matching YAML loaders and jq), but
+`span_at("k")` returned the span of the **first** `k`'s value. The two accessors
+of one document disagreed about which node a path denotes — the consumer got
 bytes of a node the typed view did not select (wrong-node hazard).
 
 **Upstream ask:** make `span_at` resolution policy match `as_value`
 (last-wins), or expose occurrence-aware addressing.
 
-**Upstream status:** filed as [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143)
-(open). The fix roots deeper than `span_at` alone: the loader appended a
-span entry per source occurrence while the `IndexMap` collapsed
+**Upstream status: RESOLVED.** Submitted as
+[noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143); that PR was
+closed and its fix **folded into the 0.0.13 release** (commit `a472e14`, PR #145,
+crediting the original author) — `fix(loader): duplicate mapping keys last-wins
+across span views`. The root cause was deeper than `span_at` alone: the loader
+appended a span entry per source occurrence while the `IndexMap` collapsed
 duplicates, de-syncing `Value::Mapping` from its parallel `SpanTree`, so
-`span_at`/`get`/`Spanned<T>`/`remove` all mis-paired for keys at or after
-a duplicate. The PR makes both the loader (replace span entry in place)
-and the green-tree walker (`walk_mapping`) last-wins. When it releases,
-simplify the §4 2.1 re-parse guard (the wrong-node class disappears at
-the source; the guard need only cover the residual equal-valued-spelling
-case).
+`span_at`/`get`/`Spanned<T>`/`remove` all mis-paired for keys at or after a
+duplicate. The fix makes both the loader (replace span entry in place) and the
+green-tree walker (`walk_mapping`) last-wins.
+
+**yqr status: consumed in 0.0.13.** yqr bumped `noyalib` to 0.0.13; the re-parse
+guard now verifies the correct last-wins bytes, so a duplicate-key projection
+emits real bytes instead of degrading. Tests
+`duplicate_keys_resolve_to_last_occurrence` /
+`duplicate_collection_keys_resolve_to_last_occurrence` pin the new behavior. The
+guard is retained for the residual cases (2.2 implicit-null indicator spans, 2.5
+keep-chomped block scalars, aliases).
 
 ### 2.2 Implicit nulls yield degenerate indicator spans
 
@@ -135,7 +143,7 @@ span APIs need adversarial corpora.
 
 | Deficiency | Mitigation in `src/fidelity/noyalib.rs` |
 |---|---|
-| 2.1 dup-key wrong node | every non-root `Found` re-parses the emitted slice and compares against the typed value; mismatch → `Synthetic` (typed fallback). Residual: equal-valued duplicates can still emit the shadowed occurrence's *spelling* (value always correct) |
+| 2.1 dup-key wrong node | **Fixed upstream in noyalib 0.0.13** (`span_at` last-wins): a duplicate-key projection now emits the last occurrence's real bytes. The re-parse guard is retained for 2.2/2.5/aliases and still verifies the (now correct) slice |
 | 2.2 indicator spans | empty/whitespace slices and value-mismatched slices → `Synthetic` (renders `null`) |
 | 2.3 `\|+` kept blanks | slice re-parses to `"kept\n"` ≠ typed `"kept\n\n\n"` → `Synthetic` (value-correct) |
 | 2.4a first-line indent | span **extended to line start** when the prefix is pure indentation; emitted bytes are uniformly indented and verified in emitted form |
@@ -149,7 +157,7 @@ span APIs need adversarial corpora.
 Ordered by value to yqr (each is a small, testable PR in the #118 mold):
 
 1. **2.1** `span_at` last-wins (or occurrence-aware) — removes the whole
-   wrong-node class at the source. **Filed: [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143) (open).**
+   wrong-node class at the source. **DONE: [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143) folded into 0.0.13 (PR #145); yqr bumped the pin and updated the tests.**
 2. **2.3** include kept trailing blanks in block-scalar spans.
 3. **2.2** return `None` for byte-less implicit nodes.
 4. **2.4** full-block span variant (line start + leading trivia).
@@ -159,7 +167,7 @@ Ordered by value to yqr (each is a small, testable PR in the #118 mold):
 ## 6. Acceptance criteria
 
 - [ ] Each deficiency reported upstream (PR or discussion, issues disabled).
-      2.1 filed as [noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143); 2.2–2.7 pending.
+      2.1 done (noyalib#143 → folded into 0.0.13 via PR #145); 2.2–2.7 pending.
 - [ ] For every upstream fix that lands and releases: bump the pin, remove or
       simplify the corresponding adapter guard, and keep the regression tests
       (they must pass against the fixed backend too).

@@ -124,12 +124,12 @@ Engine-mode notes:
   scalar projects its value without the `&anchor` label.) Current limitation: a
   stream ending in a `...` document-end marker **after a block collection** is
   rejected (a fork parser bug being fixed upstream).
-- With `--engine noyalib`, the value model has **string-only mapping keys**:
-  non-string keys (`true:`, `8080:`) are matched by spelling; distinct keys
-  that collide after string conversion (`1` and `"1"`) are refused with an
-  error; and under equal-valued duplicate keys the emitted spelling can come
-  from an earlier duplicate. Its parser is also stricter in a few corners
-  (e.g. classic-Mac CR-only line endings are rejected).
+- With `--engine noyalib` (requires noyalib >= 0.0.13), the value model has
+  **string-only mapping keys**: non-string keys (`true:`, `8080:`) are matched
+  by spelling; distinct keys that collide after string conversion (`1` and
+  `"1"`) are refused with an error. Its parser is also stricter in a few corners
+  (e.g. classic-Mac CR-only line endings are rejected). Duplicate keys resolve
+  last-wins and emit the last occurrence's real bytes (fixed in noyalib 0.0.13).
 
 ## Architecture
 
