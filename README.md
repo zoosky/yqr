@@ -1,5 +1,7 @@
 # yqr
 
+[![Benchmarks](https://img.shields.io/badge/benchmarks-live%20dashboard-blue?logo=rust&logoColor=white)](https://zoosky.github.io/yqr/dev/bench/)
+
 `yqr` ("YAML query in Rust") is a jq-style Swiss Army knife for **YAML**.
 It reads a YAML document from a file or
 stdin, applies a jq-like filter expression, and emits the result(s) as YAML (or
@@ -159,6 +161,13 @@ cargo clippy --all-targets --all-features -- -D warnings
 - **Unit tests** live alongside each module.
 - **`tests/integration.rs`** exercises the public library API end-to-end.
 - **`tests/cli.rs`** runs the compiled binary against piped input.
+
+## Benchmarks
+
+Criterion benchmarks live in `benches/` (`cargo bench --bench eval`). Every push
+to `main` runs them in CI and publishes the results to a tracked history:
+
+**[Live benchmark dashboard](https://zoosky.github.io/yqr/dev/bench/)** — performance over time, with alerts on >30% regressions.
 
 ## License
 
