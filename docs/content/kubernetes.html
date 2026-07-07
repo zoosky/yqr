@@ -345,6 +345,38 @@
   .dockerfile .rem{color:var(--text-faint);}
   .dockerfile .kw{color:#a9c3e0;}
 
+  /* ---------- beyond-kubernetes trio ---------- */
+  .trio{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:860px){ .trio{grid-template-columns:1fr;} }
+  .mini-card{
+    min-width:0;
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:10px;
+    padding:18px 20px;
+  }
+  .mini-card h3{
+    font-family:var(--serif);
+    font-size:17px;
+    font-weight:400;
+    margin:0 0 6px;
+    color:#f4efe1;
+  }
+  .mini-card > p{font-size:13px; color:var(--text-soft); margin:0 0 14px;}
+  .mini-card .recipe{margin:0 0 12px;}
+  .mini-card .recipe .cmd{
+    font-size:11.5px;
+    padding:8px 10px;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
+    overflow-x:visible;
+  }
+  .mini-card .recipe .note{font-size:12px;}
+
   /* ---------- filter grammar table ---------- */
   table{
     width:100%;
@@ -541,6 +573,65 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.data.enableBeta'</span> /config/values.yaml</pre>
           <p class="note">Read a flag out of a mounted ConfigMap and hand it
             to the next step &mdash; a common init-container job.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="beyond">
+    <div class="section-head">
+      <p class="eyebrow">beyond the cluster</p>
+      <h2>It's not just Kubernetes</h2>
+      <p>Anything that's YAML takes the same filters. Three more places yqr
+        earns its keep.</p>
+    </div>
+    <div class="trio">
+
+      <div class="mini-card">
+        <h3>CI/CD pipelines</h3>
+        <p>GitHub Actions workflows are YAML. Audit what a job actually runs
+          without opening the file &mdash; these two ran against this
+          repo's own <code class="mono">ci.yml</code>.</p>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.jobs.test.["runs-on"]'</span> ci.yml</pre>
+          <p class="note">ubuntu-latest &mdash; bracket syntax reaches keys a
+            bareword can't spell, like <code class="mono">runs-on</code>.</p>
+        </div>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.jobs.test.steps[1].with.toolchain'</span> ci.yml</pre>
+          <p class="note">1.96 &mdash; confirm the pinned Rust version without
+            scrolling past the cache step.</p>
+        </div>
+      </div>
+
+      <div class="mini-card">
+        <h3>Docker Compose</h3>
+        <p>Check what a compose file is about to pull and expose before you
+          run it.</p>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.services[] | .image'</span> compose.yaml</pre>
+          <p class="note">yqr-demo:latest, postgres:16 &mdash; every image
+            referenced, one per line.</p>
+        </div>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.services.web.environment.LOG_LEVEL'</span> compose.yaml</pre>
+          <p class="note">debug &mdash; one config value, no grep.</p>
+        </div>
+      </div>
+
+      <div class="mini-card">
+        <h3>Ansible playbooks</h3>
+        <p>A playbook is a YAML list of plays &mdash; walk it like any other
+          sequence.</p>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.[0].tasks[] | .name'</span> playbook.yml</pre>
+          <p class="note">Install nginx, Start nginx &mdash; every task in
+            the first play, at a glance.</p>
+        </div>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.[0].hosts'</span> playbook.yml</pre>
+          <p class="note">web &mdash; which hosts that play targets.</p>
         </div>
       </div>
 
