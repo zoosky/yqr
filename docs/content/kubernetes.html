@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<!--
+  yqr in Kubernetes -- install paths and usage recipes.
+  Every command and output on this page was run against a real yqr build;
+  see the fidelity corpus this demo borrows from.
+  Feature/spec traceability: yqr-b001, yqr-f003, yqr-m002
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>yqr in Kubernetes</title>
+<style>
+  :root{
+    --ink:#0b1524;
+    --ink-2:#0f1d33;
+    --panel:#132340;
+    --paper:#f2ecda;
+    --paper-line:#ddd3b2;
+    --brass:#c68a3e;
+    --brass-soft:#e0b169;
+    --route:#4fb3ac;
+    --route-soft:#2c6b67;
+    --text:#dbe4f0;
+    --text-soft:#8ea0b8;
+    --text-faint:#5c6d84;
+    --mark:#c1443c;
+    --ok:#5fae7a;
+    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    --sans: -apple-system, 'Segoe UI', Roboto, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(198,138,62,0.10), transparent 60%),
+      radial-gradient(ellipse 800px 600px at 100% 10%, rgba(79,179,172,0.08), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:980px;
+    margin:0 auto;
+    padding:0 24px 96px;
+  }
+  a{color:var(--brass-soft);text-decoration-color:rgba(198,138,62,0.4);}
+  a:hover{text-decoration-color:var(--brass-soft);}
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--route);
+    outline-offset:2px;
+  }
+  code, pre, .mono{font-family:var(--mono);}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:28px 0 0;
+  }
+  .compass{width:22px;height:22px;flex:none;}
+  .compass circle{fill:none;stroke:var(--brass);stroke-width:1.4;}
+  .compass path{fill:none;stroke:var(--route);stroke-width:1.4;stroke-linecap:round;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass-soft);
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:22px 0 8px;}
+  .hero h1{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:clamp(34px, 5vw, 52px);
+    line-height:1.12;
+    margin:0 0 18px;
+    color:#f4efe1;
+    max-width:14ch;
+  }
+  .hero p{
+    font-size:17px;
+    color:var(--text-soft);
+    max-width:56ch;
+    margin:0 0 8px;
+  }
+  .hero code{
+    background:rgba(198,138,62,0.14);
+    color:var(--brass-soft);
+    padding:0.1em 0.4em;
+    border-radius:3px;
+    font-size:0.92em;
+  }
+
+  /* ---------- chart (signature element) ---------- */
+  .chart{
+    margin:44px 0 20px;
+    display:grid;
+    grid-template-columns:auto 96px minmax(0,1fr);
+    align-items:center;
+    gap:0;
+  }
+  .chart-label{
+    padding-right:6px;
+  }
+  .chart-label .eyebrow{
+    display:block;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin-bottom:6px;
+  }
+  .chart-label code{
+    display:inline-block;
+    font-size:14px;
+    color:var(--route);
+    background:rgba(79,179,172,0.10);
+    border:1px solid rgba(79,179,172,0.35);
+    border-radius:4px;
+    padding:6px 10px;
+    white-space:nowrap;
+  }
+  .chart-route{width:96px;height:36px;overflow:visible;}
+  .chart-route-path{
+    fill:none;
+    stroke:var(--route-soft);
+    stroke-width:1.6;
+    stroke-dasharray:5 5;
+    stroke-dashoffset:120;
+    animation:draw 1.1s ease-out 0.2s forwards;
+  }
+  .chart-route-dot{
+    fill:var(--mark);
+    opacity:0;
+    animation:appear 0.4s ease-out 1.1s forwards;
+  }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  @keyframes appear{ to{ opacity:1; } }
+  @media (prefers-reduced-motion:reduce){
+    .chart-route-path{animation:none; stroke-dashoffset:0;}
+    .chart-route-dot{animation:none; opacity:1;}
+  }
+  .chart-yaml{
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:8px;
+    padding:16px 18px;
+    font-size:13.5px;
+    overflow-x:auto;
+    margin:0;
+    color:var(--text-soft);
+  }
+  .chart-yaml .tok-key{color:#a9c3e0;}
+  .chart-yaml .tok-str{color:#e8dcb8;}
+  .chart-yaml .hit{
+    display:inline-block;
+    width:100%;
+    background:rgba(193,68,60,0.14);
+    border-left:2px solid var(--mark);
+    padding-left:8px;
+    margin-left:-10px;
+  }
+  .chart-yaml .hit .tok-val{color:var(--brass-soft); font-weight:600;}
+
+  @media (max-width:640px){
+    .chart{grid-template-columns:1fr;}
+    .chart-route{display:none;}
+    .chart-label{margin-bottom:10px;}
+  }
+
+  /* ---------- terminal / outcome strip ---------- */
+  .outcomes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin:0 0 56px;
+  }
+  @media (max-width:640px){ .outcomes{grid-template-columns:1fr;} }
+  .outcome{
+    background:var(--ink-2);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .outcome .badge{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    padding:2px 8px;
+    border-radius:999px;
+    display:inline-block;
+    margin-bottom:10px;
+  }
+  .outcome.drift .badge{background:rgba(193,68,60,0.18); color:#e08d86;}
+  .outcome.exact .badge{background:rgba(95,174,122,0.18); color:var(--ok);}
+  .outcome pre{
+    margin:0;
+    font-size:13px;
+    white-space:pre-wrap;
+    word-break:break-word;
+    color:var(--text);
+  }
+  .outcome pre .prompt{color:var(--text-faint);}
+  .outcome pre .out{color:var(--brass-soft); font-weight:600;}
+
+  /* ---------- sections ---------- */
+  section{margin:64px 0;}
+  .section-head{margin-bottom:22px;}
+  .section-head .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 0 8px;
+  }
+  h2{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:26px;
+    margin:0 0 6px;
+    color:#f4efe1;
+  }
+  .section-head p{color:var(--text-soft); margin:6px 0 0; max-width:60ch;}
+
+  /* ---------- installed paths ---------- */
+  .paths{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:640px){ .paths{grid-template-columns:1fr;} }
+  .path-card{
+    background:var(--paper);
+    color:#332b1c;
+    border-radius:8px;
+    padding:20px 22px;
+    border:1px solid var(--paper-line);
+  }
+  .path-card h3{
+    font-family:var(--sans);
+    font-size:13px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    margin:0 0 12px;
+    color:#6b4a1f;
+  }
+  .path-card code.loc{
+    display:block;
+    background:rgba(51,43,28,0.06);
+    border:1px solid rgba(51,43,28,0.12);
+    border-radius:4px;
+    padding:8px 10px;
+    font-size:13px;
+    margin:8px 0;
+    color:#332b1c;
+  }
+  .path-card p{font-size:14px; margin:10px 0 0; color:#5a4c33;}
+
+  .callout{
+    margin-top:18px;
+    background:var(--ink-2);
+    border-left:3px solid var(--brass);
+    border-radius:0 8px 8px 0;
+    padding:14px 18px;
+    font-size:14px;
+    color:var(--text-soft);
+  }
+  .callout code{color:var(--brass-soft);}
+  .callout pre{
+    margin:10px 0 0;
+    font-size:12.5px;
+    color:var(--text-faint);
+    white-space:pre-wrap;
+  }
+
+  /* ---------- recipe cards ---------- */
+  .cards{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media (max-width:720px){ .cards{grid-template-columns:1fr;} }
+  .card{
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:10px;
+    padding:22px 24px;
+  }
+  .card h3{
+    font-family:var(--serif);
+    font-size:19px;
+    font-weight:400;
+    margin:0 0 8px;
+    color:#f4efe1;
+  }
+  .card > p{font-size:14px; color:var(--text-soft); margin:0 0 16px;}
+  .recipe{margin:0 0 16px;}
+  .recipe:last-child{margin-bottom:0;}
+  .recipe .cmd{
+    display:block;
+    background:var(--ink-2);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:6px;
+    padding:10px 12px;
+    font-size:12.5px;
+    overflow-x:auto;
+    color:var(--text);
+    margin:0 0 6px;
+    white-space:pre;
+  }
+  .recipe .cmd .prompt{color:var(--text-faint);}
+  .recipe .cmd .filter{color:var(--route);}
+  .recipe .note{font-size:13px; color:var(--text-faint); margin:0;}
+
+  .dockerfile{
+    background:var(--ink-2);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:6px;
+    padding:14px 16px;
+    font-size:12.5px;
+    overflow-x:auto;
+    color:var(--text);
+    margin:0 0 14px;
+    white-space:pre;
+  }
+  .dockerfile .rem{color:var(--text-faint);}
+  .dockerfile .kw{color:#a9c3e0;}
+
+  /* ---------- filter grammar table ---------- */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  th,td{
+    text-align:left;
+    padding:10px 14px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  th{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    font-weight:400;
+  }
+  td code{color:var(--route);}
+  td.meaning{color:var(--text-soft);}
+  .not-yet{
+    margin-top:14px;
+    font-size:13px;
+    color:var(--text-faint);
+  }
+  .not-yet code{color:var(--text-faint);}
+
+  /* ---------- footer ---------- */
+  footer{
+    margin-top:80px;
+    padding-top:24px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    font-size:13px;
+    color:var(--text-faint);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <svg class="compass" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 5 L14 12 L12 19 L10 12 Z"></path>
+    </svg>
+    <span class="kicker">yqr &middot; Kubernetes</span>
+  </div>
+
+  <div class="hero">
+    <h1>Chart a path to any field in a manifest.</h1>
+    <p>
+      <code>yqr</code> is a jq-style filter for YAML. Point it at a manifest file,
+      a <code>kubectl get -o yaml</code> dump, or a Helm-rendered bundle, and it
+      walks straight to the field you asked for &mdash; as a value, not as JSON
+      you have to decode back.
+    </p>
+  </div>
+
+  <div class="chart">
+    <div class="chart-label">
+      <span class="eyebrow">the filter</span>
+      <code>.spec.volumes[0].secret.defaultMode</code>
+    </div>
+    <svg class="chart-route" viewBox="0 0 96 36" preserveAspectRatio="none" aria-hidden="true">
+      <path class="chart-route-path" d="M2 18 H84"></path>
+      <circle class="chart-route-dot" cx="88" cy="18" r="3.5"></circle>
+    </svg>
+    <pre class="chart-yaml"><code>apiVersion: v1
+kind: Pod
+metadata:
+<span class="tok-key">  name:</span> web
+spec:
+  volumes:
+    - name: tls
+      secret:
+        secretName: web-tls
+<span class="hit">        <span class="tok-key">defaultMode:</span> <span class="tok-val">0640</span></span></code></pre>
+  </div>
+
+  <div class="outcomes">
+    <div class="outcome drift">
+      <span class="badge">default pipeline</span>
+      <pre><span class="prompt">$</span> yqr '.spec.volumes[0].secret.defaultMode' pod.yaml
+<span class="out">640</span></pre>
+    </div>
+    <div class="outcome exact">
+      <span class="badge">--engine rust-yaml</span>
+      <pre><span class="prompt">$</span> yqr --engine rust-yaml '.spec.volumes[0].secret.defaultMode' pod.yaml
+<span class="out">0640</span></pre>
+    </div>
+  </div>
+
+  <p style="color:var(--text-soft); font-size:15px; max-width:62ch; margin-top:-32px;">
+    Kubernetes spells file permissions in octal &mdash; <code>defaultMode: 0640</code> on
+    a Secret or ConfigMap volume. Read that field through yqr's default,
+    re-serializing pipeline and the leading zero is gone: <code>640</code> is a
+    different number. Select a <a href="#engines">fidelity engine</a> and the
+    value comes back exactly as written, because yqr never re-typed it in the
+    first place.
+  </p>
+
+  <section id="paths">
+    <div class="section-head">
+      <p class="eyebrow">installed paths</p>
+      <h2>Where the binary actually lives</h2>
+      <p>yqr isn't packaged anywhere yet &mdash; every path below comes from
+        building the crate yourself.</p>
+    </div>
+    <div class="paths">
+      <div class="path-card">
+        <h3>On your machine</h3>
+        <code class="loc">cargo build --release</code>
+        <p>Binary lands at <code class="mono">target/release/yqr</code>.</p>
+        <code class="loc">cargo install --path .</code>
+        <p>Installs to <code class="mono">~/.cargo/bin/yqr</code> &mdash; keep
+          that directory on <code class="mono">PATH</code> so plain
+          <code class="mono">yqr</code> resolves from any shell, including
+          one already piping <code class="mono">kubectl</code> output.</p>
+      </div>
+      <div class="path-card">
+        <h3>Inside a container image</h3>
+        <code class="loc">/usr/local/bin/yqr</code>
+        <p>Build it in a multi-stage <code class="mono">Dockerfile</code> and
+          copy just the binary into the runtime stage &mdash; no Rust
+          toolchain, no source tree, in the image that actually ships.</p>
+      </div>
+    </div>
+
+    <div class="callout" id="engines">
+      <strong style="color:#f4efe1;">Byte-preserving reads are opt-in at build time.</strong>
+      A plain <code>cargo build --release</code> binary has no
+      <code>--engine</code> flag &mdash; it exists to keep the default build
+      dependency-minimal. Ask for it and you get told exactly how to get it:
+      <pre><span class="prompt">$</span> yqr --engine rust-yaml '.' pod.yaml
+yqr: io error: engine 'rust-yaml' is not available in this build (rebuild with: cargo build --features backend-rust-yaml)</pre>
+      Rebuild with the feature enabled and the flag works:
+      <pre><span class="prompt">$</span> cargo build --release --features backend-rust-yaml</pre>
+      (<code>backend-noyalib</code> is the other available engine.) If you're
+      baking yqr into a container image specifically to query manifests
+      byte-exactly, turn the feature on in the build stage.
+    </div>
+  </section>
+
+  <section id="recipes">
+    <div class="section-head">
+      <p class="eyebrow">two ways to run it against a cluster</p>
+      <h2>From an operator's shell, or from inside the image</h2>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <h3>Piped from kubectl</h3>
+        <p>Standard operator loop: dump a resource as YAML, pull one field out
+          of it, move on.</p>
+
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> kubectl get pods -o yaml | yqr -r <span class="filter">'.items[] | .metadata.name'</span></pre>
+          <p class="note">One pod name per line.</p>
+        </div>
+
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> kubectl get pod web-0 -o yaml | yqr -r <span class="filter">'.spec.containers[0].image'</span></pre>
+          <p class="note">The primary container's image, unquoted.</p>
+        </div>
+
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> kubectl get pod web-0 -o yaml | yqr -r <span class="filter">'.spec.initContainers[]? | .image'</span></pre>
+          <p class="note">Init container images when the pod has any &mdash;
+            the trailing <code class="mono">?</code> keeps pods with none
+            from erroring the pipeline.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Inside a container image</h3>
+        <p>Bake the binary in, then use it in an init container to read a
+          mounted manifest or ConfigMap before the main container starts.</p>
+        <pre class="dockerfile"><span class="rem"># -- build --</span>
+<span class="kw">FROM</span> rust:1.96-slim <span class="kw">AS</span> build
+WORKDIR /src
+COPY . .
+RUN cargo build --release --features backend-rust-yaml
+
+<span class="rem"># -- runtime --</span>
+<span class="kw">FROM</span> debian:bookworm-slim
+COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
+<span class="kw">ENTRYPOINT</span> [<span class="mono">"yqr"</span>]</pre>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.data.enableBeta'</span> /config/values.yaml</pre>
+          <p class="note">Read a flag out of a mounted ConfigMap and hand it
+            to the next step &mdash; a common init-container job.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="grammar">
+    <div class="section-head">
+      <p class="eyebrow">filter grammar</p>
+      <h2>What yqr can walk today</h2>
+      <p>yqr is at milestone M0. This is the whole grammar &mdash; every
+        recipe on this page is built from it.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Filter</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>.</code></td><td class="meaning">Identity</td></tr>
+        <tr><td><code>.foo</code></td><td class="meaning">Field access</td></tr>
+        <tr><td><code>.a.b</code></td><td class="meaning">Nested field access</td></tr>
+        <tr><td><code>.[n]</code></td><td class="meaning">Array index (<code>.[-1]</code> counts from the end)</td></tr>
+        <tr><td><code>.[]</code></td><td class="meaning">Iterate sequence elements / mapping values</td></tr>
+        <tr><td><code>a | b</code></td><td class="meaning">Pipe</td></tr>
+        <tr><td><code>f?</code></td><td class="meaning">Suppress runtime errors from <code>f</code> (e.g. iterating a field that turns out to be missing or the wrong shape)</td></tr>
+      </tbody>
+    </table>
+    <p class="not-yet">
+      Not yet available: <code>select()</code>, <code>map()</code>,
+      <code>keys</code>, arithmetic, and object/array construction. Reach for
+      <code>kubectl</code>'s own <code>-o jsonpath</code> or a
+      <code>grep</code> in the meantime if a recipe needs one of those.
+    </p>
+  </section>
+
+  <footer>
+    <span>yqr &middot; a jq-style filter for YAML</span>
+    <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

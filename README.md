@@ -133,6 +133,11 @@ Engine-mode notes:
   (e.g. classic-Mac CR-only line endings are rejected). Duplicate keys resolve
   last-wins and emit the last occurrence's real bytes (fixed in noyalib 0.0.13).
 
+## Using yqr in Kubernetes
+
+Install paths and recipes for running yqr against `kubectl` output or baking
+it into a container image: [`docs/content/kubernetes.html`](docs/content/kubernetes.html).
+
 ## Architecture
 
 ```
