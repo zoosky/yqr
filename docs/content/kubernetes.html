@@ -300,6 +300,7 @@
   }
   @media (max-width:720px){ .cards{grid-template-columns:1fr;} }
   .card{
+    min-width:0;
     background:var(--panel);
     border:1px solid rgba(255,255,255,0.06);
     border-radius:10px;
@@ -325,7 +326,8 @@
     overflow-x:auto;
     color:var(--text);
     margin:0 0 6px;
-    white-space:pre;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
   }
   .recipe .cmd .prompt{color:var(--text-faint);}
   .recipe .cmd .filter{color:var(--route);}
@@ -340,7 +342,8 @@
     overflow-x:auto;
     color:var(--text);
     margin:0 0 14px;
-    white-space:pre;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
   }
   .dockerfile .rem{color:var(--text-faint);}
   .dockerfile .kw{color:#a9c3e0;}
@@ -371,11 +374,46 @@
   .mini-card .recipe .cmd{
     font-size:11.5px;
     padding:8px 10px;
-    white-space:pre-wrap;
-    overflow-wrap:break-word;
-    overflow-x:visible;
   }
   .mini-card .recipe .note{font-size:12px;}
+
+  /* ---------- further-afield stack ---------- */
+  .explicit-card{
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:10px;
+    padding:24px 26px;
+    margin-bottom:20px;
+  }
+  .explicit-card:last-child{margin-bottom:0;}
+  .explicit-card h3{
+    font-family:var(--serif);
+    font-size:19px;
+    font-weight:400;
+    margin:0 0 8px;
+    color:#f4efe1;
+  }
+  .explicit-card > p.lede{font-size:14px; color:var(--text-soft); margin:0 0 16px; max-width:64ch;}
+  .snippet{
+    background:var(--ink-2);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:6px;
+    padding:12px 16px;
+    font-size:12.5px;
+    overflow-x:auto;
+    color:var(--text-soft);
+    margin:0 0 18px;
+  }
+  .snippet .tok-key{color:#a9c3e0;}
+  .explicit-recipes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media (max-width:700px){ .explicit-recipes{grid-template-columns:1fr;} }
+  .explicit-recipes .recipe{min-width:0;}
+  .explicit-recipes .recipe .note{font-size:13.5px; color:var(--text-soft); line-height:1.55;}
+  .snippet, .snippet code{white-space:pre-wrap; overflow-wrap:break-word;}
 
   /* ---------- filter grammar table ---------- */
   table{
@@ -635,6 +673,106 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
         </div>
       </div>
 
+    </div>
+  </section>
+
+  <section id="further">
+    <div class="section-head">
+      <p class="eyebrow">further afield</p>
+      <h2>Three more, shown in full</h2>
+      <p>Same grammar, different files &mdash; this time with the source
+        shown, so nothing here has to be taken on faith.</p>
+    </div>
+
+    <div class="explicit-card">
+      <h3>OpenAPI specs</h3>
+      <p class="lede">An OpenAPI document is plain YAML. Point yqr at it to
+        pull a specific operation's details out of a spec someone else
+        wrote, without loading it into an editor.</p>
+      <pre class="snippet"><code><span class="tok-key">paths:</span>
+  /widgets/{id}:
+    get:
+      <span class="tok-key">summary:</span> Get a widget
+      responses:
+        "200":
+          <span class="tok-key">description:</span> OK</code></pre>
+      <div class="explicit-recipes">
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.paths.["/widgets/{id}"].get.summary'</span> openapi.yaml
+Get a widget</pre>
+          <p class="note">Path keys have slashes and braces, so a bareword
+            can't spell them &mdash; bracket syntax reaches them anyway,
+            the same way <code class="mono">.["runs-on"]</code> did for the
+            CI workflow above.</p>
+        </div>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.paths.["/widgets"].get.responses.["200"].description'</span> openapi.yaml
+OK</pre>
+          <p class="note">Status codes are string keys, and an unquoted
+            <code class="mono">200</code> in a filter would try to read a
+            number. Bracket syntax reaches the string key
+            <code class="mono">"200"</code> exactly as the spec wrote it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="explicit-card">
+      <h3>Prometheus alerting rules</h3>
+      <p class="lede">Alerting rules are a YAML list of groups, each holding
+        a list of rules. Reading one back tells you exactly what will page
+        someone, and at what threshold.</p>
+      <pre class="snippet"><code><span class="tok-key">groups:</span>
+  - name: api-slos
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status="5xx"}[5m]) &gt; 0.05
+        for: 10m
+        labels:
+          severity: page</code></pre>
+      <div class="explicit-recipes">
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.groups[0].rules[] | .alert'</span> rules.yaml
+HighErrorRate
+HighLatency</pre>
+          <p class="note">Every alert name in the first group, without
+            reading through a file's worth of PromQL to find them.</p>
+        </div>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.groups[0].rules[0].expr'</span> rules.yaml
+rate(http_requests_total{status="5xx"}[5m]) &gt; 0.05</pre>
+          <p class="note">The exact expression for that alert &mdash; useful
+            when you just need to confirm the number that pages someone,
+            not re-read the whole rules file.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="explicit-card">
+      <h3>Application config</h3>
+      <p class="lede">Most services ship a YAML config file alongside the
+        binary &mdash; database targets, ports, feature flags. yqr reads it
+        the same way it reads anything else.</p>
+      <pre class="snippet"><code><span class="tok-key">database:</span>
+  host: db.internal
+  port: 5432
+<span class="tok-key">featureFlags:</span>
+  newCheckout: true
+  betaSearch: false</code></pre>
+      <div class="explicit-recipes">
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.database.host'</span> application.yaml
+db.internal</pre>
+          <p class="note">Confirm which database an environment's config
+            actually points at before you run a migration against it.</p>
+        </div>
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.featureFlags.newCheckout'</span> application.yaml
+true</pre>
+          <p class="note">Read a single feature flag's value straight out of
+            the file that ships with the deploy, instead of grepping for
+            it.</p>
+        </div>
+      </div>
     </div>
   </section>
 
