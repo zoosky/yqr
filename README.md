@@ -133,6 +133,14 @@ Engine-mode notes:
   (e.g. classic-Mac CR-only line endings are rejected). Duplicate keys resolve
   last-wins and emit the last occurrence's real bytes (fixed in noyalib 0.0.13).
 
+## Using yqr in Kubernetes (and beyond)
+
+Install paths and recipes for running yqr against `kubectl` output, baking it
+into a container image, and reading CI configs, Compose files, Ansible
+playbooks, OpenAPI specs, alerting rules, and app config:
+[zoosky.github.io/yqr/docs/content/home.html](https://zoosky.github.io/yqr/docs/content/home.html)
+(source: [`docs/content/home.html`](docs/content/home.html)).
+
 ## Architecture
 
 ```
