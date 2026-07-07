@@ -1,0 +1,28 @@
+name: Publish docs to Pages
+
+# Mirrors docs/content/ onto the gh-pages branch, under the same relative
+# path, whenever it changes on main. Scoped to that one destination
+# directory so it never touches dev/bench/ (owned by benchmark.yml).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/content/**"
+      - ".github/workflows/docs-pages.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Publish docs/content to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/content
+          destination_dir: docs/content
+          keep_files: true
