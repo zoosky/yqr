@@ -24,6 +24,12 @@ path = "src/lib.rs"
 name = "eval"
 harness = false
 
+# Drives the shared real-world corpus (tests/corpus/) — the same cases the
+# validation suite asserts against — plus scale variants.
+[[bench]]
+name = "corpus_bench"
+harness = false
+
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
 rust-yaml = "1.1.0"
