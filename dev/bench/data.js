@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783282577025,
+  "lastUpdate": 1783504035806,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -125,6 +125,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 925565,
             "range": "± 10669",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7a9221280a2c28a346b435677650beb6f83e4fdb",
+          "message": "feat(f004): ship both fidelity engines by default, runtime-switchable, from the zoosky forks (#14)",
+          "timestamp": "2026-07-08T11:45:37+02:00",
+          "tree_id": "6505029afc5156e005f0e28265dded712c0e2da6",
+          "url": "https://github.com/zoosky/yqr/commit/7a9221280a2c28a346b435677650beb6f83e4fdb"
+        },
+        "date": 1783504034964,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 441,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 8721,
+            "range": "± 38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 829114,
+            "range": "± 28495",
             "unit": "ns/iter"
           }
         ]
