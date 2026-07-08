@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783504035806,
+  "lastUpdate": 1783527644476,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -167,6 +167,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 829114,
             "range": "± 28495",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fd92d2da47c2ce903fccfa5961b13dcf13ee04c3",
+          "message": "test(m003): add shared real-world corpus for validation and benchmarks (#16)",
+          "timestamp": "2026-07-08T18:19:24+02:00",
+          "tree_id": "71b1fa18abba4d4d115cf25bffe72d008a757297",
+          "url": "https://github.com/zoosky/yqr/commit/fd92d2da47c2ce903fccfa5961b13dcf13ee04c3"
+        },
+        "date": 1783527644213,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 446,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 8270,
+            "range": "± 45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 797036,
+            "range": "± 18957",
             "unit": "ns/iter"
           }
         ]
