@@ -158,6 +158,16 @@ The project enforces strict clippy lints. See `Cargo.toml` for the full configur
 - **Integration tests**: Located in `tests/` directory
 - **Coverage target**: Aim for >80% code coverage
 - **Property-based tests**: Use `proptest` for complex logic where applicable
+- **Shared corpus** (`tests/corpus/`, spec `yqr-m003`): a single real-world
+  case table (Kubernetes, GitHub Actions, Docker Compose, Helm, app config)
+  driving **both** `tests/corpus_validation.rs` (functional assertions) and
+  `benches/corpus_bench.rs` (timings) — a case authored once is validated and
+  benchmarked. It covers every implemented filter operation, the error taxonomy
+  (exit 3/5), raw output, and fidelity byte-identity. Add a `Case` to
+  `classic_cases()` (semantic/raw/error expectation) or an `EngineCase` to
+  `engine_cases()` (byte-exact, per backend); both consumers pick it up
+  automatically. Run: `cargo test --test corpus_validation` /
+  `cargo bench --bench corpus_bench`.
 - **Fidelity harness** (`tests/fidelity.rs`): A backend-agnostic round-trip
   harness that checks the a001 byte-for-byte property (`parse -> emit == input`)
   across YAML backend libraries, one case per b001 formatting dimension
