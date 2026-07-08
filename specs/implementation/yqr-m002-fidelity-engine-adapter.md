@@ -319,7 +319,16 @@ pre-formats to `Verbatim`. Structural edits are a later extension.
 | `resolve(doc, path)` | walk the span index by segment; `Key` via **token-text match** (handles special-char keys natively → never `SpecialCharKey`); `Index` resolves negatives against length; root → whole-doc span; missing → `Absent`; not-yet-indexed kinds → `Unaddressable::Unindexed` |
 | `splice` (`FidelityEdit`) | edit the owned `String`, re-validate by re-parse |
 
-### 7.2 Backend C — noyalib CST (feature-gated, after r002 gates)
+### 7.2 Backend C — noyalib CST (default-on, after r002 gates)
+
+> **Update (2026-07-08, `yqr-f004`): both backends are now on by default and
+> runtime-switchable in one binary.** `noyalib` is pinned to the
+> `zoosky/noyalib` `feat/fidelity-span-fixes` branch (2.2-2.7 from `yqr-b002`),
+> paralleling backend A's `zoosky/rust-yaml` `feat/roundtrip-document` pin. The
+> adapter consumed the fork's fixes: keep-chomped/alias spans now resolve to
+> `Found`, block-collection spans start at the line indent, and the loader's
+> `Error::KeyCollision` replaced the adapter's rust-yaml entry-count
+> cross-check. `--no-default-features` still yields a backend-less minimal build.
 
 | Method | Implementation |
 |---|---|

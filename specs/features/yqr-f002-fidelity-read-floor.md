@@ -4,7 +4,7 @@
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-03
 **Implements:** `yqr-m002` §4/§9 (read floor), `yqr-a001` §4.1 (slice-on-emit)
-**Related:** `yqr-b001` (the bug this closes for the engine path), `yqr-r002` (backend evaluation)
+**Related:** `yqr-b001` (the bug this closes for the engine path), `yqr-r002` (backend evaluation), `yqr-f004` (superseded the off-by-default gating below: the noyalib backend is now on by default, runtime-switchable, and pinned to the `zoosky/noyalib` fork)
 
 ## 1. Summary
 
