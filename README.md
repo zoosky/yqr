@@ -86,26 +86,33 @@ Planned: object/array construction, builtins (`length`, `keys`, `select`,
 
 By default yqr re-serializes results, which normalizes formatting (comments,
 quoting, indentation are lost). With a **fidelity engine** selected, untouched
-nodes are emitted as their **original source bytes** instead. Two engines are
-available, each behind its own off-by-default feature:
+nodes are emitted as their **original source bytes** instead. Two engines ship
+in the default build and are selected at runtime — the same binary switches
+between them, no rebuild required:
 
 - `--engine rust-yaml` — our rust-yaml fork's source-preserving
-  `RoundTripDocument` (feature `backend-rust-yaml`). Mapping keys keep their
-  full typed value, so nothing collides and special-character keys are
-  addressable.
-- `--engine noyalib` — noyalib's lossless CST (feature `backend-noyalib`).
+  `RoundTripDocument`. Mapping keys keep their full typed value, so nothing
+  collides and special-character keys are addressable.
+- `--engine noyalib` — our noyalib fork's lossless CST.
+
+Both are sourced from the `zoosky/` forks so yqr ships the fidelity fixes ahead
+of an upstream release. Each engine also has its own Cargo feature
+(`backend-rust-yaml`, `backend-noyalib`), both on by default; build with
+`--no-default-features` for a minimal binary that carries neither (the classic
+pipeline still works and `--engine` then reports the backend as unavailable).
 
 ```bash
-# Build with an engine backend (off by default to keep the build minimal)
-cargo build --release --features backend-rust-yaml
+# Both engines are available out of the box
+cargo build --release
 
 # Identity reproduces the file byte-for-byte -- comments, blank lines,
 # quoting, block scalars, CRLF, BOM, and multi-document streams survive
 yqr --engine rust-yaml '.' config.yaml | diff config.yaml -   # no diff
+yqr --engine noyalib   '.' config.yaml | diff config.yaml -   # no diff
 
 # Projections keep the original spelling
 echo "zip: 007" | yqr --engine rust-yaml '.zip'      # => 007   (not 7)
-echo "s: 'hi'"  | yqr --engine rust-yaml '.s'        # => 'hi'  (quotes kept)
+echo "s: 'hi'"  | yqr --engine noyalib   '.s'        # => 'hi'  (quotes kept)
 ```
 
 Results that are computed rather than selected (and nodes an engine cannot
@@ -126,12 +133,15 @@ Engine-mode notes:
   scalar projects its value without the `&anchor` label.) Current limitation: a
   stream ending in a `...` document-end marker **after a block collection** is
   rejected (a fork parser bug being fixed upstream).
-- With `--engine noyalib` (requires noyalib >= 0.0.13), the value model has
+- With `--engine noyalib` (the `zoosky/noyalib` fork), the value model has
   **string-only mapping keys**: non-string keys (`true:`, `8080:`) are matched
   by spelling; distinct keys that collide after string conversion (`1` and
-  `"1"`) are refused with an error. Its parser is also stricter in a few corners
-  (e.g. classic-Mac CR-only line endings are rejected). Duplicate keys resolve
-  last-wins and emit the last occurrence's real bytes (fixed in noyalib 0.0.13).
+  `"1"`) are refused with an error. Duplicate keys resolve last-wins and emit
+  the last occurrence's real bytes. The fork also carries the fidelity fixes
+  yqr consumes: keep-chomped (`|+`) block scalars retain their kept trailing
+  blank lines, alias references project the anchor's real bytes, block-collection
+  spans start at their first line's indent, and classic-Mac CR-only line endings
+  are accepted.
 
 ## Using yqr in Kubernetes (and beyond)
 

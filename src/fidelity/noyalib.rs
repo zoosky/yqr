@@ -58,27 +58,13 @@ impl NoyalibEngine {
             )));
         }
 
-        let values: Vec<Value> = docs.iter().map(|d| lower_value(&d.as_value())).collect();
-
         // The engine's value model has string-only mapping keys, so distinct
         // YAML keys that share a spelling (`1` and `"1"`) would collapse into
-        // one entry — silent data loss. Cross-check entry counts against the
-        // default loader (best effort: skipped when it cannot parse the input
-        // or disagrees about document boundaries) and refuse loudly instead.
-        let scanned = input.strip_prefix('\u{feff}').unwrap_or(input);
-        if let Ok(classic) = rust_yaml::Yaml::new().load_all_str(scanned)
-            && classic.len() == values.len()
-            && classic
-                .iter()
-                .zip(&values)
-                .any(|(c, l)| entry_counts_diverge(c, l))
-        {
-            return Err(YqrError::eval(
-                "engine 'noyalib' cannot represent this document faithfully: \
-                 distinct mapping keys collide after string conversion \
-                 (e.g. `1` and `\"1\"` as keys of the same mapping)",
-            ));
-        }
+        // one entry — silent data loss. The fork's loader now raises
+        // `Error::KeyCollision` for exactly that case (deficiency 2.5), so the
+        // `parse_stream` call above already refused such an input loudly; no
+        // cross-check against the classic loader is needed here.
+        let values: Vec<Value> = docs.iter().map(|d| lower_value(&d.as_value())).collect();
 
         Ok(Self {
             source: input.to_string(),
@@ -159,12 +145,13 @@ impl FidelityEngine for NoyalibEngine {
                 if let Some(found) = self.verified_found(span, expected) {
                     return Ok(found);
                 }
-                // The slice disagrees with the value the evaluator selected
-                // (implicit nulls yield indicator bytes; keep-chomped block
-                // scalars lose kept blank lines; aliases slice as dangling
-                // `*name`). Degrade visibly. (Duplicate keys used to disagree
-                // here too -- span_at was first-wins while the typed view is
-                // last-wins -- but noyalib 0.0.13 made span_at last-wins.)
+                // The span exists but its bytes do not denote the value the
+                // evaluator selected, so slicing them would emit the wrong
+                // node. Degrade visibly. The fork closed the common causes at
+                // the source (last-wins duplicate keys, keep-chomped block
+                // scalars, alias resolve-through), so this is now a genuine
+                // safety net for the residual long tail rather than a routine
+                // path.
                 return Ok(Resolved::Synthetic);
             }
         }
@@ -185,16 +172,18 @@ impl NoyalibEngine {
     /// emitted demonstrably denote the value the evaluator selected: the
     /// emitted slice must re-parse to `expected`. This is the wrong-node
     /// guard — without it a span could silently emit bytes of a different
-    /// node than the typed view evaluated (e.g. an implicit null's indicator
-    /// bytes, or a keep-chomped block scalar missing its kept blank lines).
+    /// node than the typed view evaluated. The fork closed the common
+    /// mismatch sources upstream (keep-chomped block scalars, alias
+    /// resolve-through, last-wins duplicate keys), so this now defends the
+    /// residual long tail rather than routine cases.
     ///
-    /// A nested block collection's span starts at its first key, leaving the
-    /// first line's indentation just left of the span while later lines keep
-    /// theirs — such a slice is misleading on its own (a downstream parser
-    /// mis-nests it). When the bytes between the line start and the span are
-    /// pure indentation, the span is **extended to the line start** so the
-    /// emitted slice is uniformly indented, still verbatim source, and
-    /// verified in exactly the form it is emitted.
+    /// If a span's bytes do not re-parse, the extension below is retried: when
+    /// the bytes between the line start and the span are pure indentation, the
+    /// span is **extended to the line start** so the emitted slice is uniformly
+    /// indented, still verbatim source, and verified in exactly the form it is
+    /// emitted (a mis-indented slice would otherwise re-nest downstream). The
+    /// fork's block-collection fix makes most such spans already line-start
+    /// aligned, leaving this as a fallback for the cases it does not cover.
     fn verified_found(&self, span: Span, expected: &Value) -> Option<Resolved<'_>> {
         let bytes = span.slice(&self.source);
         if bytes.trim().is_empty() {
@@ -218,28 +207,6 @@ impl NoyalibEngine {
             }
         }
         None
-    }
-}
-
-/// Whether two typed views of the same document disagree on any collection's
-/// entry count — the signature of distinct keys collapsing under the engine's
-/// string-only key model. Scalars are never compared (the two loaders type
-/// them differently by design); only structure is.
-fn entry_counts_diverge(classic: &Value, lowered: &Value) -> bool {
-    match (classic, lowered) {
-        (Value::Mapping(a), Value::Mapping(b)) => {
-            a.len() != b.len()
-                || a.values()
-                    .zip(b.values())
-                    .any(|(x, y)| entry_counts_diverge(x, y))
-        }
-        (Value::Sequence(a), Value::Sequence(b)) => {
-            a.len() != b.len()
-                || a.iter()
-                    .zip(b.iter())
-                    .any(|(x, y)| entry_counts_diverge(x, y))
-        }
-        _ => false,
     }
 }
 
@@ -429,13 +396,14 @@ mod tests {
 
     #[test]
     fn duplicate_collection_keys_resolve_to_last_occurrence() {
-        // The last `m`'s single-line block re-parses standalone at column 0, so
-        // the guard emits it verbatim (the 2-space indent was contextual
-        // nesting under `m:`, not part of the value).
+        // The last `m`'s block value spans from its first line's indent (the
+        // fork's block-collection line-start fix, deficiency 2.4), so the
+        // emitted slice is uniformly indented, re-parses to `{a: 2}`, and is
+        // emitted verbatim.
         let e = engine("m:\n  a: 1\nm:\n  a: 2\n");
         let path = Path::root().child(PathSeg::Key("m".into()));
         match e.resolve(0, &path).unwrap() {
-            Resolved::Found { bytes, .. } => assert_eq!(bytes, "a: 2"),
+            Resolved::Found { bytes, .. } => assert_eq!(bytes, "  a: 2"),
             other => panic!("expected Found, got {other:?}"),
         }
     }
@@ -451,21 +419,29 @@ mod tests {
     }
 
     #[test]
-    fn keep_chomped_block_scalar_degrades_rather_than_losing_blanks() {
-        // noyalib's span excludes the kept trailing blank lines of `|+`, so
-        // the slice denotes a DIFFERENT value; the guard must catch it.
+    fn keep_chomped_block_scalar_keeps_its_trailing_blanks() {
+        // The fork's keep-chomped span fix (deficiency 2.3) includes the kept
+        // trailing blank lines of `|+` in the span, so the slice re-parses to
+        // the full `"kept\n\n\n"` value and is emitted verbatim.
         let e = engine("key: |+\n  kept\n\n\n");
         let path = Path::root().child(PathSeg::Key("key".into()));
-        assert!(matches!(e.resolve(0, &path).unwrap(), Resolved::Synthetic));
+        match e.resolve(0, &path).unwrap() {
+            Resolved::Found { bytes, .. } => assert_eq!(bytes, "|+\n  kept\n\n\n"),
+            other => panic!("expected Found, got {other:?}"),
+        }
     }
 
     #[test]
-    fn alias_reference_degrades_to_typed_expansion() {
-        // A dangling `*name` slice is not the node's value; per the seam
-        // contract alias-expanded content re-serializes from the typed view.
+    fn alias_reference_resolves_through_to_anchor_value() {
+        // The fork resolves an alias reference through to the anchor value's
+        // span (deficiency 2.6), so `*anc` emits the anchor's original bytes,
+        // which re-parse to the same sequence the typed view holds.
         let e = engine("a: &anc [1, 2]\nb: *anc\n");
         let path = Path::root().child(PathSeg::Key("b".into()));
-        assert!(matches!(e.resolve(0, &path).unwrap(), Resolved::Synthetic));
+        match e.resolve(0, &path).unwrap() {
+            Resolved::Found { bytes, .. } => assert_eq!(bytes, "[1, 2]"),
+            other => panic!("expected Found, got {other:?}"),
+        }
     }
 
     #[test]
@@ -527,7 +503,9 @@ mod tests {
     #[test]
     fn colliding_keys_are_refused_loudly() {
         // `1` and `"1"` are distinct YAML keys but collide in the engine's
-        // string-only key model; silent entry loss must be an error instead.
+        // string-only key model; the fork's loader raises `KeyCollision`
+        // (deficiency 2.5) so `open()` refuses the input instead of silently
+        // dropping an entry.
         assert!(NoyalibEngine::open("1: a\n\"1\": b\n").is_err());
     }
 
@@ -557,7 +535,10 @@ mod tests {
 
     #[test]
     fn bom_and_crlf_inputs_stay_byte_exact() {
-        for input in ["\u{feff}a: 1\nb: 2\n", "a: 1\r\nb: 2\r\n"] {
+        // The lone-CR case exercises the fork's classic-Mac line-break fix
+        // (deficiency 2.7): a CR-only stream now scans as two lines and still
+        // round-trips byte-for-byte.
+        for input in ["\u{feff}a: 1\nb: 2\n", "a: 1\r\nb: 2\r\n", "a: 1\rb: 2\r"] {
             let e = engine(input);
             assert_eq!(e.source(), input);
             match e.resolve(0, &Path::root()).unwrap() {

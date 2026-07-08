@@ -1,9 +1,9 @@
 # Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model
 
-**Status:** Open (upstream; yqr-side mitigations shipped; deficiency 2.1 RESOLVED in noyalib 0.0.13 and consumed by yqr; 2.2–2.7 each now have an upstream PR **open** — [#147](https://github.com/sebastienrousseau/noyalib/pull/147)–[#152](https://github.com/sebastienrousseau/noyalib/pull/152) — awaiting review/merge/release)
-**Severity:** Medium — every hazard is contained by mitigations in yqr's engine adapter, but fidelity or semantics degrade where noyalib's model falls short
+**Status:** Resolved on the yqr side (all seven fixes consumed from the `zoosky/noyalib` fork; upstream PRs [#147](https://github.com/sebastienrousseau/noyalib/pull/147)–[#152](https://github.com/sebastienrousseau/noyalib/pull/152) remain open for 2.2–2.7). yqr pins `noyalib` to `zoosky/noyalib` `feat/fidelity-span-fixes` (an integration branch off 0.0.13 carrying 2.2–2.7); deficiency 2.1 was already in 0.0.13. See `yqr-f004`.
+**Severity:** Medium — every hazard is contained by mitigations in yqr's engine adapter, and the fork now fixes 2.2–2.7 at the source
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-05
+**Last updated:** 2026-07-08
 **Affects:** the `--engine noyalib` fidelity read path (`yqr-f002`); irrelevant to the default pipeline
 **Component:** `noyalib` 0.0.13 (`cst::Document::span_at`, `Document::as_value`, the `Value` mapping model)
 **Related:** `yqr-f002` §4a (mitigations), `yqr-r002` (evaluation), `yqr-m002` §7.2 (backend C), upstream precedent [noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)/[#123](https://github.com/sebastienrousseau/noyalib/pull/123) (BOM fix, merged); deficiency 2.1 fix ([noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143), closed) folded into the **noyalib 0.0.13** release (PR #145); deficiencies 2.2–2.7 fixed on the `zoosky/noyalib` fork and submitted as [#147](https://github.com/sebastienrousseau/noyalib/pull/147) (2.7), [#148](https://github.com/sebastienrousseau/noyalib/pull/148) (2.3), [#149](https://github.com/sebastienrousseau/noyalib/pull/149) (2.6), [#150](https://github.com/sebastienrousseau/noyalib/pull/150) (2.2), [#151](https://github.com/sebastienrousseau/noyalib/pull/151) (2.4), [#152](https://github.com/sebastienrousseau/noyalib/pull/152) (2.5)
@@ -228,14 +228,17 @@ seven are now submitted; 2.1 is released, 2.2–2.7 are open PRs:
       as [#147](https://github.com/sebastienrousseau/noyalib/pull/147)–[#152](https://github.com/sebastienrousseau/noyalib/pull/152)
       (fork `zoosky/noyalib`), each with a regression test and verified against
       yqr's `backend-noyalib` fidelity suite before submission.
-- [ ] For every upstream fix that lands and releases: bump the pin, remove or
-      simplify the corresponding adapter guard, and keep the regression tests
-      (they must pass against the fixed backend too). Pending merge/release of
-      #147–#152. Consumption deltas to apply then: 2.3 & 2.6 guard tests flip
-      `Synthetic → Found`; 2.4 changes
+- [x] For every fix: consume it, remove or simplify the corresponding adapter
+      guard, and keep the regression tests (they pass against the fixed backend
+      too). Consumed from the `zoosky/noyalib` `feat/fidelity-span-fixes`
+      integration branch rather than waiting for the upstream PRs to merge and
+      release (`yqr-f004`). Applied deltas: 2.3 & 2.6 guard tests flipped
+      `Synthetic → Found`; 2.4 changed
       `duplicate_collection_keys_resolve_to_last_occurrence`'s expected bytes to
-      `  a: 2`; 2.5 lets `open()` drop its rust-yaml entry-count cross-check;
-      2.7 lets the line-ending guard add a CR-only case.
+      `  a: 2`; 2.5 dropped `open()`'s rust-yaml entry-count cross-check (and its
+      `entry_counts_diverge` helper), the fork's `Error::KeyCollision` now
+      refusing collisions on the `parse_stream` path; 2.7 added a CR-only case to
+      the line-ending round-trip test.
 - [ ] Residual limitations that upstream declines to change remain documented
       in README and `yqr-f002`. Open sub-items even if #147–#152 merge: 2.4b
       (leading interior comments) and 2.5 on the no-span / serde paths.

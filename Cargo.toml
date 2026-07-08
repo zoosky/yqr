@@ -28,16 +28,20 @@ harness = false
 clap = { version = "4.6.1", features = ["derive"] }
 rust-yaml = "1.1.0"
 # Fidelity engine backend (src/fidelity/noyalib.rs) and comparison backend for
-# the round-trip harness (tests/fidelity.rs). Optional and off by default
-# (enabled via the `backend-noyalib` feature), so the default build stays
-# dependency-minimal. See research r002 for the evaluation.
-noyalib = { version = "0.0.13", optional = true }
+# the round-trip harness (tests/fidelity.rs). Sourced from the `zoosky/noyalib`
+# fork's `feat/fidelity-span-fixes` branch, which carries our submitted upstream
+# fixes on top of the 0.0.13 release (span_at implicit-null / keep-chomped /
+# block-collection / alias resolve-through, loader key-collision diagnostic, and
+# scanner lone-CR — deficiencies 2.2-2.7), so yqr ships the fixed engine ahead
+# of an upstream release. Enabled by default via the `backend-noyalib` feature.
+# See research r002 and bug b002.
+noyalib = { git = "https://github.com/zoosky/noyalib.git", branch = "feat/fidelity-span-fixes", optional = true }
 # Fidelity engine backend A (src/fidelity/rustyaml.rs) and comparison backend
 # for the round-trip harness: our rust-yaml fork's source-preserving
 # `RoundTripDocument` API. It is the *same* crate yqr already depends on from
 # crates.io, brought in under a distinct name from the fork branch so the
-# default (crates.io) build is untouched. Optional and off by default (enabled
-# via the `backend-rust-yaml` feature). See bug b001 §8 and impl m002 §7.1.
+# classic (crates.io) pipeline is untouched. Enabled by default via the
+# `backend-rust-yaml` feature. See bug b001 §8 and impl m002 §7.1.
 rust-yaml-rt = { package = "rust-yaml", git = "https://github.com/zoosky/rust-yaml.git", branch = "feat/roundtrip-document", optional = true }
 
 [dev-dependencies]
@@ -48,10 +52,17 @@ criterion = "0.8.2"
 rust-yaml = "1.1.0"
 
 [features]
-# Adds the noyalib CST backend to the fidelity harness. Off by default.
+# Both fidelity engines ship in the default build so `--engine noyalib` and
+# `--engine rust-yaml` are switchable at runtime in one binary (engine parity).
+# Build with `--no-default-features` for a minimal binary that carries neither
+# backend (the classic re-serializing pipeline still works; `--engine` then
+# reports the backend as unavailable).
+default = ["backend-noyalib", "backend-rust-yaml"]
+# Adds the noyalib CST backend (src/fidelity/noyalib.rs) to the fidelity engine
+# and the round-trip harness.
 backend-noyalib = ["dep:noyalib"]
 # Adds the rust-yaml fork's RoundTripDocument backend (backend A) to the
-# fidelity engine and harness. Off by default.
+# fidelity engine and harness.
 backend-rust-yaml = ["dep:rust-yaml-rt"]
 
 [profile.release]
