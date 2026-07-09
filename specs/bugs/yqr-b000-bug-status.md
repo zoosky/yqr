@@ -16,11 +16,14 @@ status tracker convention).
 
 ## Resolved
 
-_None yet._
+| Bug | Title | Severity | Status | Related |
+|-----|-------|----------|--------|---------|
+| [b004](yqr-b004-crossbeam-epoch-advisory-and-memmap2-unsound.md) | `cargo audit` flags RUSTSEC-2026-0204 (crossbeam-epoch) and RUSTSEC-2026-0186 (memmap2) | Low | Fixed (lockfile bumps: crossbeam-epoch 0.9.18 -> 0.9.20, memmap2 0.9.10 -> 0.9.11) | `yqr-m001` |
 
 ## Summary
 
-- Total bugs: 3
+- Total bugs: 4
 - Open: 2 (1 High — b001; 1 Medium — b003)
+- Fixed: 1 (b004 — advisory-driven dependency bumps; `cargo audit` clean)
 - Resolved on the yqr side: 1 (b002 — the 2.2-2.7 fixes are consumed from the
   `zoosky/noyalib` fork branch; the upstream PRs #147-#152 remain open)
