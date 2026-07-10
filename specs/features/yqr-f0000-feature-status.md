@@ -28,7 +28,7 @@ The rust-yaml fork backend (f003) and the two-engine parity/runtime-switch story
 engine (`yqr-m005`) — removing the rust-yaml dependencies and unblocking the
 crates.io publish. noyalib round-trips the b001 corpus byte-for-byte. The
 byte-preserving read is now driven by its own `--preserve` flag, with `--engine`
-reduced to backend selection (f005).
+reduced to backend selection (f005), shipped in `v0.3.0`.
 
 ## Summary
 
@@ -36,3 +36,4 @@ reduced to backend selection (f005).
 - In Progress: 1
 - Done: 2
 - Superseded: 2 (f003, f004 — single-engine consolidation, `yqr-m005`)
+- Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`)
