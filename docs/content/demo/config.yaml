@@ -1,0 +1,6 @@
+# Production cluster -- edited by humans, keep the comments!
+name: my-app          # the service name
+replicas: 3           # bump to 5 for peak traffic
+ports:
+  - 8080  # http
+  - 8443  # https

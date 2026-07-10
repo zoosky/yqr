@@ -506,8 +506,8 @@ spec:
 <span class="out">640</span></pre>
     </div>
     <div class="outcome exact">
-      <span class="badge">--engine noyalib</span>
-      <pre><span class="prompt">$</span> yqr --engine noyalib '.spec.volumes[0].secret.defaultMode' pod.yaml
+      <span class="badge">--preserve</span>
+      <pre><span class="prompt">$</span> yqr --preserve '.spec.volumes[0].secret.defaultMode' pod.yaml
 <span class="out">0640</span></pre>
     </div>
   </div>
@@ -516,7 +516,7 @@ spec:
     Kubernetes spells file permissions in octal &mdash; <code>defaultMode: 0640</code> on
     a Secret or ConfigMap volume. Read that field through yqr's default,
     re-serializing pipeline and the leading zero is gone: <code>640</code> is a
-    different number. Select a <a href="#engines">fidelity engine</a> and the
+    different number. Add <a href="#engines"><code>--preserve</code></a> and the
     value comes back exactly as written, because yqr never re-typed it in the
     first place.
   </p>
@@ -553,15 +553,20 @@ spec:
 
     <div class="callout" id="engines">
       <strong style="color:#f4efe1;">Byte-preserving reads are built in.</strong>
-      yqr's fidelity engine ships in every build &mdash; pass
-      <code>--engine noyalib</code> and untouched nodes come back as their
-      original source bytes: comments, quoting, indentation, and line endings
-      survive, and the identity filter reproduces the input byte-for-byte.
-      <pre><span class="prompt">$</span> yqr --engine noyalib '.' pod.yaml</pre>
-      Omit <code>--engine</code> and yqr uses its default, re-serializing
-      pipeline. An unknown engine name is rejected up front:
+      Pass <code>--preserve</code> (<code>-p</code>) and untouched nodes come
+      back as their original source bytes: comments, quoting, indentation, and
+      line endings survive, and the identity filter reproduces the input
+      byte-for-byte.
+      <pre><span class="prompt">$</span> yqr --preserve '.' pod.yaml</pre>
+      Omit <code>--preserve</code> and yqr uses its default, re-serializing
+      pipeline. <code>--engine &lt;name&gt;</code> selects which backend parser
+      performs a preserve read (default <code>noyalib</code>); an unknown engine
+      name is rejected up front:
       <pre><span class="prompt">$</span> yqr --engine bogus '.' pod.yaml
-yqr: io error: unknown engine "bogus" (available: noyalib)</pre>
+yqr: io error: unknown engine "bogus" (available: noyalib, skald)</pre>
+      See the <a href="https://github.com/zoosky/yqr/tree/main/docs/content/demo">runnable demo</a>
+      for a seven-step walkthrough of navigation, iteration, pipes, raw output,
+      and preserve mode.
     </div>
   </section>
 
