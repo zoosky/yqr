@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783529005217,
+  "lastUpdate": 1783695982237,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -251,6 +251,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 701618,
             "range": "± 15429",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "300ca39f618ba97b7f49f5162634799efe78f6b8",
+          "message": "Experiment/noyalib only (#20)\n\n* chore(deps): pin noyalib to crates.io 0.0.14 release (drop git-dep)\n\nnoyalib's b002 fidelity fixes (deficiencies 2.2-2.7: five CST span_at\nfixes, the loader KeyCollision parity, and the scanner lone-CR fix)\nshipped upstream in the 0.0.14 release (noyalib#160). Re-pin from the\n`zoosky/noyalib` `feat/fidelity-span-fixes` git branch to the published\ncrates.io release:\n\n    noyalib = { version = \"0.0.14\", optional = true }\n\nThis resolves m004 unblock condition #1 (a crates.io-published noyalib\ncarrying the fixes); `rust-yaml-rt` is now the only git-dep still\nblocking the yqr crates.io publish.\n\nVerification (default features carry both fidelity backends):\n- fidelity harness `noyalib_cst_round_trip_is_faithful` passes -> the\n  0.0.14 CST backend still round-trips byte-for-byte (a001/r002).\n- fmt, clippy (--all-features and --no-default-features), full test\n  suite, and `cargo bench --no-run` all green.\n\nSpecs synced: m004 (condition 1 done, table + acceptance), b002 (now\nresolved via the released 0.0.14, not the fork branch), b000 tracker,\nand f004 (engine-sourcing note + acceptance annotation).\n\n* release 0.2.1",
+          "timestamp": "2026-07-10T17:04:43+02:00",
+          "tree_id": "f694273a173334650221e38743a125181e79e9ee",
+          "url": "https://github.com/zoosky/yqr/commit/300ca39f618ba97b7f49f5162634799efe78f6b8"
+        },
+        "date": 1783695981583,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 444,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5075,
+            "range": "± 58",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 253313,
+            "range": "± 1365",
             "unit": "ns/iter"
           }
         ]
