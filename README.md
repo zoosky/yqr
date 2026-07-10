@@ -8,12 +8,22 @@ stdin, applies a jq-like filter expression, and emits the result(s) as YAML (or
 raw text).
 
 It operates natively on YAML via the
-[`rust-yaml`](https://crates.io/crates/rust-yaml) parser — no lossy round trip
+[`noyalib`](https://crates.io/crates/noyalib) engine — no lossy round trip
 through JSON — and uses [`clap`](https://crates.io/crates/clap) for its CLI.
+noyalib is both the parser/emitter for the standard pipeline and the lossless
+CST behind the `--preserve` fidelity path.
 
 ## Install / build
 
-Requires the Rust **1.97** toolchain (pinned via `rust-toolchain.toml`).
+Install the published crate from crates.io:
+
+```sh
+cargo install yqr
+# binary at ~/.cargo/bin/yqr
+```
+
+Or build from a source checkout (requires the Rust **1.97** toolchain, pinned
+via `rust-toolchain.toml`):
 
 ```sh
 cargo build --release
@@ -30,9 +40,11 @@ Arguments:
   [FILE]    Input YAML file; reads stdin when omitted or '-'
 
 Options:
-  -r, --raw-output   Emit string results without YAML quoting
-  -h, --help         Print help
-  -V, --version      Print version
+  -r, --raw-output    Emit string results without YAML quoting
+  -p, --preserve      Preserve byte-for-byte formatting (comments, quoting, ...)
+      --engine <ENGINE>  Backend parser for --preserve reads (default: noyalib)
+  -h, --help          Print help
+  -V, --version       Print version
 ```
 
 ### Examples
@@ -139,18 +151,21 @@ playbooks, OpenAPI specs, alerting rules, and app config:
 
 ```
 filter ──▶ lexer ──▶ parser ──▶ Ast ──▶ evaluator ──▶ Value(s) ──▶ YAML
-YAML   ──▶ rust_yaml::Yaml::load_str ──▶ Value ──┘
+YAML   ──▶ noyalib::from_str ──▶ Value ──┘
 ```
 
-| Module          | Responsibility                          |
-|-----------------|-----------------------------------------|
-| `src/lexer.rs`  | Filter string → tokens                  |
-| `src/parser.rs` | Tokens → `Ast`                          |
-| `src/ast.rs`    | Filter AST node definitions             |
-| `src/eval.rs`   | `Ast` × `Value` → stream of `Value`     |
-| `src/cli.rs`    | `clap` argument parsing                 |
-| `src/lib.rs`    | Public API (`eval_str`, `render`)       |
-| `src/main.rs`   | Binary entry + exit-code mapping        |
+| Module          | Responsibility                                    |
+|-----------------|---------------------------------------------------|
+| `src/lexer.rs`  | Filter string → tokens                            |
+| `src/parser.rs` | Tokens → `Ast`                                    |
+| `src/ast.rs`    | Filter AST node definitions                       |
+| `src/eval.rs`   | `Ast` × `Value` → stream of `Value`               |
+| `src/value.rs`  | yqr's `Value` model (converts to/from `noyalib`)  |
+| `src/fidelity/` | Byte-preserving engine behind `--preserve`        |
+| `src/error.rs`  | `YqrError` + jq-style exit-code mapping            |
+| `src/cli.rs`    | `clap` argument parsing                           |
+| `src/lib.rs`    | Public API (`eval_str`, `render`)                 |
+| `src/main.rs`   | Binary entry + exit-code mapping                  |
 
 ## Testing
 
