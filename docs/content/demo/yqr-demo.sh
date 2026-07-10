@@ -47,8 +47,8 @@ section "3. Compose with pipes -- '|' feeds one filter into the next"
 run "First container, then its ports" '.spec.containers[0] | .ports[]' "$DEPLOY"
 
 section "4. Raw output -- '-r' drops YAML quoting for shell scripting"
-run "Quoted (default)"                '.metadata.name'            "$DEPLOY"
-run "Raw string"                      '.metadata.name' -r         "$DEPLOY"
+run "Quoted (default)"                '.spec.containers[0].image'      "$DEPLOY"
+run "Raw string"                      '.spec.containers[0].image' -r   "$DEPLOY"
 
 section "5. Reads from stdin too -- pipe YAML straight in"
 printf '%s# %s%s\n' "$dim" "echo 'a: {b: [10, 20, 30]}' | yqr '.a.b[1]'" "$reset"
@@ -63,13 +63,15 @@ printf '%s# With --preserve, comments & formatting survive byte-for-byte:%s\n' "
 printf '%s$ yqr %s%s\n' "$green" "--preserve '.' config.yaml" "$reset"
 yqr --preserve '.' "$CONFIG"; echo
 printf '%s# Proof -- identity read is byte-identical to the source file:%s\n' "$dim" "$reset"
-printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "--preserve '.'" "$reset"
+printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "--preserve '.' config.yaml" "$reset"
 if yqr --preserve '.' "$CONFIG" | diff - "$CONFIG"; then
   printf '%sIDENTICAL -- zero bytes changed.%s\n\n' "$green$bold" "$reset"
 fi
 printf '%s# --engine picks the backend parser (default noyalib); pair with --preserve:%s\n' "$dim" "$reset"
-printf '%s$ yqr %s%s\n' "$green" "--engine noyalib --preserve '.' config.yaml" "$reset"
-yqr --engine noyalib --preserve '.' "$CONFIG" >/dev/null && printf '%s(same byte-exact result via the explicit backend)%s\n' "$dim" "$reset"
+printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "--engine noyalib --preserve '.' config.yaml" "$reset"
+if yqr --engine noyalib --preserve '.' "$CONFIG" | diff - "$CONFIG"; then
+  printf '%s(same byte-exact result via the explicit backend)%s\n' "$dim" "$reset"
+fi
 
 section "7. jq-style exit codes -- scriptable error handling"
 printf '%s# Parse errors exit 3; runtime errors exit 5 -- so you can branch in scripts:%s\n' "$dim" "$reset"

@@ -63,5 +63,6 @@ callers (demo, tests, docs) move to `--preserve`.
 - [x] An unknown `--engine` value is diagnosed before input is read (exit 5).
 - [x] `--help` documents both flags with the split responsibilities and no
       internal spec references.
-- [x] Demo, black-box CLI tests, and the README byte-preserving section use
-      `--preserve`.
+- [x] Demo, black-box CLI tests, the README byte-preserving section, and the
+      `docs/content/home.html` landing page use `--preserve`; the landing page
+      links to the runnable demo.

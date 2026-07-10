@@ -57,8 +57,9 @@ pub struct Cli {
     /// This selects the parsing library only; it does not by itself turn on
     /// byte preservation — pair it with `--preserve` for that. The experimental
     /// 'skald' backend is recognized but built only on the `feat/skald-engine`
-    /// branch. Without `--preserve`, the standard pipeline is used and this
-    /// selection has no effect.
+    /// branch. Without `--preserve`, the standard pipeline runs and the backend
+    /// choice does not affect the output, though an unknown engine name is
+    /// still rejected up front.
     #[arg(long = "engine", value_name = "ENGINE")]
     pub engine: Option<String>,
 }
