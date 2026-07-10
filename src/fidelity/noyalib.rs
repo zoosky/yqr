@@ -222,7 +222,11 @@ fn reparses_to(fragment: &str, expected: &Value) -> bool {
 
 /// Render a [`Path`] in noyalib's string-path grammar (`a.b[0].c`), or `None`
 /// when a key cannot be expressed in it.
-fn to_noyalib_path(path: &Path) -> Option<String> {
+///
+/// Shared with the write adapter (`super::write`): the read path resolves a
+/// span from this string and the write path targets the same string with a
+/// mutator, so both must address a node identically.
+pub(super) fn to_noyalib_path(path: &Path) -> Option<String> {
     let mut out = String::new();
     for seg in path.segments() {
         match seg {

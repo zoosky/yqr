@@ -29,6 +29,7 @@ use crate::Value;
 use crate::error::Result;
 
 mod noyalib;
+pub mod write;
 
 /// A half-open byte range `[start, end)` into [`FidelityEngine::source`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

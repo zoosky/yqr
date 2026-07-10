@@ -9,7 +9,7 @@
 
 use crate::Value;
 
-use crate::ast::Ast;
+use crate::ast::{Ast, Rhs};
 use crate::error::{Result, YqrError};
 use crate::fidelity::{Path, PathSeg};
 
@@ -130,6 +130,118 @@ fn iterate(value: &Value, path: Option<&Path>) -> Result<Vec<Traced>> {
             "cannot iterate over {}",
             type_name(other)
         ))),
+    }
+}
+
+// -- Feature f006: mutation-target resolution ---------------------------------
+
+/// Where an assignment's left-hand side lands.
+///
+/// A path whose final segment already exists overwrites that node in place
+/// ([`AssignTarget::Existing`]); a path whose final segment is an absent mapping
+/// key creates it under an existing parent ([`AssignTarget::NewKey`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum AssignTarget {
+    /// Overwrite the node already at this path.
+    Existing(Path),
+    /// Create a new mapping key `key` under the mapping at `parent`.
+    NewKey {
+        /// Path of the (existing) parent mapping.
+        parent: Path,
+        /// The new key to insert.
+        key: String,
+    },
+}
+
+/// Resolve a mutation's left-hand path to the single node it targets.
+///
+/// Returns `Ok(Some(path))` when the filter selects exactly one node that
+/// exists in `value`, `Ok(None)` when the path is simply absent (the caller
+/// leaves that document untouched), and an error when the filter selects more
+/// than one node — a mutation must address exactly one node.
+///
+/// # Errors
+///
+/// Errors when the filter fails to evaluate, or selects zero or more than one
+/// result (a mutation is not a stream).
+pub(crate) fn resolve_target(ast: &Ast, value: &Value) -> Result<Option<Path>> {
+    let mut traced = eval_traced(ast, value, Some(&Path::root()))?;
+    if traced.len() != 1 {
+        return Err(YqrError::eval(format!(
+            "a mutation must target exactly one node, but the filter selected {}",
+            traced.len()
+        )));
+    }
+    // `pop` is safe: length was just checked to be 1.
+    Ok(traced.pop().expect("length checked to be 1").1)
+}
+
+/// Resolve an assignment's left-hand path into a concrete [`AssignTarget`].
+///
+/// An existing node overwrites in place. An absent *final mapping key* under an
+/// existing parent creates a new entry. Any other absence (a missing parent, an
+/// out-of-range index, an absent non-key leaf) yields `Ok(None)` so the caller
+/// leaves the document untouched.
+///
+/// # Errors
+///
+/// Propagates the "exactly one node" contract from [`resolve_target`].
+pub(crate) fn resolve_assign_target(ast: &Ast, value: &Value) -> Result<Option<AssignTarget>> {
+    if let Some(path) = resolve_target(ast, value)? {
+        return Ok(Some(AssignTarget::Existing(path)));
+    }
+    // Absent leaf: the only node yqr can create is a new mapping key.
+    let Some((parent_ast, key)) = final_field(ast) else {
+        return Ok(None);
+    };
+    let parent = match parent_ast {
+        None => Path::root(),
+        Some(inner) => match resolve_target(inner, value)? {
+            Some(path) => path,
+            None => return Ok(None), // parent does not exist in this document
+        },
+    };
+    Ok(Some(AssignTarget::NewKey { parent, key }))
+}
+
+/// Split a path AST into `(parent, final_key)` when its last step is a field
+/// access, so an assignment to an absent key can be routed to key insertion.
+///
+/// A `None` parent denotes the document root (a bare `.foo`).
+fn final_field(ast: &Ast) -> Option<(Option<&Ast>, String)> {
+    match ast {
+        Ast::Field(key) => Some((None, key.clone())),
+        Ast::Pipe(lhs, rhs) => match rhs.as_ref() {
+            Ast::Field(key) => Some((Some(lhs.as_ref()), key.clone())),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// Resolve the right-hand side of an assignment/append to a single [`Value`].
+///
+/// A literal is returned as-is; a path is evaluated against the same document
+/// and must select exactly one value.
+///
+/// # Errors
+///
+/// Errors when a path RHS selects zero or more than one value.
+pub(crate) fn resolve_rhs(rhs: &Rhs, value: &Value) -> Result<Value> {
+    match rhs {
+        Rhs::Literal(v) => Ok(v.clone()),
+        Rhs::Path(ast) => {
+            let mut out = eval(ast, value)?;
+            match out.len() {
+                1 => Ok(out.pop().expect("length checked to be 1")),
+                0 => Err(YqrError::eval(
+                    "right-hand path selected no value".to_string(),
+                )),
+                n => Err(YqrError::eval(format!(
+                    "right-hand path selected {n} values; assignment needs exactly one"
+                ))),
+            }
+        }
     }
 }
 
@@ -286,5 +398,104 @@ mod tests {
         let ast = crate::parser::parse(".a").expect("valid filter");
         let out = eval_traced(&ast, &load("a: 1"), None).unwrap();
         assert_eq!(out[0].1, None);
+    }
+
+    // -- Feature f006: mutation-target resolution ------------------------------
+
+    fn target(filter: &str, yaml: &str) -> Result<Option<Path>> {
+        let ast = crate::parser::parse(filter).expect("valid filter");
+        resolve_target(&ast, &load(yaml))
+    }
+
+    #[test]
+    fn resolve_target_single_existing_node() {
+        let got = target(".spec.replicas", "spec:\n  replicas: 3\n").unwrap();
+        assert_eq!(
+            got,
+            Some(
+                Path::root()
+                    .child(PathSeg::Key("spec".into()))
+                    .child(PathSeg::Key("replicas".into()))
+            )
+        );
+    }
+
+    #[test]
+    fn resolve_target_absent_is_none() {
+        assert_eq!(target(".nope", "a: 1\n").unwrap(), None);
+    }
+
+    #[test]
+    fn resolve_target_multiple_nodes_errors() {
+        // Iteration selects a stream; a mutation needs exactly one node.
+        assert!(matches!(
+            target(".items[]", "items:\n  - 1\n  - 2\n"),
+            Err(YqrError::Eval(_))
+        ));
+    }
+
+    #[test]
+    fn assign_target_existing_key() {
+        let ast = crate::parser::parse(".a").expect("valid");
+        let got = resolve_assign_target(&ast, &load("a: 1\n")).unwrap();
+        assert_eq!(
+            got,
+            Some(AssignTarget::Existing(
+                Path::root().child(PathSeg::Key("a".into()))
+            ))
+        );
+    }
+
+    #[test]
+    fn assign_target_new_key_routes_to_parent() {
+        let ast = crate::parser::parse(".metadata.env").expect("valid");
+        let got = resolve_assign_target(&ast, &load("metadata:\n  name: app\n")).unwrap();
+        assert_eq!(
+            got,
+            Some(AssignTarget::NewKey {
+                parent: Path::root().child(PathSeg::Key("metadata".into())),
+                key: "env".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn assign_target_new_top_level_key_has_root_parent() {
+        let ast = crate::parser::parse(".added").expect("valid");
+        let got = resolve_assign_target(&ast, &load("a: 1\n")).unwrap();
+        assert_eq!(
+            got,
+            Some(AssignTarget::NewKey {
+                parent: Path::root(),
+                key: "added".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn assign_target_absent_parent_is_none() {
+        // `.a` does not exist, so `.a.b = ...` cannot create anything here.
+        let ast = crate::parser::parse(".a.b").expect("valid");
+        assert_eq!(resolve_assign_target(&ast, &load("z: 1\n")).unwrap(), None);
+    }
+
+    #[test]
+    fn resolve_rhs_literal_and_path() {
+        let value = load("a: 1\nsrc:\n  inner: hi\n");
+        let lit = crate::ast::Rhs::Literal(Value::Int(7));
+        assert_eq!(resolve_rhs(&lit, &value).unwrap(), Value::Int(7));
+
+        let path = crate::ast::Rhs::Path(crate::parser::parse(".src.inner").expect("valid"));
+        assert_eq!(
+            resolve_rhs(&path, &value).unwrap(),
+            Value::String("hi".into())
+        );
+    }
+
+    #[test]
+    fn resolve_rhs_multi_valued_path_errors() {
+        let value = load("items:\n  - 1\n  - 2\n");
+        let path = crate::ast::Rhs::Path(crate::parser::parse(".items[]").expect("valid"));
+        assert!(matches!(resolve_rhs(&path, &value), Err(YqrError::Eval(_))));
     }
 }
