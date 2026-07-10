@@ -41,14 +41,24 @@ pub struct Cli {
     #[arg(short = 'r', long = "raw-output")]
     pub raw_output: bool,
 
-    /// Fidelity engine for byte-preserving reads (available: 'noyalib'). The
-    /// experimental 'skald' engine is recognized but built only on the
-    /// `feat/skald-engine` branch.
+    // Feature f005: `--preserve` decouples byte fidelity from `--engine`.
+    /// Preserve byte-for-byte formatting on reads.
     ///
-    /// With an engine selected, untouched nodes are emitted as their original
-    /// source bytes: comments, quoting, indentation, and line endings survive,
-    /// and the identity filter reproduces the input byte-for-byte. When
-    /// omitted, yqr uses its standard (re-serializing) pipeline.
+    /// Untouched nodes are emitted as their original source bytes: comments,
+    /// quoting, indentation, and line endings survive, and the identity filter
+    /// reproduces the input exactly. Without this flag yqr uses its standard
+    /// (re-serializing) pipeline, which normalizes formatting and drops
+    /// comments.
+    #[arg(short = 'p', long = "preserve")]
+    pub preserve: bool,
+
+    /// Backend YAML parser to use for `--preserve` reads (default: 'noyalib').
+    ///
+    /// This selects the parsing library only; it does not by itself turn on
+    /// byte preservation — pair it with `--preserve` for that. The experimental
+    /// 'skald' backend is recognized but built only on the `feat/skald-engine`
+    /// branch. Without `--preserve`, the standard pipeline is used and this
+    /// selection has no effect.
     #[arg(long = "engine", value_name = "ENGINE")]
     pub engine: Option<String>,
 }
@@ -85,6 +95,7 @@ mod tests {
         assert_eq!(cli.filter, ".");
         assert_eq!(cli.file, None);
         assert!(!cli.raw_output);
+        assert!(!cli.preserve);
         assert_eq!(cli.engine, None);
     }
 
@@ -92,5 +103,21 @@ mod tests {
     fn parses_engine_flag() {
         let cli = Cli::try_parse_from(["yqr", "--engine", "noyalib", "."]).unwrap();
         assert_eq!(cli.engine.as_deref(), Some("noyalib"));
+    }
+
+    #[test]
+    fn parses_preserve_flag() {
+        // Both the long and short spellings set the same flag, and it is
+        // independent of `--engine`.
+        let long = Cli::try_parse_from(["yqr", "--preserve", "."]).unwrap();
+        assert!(long.preserve);
+        assert_eq!(long.engine, None);
+
+        let short = Cli::try_parse_from(["yqr", "-p", "."]).unwrap();
+        assert!(short.preserve);
+
+        let both = Cli::try_parse_from(["yqr", "-p", "--engine", "noyalib", "."]).unwrap();
+        assert!(both.preserve);
+        assert_eq!(both.engine.as_deref(), Some("noyalib"));
     }
 }
