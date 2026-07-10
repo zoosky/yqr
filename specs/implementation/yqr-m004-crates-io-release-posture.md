@@ -1,6 +1,6 @@
 # Implementation m004 — crates.io release posture (git-dep fidelity backends)
 
-**Status:** In Progress — the dependency blockers are **resolved**: `noyalib` re-pinned to crates.io `0.0.14`, and `rust-yaml-rt` removed entirely by consolidating on a single engine (`yqr-m005`). `Cargo.lock` has zero git deps and `cargo publish --dry-run` passes; only the maintainer's manual `cargo publish` remains (2026-07-10).
+**Status:** Done — yqr is **published to crates.io** (`0.2.1`, 2026-07-10). The dependency blockers were resolved (`noyalib` re-pinned to crates.io `0.0.14`; `rust-yaml-rt` removed via the single-engine consolidation, `yqr-m005`), leaving zero git deps, and the maintainer's `cargo publish` has landed — `cargo install yqr` works.
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-10
 **Related:** `yqr-m005` (single-engine consolidation — removed the last git-dep), `yqr-f004` (engine parity — superseded), `yqr-m002` (engine seam), `yqr-b002` (the noyalib fixes), `yqr-b001`
@@ -42,22 +42,20 @@ crates.io release cannot express.
 2. ✅ **Done (2026-07-10) — no git-dep backend.** Rather than find a crates.io
    home for `RoundTripDocument`, yqr **removed** the rust-yaml fork backend and
    consolidated on noyalib (`yqr-m005`), eliminating the git dependency outright.
-3. **Clean dry-run, then publish.** `cargo publish --dry-run` now passes (zero
-   git deps); the remaining step is `cargo publish` (requires the maintainer's
-   crates.io token — a manual step).
+3. ✅ **Done (2026-07-10) — published.** `cargo publish --dry-run` passed (zero
+   git deps) and the maintainer ran `cargo publish`; crates.io serves `0.2.1`.
 
-## 4. Interim state
+## 4. Release state
 
 - **GitHub release `v0.2.0`** is live: <https://github.com/zoosky/yqr/releases/tag/v0.2.0>
   (tag `v0.2.0` → commit `c9e432f`). This is independent of crates.io and valid.
-- **crates.io** remains at **0.1.1**.
-- No version mismatch is introduced: when the deps are released and yqr is
-  published, `0.2.0` on crates.io will match the GitHub release. If a different
-  version is cut for crates.io first, reconcile the tag/CHANGELOG accordingly.
+- **crates.io** now serves **0.2.1** — the first crates.io release, carrying the
+  single-engine consolidation. `0.2.0` was GitHub-only (its git-dep backends
+  could not be published); `0.2.1` reconciled the version for crates.io.
 
 ## 5. Acceptance criteria
 
 - [x] `noyalib` re-pinned to a crates.io version carrying b002 2.2–2.7 (0.0.14+).
 - [x] `rust-yaml-rt` git-dep eliminated (backend removed, `yqr-m005`).
 - [x] `cargo publish --dry-run` passes with no git-dep error.
-- [ ] `cargo publish` run by the maintainer; crates.io shows `0.2.0` (or the reconciled version).
+- [x] `cargo publish` run by the maintainer; crates.io shows `0.2.1` (the reconciled version).
