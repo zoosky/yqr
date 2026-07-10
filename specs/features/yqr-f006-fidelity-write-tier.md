@@ -157,3 +157,88 @@ dependencies and release timing:
   (arithmetic/builtins) providing the right-hand evaluator.
 
 Priority order: f006 → f007 → (`f001` M2) → f008.
+
+## 10. Implementation build sequence
+
+**Core insight.** yqr already does the hard half. The read path resolves a
+filter to a concrete `Path` (`eval::eval_traced`), converts it to a noyalib
+string path, and calls `span_at` (`src/fidelity/noyalib.rs:144`). noyalib
+0.0.14's mutators are addressed by the **same string path** and **return
+`Result<()>`** — that `Result` *is* the re-parse guard (§7). So the write path is
+the read pipeline with the terminal call swapped:
+
+```
+filter -> eval_traced -> Path -> noyalib path-string -> Document::set_value(path, &Value)
+                                                       -> Document::remove(path)
+                                                       -> Document::push_back(path, frag)
+```
+
+Confirmed noyalib 0.0.14 surface (all string-path; `set_value` takes a
+`noyalib::Value`, for which `src/value.rs` already has `From<&Value>`):
+
+| yqr op | noyalib call | src |
+|---|---|---|
+| `=` (scalar) | `Document::set_value(path, &Value)` | `document.rs:546` |
+| `del()` | `Document::remove(path)` | `document.rs:601` |
+| `+=` (append) | `Document::push_back(path, frag)` | `document.rs:637` |
+| new-key `=` | `Document::insert_entry(map_path, key, frag)` | `document.rs:811` |
+| escape hatch (`f007`) | `Document::replace_span(start, end, repl)` | `document.rs:328` |
+
+### 10.1 File-by-file changes
+
+- **`src/lexer.rs`** — add tokens `Eq` (`=`), `PlusEq` (`+=`),
+  `LParen`/`RParen` (for `del(...)`); extend `lex_int` -> `lex_number` for float
+  RHS. `true`/`false`/`null` already lex as `Ident` (recognised in the parser).
+- **`src/ast.rs`** — add a top-level `Program` layer above `Ast` (mutations are
+  top-level only in v1): `Program::{Query(Ast), Mutate(Mutation)}`,
+  `Mutation::{Assign{path,rhs}, Append{path,rhs}, Delete{path}}`,
+  `Rhs::{Literal(Value), Path(Ast)}`.
+- **`src/parser.rs`** — `parse` returns `Program`. New `parse_program`: parse a
+  `del(...)` form, else parse a pipeline then peek for `=`/`+=` and parse the
+  RHS; otherwise `Query`. `parse_pipeline`/`parse_path` are untouched.
+- **`src/eval.rs`** — add `resolve_target(ast, value) -> Result<Path>`: run
+  `eval_traced`, require **exactly one** result carrying `Some(path)`, else a
+  clear error (a mutation targets one addressable node).
+- **`src/fidelity/write.rs` (new)** — a minimal `FidelityWriter` seam
+  (`m002` §6.2): `set_value` / `append` / `insert_key` / `delete` / `emit`.
+  `NoyalibEngine` implements it by reusing the existing `Path -> noyalib
+  path-string` builder (extracted from `noyalib.rs:~140`), returning a clear
+  "unaddressable" error for non-plain keys (`PathSeg::is_plain`), then calling
+  the matching `Document` mutator and mapping its `Err` to `YqrError::eval`.
+- **`src/cli.rs`** — add `-i` / `--in-place` (bool). `// Feature f006`.
+- **`src/main.rs`** — branch on `Program`: `Query` = today's read path;
+  `Mutate` = open the engine, `resolve_target`, dispatch to the writer, output
+  `emit()`. With `-i`, write back **atomically** (temp + rename); error on stdin.
+
+### 10.2 Ordered steps (each compiles, tests green)
+
+1. **Spike** — confirm the post-mutation emit method (`Document::source()` vs
+   `to_string()`/`Display` after a `set_value`). This is the one real unknown;
+   settle it first (see §11).
+2. **Lexer** — `=`, `+=`, `(`, `)`, float; unit tests.
+3. **AST + parser** — `Program`/`Mutation`/`Rhs`; parse `=`, `+=`, `del(...)`,
+   literal/path RHS. `main` still runs only `Query`.
+4. **`resolve_target`** in eval + tests (single-node requirement, error text).
+5. **`FidelityWriter`** on `NoyalibEngine` + engine unit tests.
+6. **Wire `main.rs`** for `Mutate` to stdout; black-box byte-locality test.
+7. **`-i`** atomic write-back + stdin guard + tests.
+8. **Deferred-op errors** — `|=`, key rename, reorder, nested delete each return
+   a clear "not yet supported (`f007`/`f008`)" message.
+
+Estimate: ~6 small, independently-green PRs. Needs **zero upstream noyalib
+work** — everything is on the shipped 0.0.14 API.
+
+## 11. Open questions to settle during implementation
+
+1. **Post-mutation emit** — does `Document::source()` reflect edits (likely, as
+   `replace_span` mutates in place), or is `to_string()`/`Display` required?
+   Resolved by the §10.2 step-1 spike; not assumed here.
+2. **Absent-key routing** — an assignment whose LHS final segment does not yet
+   exist must route to `insert_entry(parent, key, ...)`, not `set_value` on a
+   missing path. Small branch in the writer.
+3. **Fragment quoting** (`b004` 2.5) — all scalar writes go through
+   `set_value(&Value)` (style-matched quoting); `+=` / new-key fragments must be
+   produced via the same `Value -> noyalib` conversion, never a raw user string.
+4. **Special-char / non-string keys** — the string-path addressing cannot
+   express `a.b`-style keys; the writer returns a clear "unaddressable" error,
+   the same honest gap the read path already declares.
