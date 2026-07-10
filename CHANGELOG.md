@@ -4,7 +4,10 @@ All notable changes to `yqr` are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.3.0] - 2026-07-10
+
+Byte/comment preservation becomes its own flag, decoupled from backend
+selection.
 
 ### Added
 
@@ -12,6 +15,9 @@ All notable changes to `yqr` are documented here. The format is based on
   fidelity mode with the default backend, so `yqr -p '.' file.yaml` reproduces
   the input byte-for-byte — comments, quoting, indentation, and line endings
   survive.
+- A runnable demo showcase under `docs/content/demo/` (`yqr-demo.sh` plus sample
+  `deploy.yaml` / `config.yaml` inputs) walking through navigation, iteration,
+  pipes, raw output, and preserve mode.
 
 ### Changed
 
