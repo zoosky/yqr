@@ -21,6 +21,7 @@ Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 | [f003](yqr-f003-fidelity-backend-a-rustyaml.md) | Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter) | Superseded (`yqr-m005`) |
 | [f004](yqr-f004-engine-parity-runtime-switch.md) | Engine parity: both backends default-on and runtime-switchable, from the zoosky forks | Superseded (`yqr-m005`) |
 | [f005](yqr-f005-preserve-flag-decouple.md) | Decouple byte/comment preservation from backend selection (`--preserve`) | Done |
+| [f006](yqr-f006-fidelity-write-tier.md) | Fidelity write tier: surgical, byte-preserving edits (`--in-place`) | Draft |
 
 Progress: the `FidelityEngine` seam + the noyalib CST backend shipped (f002).
 The rust-yaml fork backend (f003) and the two-engine parity/runtime-switch story
@@ -32,7 +33,8 @@ reduced to backend selection (f005), shipped in `v0.3.0`.
 
 ## Summary
 
-- Total features: 5
+- Total features: 6
+- Draft: 1 (f006 — fidelity write tier)
 - In Progress: 1
 - Done: 2
 - Superseded: 2 (f003, f004 — single-engine consolidation, `yqr-m005`)
