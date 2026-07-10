@@ -30,9 +30,28 @@ crates.io publish. noyalib round-trips the b001 corpus byte-for-byte. The
 byte-preserving read is now driven by its own `--preserve` flag, with `--engine`
 reduced to backend selection (f005), shipped in `v0.3.0`.
 
+## Epic: Fidelity write tier (f006–f008)
+
+Surgical, provably-lossless edits — change only the bytes the filter targets,
+leave every other byte untouched, or refuse. yqr's differentiating niche (jq is
+JSON-only; yq's edits admit whitespace issues). Split into three features by
+dependency/release timing.
+
+| Feature | Title | Status |
+|---------|-------|--------|
+| [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Draft |
+| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | Draft (stub — gated on upstream noyalib) |
+| [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
+
+Progress: f006 is buildable now on noyalib 0.0.14's first-class, re-parse-guarded
+mutators (`set_value`/`insert_entry`/`push_back`/`remove`). f007 (structural
+edits) is gated on upstream noyalib PRs; f008 (`|=` computed updates) is gated on
+`f001` M2 (arithmetic/builtins). Priority order: f006 → f007 → M2 → f008.
+
 ## Summary
 
-- Total features: 5
+- Total features: 8
+- Draft: 3 (f006, f007, f008 — the Fidelity write tier epic)
 - In Progress: 1
 - Done: 2
 - Superseded: 2 (f003, f004 — single-engine consolidation, `yqr-m005`)
