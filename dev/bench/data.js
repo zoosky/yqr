@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783695982237,
+  "lastUpdate": 1783708638221,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -293,6 +293,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 253313,
             "range": "± 1365",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b4d21e202569e5041e994dc5a22750d649941718",
+          "message": "feat: decouple byte preservation from backend with --preserve (#21)\n\n* feat(f005): decouple byte preservation from backend with --preserve\n\n--engine conflated two orthogonal concerns: which YAML backend parses the\ninput, and whether untouched nodes are emitted as their original source\nbytes. Because noyalib is both the default parser and the only fidelity\nbackend, --engine noyalib was in practice just a verbose \"preserve\nformatting\" switch.\n\nSplit them into two flags:\n\n  --preserve / -p   turn on byte/comment-preserving reads (fidelity mode)\n  --engine <name>   select the backend parser for --preserve (default noyalib)\n\n--preserve alone uses the default backend (the common case); --engine names\nthe backend and defaults to noyalib. Unknown engine names are still\ndiagnosed before any input is read.\n\nClean break (pre-1.0): --engine noyalib no longer implies preservation. All\nfirst-party callers move to --preserve.\n\nAlso adds a runnable demo showcase under docs/content/demo/ (script plus the\ndeploy.yaml/config.yaml inputs it reads in place), and refreshes the README\nbyte-preserving section, which still referenced the removed rust-yaml engine.\n\n* fix(f005): address code-review findings on --preserve decoupling\n\nResolves five verified review findings:\n\n1. docs/content/home.html demonstrated byte-exact fidelity via `--engine\n   noyalib`, which f005 broke — those commands now re-serialize (0640 -> 640,\n   comments dropped). Switch the landing-page examples to `--preserve`, reframe\n   `--engine` as backend selection, fix the stale `available:` engine list, and\n   link the runnable demo (rule 15).\n2. Demo \"Proof\" line printed a command without the input file, so a copy-paste\n   hangs on stdin — show `config.yaml` in the displayed command.\n3. Demo raw-output section queried `.metadata.name` (`web`), which renders\n   unquoted by default, so `-r` showed no difference — query\n   `.spec.containers[0].image` (`\"nginx:1.27\"` vs `nginx:1.27`).\n4. `--engine` help claimed \"no effect\" without `--preserve` while an unknown\n   name still errors — reword so it states the backend choice does not affect\n   output but an unknown name is rejected.\n5. Demo explicit-backend line asserted byte-exactness from exit status alone —\n   make it actually `diff` against the source.\n\nAlso records the landing page in the f005 acceptance criteria.",
+          "timestamp": "2026-07-10T20:36:02+02:00",
+          "tree_id": "6d1e74668e4357877f7063f17dd31c1a3c7fc0c4",
+          "url": "https://github.com/zoosky/yqr/commit/b4d21e202569e5041e994dc5a22750d649941718"
+        },
+        "date": 1783708637914,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 423,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5026,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 247071,
+            "range": "± 3553",
             "unit": "ns/iter"
           }
         ]
