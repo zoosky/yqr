@@ -1,13 +1,20 @@
-# yqr.f006 — Fidelity write tier: surgical, byte-preserving edits (`--in-place`)
+# yqr.f006 — Write tier v1: value assignment and in-place edits (`--in-place`)
 
 **Status:** Draft
-**Epic:** Fidelity-first architecture (a001)
+**Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
-**Related:** `yqr-f002` (fidelity read floor / engine seam), `yqr-f005`
-(`--preserve`), `yqr-m002` §4/§6.2 (write-tier seam design), `yqr-b004` (noyalib
-0.0.14 mutation-API gaps), `yqr.f001` (M1 literals, M4 assignment)
+**Related:** `yqr-f007` (write tier: structural edits — the `b004` gaps),
+`yqr-f008` (write tier: computed updates `|=`), `yqr-f002` (fidelity read floor /
+engine seam), `yqr-f005` (`--preserve`), `yqr-m002` §4/§6.2 (write-tier seam
+design), `yqr-b004` (noyalib 0.0.14 mutation-API gaps), `yqr.f001` (M1 literals)
 
-## 1. Thesis — where yqr wins
+> **Epic anchor.** This is the first of three features in the **Fidelity write
+> tier** epic. f006 (this spec) ships the value-replacement core on noyalib
+> 0.0.14's first-class mutators; `f007` covers the structural edits that lack a
+> first-class API today (the `b004` gaps); `f008` adds `|=` computed updates
+> once `f001` M2 lands. The epic thesis lives in §1.
+
+## 1. Thesis — where yqr wins (epic-level)
 
 yqr reads YAML byte-for-byte today (`f002`/`f005`). The differentiator is the
 next step: **surgical edits that change only the bytes the filter targets and
@@ -57,17 +64,18 @@ All writes go through the fidelity engine (`--preserve` semantics are implied
 for any mutating filter; the classic re-serializing pipeline is never used for
 edits).
 
-## 4. Out of scope (deferred, tracked)
+## 4. Out of scope (deferred to sibling features)
 
+- **The `yqr-b004` structural-edit gaps** — comment editing (2.1), key rename
+  (2.2), sequence reorder/move/swap (2.3), and multi-line / nested / sole-entry /
+  flow delete (2.4). These have no first-class noyalib 0.0.14 API and are the
+  subject of **`yqr-f007`**. In f006 each errors with a message naming the
+  limitation.
 - **`|=` update with a computed RHS** — needs the expression evaluator on the
-  right (arithmetic/builtins, `f001` M2). Deferred to a follow-up; until then a
+  right (arithmetic/builtins, `f001` M2), tracked as **`yqr-f008`**. In f006 a
   `|=` filter errors with a clear "not yet supported" message.
-- **The `yqr-b004` gaps** — comment editing (2.1), key rename (2.2), sequence
-  reorder/move/swap (2.3), and multi-line / nested / sole-entry / flow delete
-  (2.4). Each errors with a message naming the limitation; they graduate as
-  upstream noyalib PRs land.
-- **Fragment auto-quoting** (`b004` 2.5) — avoided by routing all scalar writes
-  through `set_value` rather than the raw `fragment` mutators.
+- **Fragment auto-quoting** (`b004` 2.5) — avoided in f006 by routing all scalar
+  writes through `set_value` rather than the raw `fragment` mutators.
 
 ## 5. Dependencies
 
@@ -133,12 +141,19 @@ For an accepted edit at path `p`:
       comment edits) each error with a clear, actionable "not yet supported"
       message.
 
-## 9. Sequencing (within the write tier)
+## 9. Epic sequencing
 
-- **v1 (this spec):** `=`, `+=`, new-key assignment, `del` (single-line), `-i`,
-  scalar-literal / path RHS — all on 0.0.14's first-class guarded mutators.
-- **v2:** the `yqr-b004` gaps (comment editing, key rename, reorder,
-  nested/multi-line delete) as upstream noyalib PRs land; yqr uses raw
-  `replace_span` fallbacks only where it must, behind the same integrity guard.
-- **v3:** `|=` update with a computed RHS, once `f001` M2 (arithmetic/builtins)
-  provides the right-hand evaluator.
+The **Fidelity write tier** epic ships in three features with distinct
+dependencies and release timing:
+
+- **f006 (this spec) — value assignment + in-place.** `=`, `+=`, new-key
+  assignment, `del` (single-line), `-i`, scalar-literal / path RHS — all on
+  noyalib 0.0.14's first-class guarded mutators. Buildable now; self-contained.
+- **`f007` — structural edits.** The `b004` gaps (comment editing, key rename,
+  reorder, nested/multi-line delete), gated on **upstream noyalib PRs**; yqr uses
+  raw `replace_span` fallbacks only where it must, behind the same integrity
+  guard.
+- **`f008` — computed updates (`|=`).** Gated on **`f001` M2**
+  (arithmetic/builtins) providing the right-hand evaluator.
+
+Priority order: f006 → f007 → (`f001` M2) → f008.
