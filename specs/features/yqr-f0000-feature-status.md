@@ -18,18 +18,18 @@ Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f002](yqr-f002-fidelity-read-floor.md) | Fidelity read floor (`FidelityEngine` seam + noyalib backend) | Done |
-| [f003](yqr-f003-fidelity-backend-a-rustyaml.md) | Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter) | Done |
-| [f004](yqr-f004-engine-parity-runtime-switch.md) | Engine parity: both backends default-on and runtime-switchable, from the zoosky forks | Done |
+| [f003](yqr-f003-fidelity-backend-a-rustyaml.md) | Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter) | Superseded (`yqr-m005`) |
+| [f004](yqr-f004-engine-parity-runtime-switch.md) | Engine parity: both backends default-on and runtime-switchable, from the zoosky forks | Superseded (`yqr-m005`) |
 
-Progress: seam + backend C (noyalib) shipped behind `backend-noyalib` (f002);
-backend A (rust-yaml fork `RoundTripDocument`, the rust-yaml#73 substrate)
-shipped behind `backend-rust-yaml` (f003). Both backends are now on by default
-and runtime-switchable in one binary, sourced from the `zoosky/` forks, with the
-noyalib adapter consuming the b002 2.2-2.7 fixes (f004). All round-trip the b001
-corpus byte-for-byte.
+Progress: the `FidelityEngine` seam + the noyalib CST backend shipped (f002).
+The rust-yaml fork backend (f003) and the two-engine parity/runtime-switch story
+(f004) were **superseded** when yqr consolidated on noyalib as its sole YAML
+engine (`yqr-m005`) — removing the rust-yaml dependencies and unblocking the
+crates.io publish. noyalib round-trips the b001 corpus byte-for-byte.
 
 ## Summary
 
 - Total features: 4
 - In Progress: 1
-- Done: 3
+- Done: 1
+- Superseded: 2 (f003, f004 — single-engine consolidation, `yqr-m005`)

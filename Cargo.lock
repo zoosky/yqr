@@ -83,12 +83,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
-name = "base64"
-version = "0.22.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
-
-[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -377,15 +371,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88904434abc2901f197fe8cc55f0445e7ded921dba5911dad2e2b39b48e663c4"
 
 [[package]]
-name = "memmap2"
-version = "0.9.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "714098028fe011992e1c3962653c96b2d578c4b4bce9036e15ff220319b1e0e3"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "noyalib"
 version = "0.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -538,29 +523,6 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
-
-[[package]]
-name = "rust-yaml"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3597280f43f5f5c9b7e7f281eab078651cf3a551a439e86d9506fe3a85d74f1d"
-dependencies = [
- "base64",
- "indexmap",
- "memmap2",
- "regex",
-]
-
-[[package]]
-name = "rust-yaml"
-version = "1.1.0"
-source = "git+https://github.com/zoosky/rust-yaml.git?branch=feat%2Froundtrip-document#06e3f1e73ceaed17e5b611cbaa20ecc17c8e7e4e"
-dependencies = [
- "base64",
- "indexmap",
- "memmap2",
- "regex",
-]
 
 [[package]]
 name = "rustc-hash"
@@ -812,13 +774,12 @@ dependencies = [
 
 [[package]]
 name = "yqr"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "clap",
  "criterion",
+ "indexmap",
  "noyalib",
- "rust-yaml 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rust-yaml 1.1.0 (git+https://github.com/zoosky/rust-yaml.git?branch=feat%2Froundtrip-document)",
 ]
 
 [[package]]

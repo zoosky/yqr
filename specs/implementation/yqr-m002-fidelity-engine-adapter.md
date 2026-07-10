@@ -1,6 +1,6 @@
 # Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)
 
-**Status:** In Progress (read floor shipped on backend C via `yqr-f002`; backend A pending rust-yaml#73; write tier unstarted)
+**Status:** In Progress (read floor shipped on the single noyalib backend via `yqr-f002`; backend A retired in `yqr-m005`; write tier unstarted — `yqr-b004` is its driver)
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-03
 **Implements:** `yqr-a001` §4.3 (the source/span implementation seam)

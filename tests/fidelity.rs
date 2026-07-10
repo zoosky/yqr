@@ -1,34 +1,19 @@
-//! Round-trip fidelity harness across YAML backend libraries.
+//! Round-trip fidelity harness for yqr's YAML engine.
 //!
-//! Reproduces, as runnable tests, the assessment behind bug b001 (the shipped
-//! `rust-yaml` engine reformats YAML on round trip) and research r002
-//! (`noyalib`'s CST round-trips byte-for-byte). For every backend and every
-//! fidelity dimension, it parses the input and re-emits it, then checks whether
-//! the output is byte-for-byte identical to the input -- the a001 north-star
-//! property that `yqr '.' f` must equal `cat f`.
+//! Pins research r002 as runnable tests: `noyalib`'s CST round-trips
+//! byte-for-byte. For every fidelity dimension, it parses the input and
+//! re-emits it, then checks that the output is byte-for-byte identical to the
+//! input -- the a001 north-star property that `yqr '.' f` must equal `cat f`.
 //!
-//! Run the human-readable comparison matrix (rust-yaml only, the default):
+//! Run the human-readable comparison matrix:
 //!
 //! ```text
 //! cargo test --test fidelity -- --nocapture fidelity_matrix
 //! ```
 //!
-//! Include the experimental `noyalib` CST backend (gated, off by default so the
-//! standard test build stays minimal):
-//!
-//! ```text
-//! cargo test --test fidelity --features backend-noyalib -- --nocapture
-//! ```
-//!
-//! Include the rust-yaml fork's source-preserving `RoundTripDocument` backend
-//! (backend A, also gated and off by default):
-//!
-//! ```text
-//! cargo test --test fidelity --features backend-rust-yaml -- --nocapture
-//! ```
-//!
-//! Adding another backend (e.g. a different YAML crate) is a two-line change:
-//! implement [`Backend`] for it and register it in `backends()`.
+//! The harness is backend-agnostic (the [`Backend`] trait); noyalib is the only
+//! engine yqr ships today, but another YAML crate can be compared by
+//! implementing [`Backend`] for it and registering it in `backends()`.
 
 /// A single fidelity dimension drawn from the b001 reproduction corpus.
 struct Case {
@@ -73,32 +58,12 @@ trait Backend {
     }
 }
 
-/// The engine yqr ships today: `rust-yaml` 1.1.0 via `text -> Value -> dump_str`.
-///
-/// This is the lossy semantic round trip documented in bug b001; it is expected
-/// to reformat most inputs.
-struct RustYaml;
-
-impl Backend for RustYaml {
-    fn name(&self) -> &'static str {
-        "rust-yaml (Value)"
-    }
-
-    fn round_trip(&self, input: &str) -> Result<String, String> {
-        let yaml = rust_yaml::Yaml::new();
-        let value = yaml.load_str(input).map_err(|e| e.to_string())?;
-        yaml.dump_str(&value).map_err(|e| e.to_string())
-    }
-}
-
 /// `noyalib`'s lossless CST tooling API: `cst::parse_document -> Display`.
 ///
-/// Experimental comparison backend (research r002), gated behind the
-/// `backend-noyalib` feature so the default test build does not pull it in.
-#[cfg(feature = "backend-noyalib")]
+/// yqr's sole YAML engine (research r002); this harness pins its byte-for-byte
+/// round-trip property across every formatting dimension.
 struct NoyalibCst;
 
-#[cfg(feature = "backend-noyalib")]
 impl Backend for NoyalibCst {
     fn name(&self) -> &'static str {
         "noyalib (CST)"
@@ -111,40 +76,9 @@ impl Backend for NoyalibCst {
     }
 }
 
-/// The rust-yaml fork's source-preserving API: `RoundTripDocument::parse_all`
-/// keeps each document's bytes verbatim, so re-emitting concatenates them
-/// unchanged.
-///
-/// Backend A of the fidelity seam (bug b001 §8), gated behind the
-/// `backend-rust-yaml` feature so the default test build does not pull the fork
-/// in.
-#[cfg(feature = "backend-rust-yaml")]
-struct RustYamlRoundTrip;
-
-#[cfg(feature = "backend-rust-yaml")]
-impl Backend for RustYamlRoundTrip {
-    fn name(&self) -> &'static str {
-        "rust-yaml (RoundTrip)"
-    }
-
-    fn round_trip(&self, input: &str) -> Result<String, String> {
-        rust_yaml_rt::RoundTripDocument::parse_all(input)
-            .map(|docs| docs.iter().map(ToString::to_string).collect())
-            .map_err(|e| e.to_string())
-    }
-}
-
-/// All backends under comparison. `rust-yaml` (the shipped `Value` path) is
-/// always present; the `noyalib` CST and the rust-yaml fork's `RoundTripDocument`
-/// are added only when their respective features are enabled.
+/// All backends under comparison. yqr now has a single engine, noyalib's CST.
 fn backends() -> Vec<Box<dyn Backend>> {
-    #[allow(unused_mut)]
-    let mut v: Vec<Box<dyn Backend>> = vec![Box::new(RustYaml)];
-    #[cfg(feature = "backend-noyalib")]
-    v.push(Box::new(NoyalibCst));
-    #[cfg(feature = "backend-rust-yaml")]
-    v.push(Box::new(RustYamlRoundTrip));
-    v
+    vec![Box::new(NoyalibCst)]
 }
 
 /// The corpus: one case per formatting dimension that a faithful round trip
@@ -240,8 +174,7 @@ const CORPUS: &[Case] = &[
     Case {
         // A UTF-8 BOM followed by multiple top-level nodes. noyalib 0.0.8
         // rejected this (r002 5.3); fixed in 0.0.12 (noyalib#123), it now
-        // round-trips. rust-yaml folds the BOM into the first key (bytes
-        // survive but `.a` no longer resolves).
+        // round-trips byte-for-byte.
         name: "bom-multinode",
         input: "\u{FEFF}a: 1\nb: 2\n",
     },
@@ -275,15 +208,6 @@ const CORPUS: &[Case] = &[
     },
 ];
 
-/// Look up a corpus case by name (panics if the name is unknown -- used only by
-/// tests over the constant corpus).
-fn case(name: &str) -> &'static Case {
-    CORPUS
-        .iter()
-        .find(|c| c.name == name)
-        .unwrap_or_else(|| panic!("unknown corpus case `{name}`"))
-}
-
 /// Prints a backend-by-dimension fidelity matrix. Never fails -- this is the
 /// reproduction tool; run with `-- --nocapture` to see it.
 #[test]
@@ -311,34 +235,11 @@ fn fidelity_matrix() {
     }
 }
 
-/// Characterization test pinning bug b001: the shipped `rust-yaml` engine does
-/// NOT preserve formatting on these dimensions. If a future `rust-yaml` bump
-/// fixes one of them this assertion will fail, prompting a revisit of b001/a001.
-#[test]
-fn rust_yaml_round_trip_is_lossy() {
-    let backend = RustYaml;
-    for name in [
-        "comments",
-        "blank-lines",
-        "indent-width",
-        "quote-style",
-        "block-scalars",
-        "flow-style",
-    ] {
-        assert_eq!(
-            backend.classify(case(name).input),
-            Fidelity::Differs,
-            "rust-yaml unexpectedly preserved `{name}`; b001 may be (partly) fixed -- revisit the spec",
-        );
-    }
-}
-
 /// Pins research r002: `noyalib`'s CST reproduces the source byte-for-byte for
 /// **every** corpus dimension. The BOM-with-multiple-nodes parse bug that failed
 /// on 0.0.8 (r002 §5.3) was fixed upstream in 0.0.12 (noyalib#123), so it now
 /// round-trips like the rest. If any dimension regresses, this test fails and
 /// flags that the r002 evaluation needs updating.
-#[cfg(feature = "backend-noyalib")]
 #[test]
 fn noyalib_cst_round_trip_is_faithful() {
     let backend = NoyalibCst;
@@ -347,24 +248,6 @@ fn noyalib_cst_round_trip_is_faithful() {
             backend.classify(case.input),
             Fidelity::Identical,
             "noyalib fidelity changed for `{}` -- update r002 if intentional",
-            case.name,
-        );
-    }
-}
-
-/// Pins backend A (bug b001 §8): the rust-yaml fork's `RoundTripDocument`
-/// reproduces the source byte-for-byte for **every** corpus dimension. This is
-/// the substrate submitted upstream as rust-yaml#73; if any dimension
-/// regresses, this test fails and flags that the fork or b001 needs revisiting.
-#[cfg(feature = "backend-rust-yaml")]
-#[test]
-fn rust_yaml_round_trip_is_faithful() {
-    let backend = RustYamlRoundTrip;
-    for case in CORPUS {
-        assert_eq!(
-            backend.classify(case.input),
-            Fidelity::Identical,
-            "rust-yaml RoundTrip fidelity changed for `{}` -- update b001/m002 if intentional",
             case.name,
         );
     }

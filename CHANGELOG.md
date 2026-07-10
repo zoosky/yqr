@@ -4,6 +4,45 @@ All notable changes to `yqr` are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-07-10
+
+The first crates.io release. yqr consolidates on a single YAML engine, which
+removes every git dependency and makes the crate publishable.
+
+### Changed
+
+- **One YAML engine.** yqr now uses noyalib for both the standard pipeline and
+  byte-preserving reads. `--engine noyalib` (the fidelity engine) still emits
+  untouched nodes as their original source bytes — comments, quoting,
+  indentation, and line endings survive, and the identity filter reproduces the
+  input byte-for-byte. It is always built in, so there are no backend build
+  features to toggle.
+- yqr now has its own value type instead of re-exporting the YAML library's, so
+  the parser is a swappable internal detail. Library users of `yqr::Value` get a
+  stable type that does not change when the engine does.
+- Minimum supported Rust version is now 1.97 (the pinned toolchain was updated
+  from 1.96).
+- **Non-string mapping keys.** Integer, boolean, and composite keys (`1:`,
+  `? [a, b]:`) are preserved byte-for-byte via `--engine noyalib`, but the
+  standard re-serializing pipeline now renders them as strings, and a document
+  that mixes keys colliding as strings (`1` and `"1"`) is rejected rather than
+  kept distinct. This is rare in typical Kubernetes/CI/config documents — and
+  GitHub Actions' `on:` is unaffected (it stays the string `on`).
+
+### Removed
+
+- The `rust-yaml` fidelity backend and the `--engine rust-yaml` option, along
+  with the `backend-noyalib` / `backend-rust-yaml` build features and the
+  `--no-default-features` minimal build. The fidelity engine is now always
+  compiled in.
+
+### Notes
+
+- First release published to crates.io — install with `cargo install yqr`. (The
+  0.2.0 tag below was a GitHub-only release that predates this consolidation.)
+- `--engine` remains pluggable; an experimental `skald` engine is recognized for
+  future comparison but is not built into the released binary.
+
 ## [0.2.0] - 2026-07-08
 
 ### Added

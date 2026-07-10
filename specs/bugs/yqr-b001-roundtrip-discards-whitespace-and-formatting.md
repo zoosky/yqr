@@ -1,6 +1,6 @@
 # Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting
 
-**Status:** Open (confirmed, reproducible)
+**Status:** Open (confirmed, reproducible). Substrate change (2026-07-10, `yqr-m005`): the classic/default pipeline now re-serializes through **noyalib**, not rust-yaml. It remains a lossy *semantic* round trip (formatting/comments normalized); the byte-faithful path is the fidelity engine. The title's "rust-yaml" is now historical.
 **Severity:** High — violates the core product guarantee ratified in `yqr-a001`
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-03

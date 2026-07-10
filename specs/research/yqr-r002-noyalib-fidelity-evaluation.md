@@ -308,7 +308,7 @@ But material risks for a hard-guarantee dependency:
   via `clap_derive` / `rust-yaml`. If `noyalib` fully replaced `rust-yaml`, net
   crate count could **drop ~3** (removing `rust-yaml`'s regex/memmap2/libc/base64
   subtree). During any transition where both are present, the tree grows by ~5.
-- MSRV 1.85 < yqr's 1.96 (compatible).
+- MSRV 1.85 < yqr's 1.97 (compatible).
 
 These counts are reasoned from `Cargo.lock`/manifests, not from a resolved
 `yqr + noyalib` build (noyalib is not yet wired into yqr).

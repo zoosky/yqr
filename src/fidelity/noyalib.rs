@@ -10,7 +10,9 @@
 
 use std::fmt::Write as _;
 
-use rust_yaml::Value;
+// This module is named `noyalib`; reach the crate's `Value` through `crate::`
+// (the engine crate is addressed as `::noyalib`).
+use crate::Value;
 
 use crate::error::{Result, YqrError};
 use crate::fidelity::{BackendId, FidelityEngine, Path, PathSeg, Resolved, Span, Unaddressable};

@@ -40,51 +40,27 @@ fn bench_classic(c: &mut Criterion) {
     });
 }
 
-/// Map a corpus engine to a compiled-in backend id, or `None`.
-fn backend(engine: corpus::Engine) -> Option<yqr::fidelity::BackendId> {
-    // Only referenced by the compiled-in backend arms below; under
-    // `--no-default-features` both arms vanish and so must the import.
-    #[cfg(any(feature = "backend-noyalib", feature = "backend-rust-yaml"))]
-    use yqr::fidelity::BackendId;
+/// Map a corpus engine to its backend id.
+fn backend(engine: corpus::Engine) -> yqr::fidelity::BackendId {
     match engine {
-        corpus::Engine::Noyalib => {
-            #[cfg(feature = "backend-noyalib")]
-            {
-                Some(BackendId::NoyalibCst)
-            }
-            #[cfg(not(feature = "backend-noyalib"))]
-            {
-                None
-            }
-        }
-        corpus::Engine::RustYaml => {
-            #[cfg(feature = "backend-rust-yaml")]
-            {
-                Some(BackendId::RustYamlRoundTrip)
-            }
-            #[cfg(not(feature = "backend-rust-yaml"))]
-            {
-                None
-            }
-        }
+        corpus::Engine::Noyalib => yqr::fidelity::BackendId::NoyalibCst,
     }
 }
 
-/// Run every fidelity-engine case on each compiled-in backend.
+/// Run every fidelity-engine case on each backend.
 fn bench_engine(c: &mut Criterion) {
     let cases = corpus::engine_cases();
     c.bench_function("corpus/engine_all", |b| {
         b.iter(|| {
             for case in &cases {
                 for &engine in case.engines {
-                    if let Some(backend) = backend(engine) {
-                        let _ = black_box(yqr::fidelity::run(
-                            backend,
-                            black_box(case.filter),
-                            black_box(case.doc),
-                            case.raw,
-                        ));
-                    }
+                    let backend = backend(engine);
+                    let _ = black_box(yqr::fidelity::run(
+                        backend,
+                        black_box(case.filter),
+                        black_box(case.doc),
+                        case.raw,
+                    ));
                 }
             }
         });
@@ -108,9 +84,7 @@ fn bench_scale_classic(c: &mut Criterion) {
 /// Byte-for-byte identity over an inventory of growing size — the engine
 /// path's throughput on realistic input.
 fn bench_scale_engine(c: &mut Criterion) {
-    let Some(backend) = backend(corpus::Engine::RustYaml) else {
-        return;
-    };
+    let backend = backend(corpus::Engine::Noyalib);
     let mut group = c.benchmark_group("corpus/scale_engine_identity");
     for &n in &[100usize, 1000] {
         let doc = docs::inventory(n);

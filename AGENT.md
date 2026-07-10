@@ -211,7 +211,7 @@ yqr/
 │   ├── workflows/     # ci.yml, benchmark.yml
 │   └── scripts/       # local-ci.sh (local CI mirror)
 ├── Cargo.toml
-├── rust-toolchain.toml  # Pins the 1.96 toolchain
+├── rust-toolchain.toml  # Pins the 1.97 toolchain
 ├── AGENT.md
 └── README.md
 ```

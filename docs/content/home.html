@@ -506,8 +506,8 @@ spec:
 <span class="out">640</span></pre>
     </div>
     <div class="outcome exact">
-      <span class="badge">--engine rust-yaml</span>
-      <pre><span class="prompt">$</span> yqr --engine rust-yaml '.spec.volumes[0].secret.defaultMode' pod.yaml
+      <span class="badge">--engine noyalib</span>
+      <pre><span class="prompt">$</span> yqr --engine noyalib '.spec.volumes[0].secret.defaultMode' pod.yaml
 <span class="out">0640</span></pre>
     </div>
   </div>
@@ -525,19 +525,22 @@ spec:
     <div class="section-head">
       <p class="eyebrow">installed paths</p>
       <h2>Where the binary actually lives</h2>
-      <p>yqr isn't packaged anywhere yet &mdash; every path below comes from
-        building the crate yourself.</p>
+      <p>Install from crates.io with <code class="mono">cargo install yqr</code>,
+        or build any of the paths below from a source checkout.</p>
     </div>
     <div class="paths">
       <div class="path-card">
         <h3>On your machine</h3>
+        <code class="loc">cargo install yqr</code>
+        <p>Pulls the published crate to <code class="mono">~/.cargo/bin/yqr</code>
+          &mdash; keep that directory on <code class="mono">PATH</code> so plain
+          <code class="mono">yqr</code> resolves from any shell, including one
+          already piping <code class="mono">kubectl</code> output.</p>
         <code class="loc">cargo build --release</code>
-        <p>Binary lands at <code class="mono">target/release/yqr</code>.</p>
-        <code class="loc">cargo install --path .</code>
-        <p>Installs to <code class="mono">~/.cargo/bin/yqr</code> &mdash; keep
-          that directory on <code class="mono">PATH</code> so plain
-          <code class="mono">yqr</code> resolves from any shell, including
-          one already piping <code class="mono">kubectl</code> output.</p>
+        <p>Building from source instead? The binary lands at
+          <code class="mono">target/release/yqr</code> (or
+          <code class="mono">cargo install --path .</code> to put a local
+          checkout on <code class="mono">PATH</code>).</p>
       </div>
       <div class="path-card">
         <h3>Inside a container image</h3>
@@ -549,17 +552,16 @@ spec:
     </div>
 
     <div class="callout" id="engines">
-      <strong style="color:#f4efe1;">Byte-preserving reads are opt-in at build time.</strong>
-      A plain <code>cargo build --release</code> binary has no
-      <code>--engine</code> flag &mdash; it exists to keep the default build
-      dependency-minimal. Ask for it and you get told exactly how to get it:
-      <pre><span class="prompt">$</span> yqr --engine rust-yaml '.' pod.yaml
-yqr: io error: engine 'rust-yaml' is not available in this build (rebuild with: cargo build --features backend-rust-yaml)</pre>
-      Rebuild with the feature enabled and the flag works:
-      <pre><span class="prompt">$</span> cargo build --release --features backend-rust-yaml</pre>
-      (<code>backend-noyalib</code> is the other available engine.) If you're
-      baking yqr into a container image specifically to query manifests
-      byte-exactly, turn the feature on in the build stage.
+      <strong style="color:#f4efe1;">Byte-preserving reads are built in.</strong>
+      yqr's fidelity engine ships in every build &mdash; pass
+      <code>--engine noyalib</code> and untouched nodes come back as their
+      original source bytes: comments, quoting, indentation, and line endings
+      survive, and the identity filter reproduces the input byte-for-byte.
+      <pre><span class="prompt">$</span> yqr --engine noyalib '.' pod.yaml</pre>
+      Omit <code>--engine</code> and yqr uses its default, re-serializing
+      pipeline. An unknown engine name is rejected up front:
+      <pre><span class="prompt">$</span> yqr --engine bogus '.' pod.yaml
+yqr: io error: unknown engine "bogus" (available: noyalib)</pre>
     </div>
   </section>
 
@@ -598,10 +600,10 @@ yqr: io error: engine 'rust-yaml' is not available in this build (rebuild with: 
         <p>Bake the binary in, then use it in an init container to read a
           mounted manifest or ConfigMap before the main container starts.</p>
         <pre class="dockerfile"><span class="rem"># -- build --</span>
-<span class="kw">FROM</span> rust:1.96-slim <span class="kw">AS</span> build
+<span class="kw">FROM</span> rust:1.97-slim <span class="kw">AS</span> build
 WORKDIR /src
 COPY . .
-RUN cargo build --release --features backend-rust-yaml
+RUN cargo build --release
 
 <span class="rem"># -- runtime --</span>
 <span class="kw">FROM</span> debian:bookworm-slim
@@ -638,7 +640,7 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
         </div>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.jobs.test.steps[1].with.toolchain'</span> ci.yml</pre>
-          <p class="note">1.96 &mdash; confirm the pinned Rust version without
+          <p class="note">1.97 &mdash; confirm the pinned Rust version without
             scrolling past the cache step.</p>
         </div>
       </div>

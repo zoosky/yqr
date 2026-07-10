@@ -1,6 +1,6 @@
 # Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)
 
-**Status:** Done
+**Status:** Superseded by `yqr-m005` (2026-07-10) — the rust-yaml fork `RoundTripDocument` backend (backend A) was removed when yqr consolidated on noyalib as its sole engine. (Was: Done.)
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-04
 **Implements:** `yqr-m002` §7.1 (backend A), `yqr-a001` §4.1 (slice-on-emit)

@@ -1,6 +1,6 @@
 # Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection
 
-**Status:** Open (upstream fork; yqr-side documented + pinned)
+**Status:** Resolved — moot (2026-07-10). The rust-yaml fork `RoundTripDocument` backend was removed when yqr consolidated on noyalib (`yqr-m005`), so this fork bug no longer affects yqr. (The upstream fork issue itself is unchanged.)
 **Severity:** Medium — breaks the a001 byte-for-byte identity of `--engine rust-yaml` for any stream ending in a `...` document-end marker after a top-level block collection; the default pipeline and other engine inputs are unaffected
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-04

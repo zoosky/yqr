@@ -26,10 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install Rust toolchain (1.96)
+      - name: Install Rust toolchain (1.97)
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.96"
+          toolchain: "1.97"
 
       - name: Cache cargo registry and target
         uses: actions/cache@v5

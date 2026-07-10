@@ -7,7 +7,7 @@
 //! fidelity engine uses that path to emit untouched nodes by slicing their
 //! original bytes; the classic pipeline simply discards it.
 
-use rust_yaml::Value;
+use crate::Value;
 
 use crate::ast::Ast;
 use crate::error::{Result, YqrError};
@@ -136,10 +136,11 @@ fn iterate(value: &Value, path: Option<&Path>) -> Result<Vec<Traced>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rust_yaml::Yaml;
 
     fn load(src: &str) -> Value {
-        Yaml::new().load_str(src).expect("valid yaml")
+        noyalib::from_str::<noyalib::Value>(src)
+            .map(Value::from)
+            .expect("valid yaml")
     }
 
     fn run(filter: &str, yaml: &str) -> Result<Vec<Value>> {

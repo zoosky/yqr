@@ -43,8 +43,8 @@ scalar types are preserved as faithfully as the underlying parser allows.
 
 ## 4. Dependencies & toolchain
 
-- Language: Rust, edition 2024, targeting the **1.96** toolchain
-  (`rust-version` pinned in `Cargo.toml`; `rust-toolchain.toml` requests 1.96).
+- Language: Rust, edition 2024, targeting the **1.97** toolchain
+  (`rust-version` pinned in `Cargo.toml`; `rust-toolchain.toml` requests 1.97).
 - YAML engine: [`rust-yaml`](https://crates.io/crates/rust-yaml) `1.1.0`.
   - Entry point `rust_yaml::Yaml` with `load_str`/`load_all_str` and
     `dump_str`/`dump_all_str`.
