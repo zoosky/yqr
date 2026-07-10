@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783708638221,
+  "lastUpdate": 1783710370239,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -335,6 +335,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 247071,
             "range": "± 3553",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f5362226482b99382773c986346bf7e5cd2e271",
+          "message": "chore: release v0.3.0 (#25)\n\nByte/comment preservation moves to its own --preserve/-p flag, decoupled from\n--engine (which now only selects the backend parser). Breaking: --engine\nnoyalib no longer implies preservation.\n\n- CHANGELOG: [Unreleased] -> [0.3.0] - 2026-07-10 (adds the demo showcase)\n- Cargo.toml/Cargo.lock: 0.2.1 -> 0.3.0",
+          "timestamp": "2026-07-10T21:04:56+02:00",
+          "tree_id": "b1b2e8dd7a68cfcd14c9d1904af8c27cbd686cea",
+          "url": "https://github.com/zoosky/yqr/commit/5f5362226482b99382773c986346bf7e5cd2e271"
+        },
+        "date": 1783710369432,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 332,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3845,
+            "range": "± 37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 191655,
+            "range": "± 4444",
             "unit": "ns/iter"
           }
         ]
