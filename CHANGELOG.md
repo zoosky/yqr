@@ -4,6 +4,28 @@ All notable changes to `yqr` are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **`--preserve` / `-p` flag** for byte/comment-preserving reads. It turns on
+  fidelity mode with the default backend, so `yqr -p '.' file.yaml` reproduces
+  the input byte-for-byte — comments, quoting, indentation, and line endings
+  survive.
+
+### Changed
+
+- **`--engine` now selects the backend parser only** and no longer implies
+  preservation. It picks *which* library performs a `--preserve` read (default
+  `noyalib`); *whether* to preserve is `--preserve`'s job. Without `--preserve`,
+  `--engine` has no observable effect.
+
+### Breaking
+
+- `--engine noyalib '.'` no longer preserves bytes on its own — use
+  `--preserve` (optionally with `--engine noyalib` to name the backend
+  explicitly). This decouples backend choice from fidelity mode.
+
 ## [0.2.1] - 2026-07-10
 
 The first crates.io release. yqr consolidates on a single YAML engine, which

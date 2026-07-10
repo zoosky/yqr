@@ -130,18 +130,45 @@ fn unknown_engine_is_an_io_error() {
 }
 
 #[test]
-fn engine_identity_reproduces_input_bytes() {
+fn preserve_identity_reproduces_input_bytes() {
+    // `--preserve` alone (no `--engine`) uses the default noyalib backend.
     let input = "# comment\nname: web   # inline\n\nreplicas: 3\n";
-    let out = run(&["--engine", "noyalib", "."], input);
+    let out = run(&["--preserve", "."], input);
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, input, "identity must be byte-for-byte");
 }
 
 #[test]
-fn engine_projection_keeps_original_spelling() {
-    let out = run(&["--engine", "noyalib", ".zip"], "zip: 007\n");
+fn preserve_short_flag_reproduces_input_bytes() {
+    let input = "a: 1  # keep\n";
+    let out = run(&["-p", "."], input);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, input);
+}
+
+#[test]
+fn preserve_projection_keeps_original_spelling() {
+    let out = run(&["--preserve", ".zip"], "zip: 007\n");
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "007\n");
+}
+
+#[test]
+fn engine_selects_backend_for_preserve() {
+    // Feature f005: `--engine` names the backend; `--preserve` turns fidelity on.
+    let input = "s: 'hi'  # quoted\n";
+    let out = run(&["--engine", "noyalib", "--preserve", "."], input);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, input, "explicit noyalib backend must preserve");
+}
+
+#[test]
+fn engine_without_preserve_re_serializes() {
+    // Feature f005 clean break: `--engine noyalib` no longer implies preserve.
+    // Without `--preserve` the classic pipeline runs and the comment is dropped.
+    let out = run(&["--engine", "noyalib", "."], "name: web  # inline\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "name: web\n", "comment must be normalized away");
 }
 
 #[test]

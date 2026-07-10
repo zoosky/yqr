@@ -30,25 +30,26 @@ fn main() -> ExitCode {
 }
 
 fn run(args: &Cli) -> Result<String, YqrError> {
-    // Validate the engine choice before consuming stdin/the file, so a typo
-    // in --engine is diagnosed immediately instead of after reading input.
-    let backend = args
-        .engine
-        .as_deref()
-        .map(|engine| {
-            BackendId::parse(engine).ok_or_else(|| {
-                YqrError::io(format!(
-                    "unknown engine {engine:?} (available: {})",
-                    BackendId::known_names()
-                ))
-            })
-        })
-        .transpose()?;
+    // Feature f005: `--engine` selects the backend; `--preserve` decides whether
+    // to preserve bytes. Resolve the backend name (defaulting to the always-
+    // available noyalib) before consuming stdin/the file, so a typo in --engine
+    // is diagnosed immediately instead of after reading input.
+    let backend = match args.engine.as_deref() {
+        Some(engine) => BackendId::parse(engine).ok_or_else(|| {
+            YqrError::io(format!(
+                "unknown engine {engine:?} (available: {})",
+                BackendId::known_names()
+            ))
+        })?,
+        None => BackendId::NoyalibCst,
+    };
 
     let input = read_input(args.file.as_deref())?;
-    if let Some(backend) = backend {
+    if args.preserve {
         return fidelity::run(backend, &args.filter, &input, args.raw_output);
     }
+    // Standard re-serializing pipeline. It is backend-independent today, so a
+    // bare `--engine` without `--preserve` is inert beyond name validation.
     let values = eval_str(&args.filter, &input)?;
     render(&values, args.raw_output)
 }
