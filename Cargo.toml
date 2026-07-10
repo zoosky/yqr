@@ -34,14 +34,14 @@ harness = false
 clap = { version = "4.6.1", features = ["derive"] }
 rust-yaml = "1.1.0"
 # Fidelity engine backend (src/fidelity/noyalib.rs) and comparison backend for
-# the round-trip harness (tests/fidelity.rs). Sourced from the `zoosky/noyalib`
-# fork's `feat/fidelity-span-fixes` branch, which carries our submitted upstream
-# fixes on top of the 0.0.13 release (span_at implicit-null / keep-chomped /
-# block-collection / alias resolve-through, loader key-collision diagnostic, and
-# scanner lone-CR — deficiencies 2.2-2.7), so yqr ships the fixed engine ahead
-# of an upstream release. Enabled by default via the `backend-noyalib` feature.
-# See research r002 and bug b002.
-noyalib = { git = "https://github.com/zoosky/noyalib.git", branch = "feat/fidelity-span-fixes", optional = true }
+# the round-trip harness (tests/fidelity.rs). Our submitted fidelity fixes (five
+# CST span_at fixes — implicit-null / keep-chomped / block-collection / alias
+# resolve-through; the loader key-collision diagnostic; and the scanner lone-CR
+# fix — deficiencies 2.2-2.7) landed upstream in the 0.0.14 release, so yqr now
+# consumes the published crates.io release instead of the `zoosky/noyalib` fork
+# branch (`feat/fidelity-span-fixes`) it previously tracked. Enabled by default
+# via the `backend-noyalib` feature. See research r002 and bug b002.
+noyalib = { version = "0.0.14", optional = true }
 # Fidelity engine backend A (src/fidelity/rustyaml.rs) and comparison backend
 # for the round-trip harness: our rust-yaml fork's source-preserving
 # `RoundTripDocument` API. It is the *same* crate yqr already depends on from

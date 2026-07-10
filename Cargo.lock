@@ -387,8 +387,9 @@ dependencies = [
 
 [[package]]
 name = "noyalib"
-version = "0.0.13"
-source = "git+https://github.com/zoosky/noyalib.git?branch=feat%2Ffidelity-span-fixes#37a3d87be97a95760421317397b82ddc413b826b"
+version = "0.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12ed62e7f82a103cc3c01c43d8fbbe8d0591731e5625dc85661298aede7d6c3d"
 dependencies = [
  "indexmap",
  "itoa",

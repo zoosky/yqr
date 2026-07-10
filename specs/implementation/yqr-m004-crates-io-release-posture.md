@@ -1,8 +1,8 @@
 # Implementation m004 — crates.io release posture (git-dep fidelity backends)
 
-**Status:** In Progress — v0.2.0 is tagged and GitHub-released; the crates.io publish is **held** pending dependency releases (see §3).
+**Status:** In Progress — v0.2.0 is tagged and GitHub-released; the crates.io publish is **held** pending the remaining `rust-yaml-rt` release (see §3). `noyalib` is now resolved: re-pinned to the crates.io `0.0.14` release (2026-07-10).
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-08
+**Last updated:** 2026-07-10
 **Related:** `yqr-f004` (both fidelity engines shipped by default), `yqr-m002` (engine seam), `yqr-b002` (the noyalib fixes the fork carries), `yqr-b001`/`rust-yaml` fork (backend A)
 
 ## 1. Purpose
@@ -22,12 +22,12 @@ error: all dependencies must have a version requirement specified when publishin
 `rust-yaml-rt` fails identically. This is a release-channel constraint, not a
 code defect: the crate builds, tests (156 passing), and is GitHub-released.
 
-## 2. The two blocking dependencies
+## 2. Blocking dependencies (one resolved, one remaining)
 
 | Dependency | Current pin (`Cargo.toml`) | crates.io state |
 |---|---|---|
-| `noyalib` | `git = zoosky/noyalib`, branch `feat/fidelity-span-fixes` | crates.io has **0.0.13** (lacks b002 2.2–2.7); **0.0.14 unreleased** — upstream release [noyalib#160](https://github.com/sebastienrousseau/noyalib/pull/160) is open and folds in 2.2–2.7 |
-| `rust-yaml-rt` (`package = rust-yaml`) | `git = zoosky/rust-yaml`, branch `feat/roundtrip-document` | crates.io `rust-yaml` is **1.1.0**, which has **no `RoundTripDocument` API**; the fork's feature has **no published crate** today |
+| `noyalib` ✅ **resolved** | `noyalib = "0.0.14"` (crates.io) | **0.0.14 released** with b002 2.2–2.7; upstream release [noyalib#160](https://github.com/sebastienrousseau/noyalib/pull/160) merged. git-dep dropped 2026-07-10 |
+| `rust-yaml-rt` (`package = rust-yaml`) — **remaining blocker** | `git = zoosky/rust-yaml`, branch `feat/roundtrip-document` | crates.io `rust-yaml` is **1.1.0**, which has **no `RoundTripDocument` API**; the fork's feature has **no published crate** today |
 
 Historical note: `0.1.1` published cleanly because it predates `f004` —
 `noyalib` was `"0.0.13"` (a real version, optional/off) and `rust-yaml-rt` did
@@ -36,9 +36,9 @@ crates.io release cannot express.
 
 ## 3. Unblock conditions (all required)
 
-1. **noyalib on crates.io with the fixes.** Land [noyalib#160](https://github.com/sebastienrousseau/noyalib/pull/160)
-   (v0.0.14, which cherry-picks b002 PRs #147–#152) and re-pin
-   `noyalib = "0.0.14"` (drop the `git`/`branch`).
+1. ✅ **Done (2026-07-10) — noyalib on crates.io with the fixes.** [noyalib#160](https://github.com/sebastienrousseau/noyalib/pull/160)
+   released v0.0.14 (folding in b002 2.2–2.7); yqr is re-pinned to
+   `noyalib = "0.0.14"` and the `git`/`branch` spec is dropped.
 2. **A crates.io home for the `RoundTripDocument` backend.** Either upstream the
    API into `rust-yaml` and pin a released version, or publish the fork as a
    distinct crate and pin that. This is the harder, still-open item.
@@ -56,7 +56,7 @@ crates.io release cannot express.
 
 ## 5. Acceptance criteria
 
-- [ ] `noyalib` re-pinned to a crates.io version carrying b002 2.2–2.7 (0.0.14+).
+- [x] `noyalib` re-pinned to a crates.io version carrying b002 2.2–2.7 (0.0.14+).
 - [ ] `RoundTripDocument` backend available from a crates.io version; `rust-yaml-rt` re-pinned off `git`.
 - [ ] `cargo publish --dry-run` passes with no git-dep error.
 - [ ] `cargo publish` run by the maintainer; crates.io shows `0.2.0` (or the reconciled version).
