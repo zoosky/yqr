@@ -9,7 +9,6 @@
 mod corpus;
 
 use corpus::{Case, Engine, EngineCase, Expect};
-use rust_yaml::Yaml;
 use yqr::{eval_str, render};
 
 /// Run one classic-pipeline case and assert its expectation.
@@ -18,9 +17,16 @@ fn check_classic(case: &Case) {
         Expect::Values(expected_yaml) => {
             let out = eval_str(case.filter, case.doc)
                 .unwrap_or_else(|e| panic!("[{}] should evaluate, got error: {e}", case.id));
-            let want = Yaml::new()
-                .load_all_str(expected_yaml)
-                .unwrap_or_else(|e| panic!("[{}] expected YAML must parse: {e}", case.id));
+            // `want` is parsed with the same engine, so this asserts *semantic*
+            // equality (value stream), robust to the emitter's formatting.
+            // Byte-exact, engine-independent behavior — the check a
+            // parse-both-sides comparison cannot make — is pinned separately in
+            // tests/golden_pipeline.rs.
+            let want: Vec<yqr::Value> = noyalib::load_all_as::<noyalib::Value>(expected_yaml)
+                .unwrap_or_else(|e| panic!("[{}] expected YAML must parse: {e}", case.id))
+                .into_iter()
+                .map(yqr::Value::from)
+                .collect();
             assert_eq!(out, want, "[{}] value stream mismatch", case.id);
         }
         Expect::Empty => {
@@ -52,43 +58,17 @@ fn check_classic(case: &Case) {
     }
 }
 
-/// Map a corpus [`Engine`] to a compiled-in [`yqr::fidelity::BackendId`], or
-/// `None` when that backend is not part of the current build.
-fn backend(engine: Engine) -> Option<yqr::fidelity::BackendId> {
-    // Only referenced by the compiled-in backend arms below; under
-    // `--no-default-features` both arms vanish and so must the import.
-    #[cfg(any(feature = "backend-noyalib", feature = "backend-rust-yaml"))]
-    use yqr::fidelity::BackendId;
+/// Map a corpus [`Engine`] to its [`yqr::fidelity::BackendId`].
+fn backend(engine: Engine) -> yqr::fidelity::BackendId {
     match engine {
-        Engine::Noyalib => {
-            #[cfg(feature = "backend-noyalib")]
-            {
-                Some(BackendId::NoyalibCst)
-            }
-            #[cfg(not(feature = "backend-noyalib"))]
-            {
-                None
-            }
-        }
-        Engine::RustYaml => {
-            #[cfg(feature = "backend-rust-yaml")]
-            {
-                Some(BackendId::RustYamlRoundTrip)
-            }
-            #[cfg(not(feature = "backend-rust-yaml"))]
-            {
-                None
-            }
-        }
+        Engine::Noyalib => yqr::fidelity::BackendId::NoyalibCst,
     }
 }
 
-/// Run one engine case against every applicable, compiled-in backend.
+/// Run one engine case against every applicable backend.
 fn check_engine(case: &EngineCase) {
     for &engine in case.engines {
-        let Some(backend) = backend(engine) else {
-            continue;
-        };
+        let backend = backend(engine);
         let got = yqr::fidelity::run(backend, case.filter, case.doc, case.raw)
             .unwrap_or_else(|e| panic!("[{}/{engine:?}] engine run failed: {e}", case.id));
         assert_eq!(

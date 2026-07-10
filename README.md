@@ -13,7 +13,7 @@ through JSON — and uses [`clap`](https://crates.io/crates/clap) for its CLI.
 
 ## Install / build
 
-Requires the Rust **1.96** toolchain (pinned via `rust-toolchain.toml`).
+Requires the Rust **1.97** toolchain (pinned via `rust-toolchain.toml`).
 
 ```sh
 cargo build --release

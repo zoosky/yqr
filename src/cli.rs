@@ -41,8 +41,9 @@ pub struct Cli {
     #[arg(short = 'r', long = "raw-output")]
     pub raw_output: bool,
 
-    /// Fidelity engine for byte-preserving reads (available: 'noyalib',
-    /// 'rust-yaml').
+    /// Fidelity engine for byte-preserving reads (available: 'noyalib'). The
+    /// experimental 'skald' engine is recognized but built only on the
+    /// `feat/skald-engine` branch.
     ///
     /// With an engine selected, untouched nodes are emitted as their original
     /// source bytes: comments, quoting, indentation, and line endings survive,
@@ -91,11 +92,5 @@ mod tests {
     fn parses_engine_flag() {
         let cli = Cli::try_parse_from(["yqr", "--engine", "noyalib", "."]).unwrap();
         assert_eq!(cli.engine.as_deref(), Some("noyalib"));
-    }
-
-    #[test]
-    fn parses_rust_yaml_engine_flag() {
-        let cli = Cli::try_parse_from(["yqr", "--engine", "rust-yaml", "."]).unwrap();
-        assert_eq!(cli.engine.as_deref(), Some("rust-yaml"));
     }
 }

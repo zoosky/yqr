@@ -1,6 +1,6 @@
 # Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks
 
-**Status:** Done
+**Status:** Superseded by `yqr-m005` (2026-07-10) — yqr consolidated on a single engine (noyalib); the two-backend, runtime-switchable engine-parity story no longer holds. `--engine noyalib` still selects the byte-preserving path. (Was: Done.)
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-08
 **Implements:** `yqr-a001` §4 (fidelity engine seam), consumes `yqr-b002` 2.2-2.7
@@ -19,12 +19,13 @@ runtime switch:
   rebuild. `--no-default-features` still yields a minimal binary that carries
   neither backend (the classic re-serializing pipeline is unchanged, and
   `--engine` reports the backend as unavailable).
-- **Both engines are sourced from the `zoosky/` forks.** `rust-yaml-rt` already
-  tracked `zoosky/rust-yaml` `feat/roundtrip-document` (f003); `noyalib` now
-  tracks `zoosky/noyalib` `feat/fidelity-span-fixes`, an integration branch off
-  the 0.0.13 release carrying the six submitted upstream fixes for
-  deficiencies 2.2-2.7 (`yqr-b002`). yqr therefore ships the fixed fidelity
-  engine ahead of an upstream noyalib release.
+- **Engine sourcing.** `rust-yaml-rt` tracks `zoosky/rust-yaml`
+  `feat/roundtrip-document` (f003). `noyalib` originally tracked
+  `zoosky/noyalib` `feat/fidelity-span-fixes` — an integration branch off the
+  0.0.13 release carrying the submitted upstream fixes for deficiencies 2.2-2.7
+  (`yqr-b002`) — so yqr could ship the fixed fidelity engine ahead of an
+  upstream release. Once those fixes shipped in **noyalib 0.0.14**, yqr re-pinned
+  to the crates.io release (`noyalib = "0.0.14"`, 2026-07-10; see `yqr-m004`).
 - **The noyalib adapter consumes the fixes.** The guards that previously
   degraded to `Synthetic` now resolve to `Found` where the fork made the span
   faithful, and the redundant cross-check is removed (see §3).
@@ -74,7 +75,9 @@ changes:
       `--engine noyalib` and `--engine rust-yaml` work at runtime.
 - [x] `--no-default-features` builds cleanly; `--engine <name>` reports the
       backend unavailable; the classic pipeline is unchanged.
-- [x] `noyalib` is pinned to `zoosky/noyalib` `feat/fidelity-span-fixes`;
+- [x] `noyalib` is pinned to a source carrying b002 2.2-2.7 (at f004:
+      `zoosky/noyalib` `feat/fidelity-span-fixes`; re-pinned to the crates.io
+      `noyalib = "0.0.14"` release on 2026-07-10, see `yqr-m004`);
       `rust-yaml-rt` remains pinned to `zoosky/rust-yaml`
       `feat/roundtrip-document`.
 - [x] The three adapter tests that flip with the fixed engine assert `Found`

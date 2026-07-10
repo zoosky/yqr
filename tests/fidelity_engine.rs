@@ -1,11 +1,6 @@
 //! End-to-end tests of the fidelity engine read path: with an engine
 //! selected, the identity filter must reproduce the input byte-for-byte, and
 //! path projections must emit the selected node's original bytes.
-//!
-//! These tests require the noyalib backend:
-//! `cargo test --features backend-noyalib --test fidelity_engine`
-
-#![cfg(feature = "backend-noyalib")]
 
 use yqr::fidelity::{BackendId, run};
 

@@ -1,8 +1,8 @@
 [package]
 name = "yqr"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
-rust-version = "1.96"
+rust-version = "1.97"
 description = "A jq-style command-line processor for YAML"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/zoosky/yqr"
@@ -32,44 +32,24 @@ harness = false
 
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
-rust-yaml = "1.1.0"
-# Fidelity engine backend (src/fidelity/noyalib.rs) and comparison backend for
-# the round-trip harness (tests/fidelity.rs). Sourced from the `zoosky/noyalib`
-# fork's `feat/fidelity-span-fixes` branch, which carries our submitted upstream
-# fixes on top of the 0.0.13 release (span_at implicit-null / keep-chomped /
-# block-collection / alias resolve-through, loader key-collision diagnostic, and
-# scanner lone-CR — deficiencies 2.2-2.7), so yqr ships the fixed engine ahead
-# of an upstream release. Enabled by default via the `backend-noyalib` feature.
-# See research r002 and bug b002.
-noyalib = { git = "https://github.com/zoosky/noyalib.git", branch = "feat/fidelity-span-fixes", optional = true }
-# Fidelity engine backend A (src/fidelity/rustyaml.rs) and comparison backend
-# for the round-trip harness: our rust-yaml fork's source-preserving
-# `RoundTripDocument` API. It is the *same* crate yqr already depends on from
-# crates.io, brought in under a distinct name from the fork branch so the
-# classic (crates.io) pipeline is untouched. Enabled by default via the
-# `backend-rust-yaml` feature. See bug b001 §8 and impl m002 §7.1.
-rust-yaml-rt = { package = "rust-yaml", git = "https://github.com/zoosky/rust-yaml.git", branch = "feat/roundtrip-document", optional = true }
+# noyalib is yqr's YAML engine: the parser/emitter for the classic pipeline and
+# the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
+# converted to yqr's own `Value` model (src/value.rs) at the parse/emit
+# boundary, so the engine is a swappable implementation detail. Pinned to the
+# crates.io 0.0.14 release. See research r002 and bug b002.
+noyalib = "0.0.14"
+# Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
+# shape yqr's evaluator has always used). noyalib already depends on indexmap.
+indexmap = "2"
+# NOTE: the experimental `skald` engine (`--engine skald`) lives on the
+# `feat/skald-engine` branch, not here. skald is an unreleased git dependency,
+# and crates.io rejects git deps even when optional — so wiring it into this
+# manifest would re-block the publish (yqr-m004). It is kept off `main` so the
+# release stays publishable; check out that branch to build/test skald. See
+# yqr-m005 §6.
 
 [dev-dependencies]
 criterion = "0.8.2"
-# The fidelity harness drives rust-yaml's load/dump path directly. Integration
-# tests compile as a separate crate and do not inherit the library's normal
-# dependencies, so rust-yaml is declared here as well.
-rust-yaml = "1.1.0"
-
-[features]
-# Both fidelity engines ship in the default build so `--engine noyalib` and
-# `--engine rust-yaml` are switchable at runtime in one binary (engine parity).
-# Build with `--no-default-features` for a minimal binary that carries neither
-# backend (the classic re-serializing pipeline still works; `--engine` then
-# reports the backend as unavailable).
-default = ["backend-noyalib", "backend-rust-yaml"]
-# Adds the noyalib CST backend (src/fidelity/noyalib.rs) to the fidelity engine
-# and the round-trip harness.
-backend-noyalib = ["dep:noyalib"]
-# Adds the rust-yaml fork's RoundTripDocument backend (backend A) to the
-# fidelity engine and harness.
-backend-rust-yaml = ["dep:rust-yaml-rt"]
 
 [profile.release]
 lto = "thin"

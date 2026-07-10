@@ -129,7 +129,6 @@ fn unknown_engine_is_an_io_error() {
     );
 }
 
-#[cfg(feature = "backend-noyalib")]
 #[test]
 fn engine_identity_reproduces_input_bytes() {
     let input = "# comment\nname: web   # inline\n\nreplicas: 3\n";
@@ -138,24 +137,11 @@ fn engine_identity_reproduces_input_bytes() {
     assert_eq!(out.stdout, input, "identity must be byte-for-byte");
 }
 
-#[cfg(feature = "backend-noyalib")]
 #[test]
 fn engine_projection_keeps_original_spelling() {
     let out = run(&["--engine", "noyalib", ".zip"], "zip: 007\n");
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "007\n");
-}
-
-#[cfg(not(feature = "backend-noyalib"))]
-#[test]
-fn engine_without_backend_reports_missing_feature() {
-    let out = run(&["--engine", "noyalib", "."], "a: 1\n");
-    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains("backend-noyalib"),
-        "stderr: {}",
-        out.stderr
-    );
 }
 
 #[test]

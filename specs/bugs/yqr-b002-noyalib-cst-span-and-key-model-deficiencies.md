@@ -1,9 +1,9 @@
 # Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model
 
-**Status:** Resolved on the yqr side (all seven fixes consumed from the `zoosky/noyalib` fork; upstream PRs [#147](https://github.com/sebastienrousseau/noyalib/pull/147)–[#152](https://github.com/sebastienrousseau/noyalib/pull/152) remain open for 2.2–2.7). yqr pins `noyalib` to `zoosky/noyalib` `feat/fidelity-span-fixes` (an integration branch off 0.0.13 carrying 2.2–2.7); deficiency 2.1 was already in 0.0.13. See `yqr-f004`.
-**Severity:** Medium — every hazard is contained by mitigations in yqr's engine adapter, and the fork now fixes 2.2–2.7 at the source
+**Status:** Resolved — all seven fixes are now in the upstream **noyalib 0.0.14** release (2.1 shipped in 0.0.13; 2.2–2.7 folded into the v0.0.14 release, [noyalib#160](https://github.com/sebastienrousseau/noyalib/pull/160), whose CHANGELOG records the five CST `span_at` fixes, the scanner lone-CR fix, and loader `KeyCollision` parity). yqr now consumes them from the crates.io `noyalib = "0.0.14"` release; the `zoosky/noyalib` `feat/fidelity-span-fixes` git-dep is dropped (2026-07-10). See `yqr-m004`, `yqr-f004`.
+**Severity:** Medium — every hazard is contained by mitigations in yqr's engine adapter, and 2.2–2.7 are now fixed at the source in the released 0.0.14
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-08
+**Last updated:** 2026-07-10
 **Affects:** the `--engine noyalib` fidelity read path (`yqr-f002`); irrelevant to the default pipeline
 **Component:** `noyalib` 0.0.13 (`cst::Document::span_at`, `Document::as_value`, the `Value` mapping model)
 **Related:** `yqr-f002` §4a (mitigations), `yqr-r002` (evaluation), `yqr-m002` §7.2 (backend C), upstream precedent [noyalib#118](https://github.com/sebastienrousseau/noyalib/pull/118)/[#123](https://github.com/sebastienrousseau/noyalib/pull/123) (BOM fix, merged); deficiency 2.1 fix ([noyalib#143](https://github.com/sebastienrousseau/noyalib/pull/143), closed) folded into the **noyalib 0.0.13** release (PR #145); deficiencies 2.2–2.7 fixed on the `zoosky/noyalib` fork and submitted as [#147](https://github.com/sebastienrousseau/noyalib/pull/147) (2.7), [#148](https://github.com/sebastienrousseau/noyalib/pull/148) (2.3), [#149](https://github.com/sebastienrousseau/noyalib/pull/149) (2.6), [#150](https://github.com/sebastienrousseau/noyalib/pull/150) (2.2), [#151](https://github.com/sebastienrousseau/noyalib/pull/151) (2.4), [#152](https://github.com/sebastienrousseau/noyalib/pull/152) (2.5)

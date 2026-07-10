@@ -4,7 +4,7 @@
 //!
 //! - [`lexer`] turns a filter string into tokens,
 //! - [`parser`] turns tokens into an [`ast::Ast`],
-//! - [`eval`] applies an `Ast` to a [`rust_yaml::Value`], producing a stream of
+//! - [`eval`] applies an `Ast` to a [`Value`], producing a stream of
 //!   output values,
 //! - [`fidelity`] provides byte-preserving execution over pluggable engine
 //!   backends (untouched nodes are emitted as their original source bytes).
@@ -20,18 +20,17 @@ pub mod eval;
 pub mod fidelity;
 pub mod lexer;
 pub mod parser;
+pub mod value;
 
 pub use error::{Result, YqrError};
-pub use rust_yaml::Value;
-
-use rust_yaml::Yaml;
+pub use value::Value;
 
 /// Parse `filter`, load the first YAML document from `input`, and evaluate the
 /// filter against it, returning the output stream.
 pub fn eval_str(filter: &str, input: &str) -> Result<Vec<Value>> {
     let ast = parser::parse(filter)?;
-    let value = Yaml::new()
-        .load_str(input)
+    let value: Value = noyalib::from_str::<noyalib::Value>(input)
+        .map(Value::from)
         .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
     eval::eval(&ast, &value)
 }
@@ -42,7 +41,6 @@ pub fn eval_str(filter: &str, input: &str) -> Result<Vec<Value>> {
 /// string results are printed verbatim (without YAML quoting), matching jq's
 /// `--raw-output`.
 pub fn render(values: &[Value], raw: bool) -> Result<String> {
-    let yaml = Yaml::new();
     let mut out = String::new();
     for value in values {
         if raw && let Value::String(s) = value {
@@ -50,8 +48,7 @@ pub fn render(values: &[Value], raw: bool) -> Result<String> {
             out.push('\n');
             continue;
         }
-        let dumped = yaml
-            .dump_str(value)
+        let dumped = noyalib::to_string_value(&noyalib::Value::from(value))
             .map_err(|e| YqrError::io(format!("failed to emit YAML: {e}")))?;
         out.push_str(dumped.trim_end_matches('\n'));
         out.push('\n');

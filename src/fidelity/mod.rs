@@ -23,15 +23,12 @@
 
 // Feature f002 (see specs/features/): fidelity read floor — seam + driver.
 
-use rust_yaml::Value;
-
+// `noyalib` below is the local backend module; reach the crate's `Value`
+// re-export through `crate::` to avoid shadowing.
+use crate::Value;
 use crate::error::Result;
 
-#[cfg(feature = "backend-noyalib")]
 mod noyalib;
-
-#[cfg(feature = "backend-rust-yaml")]
-mod rustyaml;
 
 /// A half-open byte range `[start, end)` into [`FidelityEngine::source`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -170,23 +167,23 @@ pub enum Resolved<'a> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum BackendId {
-    /// noyalib's lossless CST (feature `backend-noyalib`).
+    /// noyalib's lossless CST — the default, always-available engine.
     NoyalibCst,
-    /// The rust-yaml fork's source-preserving `RoundTripDocument` (feature
-    /// `backend-rust-yaml`).
-    RustYamlRoundTrip,
+    /// skald (elioetibr's YAML 1.2.2 library) — experimental, available only
+    /// when compiled with the `backend-skald` feature.
+    Skald,
 }
 
 impl BackendId {
     /// Every backend yqr knows about, whether or not it is compiled in.
-    pub const ALL: &'static [BackendId] = &[BackendId::NoyalibCst, BackendId::RustYamlRoundTrip];
+    pub const ALL: &'static [BackendId] = &[BackendId::NoyalibCst, BackendId::Skald];
 
     /// The name used on the command line and in messages.
     #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {
             BackendId::NoyalibCst => "noyalib",
-            BackendId::RustYamlRoundTrip => "rust-yaml",
+            BackendId::Skald => "skald",
         }
     }
 
@@ -258,42 +255,22 @@ pub trait FidelityEngine {
 
 /// Parse `input` with the chosen backend, keeping its bytes verbatim.
 ///
-/// Backends may be feature-gated; requesting one that is not compiled into
-/// this build is an error that names the missing feature.
+/// Experimental backends may be feature-gated; requesting one that is not
+/// compiled into this build is an error that names the missing feature.
 ///
 /// # Errors
 ///
-/// Returns an error when the backend is unavailable in this build or the
-/// input is not valid YAML for that backend.
+/// Returns an error when the backend is unavailable in this build or the input
+/// is not valid YAML for that backend.
 pub fn open(backend: BackendId, input: &str) -> Result<Box<dyn FidelityEngine>> {
     match backend {
-        BackendId::NoyalibCst => {
-            #[cfg(feature = "backend-noyalib")]
-            {
-                Ok(Box::new(noyalib::NoyalibEngine::open(input)?))
-            }
-            #[cfg(not(feature = "backend-noyalib"))]
-            {
-                let _ = input;
-                Err(crate::error::YqrError::io(
-                    "engine 'noyalib' is not available in this build \
-                     (rebuild with: cargo build --features backend-noyalib)",
-                ))
-            }
-        }
-        BackendId::RustYamlRoundTrip => {
-            #[cfg(feature = "backend-rust-yaml")]
-            {
-                Ok(Box::new(rustyaml::RustYamlEngine::open(input)?))
-            }
-            #[cfg(not(feature = "backend-rust-yaml"))]
-            {
-                let _ = input;
-                Err(crate::error::YqrError::io(
-                    "engine 'rust-yaml' is not available in this build \
-                     (rebuild with: cargo build --features backend-rust-yaml)",
-                ))
-            }
+        BackendId::NoyalibCst => Ok(Box::new(noyalib::NoyalibEngine::open(input)?)),
+        BackendId::Skald => {
+            let _ = input;
+            Err(crate::error::YqrError::io(
+                "engine 'skald' is not available on this branch \
+                 (build the feat/skald-engine branch with --features backend-skald)",
+            ))
         }
     }
 }
@@ -386,21 +363,19 @@ mod tests {
         assert_eq!(Span::new(3, 4).slice(src), "1");
     }
 
-    #[cfg(not(feature = "backend-noyalib"))]
     #[test]
-    fn open_reports_missing_backend() {
-        match open(BackendId::NoyalibCst, "a: 1\n") {
-            Err(err) => assert!(err.to_string().contains("backend-noyalib")),
-            Ok(_) => panic!("expected the backend to be unavailable"),
-        }
+    fn noyalib_is_always_available() {
+        assert!(open(BackendId::NoyalibCst, "a: 1\n").is_ok());
     }
 
-    #[cfg(not(feature = "backend-rust-yaml"))]
     #[test]
-    fn open_reports_missing_rust_yaml_backend() {
-        match open(BackendId::RustYamlRoundTrip, "a: 1\n") {
-            Err(err) => assert!(err.to_string().contains("backend-rust-yaml")),
-            Ok(_) => panic!("expected the backend to be unavailable"),
+    fn skald_is_recognized_but_unavailable_on_this_branch() {
+        // The engine name resolves (the seam is pluggable), but the backend is
+        // not built on `main` — it lives on `feat/skald-engine`.
+        assert_eq!(BackendId::parse("skald"), Some(BackendId::Skald));
+        match open(BackendId::Skald, "a: 1\n") {
+            Err(err) => assert!(err.to_string().contains("skald")),
+            Ok(_) => panic!("expected skald to be unavailable"),
         }
     }
 }
