@@ -95,13 +95,27 @@ fn in_place_path(path: Option<&str>) -> Result<&str, YqrError> {
 /// rename it over the original.
 ///
 /// The temp file lives in the same directory as the target so the rename stays
-/// on one filesystem (a cross-device rename is not atomic). On failure the temp
+/// on one filesystem (a cross-device rename is not atomic). The original file's
+/// permissions are carried onto the replacement — a fresh temp file is created
+/// with default (umask) permissions, which would otherwise silently relax a
+/// restrictive mode (e.g. a `0600` secret becoming `0644`). On failure the temp
 /// file is cleaned up and the original is left untouched.
 // Feature f006.
 fn write_in_place(path: &str, contents: &str) -> Result<(), YqrError> {
     let tmp = format!("{path}.yqr-tmp.{}", std::process::id());
     std::fs::write(&tmp, contents.as_bytes())
         .map_err(|e| YqrError::io(format!("failed to write temporary file {tmp:?}: {e}")))?;
+    // Preserve the original mode. If the original's metadata is unreadable
+    // (it existed a moment ago when we read it), fall back to default perms
+    // rather than failing the whole edit.
+    if let Ok(meta) = std::fs::metadata(path)
+        && let Err(e) = std::fs::set_permissions(&tmp, meta.permissions())
+    {
+        let _ = std::fs::remove_file(&tmp);
+        return Err(YqrError::io(format!(
+            "failed to preserve permissions on {path:?}: {e}"
+        )));
+    }
     std::fs::rename(&tmp, path).map_err(|e| {
         let _ = std::fs::remove_file(&tmp);
         YqrError::io(format!("failed to replace {path:?}: {e}"))

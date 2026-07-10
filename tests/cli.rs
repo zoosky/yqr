@@ -235,6 +235,21 @@ fn in_place_rewrites_only_the_target_line() {
 }
 
 #[test]
+#[cfg(unix)]
+fn in_place_preserves_file_permissions() {
+    use std::os::unix::fs::PermissionsExt;
+    let file = temp_yaml("secret: value\n");
+    std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o600)).unwrap();
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", ".secret = \"rotated\"", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&file), "secret: rotated\n");
+    let mode = std::fs::metadata(&file).unwrap().permissions().mode() & 0o777;
+    assert_eq!(mode, 0o600, "in-place edit must preserve the original mode");
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
 fn append_in_place_adds_a_block_sequence_item() {
     let file = temp_yaml("spec:\n  ports:\n    - 8080\n");
     let path = file.to_str().unwrap();

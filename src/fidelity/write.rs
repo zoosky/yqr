@@ -125,30 +125,31 @@ fn apply_to_doc(
     mutation: &Mutation,
     value: &Value,
 ) -> Result<bool> {
+    // Resolve the target (and decide whether to skip this document) *before*
+    // evaluating the RHS: a document whose target does not resolve is left
+    // untouched, so a path RHS that happens to be absent in that document must
+    // not be evaluated (and must not turn a skip into a hard error).
     match mutation {
         Mutation::Assign { path, rhs } => {
+            let Some(target) = resolve_assign_target(path, value)? else {
+                return Ok(false);
+            };
             let rhs_value = resolve_rhs(rhs, value)?;
-            match resolve_assign_target(path, value)? {
-                Some(AssignTarget::Existing(target)) => {
-                    writer.set_value(doc, &target, &rhs_value)?;
-                    Ok(true)
-                }
-                Some(AssignTarget::NewKey { parent, key }) => {
+            match target {
+                AssignTarget::Existing(target) => writer.set_value(doc, &target, &rhs_value)?,
+                AssignTarget::NewKey { parent, key } => {
                     writer.insert_key(doc, &parent, &key, &rhs_value)?;
-                    Ok(true)
                 }
-                None => Ok(false),
             }
+            Ok(true)
         }
         Mutation::Append { path, rhs } => {
+            let Some(target) = resolve_target(path, value)? else {
+                return Ok(false);
+            };
             let item = resolve_rhs(rhs, value)?;
-            match resolve_target(path, value)? {
-                Some(target) => {
-                    writer.append(doc, &target, &item)?;
-                    Ok(true)
-                }
-                None => Ok(false),
-            }
+            writer.append(doc, &target, &item)?;
+            Ok(true)
         }
         Mutation::Delete { path } => match resolve_target(path, value)? {
             Some(target) => {
@@ -429,6 +430,24 @@ mod tests {
         )
         .unwrap();
         assert_eq!(out, "spec:\n  replicas: 9\n---\nkind: Service\n");
+    }
+
+    #[test]
+    fn path_rhs_absent_in_skipped_document_does_not_error() {
+        // The second document lacks both `.spec` (target skipped) and `.src`
+        // (the RHS source). Because the target does not resolve there, the RHS
+        // must not be evaluated — an absent path RHS in a skipped document must
+        // not turn a skip into a hard error.
+        let out = apply(
+            BackendId::NoyalibCst,
+            &assign(
+                ".spec.replicas",
+                Rhs::Path(crate::parser::parse(".src").expect("valid")),
+            ),
+            "spec:\n  replicas: 1\nsrc: 7\n---\nkind: Service\n",
+        )
+        .unwrap();
+        assert_eq!(out, "spec:\n  replicas: 7\nsrc: 7\n---\nkind: Service\n");
     }
 
     #[test]
