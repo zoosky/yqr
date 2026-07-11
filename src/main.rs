@@ -188,3 +188,49 @@ fn read_input(path: Option<&str>) -> Result<String, YqrError> {
             .map_err(|e| YqrError::io(format!("failed to read {p:?}: {e}"))),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg(unix)]
+    fn in_place_path_rejects_stdin() {
+        assert!(in_place_path(None).is_err());
+        assert!(in_place_path(Some("-")).is_err());
+        assert_eq!(in_place_path(Some("f.yaml")).unwrap(), "f.yaml");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn temp_is_created_without_group_or_other_access() {
+        // Feature f006: the temp for an in-place edit must never be readable by
+        // group/other, so a restricted file's contents are not briefly exposed
+        // through the temp during the write. This checks the property at the
+        // moment the temp exists, before `write_in_place` widens it.
+        use std::os::unix::fs::PermissionsExt;
+        use std::sync::atomic::{AtomicU32, Ordering};
+
+        static N: AtomicU32 = AtomicU32::new(0);
+        let mut tmp = std::env::temp_dir();
+        tmp.push(format!(
+            "yqr-privtmp-{}-{}.tmp",
+            std::process::id(),
+            N.fetch_add(1, Ordering::Relaxed)
+        ));
+
+        write_private_synced(&tmp, b"secret: value\n").expect("temp written and synced");
+        let mode = std::fs::metadata(&tmp).unwrap().permissions().mode();
+        assert_eq!(
+            mode & 0o077,
+            0,
+            "temp must not grant group/other access (mode {mode:o})"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&tmp).unwrap(),
+            "secret: value\n",
+            "contents must be flushed to disk"
+        );
+        let _ = std::fs::remove_file(&tmp);
+    }
+}
