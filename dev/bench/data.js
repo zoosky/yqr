@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783763430824,
+  "lastUpdate": 1783769530473,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -545,6 +545,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 260140,
             "range": "± 1725",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8cccae7487c026346ffabd36b13ce0146ba754a3",
+          "message": "feat(f009): byte fidelity by default; replace --preserve with --normalize (#33)\n\n* feat(f009): byte fidelity by default; replace --preserve with --normalize\n\nInvert the read default so byte-preserving fidelity is what users get with\nno flag, and move the classic re-serializing pipeline behind an opt-in\n--normalize. Remove the --preserve/-p flag entirely.\n\nThis aligns the read path with the write tier (already fidelity-by-default)\nand with the product's core promise, closing the lossy-default bug b001 for\nthe default read. The classic pipeline's losses (dropped comments, scalar\ncanonicalization such as 007 -> 7) are now opt-in via --normalize.\n\nThe flip introduces no new error surface: the classic and fidelity paths\nshare the same noyalib value model, so the narrow whole-document refusals\n(e.g. 1 vs \"1\" key collisions) already fail identically under both; per-node\nnon-representability (merges, aliases, special-char keys) still degrades\nvisibly to typed rendering. --engine now selects the backend for the default\nbyte-preserving read; it is inert under --normalize beyond name validation.\n\n- src/cli.rs: drop preserve field, add --normalize; update help + unit tests\n- src/main.rs: flip query dispatch (default fidelity, --normalize opts out)\n- tests/cli.rs: rewrite preserve tests around the new default; add --normalize\n  and --preserve-rejected regression coverage\n- specs: add f009, supersede f005, resolve b001 for the default read, update\n  the feature/bug status trackers\n- docs: README fidelity section, home.html hero + callout, demo, CHANGELOG\n\n* feat(f009): add -N short flag for --normalize",
+          "timestamp": "2026-07-11T13:30:51+02:00",
+          "tree_id": "58a6578aa175ee2c86a989d65b6cdd151ab0759f",
+          "url": "https://github.com/zoosky/yqr/commit/8cccae7487c026346ffabd36b13ce0146ba754a3"
+        },
+        "date": 1783769529646,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 502,
+            "range": "± 73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5111,
+            "range": "± 108",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 250519,
+            "range": "± 887",
             "unit": "ns/iter"
           }
         ]
