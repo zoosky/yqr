@@ -93,38 +93,35 @@ pub(crate) trait FidelityWriter {
 /// This function performs no file I/O — the caller decides whether to print the
 /// result or write it back (see the `-i` handling in `main`).
 ///
+/// A mutation that matches no document is a successful **no-op**: the input is
+/// returned unchanged (jq/yq semantics), so `del(.x)` over a batch of files
+/// leaves files that lack `.x` untouched instead of failing them.
+///
 /// # Errors
 ///
 /// Returns an error when the backend is unavailable, the input is not valid
-/// YAML, the target is ambiguous/unaddressable, an edit is refused by the
-/// re-parse guard, or the mutation matches no document.
+/// YAML, the target is ambiguous/unaddressable, or an edit is refused by the
+/// re-parse guard.
 pub fn apply(backend: BackendId, mutation: &Mutation, input: &str) -> Result<String> {
     let mut writer = open_writer(backend, input)?;
-    let mut edited = 0usize;
     for doc in 0..writer.doc_count() {
         let value = writer.value(doc)?;
-        if apply_to_doc(writer.as_mut(), doc, mutation, &value)? {
-            edited += 1;
-        }
-    }
-    if edited == 0 {
-        return Err(YqrError::eval(
-            "the mutation matched no node in any document".to_string(),
-        ));
+        apply_to_doc(writer.as_mut(), doc, mutation, &value)?;
     }
     Ok(writer.emit())
 }
 
-/// Apply `mutation` to a single document, returning whether an edit was made.
+/// Apply `mutation` to a single document.
 ///
-/// A `false` return means the target is simply absent in this document (leave
-/// it untouched); an `Err` means the edit was attempted and refused.
+/// A document whose target does not resolve is left untouched (a no-op, not an
+/// error); an `Err` means the edit was attempted and refused by the re-parse
+/// guard.
 fn apply_to_doc(
     writer: &mut dyn FidelityWriter,
     doc: usize,
     mutation: &Mutation,
     value: &Value,
-) -> Result<bool> {
+) -> Result<()> {
     // Resolve the target (and decide whether to skip this document) *before*
     // evaluating the RHS: a document whose target does not resolve is left
     // untouched, so a path RHS that happens to be absent in that document must
@@ -132,31 +129,26 @@ fn apply_to_doc(
     match mutation {
         Mutation::Assign { path, rhs } => {
             let Some(target) = resolve_assign_target(path, value)? else {
-                return Ok(false);
+                return Ok(());
             };
             let rhs_value = resolve_rhs(rhs, value)?;
             match target {
-                AssignTarget::Existing(target) => writer.set_value(doc, &target, &rhs_value)?,
+                AssignTarget::Existing(target) => writer.set_value(doc, &target, &rhs_value),
                 AssignTarget::NewKey { parent, key } => {
-                    writer.insert_key(doc, &parent, &key, &rhs_value)?;
+                    writer.insert_key(doc, &parent, &key, &rhs_value)
                 }
             }
-            Ok(true)
         }
         Mutation::Append { path, rhs } => {
             let Some(target) = resolve_target(path, value)? else {
-                return Ok(false);
+                return Ok(());
             };
             let item = resolve_rhs(rhs, value)?;
-            writer.append(doc, &target, &item)?;
-            Ok(true)
+            writer.append(doc, &target, &item)
         }
         Mutation::Delete { path } => match resolve_target(path, value)? {
-            Some(target) => {
-                writer.delete(doc, &target)?;
-                Ok(true)
-            }
-            None => Ok(false),
+            Some(target) => writer.delete(doc, &target),
+            None => Ok(()),
         },
     }
 }
@@ -192,21 +184,10 @@ impl NoyalibWriter {
     pub(crate) fn open(input: &str) -> Result<Self> {
         let docs = ::noyalib::cst::parse_stream(input)
             .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
-        let mut cursor = 0usize;
-        for doc in &docs {
-            if !input[cursor..].starts_with(doc.source()) {
-                return Err(YqrError::io(format!(
-                    "fidelity violation: document slice at byte {cursor} does not match the input"
-                )));
-            }
-            cursor += doc.source().len();
-        }
-        if cursor != input.len() {
-            return Err(YqrError::io(format!(
-                "fidelity violation: parsed documents cover {cursor} of {} input bytes",
-                input.len()
-            )));
-        }
+        // Same fidelity invariant the read engine asserts at open time: emit
+        // concatenates each document, so a slice that diverged from the input
+        // would corrupt an untouched document.
+        super::noyalib::verify_stream_tiles_input(input, &docs)?;
         Ok(Self { docs })
     }
 
@@ -244,7 +225,7 @@ impl FidelityWriter for NoyalibWriter {
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
         // The new key itself must be plain — the string-path splice cannot
         // express an escaped key, the same honest gap the read path declares.
-        if !PathSeg::Key(key.to_string()).is_plain() {
+        if !PathSeg::key_is_plain(key) {
             return Err(YqrError::eval(format!(
                 "cannot create key {key:?}: it uses characters the write path cannot express"
             )));
@@ -280,14 +261,7 @@ impl FidelityWriter for NoyalibWriter {
 /// not expressible in it (the same "unaddressable" gap the read path reports).
 fn noyalib_path(path: &Path) -> Result<String> {
     super::noyalib::to_noyalib_path(path).ok_or_else(|| {
-        let key = path
-            .segments()
-            .iter()
-            .find_map(|seg| match seg {
-                PathSeg::Key(k) if !seg.is_plain() => Some(k.clone()),
-                _ => None,
-            })
-            .unwrap_or_default();
+        let key = super::noyalib::offending_key(path);
         YqrError::eval(format!(
             "cannot address key {key:?}: it uses characters the write path cannot express"
         ))
@@ -300,8 +274,17 @@ fn noyalib_path(path: &Path) -> Result<String> {
 /// Routing through the same `Value -> noyalib` emission the classic pipeline
 /// uses keeps quoting correct — a string needing quotes is quoted — so a
 /// fragment is never a raw, unescaped user string (see the fidelity spec's
-/// fragment-quoting note).
+/// fragment-quoting note). A collection value has no single-line scalar form;
+/// splicing its multi-line rendering would silently mis-shape the document, so
+/// it is refused up front (v1 is scalar-only for `+=` / new-key inserts).
 fn value_fragment(value: &Value) -> Result<String> {
+    if matches!(value, Value::Sequence(_) | Value::Mapping(_)) {
+        return Err(YqrError::eval(
+            "the right-hand side of '+=' or a new-key assignment must be a scalar \
+             (number, string, boolean, or null); collections are not yet supported"
+                .to_string(),
+        ));
+    }
     let rendered = crate::render(std::slice::from_ref(value), false)?;
     Ok(rendered.trim_end().to_string())
 }
@@ -406,15 +389,50 @@ mod tests {
     }
 
     #[test]
-    fn missing_target_is_an_error() {
-        // `.a.b` cannot resolve (a is absent) and cannot be created.
-        let err = apply(
+    fn missing_target_is_a_noop() {
+        // `.a.b` cannot resolve (a is absent) and cannot be created, so the
+        // input is returned unchanged (jq/yq no-op semantics), not an error.
+        let input = "z: 1\n";
+        let out = apply(
             BackendId::NoyalibCst,
             &assign(".a.b", Rhs::Literal(Value::Int(1))),
-            "z: 1\n",
+            input,
+        )
+        .unwrap();
+        assert_eq!(out, input);
+    }
+
+    #[test]
+    fn delete_of_absent_path_is_a_noop() {
+        // `del(.deprecated)` over a document that lacks the key succeeds and
+        // leaves the input unchanged, so a batch cleanup does not fail files
+        // that never had the field.
+        let input = "kept: 1\n";
+        let out = apply(
+            BackendId::NoyalibCst,
+            &Mutation::Delete {
+                path: crate::parser::parse(".deprecated").expect("valid"),
+            },
+            input,
+        )
+        .unwrap();
+        assert_eq!(out, input);
+    }
+
+    #[test]
+    fn non_scalar_rhs_is_rejected() {
+        // Appending a collection has no single-line fragment form; it must be
+        // refused with a clear message rather than splicing mis-shaped YAML.
+        let err = apply(
+            BackendId::NoyalibCst,
+            &Mutation::Append {
+                path: crate::parser::parse(".list").expect("valid"),
+                rhs: Rhs::Path(crate::parser::parse(".src").expect("valid")),
+            },
+            "list:\n  - 1\nsrc:\n  a: 1\n",
         )
         .unwrap_err();
-        assert!(matches!(err, YqrError::Eval(_)));
+        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("must be a scalar")));
     }
 
     #[test]

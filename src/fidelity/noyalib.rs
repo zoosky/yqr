@@ -39,26 +39,9 @@ impl NoyalibEngine {
         let docs = ::noyalib::cst::parse_stream(input)
             .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
 
-        let mut offsets = Vec::with_capacity(docs.len());
-        let mut cursor = 0usize;
-        for doc in &docs {
-            // Compare content, not just lengths: every span downstream is
-            // rebased on these offsets, so a document whose slice diverged
-            // from the input would silently mis-map every projection.
-            if !input[cursor..].starts_with(doc.source()) {
-                return Err(YqrError::io(format!(
-                    "fidelity violation: document slice at byte {cursor} does not match the input"
-                )));
-            }
-            offsets.push(cursor);
-            cursor += doc.source().len();
-        }
-        if cursor != input.len() {
-            return Err(YqrError::io(format!(
-                "fidelity violation: parsed documents cover {cursor} of {} input bytes",
-                input.len()
-            )));
-        }
+        // Every span downstream is rebased on these offsets, so a document whose
+        // slice diverged from the input would silently mis-map every projection.
+        let offsets = verify_stream_tiles_input(input, &docs)?;
 
         // The engine's value model has string-only mapping keys, so distinct
         // YAML keys that share a spelling (`1` and `"1"`) would collapse into
@@ -126,16 +109,8 @@ impl FidelityEngine for NoyalibEngine {
         // noyalib addresses nodes through an unescaped string-path grammar;
         // a key it cannot express must fail loudly, never resolve wrongly.
         let Some(path_str) = to_noyalib_path(path) else {
-            let offending = path
-                .segments()
-                .iter()
-                .find_map(|seg| match seg {
-                    PathSeg::Key(k) if !seg.is_plain() => Some(k.clone()),
-                    _ => None,
-                })
-                .unwrap_or_default();
             return Ok(Resolved::Unaddressable(Unaddressable::SpecialCharKey(
-                offending,
+                offending_key(path),
             )));
         };
 
@@ -218,6 +193,50 @@ fn reparses_to(fragment: &str, expected: &Value) -> bool {
     ::noyalib::cst::parse_document(fragment)
         .map(|d| lower_value(&d.as_value()) == *expected)
         .unwrap_or(false)
+}
+
+/// Verify that concatenating each parsed document's source reproduces `input`
+/// byte-for-byte, returning the byte offset of each document.
+///
+/// Shared by the read engine and the write adapter (`super::write`): both rebase
+/// spans / emit slices against these offsets, so a document whose slice diverged
+/// from the input would silently mis-map, and both must refuse it identically.
+pub(super) fn verify_stream_tiles_input(
+    input: &str,
+    docs: &[::noyalib::cst::Document],
+) -> Result<Vec<usize>> {
+    let mut offsets = Vec::with_capacity(docs.len());
+    let mut cursor = 0usize;
+    for doc in docs {
+        // Compare content, not just lengths.
+        if !input[cursor..].starts_with(doc.source()) {
+            return Err(YqrError::io(format!(
+                "fidelity violation: document slice at byte {cursor} does not match the input"
+            )));
+        }
+        offsets.push(cursor);
+        cursor += doc.source().len();
+    }
+    if cursor != input.len() {
+        return Err(YqrError::io(format!(
+            "fidelity violation: parsed documents cover {cursor} of {} input bytes",
+            input.len()
+        )));
+    }
+    Ok(offsets)
+}
+
+/// The first non-plain key of `path`, for an "unaddressable" diagnostic (empty
+/// when the path has no such key). Shared by the read `resolve` and the write
+/// path-string builder so both name the offending key the same way.
+pub(super) fn offending_key(path: &Path) -> String {
+    path.segments()
+        .iter()
+        .find_map(|seg| match seg {
+            PathSeg::Key(k) if !seg.is_plain() => Some(k.clone()),
+            _ => None,
+        })
+        .unwrap_or_default()
 }
 
 /// Render a [`Path`] in noyalib's string-path grammar (`a.b[0].c`), or `None`

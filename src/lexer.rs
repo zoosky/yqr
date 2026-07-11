@@ -201,6 +201,14 @@ fn lex_number(chars: &[char], start: usize) -> Result<(Token, usize)> {
         let f = text
             .parse::<f64>()
             .map_err(|e| YqrError::lex(format!("invalid number {text:?}: {e}")))?;
+        // `parse::<f64>` maps an out-of-range magnitude to `±inf` (Ok, not Err).
+        // Accepting it would silently write the bare token `inf`, which any YAML
+        // reader reloads as the string "inf" — a silent type change. Refuse it.
+        if !f.is_finite() {
+            return Err(YqrError::lex(format!(
+                "number {text:?} is out of range for a 64-bit float"
+            )));
+        }
         Ok((Token::Float(f), i))
     } else {
         let n = text
@@ -379,5 +387,13 @@ mod tests {
     #[test]
     fn bare_plus_is_an_error() {
         assert!(matches!(lex(".a + 5"), Err(YqrError::Lex(_))));
+    }
+
+    #[test]
+    fn overflowing_float_is_an_error() {
+        // `1e999` parses to `f64::INFINITY` (Ok, not Err); the lexer must reject
+        // it rather than silently emit the bare token `inf`.
+        assert!(matches!(lex("1e999"), Err(YqrError::Lex(_))));
+        assert!(matches!(lex("-1e999"), Err(YqrError::Lex(_))));
     }
 }

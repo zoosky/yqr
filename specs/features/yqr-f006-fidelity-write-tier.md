@@ -271,3 +271,24 @@ the key, matching jq/yq's "each document is filtered independently". Nested
 edits do **not** fan out, because the absent parent gates them (a `.spec.x = …`
 edit skips a document with no `.spec`), which is the realistic multi-manifest
 case the acceptance criterion describes.
+
+### 12.1 Post-merge review hardening
+
+A multi-agent review of the shipped write path drove a second round of fixes:
+
+- **No-match is a no-op**, not an error. A mutation that resolves in no document
+  returns the input unchanged (jq/yq), so `del(.x)` over a batch leaves files
+  lacking `.x` untouched instead of failing them.
+- **Atomic write-back is hardened.** `-i` resolves symlinks (edits the real file,
+  preserves the link), creates the temp with owner-only permissions before
+  writing (a `0600` secret is never briefly world-readable), and `fsync`s the
+  temp before the rename (a crash cannot truncate the file). The `-i`+stdin /
+  read-only-filter guard now runs *before* input is read. Owner/group, SELinux
+  context, ACLs, xattrs, and hardlinks are not preserved across the replace (an
+  inherent temp+rename tradeoff, documented).
+- **Float RHS overflow is refused** (`1e999` → lex error) rather than silently
+  written as the bare token `inf` (which reloads as the string `"inf"`).
+- **Collection RHS is refused** for `+=` / new-key inserts with a clear message
+  (v1 fragments are scalar-only), rather than splicing mis-shaped multi-line YAML.
+- The RHS is resolved only *after* the per-document target-skip decision, so a
+  path RHS absent in a skipped document does not turn a skip into a hard error.

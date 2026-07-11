@@ -250,6 +250,54 @@ fn in_place_preserves_file_permissions() {
 }
 
 #[test]
+#[cfg(unix)]
+fn in_place_edits_through_a_symlink() {
+    // Editing a symlink must change the real file and leave the link intact,
+    // not replace the link entry with a fresh regular file.
+    let real = temp_yaml("a: 1\n");
+    let mut link = real.clone().into_os_string();
+    link.push(".link");
+    let link = std::path::PathBuf::from(link);
+    let _ = std::fs::remove_file(&link);
+    std::os::unix::fs::symlink(&real, &link).unwrap();
+
+    let out = run(&["-i", ".a = 2", link.to_str().unwrap()], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&real), "a: 2\n", "the real file must be edited");
+    assert!(
+        std::fs::symlink_metadata(&link)
+            .unwrap()
+            .file_type()
+            .is_symlink(),
+        "the symlink must survive the edit"
+    );
+    let _ = std::fs::remove_file(&link);
+    let _ = std::fs::remove_file(&real);
+}
+
+#[test]
+fn no_match_mutation_is_a_noop_not_an_error() {
+    // `del` of an absent key succeeds and prints the input unchanged (jq/yq
+    // semantics), so batch edits do not fail files that lack the field.
+    let out = run(&["del(.deprecated)"], "kept: 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "kept: 1\n");
+}
+
+#[test]
+fn float_overflow_literal_is_rejected() {
+    // `1e999` overflows f64 to infinity; it must be a lex error, not silently
+    // written as the bare token `inf`.
+    let out = run(&[".x = 1e999"], "x: 1\n");
+    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("out of range"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
 fn append_in_place_adds_a_block_sequence_item() {
     let file = temp_yaml("spec:\n  ports:\n    - 8080\n");
     let path = file.to_str().unwrap();

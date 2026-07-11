@@ -185,10 +185,19 @@ Guarantees and limits:
 - **Structural integrity.** An edit whose result would re-parse to a different
   structure is **refused** (exit 5) rather than emitted; under `-i` the file is
   left unchanged.
+- **No-match is a no-op.** A filter that matches no node succeeds and leaves the
+  document unchanged (jq/yq semantics), so `del(.x)` across a batch of files does
+  not fail the ones that lack `.x`.
 - **`-i` needs a file.** Using `--in-place` with stdin, or with a read-only
-  filter, is an error.
+  filter, is an error (diagnosed before any input is read). Writes are atomic
+  (temp file + `fsync` + rename) and edit *through* a symlink to the real file;
+  the original mode is preserved. Owner/group, SELinux context, ACLs, extended
+  attributes, and hardlinks are **not** carried across the replace — the same
+  temp-file+rename tradeoff `sed -i` makes.
 - **Multi-document.** The edit applies to each document whose path resolves; the
   others are emitted byte-identically.
+- **Scalar RHS only.** `=`, `+=`, and new-key values are scalars (number, string,
+  bool, null) or a path copying a scalar; a collection RHS is refused.
 - **Deferred to later releases.** Computed updates (`|=`), key rename, sequence
   reorder, multi-line/nested/sole-entry deletes, and comment edits each fail with
   a clear "not yet supported" message.
