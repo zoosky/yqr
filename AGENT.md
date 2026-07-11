@@ -96,7 +96,8 @@ gh pr create --title "My change" --body "Description"
 
 ## Project Overview
 
-yqr is a high-performance, large YAML file query & transformation tool written in Rust. 
+yqr is a YAML file query & editing tool written in Rust. 
+The read→filter→replace→write-back loop guarantees loos-lessness and structural integrity.
 
 ### Running the CLI
 
