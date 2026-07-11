@@ -26,5 +26,5 @@ works from any working directory and reads the sample files in place.
 3. Compose with pipes -- `|` feeds one filter into the next.
 4. Raw output -- `-r` drops YAML quoting for shell scripting.
 5. Reads from stdin -- pipe YAML straight in.
-6. Preserve mode -- `--preserve` (`-p`) reproduces the input byte-for-byte, comments and all. `--engine` picks the backend parser (default `noyalib`); pair it with `--preserve`.
+6. Fidelity by default -- `yqr '.'` reproduces the input byte-for-byte, comments and all, with no flag. `--normalize` opts into the classic re-serializing pipeline; `--engine` picks the backend parser for the default read (default `noyalib`).
 7. jq-style exit codes -- `3` for parse errors, `5` for runtime errors, for scriptable error handling.
