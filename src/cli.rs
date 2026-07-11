@@ -41,6 +41,16 @@ pub struct Cli {
     #[arg(short = 'r', long = "raw-output")]
     pub raw_output: bool,
 
+    // Feature f006: in-place edits for the write tier.
+    /// Edit the input file in place (write the mutated document back).
+    ///
+    /// Only valid with a mutating filter (`.a = 5`, `.xs += 1`, `del(.a)`).
+    /// The file is rewritten atomically (temp file + rename); using it with a
+    /// read-only filter, or with stdin input, is an error. Without it, a
+    /// mutated document is printed to stdout (byte-exact except the edit).
+    #[arg(short = 'i', long = "in-place")]
+    pub in_place: bool,
+
     // Feature f005: `--preserve` decouples byte fidelity from `--engine`.
     /// Preserve byte-for-byte formatting on reads.
     ///
@@ -97,7 +107,16 @@ mod tests {
         assert_eq!(cli.file, None);
         assert!(!cli.raw_output);
         assert!(!cli.preserve);
+        assert!(!cli.in_place);
         assert_eq!(cli.engine, None);
+    }
+
+    #[test]
+    fn parses_in_place_flag() {
+        let long = Cli::try_parse_from(["yqr", "--in-place", ".a = 5", "in.yaml"]).unwrap();
+        assert!(long.in_place);
+        let short = Cli::try_parse_from(["yqr", "-i", ".a = 5", "in.yaml"]).unwrap();
+        assert!(short.in_place);
     }
 
     #[test]

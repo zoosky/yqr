@@ -39,20 +39,22 @@ dependency/release timing.
 
 | Feature | Title | Status |
 |---------|-------|--------|
-| [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Draft |
+| [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | Draft (stub — gated on upstream noyalib) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 
-Progress: f006 is buildable now on noyalib 0.0.14's first-class, re-parse-guarded
-mutators (`set_value`/`insert_entry`/`push_back`/`remove`). f007 (structural
-edits) is gated on upstream noyalib PRs; f008 (`|=` computed updates) is gated on
-`f001` M2 (arithmetic/builtins). Priority order: f006 → f007 → M2 → f008.
+Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
+(`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
+`del`, scalar-literal / path RHS, and atomic `-i`, all through the fidelity write
+seam (`src/fidelity/write.rs`), zero upstream work. f007 (structural edits) is
+gated on upstream noyalib PRs; f008 (`|=` computed updates) is gated on `f001` M2
+(arithmetic/builtins). Priority order: f006 (done) → f007 → M2 → f008.
 
 ## Summary
 
 - Total features: 8
-- Draft: 3 (f006, f007, f008 — the Fidelity write tier epic)
+- Draft: 2 (f007, f008 — the remaining Fidelity write tier features)
 - In Progress: 1
-- Done: 2
+- Done: 3 (f002, f005, f006)
 - Superseded: 2 (f003, f004 — single-engine consolidation, `yqr-m005`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`)

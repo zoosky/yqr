@@ -94,3 +94,61 @@ fn invalid_yaml_is_an_error() {
     // Unterminated flow sequence is unambiguously malformed YAML.
     assert!(eval_str(".", "items: [1, 2, 3").is_err());
 }
+
+// -- Feature f006: write tier via the public API ------------------------------
+
+use yqr::ast::Program;
+use yqr::fidelity::{BackendId, write};
+
+/// Parse a mutating filter and apply it, returning the emitted stream.
+fn mutate(filter: &str, input: &str) -> String {
+    match yqr::parser::parse_program(filter).expect("filter parses") {
+        Program::Mutate(m) => {
+            write::apply(BackendId::NoyalibCst, &m, input).expect("mutation applies")
+        }
+        Program::Query(_) => panic!("expected a mutation filter"),
+    }
+}
+
+#[test]
+fn assignment_preserves_comments_and_layout() {
+    let input = "# top\nspec:\n  replicas: 3   # inline\n  image: web\n";
+    let out = mutate(".spec.replicas = 5", input);
+    assert_eq!(
+        out,
+        "# top\nspec:\n  replicas: 5   # inline\n  image: web\n"
+    );
+}
+
+#[test]
+fn idempotent_assignment_is_byte_identical() {
+    // Setting a node to its existing value changes nothing at the byte level.
+    let input = "a: 1\nb: two\n";
+    assert_eq!(mutate(".a = 1", input), input);
+}
+
+#[test]
+fn append_respects_existing_indentation() {
+    let input = "spec:\n  ports:\n    - 8080\n";
+    let out = mutate(".spec.ports += 9090", input);
+    assert_eq!(out, "spec:\n  ports:\n    - 8080\n    - 9090\n");
+}
+
+#[test]
+fn new_key_is_created_under_existing_mapping() {
+    let input = "metadata:\n  name: app\n";
+    let out = mutate(".metadata.env = \"prod\"", input);
+    assert_eq!(out, "metadata:\n  name: app\n  env: prod\n");
+}
+
+#[test]
+fn structural_edit_is_refused() {
+    // A multi-line/nested delete would restructure the document; it is refused
+    // rather than emitted.
+    let m = match yqr::parser::parse_program("del(.outer)").unwrap() {
+        Program::Mutate(m) => m,
+        Program::Query(_) => unreachable!(),
+    };
+    let refused = write::apply(BackendId::NoyalibCst, &m, "outer:\n  inner: 1\nx: 2\n");
+    assert!(refused.is_err(), "nested delete must be refused");
+}

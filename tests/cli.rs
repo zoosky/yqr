@@ -4,6 +4,7 @@
 //! dev-dependencies are needed.
 
 use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 struct Output {
@@ -182,4 +183,199 @@ fn unknown_engine_is_diagnosed_before_reading_input() {
         "stderr: {}",
         out.stderr
     );
+}
+
+// -- Feature f006: write tier (assignment, +=, del, -i) -----------------------
+
+/// Create a uniquely-named temp file seeded with `contents`, for `-i` tests.
+fn temp_yaml(contents: &str) -> PathBuf {
+    use std::sync::atomic::{AtomicU32, Ordering};
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+    let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let mut path = std::env::temp_dir();
+    path.push(format!("yqr-f006-{}-{n}.yaml", std::process::id()));
+    std::fs::write(&path, contents).expect("write temp yaml");
+    path
+}
+
+fn read_back(path: &Path) -> String {
+    std::fs::read_to_string(path).expect("read temp yaml")
+}
+
+#[test]
+fn assignment_to_stdout_is_byte_exact_except_the_edit() {
+    let input = "# manifest\nspec:\n  replicas: 3   # keep\n  image: web\n";
+    let out = run(&[".spec.replicas = 5"], input);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stdout,
+        "# manifest\nspec:\n  replicas: 5   # keep\n  image: web\n"
+    );
+}
+
+#[test]
+fn assignment_matches_neighbouring_quote_style() {
+    let out = run(&[".name = \"web2\""], "name: 'web'\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "name: 'web2'\n");
+}
+
+#[test]
+fn in_place_rewrites_only_the_target_line() {
+    let file = temp_yaml("# app\nspec:\n  replicas: 3\n  image: web\n");
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", ".spec.replicas = 5", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert!(out.stdout.is_empty(), "-i must not print to stdout");
+    assert_eq!(
+        read_back(&file),
+        "# app\nspec:\n  replicas: 5\n  image: web\n"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+#[cfg(unix)]
+fn in_place_preserves_file_permissions() {
+    use std::os::unix::fs::PermissionsExt;
+    let file = temp_yaml("secret: value\n");
+    std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o600)).unwrap();
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", ".secret = \"rotated\"", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&file), "secret: rotated\n");
+    let mode = std::fs::metadata(&file).unwrap().permissions().mode() & 0o777;
+    assert_eq!(mode, 0o600, "in-place edit must preserve the original mode");
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+#[cfg(unix)]
+fn in_place_edits_through_a_symlink() {
+    // Editing a symlink must change the real file and leave the link intact,
+    // not replace the link entry with a fresh regular file.
+    let real = temp_yaml("a: 1\n");
+    let mut link = real.clone().into_os_string();
+    link.push(".link");
+    let link = std::path::PathBuf::from(link);
+    let _ = std::fs::remove_file(&link);
+    std::os::unix::fs::symlink(&real, &link).unwrap();
+
+    let out = run(&["-i", ".a = 2", link.to_str().unwrap()], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&real), "a: 2\n", "the real file must be edited");
+    assert!(
+        std::fs::symlink_metadata(&link)
+            .unwrap()
+            .file_type()
+            .is_symlink(),
+        "the symlink must survive the edit"
+    );
+    let _ = std::fs::remove_file(&link);
+    let _ = std::fs::remove_file(&real);
+}
+
+#[test]
+fn no_match_mutation_is_a_noop_not_an_error() {
+    // `del` of an absent key succeeds and prints the input unchanged (jq/yq
+    // semantics), so batch edits do not fail files that lack the field.
+    let out = run(&["del(.deprecated)"], "kept: 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "kept: 1\n");
+}
+
+#[test]
+fn float_overflow_literal_is_rejected() {
+    // `1e999` overflows f64 to infinity; it must be a lex error, not silently
+    // written as the bare token `inf`.
+    let out = run(&[".x = 1e999"], "x: 1\n");
+    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("out of range"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn append_in_place_adds_a_block_sequence_item() {
+    let file = temp_yaml("spec:\n  ports:\n    - 8080\n");
+    let path = file.to_str().unwrap();
+    let out = run(&["--in-place", ".spec.ports += 9090", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        read_back(&file),
+        "spec:\n  ports:\n    - 8080\n    - 9090\n"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn delete_single_line_entry_to_stdout() {
+    let out = run(
+        &["del(.metadata.labels)"],
+        "metadata:\n  name: app\n  labels: prod\n",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "metadata:\n  name: app\n");
+}
+
+#[test]
+fn in_place_with_stdin_is_an_error() {
+    let out = run(&["-i", ".a = 5"], "a: 1\n");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("stdin"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn in_place_with_read_only_filter_is_an_error() {
+    let file = temp_yaml("a: 1\n");
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", ".a", path], "");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("requires a mutating filter"),
+        "stderr: {}",
+        out.stderr
+    );
+    // The file must be untouched.
+    assert_eq!(read_back(&file), "a: 1\n");
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn refused_edit_leaves_the_file_unchanged_under_in_place() {
+    // A multi-line/nested delete is deferred; the write is refused (exit 5) and
+    // the file on disk must be byte-identical to the original.
+    let original = "outer:\n  inner: 1\nother: 2\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "del(.outer)", path], "");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert_eq!(
+        read_back(&file),
+        original,
+        "refused edit must not touch file"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn computed_update_operator_is_a_parse_error() {
+    // `|=` is deferred; it must fail at parse time (exit 3) with a clear message.
+    let out = run(&[".a |= 5"], "a: 1\n");
+    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("not yet supported"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn multi_document_edit_leaves_other_documents_byte_identical() {
+    let input = "spec:\n  replicas: 1\n---\nkind: Service\n";
+    let out = run(&[".spec.replicas = 9"], input);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "spec:\n  replicas: 9\n---\nkind: Service\n");
 }

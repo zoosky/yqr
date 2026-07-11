@@ -1,6 +1,6 @@
 # yqr.f006 — Write tier v1: value assignment and in-place edits (`--in-place`)
 
-**Status:** Draft
+**Status:** Done
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f007` (write tier: structural edits — the `b004` gaps),
@@ -127,17 +127,17 @@ For an accepted edit at path `p`:
 
 ## 8. Acceptance criteria
 
-- [ ] `yqr '.spec.replicas = 5' deploy.yaml` replaces that value; a `diff`
+- [x] `yqr '.spec.replicas = 5' deploy.yaml` replaces that value; a `diff`
       against the original touches only that line.
-- [ ] Scalar writes are quoted to match the neighbouring style (`set_value`).
-- [ ] `del(.metadata.labels)` removes a single-line entry byte-exactly.
-- [ ] `.spec.ports += 9090` appends a block-sequence item at the right indent.
-- [ ] `-i` writes back in place atomically; using `-i` with stdin is an error.
-- [ ] An edit that would restructure the document is refused (exit 5) and, under
+- [x] Scalar writes are quoted to match the neighbouring style (`set_value`).
+- [x] `del(.metadata.labels)` removes a single-line entry byte-exactly.
+- [x] `.spec.ports += 9090` appends a block-sequence item at the right indent.
+- [x] `-i` writes back in place atomically; using `-i` with stdin is an error.
+- [x] An edit that would restructure the document is refused (exit 5) and, under
       `-i`, leaves the file unchanged.
-- [ ] Multi-document input: the edit applies to the targeted document; the
+- [x] Multi-document input: the edit applies to the targeted document; the
       others are byte-identical.
-- [ ] Deferred operations (`|=`, key rename, reorder, nested/multi-line delete,
+- [x] Deferred operations (`|=`, key rename, reorder, nested/multi-line delete,
       comment edits) each error with a clear, actionable "not yet supported"
       message.
 
@@ -242,3 +242,53 @@ work** — everything is on the shipped 0.0.14 API.
 4. **Special-char / non-string keys** — the string-path addressing cannot
    express `a.b`-style keys; the writer returns a clear "unaddressable" error,
    the same honest gap the read path already declares.
+
+## 12. Implementation notes (resolved)
+
+Shipped on noyalib 0.0.14's first-class mutators, zero upstream work — as the
+build sequence predicted. How the open questions above landed:
+
+1. **Post-mutation emit** — `Document::to_string()` (via `Display`, which emits
+   `green.text(source)`) reflects edits; `source()` also updates post-edit. The
+   writer emits the whole stream by concatenating each document's `to_string()`,
+   so unedited documents stay byte-identical and the edited one carries the edit.
+2. **Absent-key routing** — resolution lives in `eval::resolve_assign_target`,
+   which returns `AssignTarget::Existing(path)` for a present node and
+   `AssignTarget::NewKey { parent, key }` when the final segment is an absent
+   mapping key under an existing parent; the writer routes the former to
+   `set_value` and the latter to `insert_entry`.
+3. **Fragment quoting** — `set_value` takes a `noyalib::Value` (style-matched);
+   `+=` / new-key fragments are produced by `value_fragment`, which renders the
+   `Value` through the same `Value -> noyalib` emission the classic pipeline
+   uses, never a raw user string.
+4. **Special-char / non-string keys** — the writer reuses the read path's
+   `to_noyalib_path` builder and maps a non-plain key (`PathSeg::is_plain`) to a
+   clear "cannot address key" error (exit 5).
+
+One semantic decision not in the original sketch: a **new top-level key** assign
+(`.added = 1`) *fans out* across a multi-document stream — every document gains
+the key, matching jq/yq's "each document is filtered independently". Nested
+edits do **not** fan out, because the absent parent gates them (a `.spec.x = …`
+edit skips a document with no `.spec`), which is the realistic multi-manifest
+case the acceptance criterion describes.
+
+### 12.1 Post-merge review hardening
+
+A multi-agent review of the shipped write path drove a second round of fixes:
+
+- **No-match is a no-op**, not an error. A mutation that resolves in no document
+  returns the input unchanged (jq/yq), so `del(.x)` over a batch leaves files
+  lacking `.x` untouched instead of failing them.
+- **Atomic write-back is hardened.** `-i` resolves symlinks (edits the real file,
+  preserves the link), creates the temp with owner-only permissions before
+  writing (a `0600` secret is never briefly world-readable), and `fsync`s the
+  temp before the rename (a crash cannot truncate the file). The `-i`+stdin /
+  read-only-filter guard now runs *before* input is read. Owner/group, SELinux
+  context, ACLs, xattrs, and hardlinks are not preserved across the replace (an
+  inherent temp+rename tradeoff, documented).
+- **Float RHS overflow is refused** (`1e999` → lex error) rather than silently
+  written as the bare token `inf` (which reloads as the string `"inf"`).
+- **Collection RHS is refused** for `+=` / new-key inserts with a clear message
+  (v1 fragments are scalar-only), rather than splicing mis-shaped multi-line YAML.
+- The RHS is resolved only *after* the per-document target-skip decision, so a
+  path RHS absent in a skipped document does not turn a skip into a hard error.

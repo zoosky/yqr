@@ -29,10 +29,20 @@ pub use value::Value;
 /// filter against it, returning the output stream.
 pub fn eval_str(filter: &str, input: &str) -> Result<Vec<Value>> {
     let ast = parser::parse(filter)?;
+    eval_ast_str(&ast, input)
+}
+
+/// Like [`eval_str`], but over an already-compiled [`ast::Ast`], so a caller
+/// that has already parsed the filter does not lex and parse it again.
+///
+/// # Errors
+///
+/// Returns an error when the input is not valid YAML or evaluation fails.
+pub fn eval_ast_str(ast: &ast::Ast, input: &str) -> Result<Vec<Value>> {
     let value: Value = noyalib::from_str::<noyalib::Value>(input)
         .map(Value::from)
         .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
-    eval::eval(&ast, &value)
+    eval::eval(ast, &value)
 }
 
 /// Render a stream of output values to a string.

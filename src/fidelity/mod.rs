@@ -26,9 +26,11 @@
 // `noyalib` below is the local backend module; reach the crate's `Value`
 // re-export through `crate::` to avoid shadowing.
 use crate::Value;
+use crate::ast::Ast;
 use crate::error::Result;
 
 mod noyalib;
+pub mod write;
 
 /// A half-open byte range `[start, end)` into [`FidelityEngine::source`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -82,8 +84,16 @@ impl PathSeg {
     pub fn is_plain(&self) -> bool {
         match self {
             PathSeg::Index(_) => true,
-            PathSeg::Key(k) => !k.is_empty() && !k.contains(['.', '[', ']', '*']),
+            PathSeg::Key(k) => Self::key_is_plain(k),
         }
+    }
+
+    /// Whether a mapping key string is expressible in a plain dotted/bracketed
+    /// string path. Lets a caller test a bare `&str` key (a not-yet-inserted
+    /// key) without constructing a [`PathSeg`].
+    #[must_use]
+    pub fn key_is_plain(key: &str) -> bool {
+        !key.is_empty() && !key.contains(['.', '[', ']', '*'])
     }
 }
 
@@ -295,12 +305,23 @@ pub fn open(backend: BackendId, input: &str) -> Result<Box<dyn FidelityEngine>> 
 /// input, or evaluation fails.
 pub fn run(backend: BackendId, filter: &str, input: &str, raw: bool) -> Result<String> {
     let ast = crate::parser::parse(filter)?;
+    run_ast(backend, &ast, input, raw)
+}
+
+/// Like [`run`], but over an already-compiled read-only [`Ast`], so a caller
+/// that has already parsed the filter (the binary's dispatch) does not lex and
+/// parse it a second time.
+///
+/// # Errors
+///
+/// Returns an error when the backend rejects the input or evaluation fails.
+pub fn run_ast(backend: BackendId, ast: &Ast, input: &str, raw: bool) -> Result<String> {
     let engine = open(backend, input)?;
     let mut out = String::new();
 
     for doc in 0..engine.doc_count() {
         let value = engine.value(doc)?;
-        let results = crate::eval::eval_traced(&ast, &value, Some(&Path::root()))?;
+        let results = crate::eval::eval_traced(ast, &value, Some(&Path::root()))?;
         for (value, path) in results {
             // jq's --raw-output prints a top-level string's *value*; the
             // typed view is authoritative for it, span or no span.

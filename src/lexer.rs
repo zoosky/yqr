@@ -7,7 +7,11 @@
 use crate::error::{Result, YqrError};
 
 /// A lexical token of the filter language.
-#[derive(Debug, Clone, PartialEq, Eq)]
+///
+/// `PartialEq` but not `Eq`: the [`Token::Float`] payload is an `f64`, which has
+/// no total equality. Tokens are only ever compared for structural equality in
+/// the parser (`expect`) and tests, where partial equality is sufficient.
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     /// `.`
     Dot,
@@ -19,10 +23,25 @@ pub enum Token {
     RBracket,
     /// `?`
     Question,
+    // Feature f006: mutation operators and grouping for the write tier.
+    /// `=` — assignment.
+    Eq,
+    /// `+=` — append (block-sequence push).
+    PlusEq,
+    /// `|=` — computed update (reserved; not yet supported).
+    PipeEq,
+    /// `(` — opens a `del(...)` form.
+    LParen,
+    /// `)` — closes a `del(...)` form.
+    RParen,
     /// A bare identifier, e.g. `foo` in `.foo`.
     Ident(String),
-    /// An integer literal (used for indexing), e.g. `-1` in `.[-1]`.
+    /// An integer literal (used for indexing and as an assignment RHS), e.g.
+    /// `-1` in `.[-1]`.
     Int(i64),
+    /// A floating-point literal, only valid as an assignment RHS, e.g. `1.5`
+    /// in `.x = 1.5`.
+    Float(f64),
     /// A double-quoted string literal, e.g. `"key"` in `.["key"]`.
     Str(String),
 }
@@ -41,9 +60,15 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
                 tokens.push(Token::Dot);
                 i += 1;
             }
+            // Feature f006: `|` and `|=` share a prefix; peek to disambiguate.
             '|' => {
-                tokens.push(Token::Pipe);
-                i += 1;
+                if chars.get(i + 1) == Some(&'=') {
+                    tokens.push(Token::PipeEq);
+                    i += 2;
+                } else {
+                    tokens.push(Token::Pipe);
+                    i += 1;
+                }
             }
             '[' => {
                 tokens.push(Token::LBracket);
@@ -57,14 +82,37 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
                 tokens.push(Token::Question);
                 i += 1;
             }
+            // Feature f006: mutation operators and `del(...)` grouping.
+            '=' => {
+                tokens.push(Token::Eq);
+                i += 1;
+            }
+            '+' => {
+                if chars.get(i + 1) == Some(&'=') {
+                    tokens.push(Token::PlusEq);
+                    i += 2;
+                } else {
+                    return Err(YqrError::lex(format!(
+                        "unexpected character '+' at position {i} (did you mean '+=' ?)"
+                    )));
+                }
+            }
+            '(' => {
+                tokens.push(Token::LParen);
+                i += 1;
+            }
+            ')' => {
+                tokens.push(Token::RParen);
+                i += 1;
+            }
             '"' => {
                 let (s, next) = lex_string(&chars, i)?;
                 tokens.push(Token::Str(s));
                 i = next;
             }
             c if c == '-' || c.is_ascii_digit() => {
-                let (n, next) = lex_int(&chars, i)?;
-                tokens.push(Token::Int(n));
+                let (tok, next) = lex_number(&chars, i)?;
+                tokens.push(tok);
                 i = next;
             }
             c if is_ident_start(c) => {
@@ -99,7 +147,15 @@ fn lex_ident(chars: &[char], start: usize) -> (String, usize) {
     (chars[start..i].iter().collect(), i)
 }
 
-fn lex_int(chars: &[char], start: usize) -> Result<(i64, usize)> {
+/// Lex a numeric literal into a [`Token::Int`] or [`Token::Float`].
+///
+/// An integer is an optional `-` followed by digits (the indexing form the M0
+/// grammar has always used). A fractional part (`.` then digits) or an exponent
+/// (`e`/`E`) promotes the literal to a float, which is only meaningful as an
+/// assignment RHS (`.x = 1.5`). A trailing `.` not followed by a digit is left
+/// for the [`Token::Dot`] rule, so `5.` lexes as `Int(5)` then `Dot`.
+// Feature f006: float RHS support.
+fn lex_number(chars: &[char], start: usize) -> Result<(Token, usize)> {
     let mut i = start;
     if chars[i] == '-' {
         i += 1;
@@ -113,11 +169,53 @@ fn lex_int(chars: &[char], start: usize) -> Result<(i64, usize)> {
             "expected digits after '-' at position {start}"
         )));
     }
+
+    let mut is_float = false;
+    // Fractional part: only consume the '.' when a digit follows, so a path dot
+    // after an integer is not swallowed.
+    if chars.get(i) == Some(&'.') && chars.get(i + 1).is_some_and(char::is_ascii_digit) {
+        is_float = true;
+        i += 1; // '.'
+        while i < chars.len() && chars[i].is_ascii_digit() {
+            i += 1;
+        }
+    }
+    // Exponent: e / E, optional sign, then digits. Only consume when the shape
+    // is complete, otherwise leave the 'e' for the ident rule.
+    if matches!(chars.get(i), Some('e' | 'E')) {
+        let mut j = i + 1;
+        if matches!(chars.get(j), Some('+' | '-')) {
+            j += 1;
+        }
+        if chars.get(j).is_some_and(char::is_ascii_digit) {
+            is_float = true;
+            i = j;
+            while i < chars.len() && chars[i].is_ascii_digit() {
+                i += 1;
+            }
+        }
+    }
+
     let text: String = chars[start..i].iter().collect();
-    let n = text
-        .parse::<i64>()
-        .map_err(|e| YqrError::lex(format!("invalid integer {text:?}: {e}")))?;
-    Ok((n, i))
+    if is_float {
+        let f = text
+            .parse::<f64>()
+            .map_err(|e| YqrError::lex(format!("invalid number {text:?}: {e}")))?;
+        // `parse::<f64>` maps an out-of-range magnitude to `±inf` (Ok, not Err).
+        // Accepting it would silently write the bare token `inf`, which any YAML
+        // reader reloads as the string "inf" — a silent type change. Refuse it.
+        if !f.is_finite() {
+            return Err(YqrError::lex(format!(
+                "number {text:?} is out of range for a 64-bit float"
+            )));
+        }
+        Ok((Token::Float(f), i))
+    } else {
+        let n = text
+            .parse::<i64>()
+            .map_err(|e| YqrError::lex(format!("invalid integer {text:?}: {e}")))?;
+        Ok((Token::Int(n), i))
+    }
 }
 
 fn lex_string(chars: &[char], start: usize) -> Result<(String, usize)> {
@@ -227,5 +325,75 @@ mod tests {
     #[test]
     fn unexpected_char_errors() {
         assert!(matches!(lex(".@"), Err(YqrError::Lex(_))));
+    }
+
+    // -- Feature f006: mutation tokens -----------------------------------------
+
+    #[test]
+    fn lexes_assignment_operators() {
+        assert_eq!(
+            lex(".a = 5").unwrap(),
+            vec![
+                Token::Dot,
+                Token::Ident("a".into()),
+                Token::Eq,
+                Token::Int(5)
+            ]
+        );
+        assert_eq!(
+            lex(".a += 5").unwrap(),
+            vec![
+                Token::Dot,
+                Token::Ident("a".into()),
+                Token::PlusEq,
+                Token::Int(5)
+            ]
+        );
+    }
+
+    #[test]
+    fn lexes_pipe_equals_distinctly_from_pipe() {
+        assert_eq!(lex("|").unwrap(), vec![Token::Pipe]);
+        assert_eq!(lex("|=").unwrap(), vec![Token::PipeEq]);
+    }
+
+    #[test]
+    fn lexes_del_grouping() {
+        assert_eq!(
+            lex("del(.a)").unwrap(),
+            vec![
+                Token::Ident("del".into()),
+                Token::LParen,
+                Token::Dot,
+                Token::Ident("a".into()),
+                Token::RParen,
+            ]
+        );
+    }
+
+    #[test]
+    fn lexes_float_literal() {
+        assert_eq!(lex("1.5").unwrap(), vec![Token::Float(1.5)]);
+        assert_eq!(lex("-2.25").unwrap(), vec![Token::Float(-2.25)]);
+        assert_eq!(lex("1e3").unwrap(), vec![Token::Float(1000.0)]);
+    }
+
+    #[test]
+    fn trailing_dot_after_int_is_a_separate_dot() {
+        // `5.` is not a float (no fractional digits): Int(5) then Dot.
+        assert_eq!(lex("5.").unwrap(), vec![Token::Int(5), Token::Dot]);
+    }
+
+    #[test]
+    fn bare_plus_is_an_error() {
+        assert!(matches!(lex(".a + 5"), Err(YqrError::Lex(_))));
+    }
+
+    #[test]
+    fn overflowing_float_is_an_error() {
+        // `1e999` parses to `f64::INFINITY` (Ok, not Err); the lexer must reject
+        // it rather than silently emit the bare token `inf`.
+        assert!(matches!(lex("1e999"), Err(YqrError::Lex(_))));
+        assert!(matches!(lex("-1e999"), Err(YqrError::Lex(_))));
     }
 }

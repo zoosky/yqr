@@ -42,6 +42,7 @@ Arguments:
 Options:
   -r, --raw-output    Emit string results without YAML quoting
   -p, --preserve      Preserve byte-for-byte formatting (comments, quoting, ...)
+  -i, --in-place      Edit the input file in place (mutating filters only)
       --engine <ENGINE>  Backend parser for --preserve reads (default: noyalib)
   -h, --help          Print help
   -V, --version       Print version
@@ -139,6 +140,68 @@ Preserve-mode notes:
   project the anchor's real bytes, block-collection spans start at their first
   line's indent, and classic-Mac CR-only line endings are accepted.
 
+## Surgical edits (`=`, `+=`, `del`, `-i`)
+
+yqr can also **edit** YAML, not just read it — and it changes only the bytes the
+filter targets, leaving every other byte (comments, indentation, quoting, key
+order) untouched, or refuses. Edits always run through the fidelity engine, so a
+mutating filter is byte-exact except at the edit site.
+
+The mutation surface (v1):
+
+| Filter                    | Meaning                                              |
+|---------------------------|------------------------------------------------------|
+| `<path> = <value>`        | Replace the scalar at `path` (style-matched quoting) |
+| `<path>.<newkey> = <value>` | Add a new mapping entry under an existing mapping  |
+| `<path> += <value>`       | Append an item to the block sequence at `path`       |
+| `del(<path>)`             | Remove the single-line block entry at `path`         |
+
+`<value>` is a scalar literal (`5`, `1.5`, `"web"`, `true`, `false`, `null`) or a
+`.`-rooted path that copies the value found at another location.
+
+```bash
+# Replace a value; the comment and every other line are preserved verbatim
+echo 'spec:
+  replicas: 3   # keep me
+  image: web' | yqr '.spec.replicas = 5'
+# => spec:
+#      replicas: 5   # keep me
+#      image: web
+
+# Append to a block sequence at the right indent
+yqr '.spec.ports += 9090' deploy.yaml
+
+# Add a new key, delete an entry
+yqr '.metadata.env = "prod"' deploy.yaml
+yqr 'del(.metadata.labels)' deploy.yaml
+
+# Edit the file in place (rewritten atomically: temp file + rename)
+yqr -i '.spec.replicas = 5' deploy.yaml
+git diff deploy.yaml   # touches only that one line
+```
+
+Guarantees and limits:
+
+- **Structural integrity.** An edit whose result would re-parse to a different
+  structure is **refused** (exit 5) rather than emitted; under `-i` the file is
+  left unchanged.
+- **No-match is a no-op.** A filter that matches no node succeeds and leaves the
+  document unchanged (jq/yq semantics), so `del(.x)` across a batch of files does
+  not fail the ones that lack `.x`.
+- **`-i` needs a file.** Using `--in-place` with stdin, or with a read-only
+  filter, is an error (diagnosed before any input is read). Writes are atomic
+  (temp file + `fsync` + rename) and edit *through* a symlink to the real file;
+  the original mode is preserved. Owner/group, SELinux context, ACLs, extended
+  attributes, and hardlinks are **not** carried across the replace — the same
+  temp-file+rename tradeoff `sed -i` makes.
+- **Multi-document.** The edit applies to each document whose path resolves; the
+  others are emitted byte-identically.
+- **Scalar RHS only.** `=`, `+=`, and new-key values are scalars (number, string,
+  bool, null) or a path copying a scalar; a collection RHS is refused.
+- **Deferred to later releases.** Computed updates (`|=`), key rename, sequence
+  reorder, multi-line/nested/sole-entry deletes, and comment edits each fail with
+  a clear "not yet supported" message.
+
 ## Using yqr in Kubernetes (and beyond)
 
 Install paths and recipes for running yqr against `kubectl` output, baking it
@@ -161,7 +224,7 @@ YAML   ──▶ noyalib::from_str ──▶ Value ──┘
 | `src/ast.rs`    | Filter AST node definitions                       |
 | `src/eval.rs`   | `Ast` × `Value` → stream of `Value`               |
 | `src/value.rs`  | yqr's `Value` model (converts to/from `noyalib`)  |
-| `src/fidelity/` | Byte-preserving engine behind `--preserve`        |
+| `src/fidelity/` | Byte-preserving read engine (`--preserve`) + write tier (`src/fidelity/write.rs`) |
 | `src/error.rs`  | `YqrError` + jq-style exit-code mapping            |
 | `src/cli.rs`    | `clap` argument parsing                           |
 | `src/lib.rs`    | Public API (`eval_str`, `render`)                 |
