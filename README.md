@@ -2,16 +2,21 @@
 
 [![Benchmarks](https://img.shields.io/badge/benchmarks-live%20dashboard-blue?logo=rust&logoColor=white)](https://zoosky.github.io/yqr/dev/bench/)
 
-`yqr` ("YAML query in Rust") is a jq-style Swiss Army knife for **YAML**.
-It reads a YAML document from a file or
-stdin, applies a jq-like filter expression, and emits the result(s) as YAML (or
-raw text).
+`yqr` ("YAML query in Rust") is a **fidelity-first**, jq-style command-line tool
+for **YAML**. It queries *and* edits YAML while preserving every byte it was not
+asked to change — comments, quoting, indentation, key order, and line endings all
+survive.
 
-It operates natively on YAML via the
-[`noyalib`](https://crates.io/crates/noyalib) engine — no lossy round trip
-through JSON — and uses [`clap`](https://crates.io/crates/clap) for its CLI.
-noyalib is both the lossless CST behind the default byte-preserving read path
-and the parser/emitter for the classic `--normalize` pipeline.
+- **Byte-exact reads, by default.** `yqr '.' file.yaml` reproduces the input
+  exactly — no flag, no reflow.
+- **Surgical edits.** `yqr -i '.spec.replicas = 5' deploy.yaml` rewrites only the
+  bytes the filter targets, or refuses — clean diffs, guaranteed. jq is JSON-only
+  and cannot preserve YAML formatting at all; yq edits in place but its docs admit
+  comment and whitespace issues. yqr changes nothing but the edit site, or errors.
+- **Native YAML, no JSON round-trip.** Parsing and emission run through the
+  [`noyalib`](https://crates.io/crates/noyalib) engine — the lossless CST behind
+  both the default read path and the `--normalize` pipeline; the CLI uses
+  [`clap`](https://crates.io/crates/clap).
 
 ## Install / build
 
@@ -80,34 +85,18 @@ echo 'a: {b: {c: 42}}' | yqr '.a | .b | .c'
 echo 'name: yqr' | yqr '.name[]?'   # prints nothing, exits 0
 ```
 
-## Supported filters (M0)
-
-| Filter         | Meaning                                             |
-|----------------|-----------------------------------------------------|
-| `.`            | Identity                                            |
-| `.foo`         | Field access (`.["foo"]` for non-bareword keys)     |
-| `.a.b`         | Nested field access                                  |
-| `.[n]`         | Array index (`.[-1]` counts from the end)           |
-| `.[]`          | Iterate sequence elements / mapping values          |
-| `a \| b`       | Pipe                                                |
-| `f?`           | Suppress errors from `f`                            |
-
-Planned: object/array construction, builtins (`length`, `keys`, `select`,
-`map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
-
 ## Byte-preserving reads (default) and `--normalize`
 
 **yqr preserves formatting by default.** Untouched nodes are emitted as their
 **original source bytes**, so the identity filter reproduces the input exactly —
 comments, quoting, indentation, and line endings all survive. Pass
-**`--normalize`** (`-N`) to opt into the classic re-serializing pipeline instead,
-which canonicalizes scalars and drops comments.
+**`--normalize`** (`-N`) to re-serialize the output instead, which canonicalizes
+scalars and drops comments.
 
 `--engine <name>` selects *which* backend parser performs the byte-preserving
-read (default `noyalib`, the always-available lossless CST). The experimental
-`skald` backend is recognized but built only on the `feat/skald-engine` branch.
-Under `--normalize` the classic pipeline runs and the engine choice has no
-observable effect (an unknown name is still rejected up front).
+read (default `noyalib`, the always-available lossless CST). Under `--normalize`
+the re-serializing pipeline runs and the engine choice has no observable effect
+(an unknown name is still rejected up front).
 
 ```bash
 # Identity reproduces the file byte-for-byte -- comments, blank lines,
@@ -118,7 +107,7 @@ yqr '.' config.yaml | diff config.yaml -   # no diff (no flag needed)
 echo "zip: 007" | yqr '.zip'      # => 007   (not 7)
 echo "s: 'hi'"  | yqr '.s'        # => 'hi'  (quotes kept)
 
-# --normalize opts into the lossy classic pipeline
+# --normalize re-serializes (lossy: drops comments, canonicalizes scalars)
 echo "zip: 007" | yqr --normalize '.zip'   # => 7    (re-typed)
 yqr --normalize '.' config.yaml            # comments dropped, scalars canonicalized
 ```
@@ -150,7 +139,7 @@ filter targets, leaving every other byte (comments, indentation, quoting, key
 order) untouched, or refuses. Edits always run through the fidelity engine, so a
 mutating filter is byte-exact except at the edit site.
 
-The mutation surface (v1):
+The mutation surface:
 
 | Filter                    | Meaning                                              |
 |---------------------------|------------------------------------------------------|
@@ -207,9 +196,23 @@ Guarantees and limits:
   surviving byte identical. Deleting the *only* entry of a block (which would
   empty it) or an item of a *flow* collection (`[a, b]`) is refused with a clear
   message.
-- **Deferred to later releases.** Computed updates (`|=`), key rename, and
-  sequence reorder / comment edits each fail with a clear "not yet supported"
-  message.
+- **Unsupported operations.** Computed updates (`|=`), key rename, and sequence
+  reorder / comment edits each fail with a clear message.
+
+## Query filters
+
+| Filter    | Meaning                                          |
+|-----------|--------------------------------------------------|
+| `.`       | Identity                                         |
+| `.foo`    | Field access (`.["foo"]` for non-bareword keys)  |
+| `.a.b`    | Nested field access                              |
+| `.[n]`    | Array index (`.[-1]` counts from the end)        |
+| `.[]`     | Iterate sequence elements / mapping values       |
+| `a \| b`  | Pipe                                             |
+| `f?`      | Suppress errors from `f`                         |
+
+Planned: object/array construction, builtins (`length`, `keys`, `select`,
+`map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
 
 ## Using yqr in Kubernetes (and beyond)
 

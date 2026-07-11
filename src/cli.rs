@@ -18,16 +18,18 @@ const LONG_VERSION: &str = concat!(
     env!("BUILD_TARGET"),
 );
 
-/// A jq-style command-line processor for YAML.
+/// A fidelity-first, jq-style CLI for YAML.
 ///
 /// Reads a YAML document from a file or stdin, applies a jq-style filter, and
-/// writes the resulting value(s) back as YAML.
+/// writes the result back as YAML -- preserving the input's bytes by default,
+/// and applying surgical edits (`=`, `+=`, `del`, `-i`) that touch only the
+/// targeted bytes.
 #[derive(Debug, Parser)]
 #[command(
     name = "yqr",
     version = SHORT_VERSION,
     long_version = LONG_VERSION,
-    about = "A jq-style command-line processor for YAML",
+    about = "A fidelity-first, jq-style CLI for YAML (query and surgically edit, byte-for-byte)",
     long_about = None,
 )]
 pub struct Cli {
@@ -69,8 +71,7 @@ pub struct Cli {
     /// This selects the parsing library for the default (fidelity) read path.
     /// Under `--normalize` the classic pipeline runs and the backend choice does
     /// not affect the output, though an unknown engine name is still rejected up
-    /// front. The experimental 'skald' backend is recognized but built only on
-    /// the `feat/skald-engine` branch.
+    /// front.
     #[arg(long = "engine", value_name = "ENGINE")]
     pub engine: Option<String>,
 }

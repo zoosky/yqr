@@ -1,9 +1,9 @@
 [package]
 name = "yqr"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 rust-version = "1.97"
-description = "A jq-style command-line processor for YAML"
+description = "A jq-style CLI for YAML: query and surgically edit while preserving comments, quoting, and formatting byte-for-byte"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/zoosky/yqr"
 readme = "README.md"
