@@ -3,7 +3,7 @@
 **Status:** Open — upstream gaps in **noyalib 0.0.14**'s edit API. yqr's fidelity write/edit tier is not yet built (`yqr-m002` §4/§6.2, `yqr-f002` §5), so these do not block current code, but they constrain the automatic-editing roadmap. Every gap has the same fallback: raw `Document::replace_span(start, end, repl)` byte splicing.
 **Severity:** Medium — roadmap-gating for yqr's core goal (surgical editing of YAML: values, keys, structures, comments). No current code path depends on these (the fidelity engines are read-only today, `yqr-m002` §9), and each has a raw-`replace_span` workaround — but that workaround forfeits the indent/quote synthesis and the "reject if the result re-parses differently" guard that the first-class mutators provide.
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-10
+**Last updated:** 2026-07-11
 **Affects:** the planned fidelity write/edit tier (`yqr-m002` §4/§6.2, `yqr-f002` §5). Irrelevant to the read path and the default pipeline.
 **Component:** noyalib 0.0.14 — `cst::Document` (`document.rs`), `cst::Entry` (`entry.rs`), `cst::annotated` (`annotated.rs`)
 **Related:** `yqr-b002` (noyalib CST span/key-model deficiencies — resolved in 0.0.14), `yqr-r002` (noyalib fidelity evaluation), `yqr-m002` §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix — issues are disabled upstream).
@@ -89,9 +89,19 @@ the correct line/indent span so the result still re-parses.
 **Impact on yqr:** structural deletes are part of the goal; only the simplest
 case is first-class.
 
+**yqr status (interim fallback shipped, `yqr-f007` §5):** yqr keeps `remove` as
+the first choice for single-line entries and, on refusal, falls back to a
+`replace_span`-based structural delete for **multi-line / nested block** entries
+(`src/fidelity/write/delete.rs`). It computes the entry's owned source lines and
+commits only if the re-parsed document equals the original value minus the target
+— the integrity guard yqr must own, since `replace_span` guarantees only valid
+YAML, not structure preservation (see 2.5). Sole-entry and flow deletes stay
+refused with a clear message, pending the upstream ask below.
+
 **Upstream ask:** extend `remove` (or add `remove_subtree`) to cover
 multi-line/nested block values and flow entries, keeping the existing "reject if
-the result parses differently" guard.
+the result parses differently" guard. Landing this lets yqr drop the interim
+fallback and inherit noyalib's own indent/boundary computation.
 
 ### 2.5 (Note) Fragment mutators splice verbatim — no auto-quoting
 

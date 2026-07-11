@@ -40,21 +40,26 @@ dependency/release timing.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
-| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | Draft (stub — gated on upstream noyalib) |
+| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename/reorder deferred) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
 `del`, scalar-literal / path RHS, and atomic `-i`, all through the fidelity write
-seam (`src/fidelity/write.rs`), zero upstream work. f007 (structural edits) is
-gated on upstream noyalib PRs; f008 (`|=` computed updates) is gated on `f001` M2
-(arithmetic/builtins). Priority order: f006 (done) → f007 → M2 → f008.
+seam (`src/fidelity/write.rs`), zero upstream work. f007 landed its first slice:
+structural **delete** of multi-line / nested block entries via the interim
+`replace_span` fallback (`src/fidelity/write/delete.rs`) behind a re-parse
+integrity guard yqr enforces itself (`b004` 2.4/2.5), sole-entry and flow deletes
+refused. The remaining f007 gaps (comment editing, key rename, sequence reorder)
+each need new grammar and stay deferred. f008 (`|=` computed updates) is gated on
+`f001` M2 (arithmetic/builtins). Priority order: f006 (done) → f007 (delete done,
+rest deferred) → M2 → f008.
 
 ## Summary
 
 - Total features: 8
-- Draft: 2 (f007, f008 — the remaining Fidelity write tier features)
-- In Progress: 1
+- Draft: 1 (f008 — computed updates, gated on `f001` M2)
+- In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
 - Done: 3 (f002, f005, f006)
 - Superseded: 2 (f003, f004 — single-engine consolidation, `yqr-m005`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`)

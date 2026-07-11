@@ -345,18 +345,31 @@ fn in_place_with_read_only_filter_is_an_error() {
 
 #[test]
 fn refused_edit_leaves_the_file_unchanged_under_in_place() {
-    // A multi-line/nested delete is deferred; the write is refused (exit 5) and
-    // the file on disk must be byte-identical to the original.
-    let original = "outer:\n  inner: 1\nother: 2\n";
+    // Deleting the only entry of a block would empty it (a structural change);
+    // the write is refused (exit 5) and the file on disk must be byte-identical.
+    let original = "only:\n  inner: 1\n";
     let file = temp_yaml(original);
     let path = file.to_str().unwrap();
-    let out = run(&["-i", "del(.outer)", path], "");
+    let out = run(&["-i", "del(.only)", path], "");
     assert_eq!(out.status, 5, "stderr: {}", out.stderr);
     assert_eq!(
         read_back(&file),
         original,
         "refused edit must not touch file"
     );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn multi_line_delete_writes_back_in_place() {
+    // A nested/multi-line entry is removed by the structural fallback; `-i`
+    // writes the closed-up document back and leaves the sibling byte-identical.
+    let original = "outer:\n  inner: 1\nother: 2\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "del(.outer)", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&file), "other: 2\n");
     let _ = std::fs::remove_file(&file);
 }
 

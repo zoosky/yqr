@@ -142,13 +142,25 @@ fn new_key_is_created_under_existing_mapping() {
 }
 
 #[test]
-fn structural_edit_is_refused() {
-    // A multi-line/nested delete would restructure the document; it is refused
-    // rather than emitted.
+fn structural_delete_removes_a_nested_entry() {
+    // A multi-line/nested delete removes the entry's owned lines and leaves the
+    // sibling byte-identical.
     let m = match yqr::parser::parse_program("del(.outer)").unwrap() {
         Program::Mutate(m) => m,
         Program::Query(_) => unreachable!(),
     };
-    let refused = write::apply(BackendId::NoyalibCst, &m, "outer:\n  inner: 1\nx: 2\n");
-    assert!(refused.is_err(), "nested delete must be refused");
+    let out = write::apply(BackendId::NoyalibCst, &m, "outer:\n  inner: 1\nx: 2\n").unwrap();
+    assert_eq!(out, "x: 2\n");
+}
+
+#[test]
+fn sole_entry_delete_is_still_refused() {
+    // Emptying a block by deleting its only entry is a structural change; it is
+    // refused rather than emitted.
+    let m = match yqr::parser::parse_program("del(.only)").unwrap() {
+        Program::Mutate(m) => m,
+        Program::Query(_) => unreachable!(),
+    };
+    let refused = write::apply(BackendId::NoyalibCst, &m, "only:\n  a: 1\n  b: 2\n");
+    assert!(refused.is_err(), "sole-entry delete must be refused");
 }
