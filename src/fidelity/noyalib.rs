@@ -114,7 +114,7 @@ impl FidelityEngine for NoyalibEngine {
             )));
         };
 
-        let typed = walk_value(&self.values[doc], path);
+        let typed = walk_value(&self.values[doc], path.segments());
 
         if let Some((start, end)) = self.docs[doc].span_at(&path_str) {
             let span = Span::new(doc_span.start + start, doc_span.start + end);
@@ -268,9 +268,12 @@ pub(super) fn to_noyalib_path(path: &Path) -> Option<String> {
 
 /// Walk yqr's typed value by path segments (used to tell "exists without
 /// bytes" apart from "does not exist").
-fn walk_value<'v>(value: &'v Value, path: &Path) -> Option<&'v Value> {
+///
+/// Shared with the structural-delete fallback ([`super::write`]), which walks
+/// the same typed model to resolve a delete target's parent and value.
+pub(crate) fn walk_value<'v>(value: &'v Value, segs: &[PathSeg]) -> Option<&'v Value> {
     let mut node = value;
-    for seg in path.segments() {
+    for seg in segs {
         node = match (seg, node) {
             (PathSeg::Key(k), Value::Mapping(map)) => map.get(&Value::String(k.clone()))?,
             (PathSeg::Index(i), Value::Sequence(items)) => items.get(*i)?,

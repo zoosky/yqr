@@ -77,47 +77,68 @@ concern is a sibling sub-module).
 
 ### 5.2 Algorithm
 
-For the target entry (final path segment `last`, resolved value byte offset
-`value_start` from `Document::span_at`):
+For the target entry (final path segment `last`, resolved value byte span
+`value_start..value_end` from `Document::span_at`):
 
 1. **Locate the entry's first line.** Walk back from `value_start` over
    insignificant whitespace/newlines to the entry marker (`:` for a mapping key,
    `-` for a sequence index), stepping over a trailing line comment on the key
    line (`key:  # note`). The marker's line start is the entry's first line.
-2. **Compute the owned lines.** From the first line, include every following line
-   indented **deeper** than the key/`-` column (the entry's continuation), plus
-   interior blank lines; exclude trailing blank lines so surviving separation is
-   preserved. The deletion span is `[first_line_start, last_owned_line_end)` —
-   always a whole-line range, so it can never eat a preceding comment or a
-   following sibling.
+2. **Derive the owned range from the value's own span, not an indentation
+   heuristic.** The end is the end of the line holding `value_end`'s last content
+   byte — except when `value_end` already sits at a line boundary, which happens
+   only for a keep-chomped (`|+` / `>+`) block scalar whose trailing blank lines
+   are content (`span_at` keeps them); extending then would swallow the next
+   sibling's line. This is exact where an indentation walk errs:
+   - a **keep-chomped scalar**'s kept trailing blanks are owned (removed with the
+     entry), leaving no stray blank line;
+   - a **following comment** that documents the next sibling lies outside
+     `value_end` and survives, while a comment **interleaved inside** the value
+     lies within `value_end` and goes with it;
+   - a **block sequence written at its key's own column** (`on:\n- a\n- b`, the
+     GitHub Actions / Ansible / Kubernetes list style) — which `span_at`
+     under-reports to just its first `-` — has its true end recovered from the
+     last item's span, so it deletes cleanly instead of being refused.
+   A contiguous run of same-indent comment lines **directly above** the entry is
+   its head comment and is folded into the range, so a delete never silently
+   re-attributes the comment to the following sibling.
 3. **Refuse the unsupported shapes** with a clear message: the **sole entry** of
    a block (removing it would empty the block, which re-parses as `null`), and an
    item of a **flow** collection (`[a, b]` / `{a: 1}`, detected from the parent's
-   own bytes).
-4. **Splice and guard.** Remove the span, re-parse the edited document, and
-   commit only if it lowers to the original document value with the target
-   removed (mapping key order preserved, sequence indices shifted). A dangling
-   alias (deleting a referenced anchor), an over-broad span, or a flow mis-edit
-   all diverge here and are refused with the document untouched.
+   own bytes — including a root-level flow collection, whose parent is the
+   document itself).
+4. **Splice, guard, and commit byte-preservingly.** Re-parse the spliced source
+   and require it to lower to the original document value with the target removed
+   (mapping key order preserved, sequence indices shifted); a dangling alias
+   (deleting a referenced anchor), an over-broad span, or a flow mis-edit all
+   diverge here and are refused with the document untouched. The commit itself
+   goes through `Document::replace_span`, which splices the source buffer in
+   place: every surviving byte is the original byte verbatim, so no parse→emit
+   round-trip can normalize an untouched node.
 
 ### 5.3 Why this is safe
 
-The deletion span is always the entry's own whole lines (key line through the
-last deeper-indented content line). It cannot extend above the key line or into a
-sibling, so surviving nodes keep their exact bytes by construction. The only
-proof obligation left — that the removed lines are precisely the target's — is
-discharged by the re-parse-equals-expected guard (§3). The worst failure mode is
-therefore a *refusal* of a deletable entry (a benign over-refusal), never a
-silent corruption.
+The deletion range is derived from the target value's authoritative source span,
+so it cannot reach into a sibling's content, and its head-comment extension is
+bounded to contiguous same-indent comment lines that document the entry. Surviving
+bytes are preserved *by construction* — the commit is an in-place buffer splice
+(`replace_span`), not a re-emit. The remaining proof obligation — that the removed
+range is precisely the target's — is discharged by the re-parse-equals-expected
+guard (§3). The worst failure mode is therefore a *refusal* of a deletable entry
+(a benign over-refusal), never a silent corruption.
 
 ### 5.4 Coverage
 
 Unit (`write/delete.rs`), library (`tests/integration.rs`), and CLI
 (`tests/cli.rs`) tests cover: nested block-mapping delete; multi-line
 sequence-item delete; comment/blank-line/sibling preservation; a comment on the
-key line; last-entry and multi-document deletes; and the refusals (sole entry,
-sole top-level entry, flow item, alias-breaking delete). `-i` writes the
-closed-up document back atomically; a refused delete leaves the file unchanged.
+key line; a following sibling's comment left intact; a head comment removed with
+its entry (and a blank-detached comment left in place); a keep-chomped scalar's
+trailing blanks removed with the entry; a block sequence at its key's own column
+(top-level and nested); last-entry and multi-document deletes; and the refusals
+(sole entry, sole top-level entry, flow item — nested and root-level,
+alias-breaking delete). `-i` writes the closed-up document back atomically; a
+refused delete leaves the file unchanged.
 
 ## 6. Deferred gaps (roadmap)
 
