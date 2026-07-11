@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783753230723,
+  "lastUpdate": 1783762102862,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -461,6 +461,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 253928,
             "range": "± 760",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9de05cb9fbdb3ba55e580150b05fda1936aa1a51",
+          "message": "feat(f007): structural delete for multi-line and nested block entries (#31)\n\ndel() now removes multi-line and nested block entries, not just\nsingle-line ones. When noyalib 0.0.14's first-class `remove` refuses an\nentry, yqr falls back to a `replace_span`-based delete that computes the\nentry's owned source lines and commits only if the re-parsed document\nequals the original value minus the target — the structural-integrity\nguard yqr must own, since `replace_span` guarantees only valid YAML, not\nstructure preservation (b004 2.4/2.5).\n\nThe deletion span is always the entry's own whole lines (key/`-` line\nthrough the last deeper-indented content line), so it can never eat a\npreceding comment or a following sibling; the guard backstops any\nresidual case by refusing rather than corrupting. Sole-entry and\nflow-collection deletes are refused with a clear message. Surviving bytes\n(comments, quoting, indentation, CRLF, key order) stay verbatim; `-i`\nwrites the closed-up document back atomically.\n\n- src/fidelity/write/delete.rs: guarded structural-delete fallback\n- src/fidelity/write.rs: hybrid dispatch (remove first, fallback on refusal)\n- tests: unit + integration + cli coverage; flip the old \"refused\"\n  multi-line tests to assert success, keep sole-entry/flow refusals\n- specs: flesh out f007 (delete shipped; comment/rename/reorder deferred),\n  update the status tracker, record the interim fallback in b004\n- docs: README and home.html reflect multi-line/nested delete",
+          "timestamp": "2026-07-11T11:27:09+02:00",
+          "tree_id": "28b240eb6948d28aae77b86199e6603d1d402c5f",
+          "url": "https://github.com/zoosky/yqr/commit/9de05cb9fbdb3ba55e580150b05fda1936aa1a51"
+        },
+        "date": 1783762102088,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 374,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3826,
+            "range": "± 124",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 207016,
+            "range": "± 9533",
             "unit": "ns/iter"
           }
         ]
