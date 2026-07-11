@@ -71,8 +71,7 @@ pub struct Cli {
     /// This selects the parsing library for the default (fidelity) read path.
     /// Under `--normalize` the classic pipeline runs and the backend choice does
     /// not affect the output, though an unknown engine name is still rejected up
-    /// front. The experimental 'skald' backend is recognized but built only on
-    /// the `feat/skald-engine` branch.
+    /// front.
     #[arg(long = "engine", value_name = "ENGINE")]
     pub engine: Option<String>,
 }
