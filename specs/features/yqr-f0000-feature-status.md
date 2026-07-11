@@ -68,3 +68,6 @@ rest deferred) → M2 → f008.
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
   superseded by f009 which makes fidelity the default)
+- Released in `v0.4.0`: f006 (write tier — assignment, `+=`, new-key, `del`,
+  `-i`), f007 (structural-delete slice), and f009 (fidelity by default;
+  `--normalize` replaces `--preserve`)

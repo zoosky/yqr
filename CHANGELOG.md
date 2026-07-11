@@ -6,8 +6,35 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
-Byte fidelity becomes the default read behaviour; the classic re-serializing
-pipeline moves behind `--normalize`.
+## [0.4.0] - 2026-07-11
+
+The fidelity write tier arrives: surgical, byte-preserving edits that change only
+the bytes a filter targets and leave every other byte -- comments, indentation,
+quoting, key order -- untouched, or refuse. In the same release, byte-preserving
+reads become the default and the classic re-serializing pipeline moves behind
+`--normalize`.
+
+### Added
+
+- **Write tier: surgical value edits.** yqr can now mutate a document through the
+  fidelity engine, changing only the targeted bytes: assignment `.a.b = <rhs>`
+  (scalar literal or a `.`-rooted path), append `.xs += <item>`, new-key assign
+  `.a.new = <rhs>`, and `del(.a.b)`. Each edit passes through the engine's
+  re-parse guard -- an edit that would restructure the document is refused
+  (exit 5) rather than emitted, and scalar writes are quoted to match the
+  neighbouring style. A filter is either a read-only query or a single mutation;
+  mixing them is a parse error.
+- **`-i` / `--in-place` flag** writes the mutated document back to the input file
+  atomically (temp file + rename, `fsync` before rename, symlinks followed,
+  owner-only temp permissions). Using `-i` with stdin or with a read-only filter
+  is an error, diagnosed before any input is read. Without `-i`, the mutated
+  document is printed to stdout (byte-exact except the edit).
+- **Structural delete** of multi-line and nested block entries (e.g.
+  `del(.spec.template)`), which the single-line delete path rejects. Flow-style
+  and sole-entry deletes remain refused with a clear message.
+- **`--normalize` / `-N` flag** for the classic re-serializing pipeline: it
+  drops comments and canonicalizes scalars (e.g. `007` becomes `7`) -- the
+  previous default behaviour.
 
 ### Changed
 
@@ -20,17 +47,18 @@ pipeline moves behind `--normalize`.
   Under `--normalize` the classic pipeline runs and the engine choice has no
   observable effect beyond the up-front name validation.
 
-### Added
-
-- **`--normalize` / `-N` flag** for the classic re-serializing pipeline: it
-  drops comments and canonicalizes scalars (e.g. `007` becomes `7`) -- the
-  previous default behaviour.
-
 ### Breaking
 
 - **`--preserve` / `-p` removed.** Byte preservation is now the default, so the
   flag is gone. Replace `yqr -p '.' f` with `yqr '.' f`; use
   `yqr --normalize '.' f` for the old re-serializing behaviour.
+
+### Security
+
+- Bumped the transitive `crossbeam-epoch` pin `0.9.18 -> 0.9.20` to clear
+  RUSTSEC-2026-0204. It reaches the build only through the `criterion`
+  dev-dependency (benchmarks), so released binaries were never affected; the
+  change is lockfile-only.
 
 ## [0.3.0] - 2026-07-10
 
