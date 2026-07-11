@@ -77,12 +77,16 @@ pub(crate) trait FidelityWriter {
     /// sequence, or the edit would re-parse differently.
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
 
-    /// Remove the single-line block entry at `path`.
+    /// Remove the block entry at `path`, whether single-line, multi-line, or a
+    /// nested collection. The entry's own lines (its key/`-`, continuation, and
+    /// any head comment documenting it) go; every surviving node stays
+    /// byte-identical.
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, is a multi-line/nested/sole
-    /// entry, or the edit would re-parse differently.
+    /// Errors when the path is unaddressable, is the sole entry of its block,
+    /// is an item of a flow collection, or the edit would re-parse to a
+    /// different document.
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()>;
 
     /// Emit the whole document stream: edited documents reflect their edits,
@@ -266,9 +270,11 @@ impl FidelityWriter for NoyalibWriter {
         // entries; a multi-line / nested value makes it refuse (b004 2.4). On
         // refusal, fall through to the interim `replace_span` fallback, which
         // owns the byte arithmetic behind the same structural-integrity guard.
+        // The refusal reason is carried into the fallback so a genuine noyalib
+        // failure is surfaced rather than masked by a generic message.
         match self.doc_mut(doc)?.remove(&path_str) {
             Ok(()) => Ok(()),
-            Err(_) => self.delete_structural(doc, path),
+            Err(remove_err) => self.delete_structural(doc, path, &remove_err.to_string()),
         }
     }
 

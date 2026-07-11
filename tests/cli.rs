@@ -374,6 +374,20 @@ fn multi_line_delete_writes_back_in_place() {
 }
 
 #[test]
+fn delete_of_a_same_column_block_sequence_writes_back() {
+    // The GitHub Actions / Ansible / Kubernetes list style writes a key's
+    // block-sequence value at the key's own column; deleting the key removes the
+    // whole sequence and leaves the sibling byte-identical.
+    let original = "on:\n- push\n- pull_request\njobs: {}\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "del(.on)", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&file), "jobs: {}\n");
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
 fn computed_update_operator_is_a_parse_error() {
     // `|=` is deferred; it must fail at parse time (exit 3) with a clear message.
     let out = run(&[".a |= 5"], "a: 1\n");
