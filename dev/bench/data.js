@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783769530473,
+  "lastUpdate": 1783771099510,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -587,6 +587,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 250519,
             "range": "± 887",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3ff092a3727fa8a581ae2a333acfcfb774d59ab9",
+          "message": "chore: release v0.4.0 + reposition around the fidelity write tier (#34)\n\n* chore: release v0.4.0\n\n* docs: reposition around the fidelity write tier (read+edit)\n\nLead the README, crate description, and --help with yqr's differentiator:\nbyte-preserving reads by default plus surgical, guaranteed-clean edits, rather\nthan the read/query-only framing. Move the query-filter reference below the\nfidelity read and surgical-edit sections and rename it from the internal\n'Supported filters (M0)' heading.\n\n* docs: drop skald backend mention from README --engine notes\n\n* docs: drop skald backend mention from --engine doc comment\n\n* docs: state 0.4.0 facts plainly, drop prior-version framing in README",
+          "timestamp": "2026-07-11T13:57:02+02:00",
+          "tree_id": "bcd8270a8df4be48b5e8aa525f40c9bb95cd492e",
+          "url": "https://github.com/zoosky/yqr/commit/3ff092a3727fa8a581ae2a333acfcfb774d59ab9"
+        },
+        "date": 1783771098920,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 470,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4620,
+            "range": "± 181",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 247869,
+            "range": "± 708",
             "unit": "ns/iter"
           }
         ]
