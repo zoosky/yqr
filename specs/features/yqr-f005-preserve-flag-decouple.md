@@ -1,10 +1,19 @@
 # yqr.f005 — Decouple byte/comment preservation from backend selection (`--preserve`)
 
-**Status:** Done
+**Status:** Superseded (`yqr-f009`)
 **Epic:** Fidelity-first architecture (a001)
 **Owner:** yqr maintainers
 **Related:** `yqr-f002` (fidelity read floor / engine seam), `yqr-f004` (engine
-parity — superseded), `yqr-m005` (single-engine consolidation)
+parity — superseded), `yqr-f009` (fidelity-by-default; removes `--preserve`),
+`yqr-m005` (single-engine consolidation)
+
+> **Superseded by `yqr-f009`.** This spec introduced `--preserve` / `-p` as an
+> opt-in for byte fidelity, keeping the classic re-serializing pipeline as the
+> default. `yqr-f009` inverts that: byte fidelity is now the **default** read and
+> the classic pipeline moved behind `--normalize`, so `--preserve` / `-p` were
+> removed. The `--engine` design below carries over unchanged (it now selects the
+> backend for the *default* read). The rest of this document is retained as the
+> historical record of the two-flag split it replaced.
 
 ## 1. Problem
 

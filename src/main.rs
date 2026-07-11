@@ -31,10 +31,11 @@ fn main() -> ExitCode {
 }
 
 fn run(args: &Cli) -> Result<String, YqrError> {
-    // Feature f005: `--engine` selects the backend; `--preserve` decides whether
-    // to preserve bytes. Resolve the backend name (defaulting to the always-
-    // available noyalib) before consuming stdin/the file, so a typo in --engine
-    // is diagnosed immediately instead of after reading input.
+    // Feature f009: `--engine` selects the backend for the default byte-preserving
+    // read; `--normalize` opts back into the classic re-serializing pipeline.
+    // Resolve the backend name (defaulting to the always-available noyalib)
+    // before consuming stdin/the file, so a typo in --engine is diagnosed
+    // immediately instead of after reading input.
     let backend = match args.engine.as_deref() {
         Some(engine) => BackendId::parse(engine).ok_or_else(|| {
             YqrError::io(format!(
@@ -47,7 +48,7 @@ fn run(args: &Cli) -> Result<String, YqrError> {
 
     // Feature f006: decide read vs write before consuming input, so a filter
     // error (or a misused `-i`) is diagnosed up front. A mutating filter always
-    // goes through the fidelity write path, regardless of `--preserve`.
+    // goes through the fidelity write path, regardless of `--normalize`.
     match yqr::parser::parse_program(&args.filter)? {
         Program::Mutate(mutation) => {
             // Validate the `-i` target before consuming stdin or applying the
@@ -76,14 +77,18 @@ fn run(args: &Cli) -> Result<String, YqrError> {
                 ));
             }
             let input = read_input(args.file.as_deref())?;
-            if args.preserve {
-                return fidelity::run_ast(backend, &ast, &input, args.raw_output);
+            if args.normalize {
+                // Opt-in classic pipeline: re-serialize from the typed value,
+                // normalizing formatting (comments dropped, scalars
+                // canonicalized). It is backend-independent, so `--engine` is
+                // inert here beyond the up-front name validation.
+                let values = yqr::eval_ast_str(&ast, &input)?;
+                return render(&values, args.raw_output);
             }
-            // Standard re-serializing pipeline. It is backend-independent today,
-            // so a bare `--engine` without `--preserve` is inert beyond name
-            // validation.
-            let values = yqr::eval_ast_str(&ast, &input)?;
-            render(&values, args.raw_output)
+            // Default: byte-preserving fidelity read. Untouched nodes are emitted
+            // as their original source bytes; computed, absent, and unaddressable
+            // nodes fall back to typed rendering per node.
+            fidelity::run_ast(backend, &ast, &input, args.raw_output)
         }
     }
 }

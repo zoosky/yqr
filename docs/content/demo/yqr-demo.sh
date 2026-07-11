@@ -55,21 +55,21 @@ printf '%s# %s%s\n' "$dim" "echo 'a: {b: [10, 20, 30]}' | yqr '.a.b[1]'" "$reset
 echo 'a: {b: [10, 20, 30]}' | yqr '.a.b[1]'
 echo
 
-section "6. Preserve mode -- '--preserve' keeps bytes & comments exactly"
-printf '%s# The default pipeline re-serializes YAML, dropping comments:%s\n' "$dim" "$reset"
+section "6. Fidelity by default -- 'yqr .' keeps bytes & comments exactly"
+printf '%s# By default, comments & formatting survive byte-for-byte:%s\n' "$dim" "$reset"
 printf '%s$ yqr %s%s\n' "$green" "'.' config.yaml" "$reset"
 yqr '.' "$CONFIG"; echo
-printf '%s# With --preserve, comments & formatting survive byte-for-byte:%s\n' "$dim" "$reset"
-printf '%s$ yqr %s%s\n' "$green" "--preserve '.' config.yaml" "$reset"
-yqr --preserve '.' "$CONFIG"; echo
 printf '%s# Proof -- identity read is byte-identical to the source file:%s\n' "$dim" "$reset"
-printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "--preserve '.' config.yaml" "$reset"
-if yqr --preserve '.' "$CONFIG" | diff - "$CONFIG"; then
+printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "'.' config.yaml" "$reset"
+if yqr '.' "$CONFIG" | diff - "$CONFIG"; then
   printf '%sIDENTICAL -- zero bytes changed.%s\n\n' "$green$bold" "$reset"
 fi
-printf '%s# --engine picks the backend parser (default noyalib); pair with --preserve:%s\n' "$dim" "$reset"
-printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "--engine noyalib --preserve '.' config.yaml" "$reset"
-if yqr --engine noyalib --preserve '.' "$CONFIG" | diff - "$CONFIG"; then
+printf '%s# Opt into the classic pipeline with --normalize (drops comments, re-serializes):%s\n' "$dim" "$reset"
+printf '%s$ yqr %s%s\n' "$green" "--normalize '.' config.yaml" "$reset"
+yqr --normalize '.' "$CONFIG"; echo
+printf '%s# --engine picks the backend parser for the default read (default noyalib):%s\n' "$dim" "$reset"
+printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "--engine noyalib '.' config.yaml" "$reset"
+if yqr --engine noyalib '.' "$CONFIG" | diff - "$CONFIG"; then
   printf '%s(same byte-exact result via the explicit backend)%s\n' "$dim" "$reset"
 fi
 

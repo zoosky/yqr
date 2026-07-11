@@ -500,25 +500,25 @@ spec:
   </div>
 
   <div class="outcomes">
-    <div class="outcome drift">
-      <span class="badge">default pipeline</span>
-      <pre><span class="prompt">$</span> yqr '.spec.volumes[0].secret.defaultMode' pod.yaml
-<span class="out">640</span></pre>
-    </div>
     <div class="outcome exact">
-      <span class="badge">--preserve</span>
-      <pre><span class="prompt">$</span> yqr --preserve '.spec.volumes[0].secret.defaultMode' pod.yaml
+      <span class="badge">default</span>
+      <pre><span class="prompt">$</span> yqr '.spec.volumes[0].secret.defaultMode' pod.yaml
 <span class="out">0640</span></pre>
+    </div>
+    <div class="outcome drift">
+      <span class="badge">--normalize</span>
+      <pre><span class="prompt">$</span> yqr --normalize '.spec.volumes[0].secret.defaultMode' pod.yaml
+<span class="out">640</span></pre>
     </div>
   </div>
 
   <p style="color:var(--text-soft); font-size:15px; max-width:62ch; margin-top:-32px;">
     Kubernetes spells file permissions in octal &mdash; <code>defaultMode: 0640</code> on
-    a Secret or ConfigMap volume. Read that field through yqr's default,
-    re-serializing pipeline and the leading zero is gone: <code>640</code> is a
-    different number. Add <a href="#engines"><code>--preserve</code></a> and the
-    value comes back exactly as written, because yqr never re-typed it in the
-    first place.
+    a Secret or ConfigMap volume. Read that field through yqr and the value comes
+    back exactly as written, because yqr never re-typed it in the first place.
+    Only if you opt into the classic
+    <a href="#engines"><code>--normalize</code></a> pipeline is the leading zero
+    lost: <code>640</code> is a different number.
   </p>
 
   <section id="paths">
@@ -552,21 +552,21 @@ spec:
     </div>
 
     <div class="callout" id="engines">
-      <strong style="color:#f4efe1;">Byte-preserving reads are built in.</strong>
-      Pass <code>--preserve</code> (<code>-p</code>) and untouched nodes come
-      back as their original source bytes: comments, quoting, indentation, and
-      line endings survive, and the identity filter reproduces the input
-      byte-for-byte.
-      <pre><span class="prompt">$</span> yqr --preserve '.' pod.yaml</pre>
-      Omit <code>--preserve</code> and yqr uses its default, re-serializing
-      pipeline. <code>--engine &lt;name&gt;</code> selects which backend parser
-      performs a preserve read (default <code>noyalib</code>); an unknown engine
-      name is rejected up front:
+      <strong style="color:#f4efe1;">Byte-preserving reads are the default.</strong>
+      Untouched nodes come back as their original source bytes &mdash; comments,
+      quoting, indentation, and line endings survive, and the identity filter
+      reproduces the input byte-for-byte, no flag required.
+      <pre><span class="prompt">$</span> yqr '.' pod.yaml</pre>
+      Pass <code>--normalize</code> to opt into the classic, re-serializing
+      pipeline (comments dropped, scalars canonicalized).
+      <code>--engine &lt;name&gt;</code> selects which backend parser performs the
+      byte-preserving read (default <code>noyalib</code>); an unknown engine name
+      is rejected up front:
       <pre><span class="prompt">$</span> yqr --engine bogus '.' pod.yaml
 yqr: io error: unknown engine "bogus" (available: noyalib, skald)</pre>
       See the <a href="https://github.com/zoosky/yqr/tree/main/docs/content/demo">runnable demo</a>
       for a seven-step walkthrough of navigation, iteration, pipes, raw output,
-      and preserve mode.
+      and fidelity mode.
     </div>
 
     <!-- Feature f006: write tier v1 (value assignment + in-place edits) -->

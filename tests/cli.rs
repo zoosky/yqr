@@ -130,46 +130,69 @@ fn unknown_engine_is_an_io_error() {
     );
 }
 
+// -- Feature f009: byte fidelity is the default read; --normalize opts out -----
+
 #[test]
-fn preserve_identity_reproduces_input_bytes() {
-    // `--preserve` alone (no `--engine`) uses the default noyalib backend.
+fn identity_reproduces_input_bytes_by_default() {
+    // Fidelity is the default: no flag needed to round-trip byte-for-byte.
     let input = "# comment\nname: web   # inline\n\nreplicas: 3\n";
-    let out = run(&["--preserve", "."], input);
+    let out = run(&["."], input);
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, input, "identity must be byte-for-byte");
 }
 
 #[test]
-fn preserve_short_flag_reproduces_input_bytes() {
-    let input = "a: 1  # keep\n";
-    let out = run(&["-p", "."], input);
+fn projection_keeps_original_spelling_by_default() {
+    let out = run(&[".zip"], "zip: 007\n");
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-    assert_eq!(out.stdout, input);
+    assert_eq!(out.stdout, "007\n", "leading zero must survive by default");
 }
 
 #[test]
-fn preserve_projection_keeps_original_spelling() {
-    let out = run(&["--preserve", ".zip"], "zip: 007\n");
-    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-    assert_eq!(out.stdout, "007\n");
-}
-
-#[test]
-fn engine_selects_backend_for_preserve() {
-    // Feature f005: `--engine` names the backend; `--preserve` turns fidelity on.
+fn engine_selects_backend_for_the_default_read() {
+    // `--engine` names the backend for the default byte-preserving read.
     let input = "s: 'hi'  # quoted\n";
-    let out = run(&["--engine", "noyalib", "--preserve", "."], input);
+    let out = run(&["--engine", "noyalib", "."], input);
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, input, "explicit noyalib backend must preserve");
 }
 
 #[test]
-fn engine_without_preserve_re_serializes() {
-    // Feature f005 clean break: `--engine noyalib` no longer implies preserve.
-    // Without `--preserve` the classic pipeline runs and the comment is dropped.
-    let out = run(&["--engine", "noyalib", "."], "name: web  # inline\n");
+fn normalize_re_serializes_and_drops_comments() {
+    // `--normalize` runs the classic pipeline: comments are dropped and scalars
+    // are canonicalized.
+    let out = run(&["--normalize", "."], "name: web  # inline\n");
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "name: web\n", "comment must be normalized away");
+}
+
+#[test]
+fn normalize_canonicalizes_scalars() {
+    // The classic pipeline reinterprets `007` as the integer 7.
+    let out = run(&["--normalize", ".zip"], "zip: 007\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "7\n");
+}
+
+#[test]
+fn normalize_is_backend_independent() {
+    // `--engine` is inert under `--normalize` beyond up-front name validation.
+    let out = run(
+        &["--engine", "noyalib", "--normalize", "."],
+        "name: web  # x\n",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "name: web\n");
+}
+
+#[test]
+fn preserve_flag_is_rejected() {
+    // `--preserve`/`-p` were removed when fidelity became the default; clap must
+    // reject them rather than silently accept.
+    let long = run(&["--preserve", "."], "a: 1\n");
+    assert_ne!(long.status, 0, "--preserve must no longer be accepted");
+    let short = run(&["-p", "."], "a: 1\n");
+    assert_ne!(short.status, 0, "-p must no longer be accepted");
 }
 
 #[test]
