@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783710370239,
+  "lastUpdate": 1783751899378,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -377,6 +377,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 191655,
             "range": "± 4444",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7bf75038c988928572138fb9a8ca6f115ffddae3",
+          "message": "feat(f006): fidelity write tier v1 — assignment, +=, del, -i (#29)\n\n* feat(f006): fidelity write tier v1 (assignment, +=, del, -i)\n\nAdd a mutation surface to yqr routed entirely through noyalib 0.0.14's\nfirst-class, re-parse-guarded mutators, so edits change only the bytes the\nfilter targets and leave every other byte untouched, or refuse.\n\n- lexer: `=`, `+=`, `|=`, `(`, `)` tokens plus float literals\n- ast: a `Program` layer (`Query` | `Mutate`) with `Mutation`/`Rhs`\n- parser: `parse_program` parses `<path> = rhs`, `<path> += rhs`, `del(<path>)`;\n  read-only `parse` rejects mutations; `|=` is a clear \"not yet supported\" error\n- eval: `resolve_target` / `resolve_assign_target` / `resolve_rhs` locate the\n  single target node (new mapping keys route to the parent for insertion)\n- fidelity: a `FidelityWriter` seam (`src/fidelity/write.rs`) with a noyalib\n  backend mapping `=`/new-key/`+=`/`del` to set_value/insert_entry/push_back/\n  remove; each mutator's Result is the structural-integrity guard\n- cli/main: `-i`/`--in-place` writes back atomically (temp file + rename),\n  errors on stdin or a read-only filter; mutations always use the write path\n\nScalar writes match neighbouring quote style; += / new-key fragments render\nthrough the same Value -> noyalib emission (never a raw user string). A\nmulti-document edit applies to each document whose path resolves and leaves the\nothers byte-identical.\n\nCovers every f006 acceptance criterion (unit + integration + black-box CLI\ntests). Deferred structural edits (f007) and `|=` computed updates (f008) each\nfail with an actionable message. Also files b005 for a pre-existing\n`crossbeam-epoch` advisory reached only through the `criterion` dev-dependency.\n\n* fix(f006): evaluate RHS after target-skip; preserve file mode on -i\n\nCode-review follow-ups:\n\n- apply_to_doc resolved the RHS before checking whether the target resolves\n  in the current document. In a multi-document stream a path RHS that is\n  absent in a document which should be skipped (its target does not resolve)\n  turned that skip into a hard error. Resolve the target first and return\n  early on a skip, then evaluate the RHS.\n- write_in_place created the temp file with default (umask) permissions and\n  renamed it over the original, silently relaxing a restrictive mode (a 0600\n  secret became 0644). Carry the original file's permissions onto the temp\n  before the rename.\n\nRegression tests for both.\n\n* fix(f006): harden write path per multi-agent review\n\nAddress the verified findings from the xhigh code review of the write tier.\n\nCorrectness / security (the `-i` path and RHS):\n- No-match mutation is now a successful no-op (returns input unchanged),\n  matching jq/yq, so `del(.x)` across a batch no longer fails files lacking .x.\n- Reject a float RHS that overflows f64 (`1e999`) at lex time instead of\n  silently emitting the bare token `inf` (which reloads as the string \"inf\").\n- Reject a collection RHS for `+=` / new-key inserts with a clear message\n  rather than splicing mis-shaped multi-line YAML at exit 0.\n- Validate `-i`+stdin / `-i`+read-only-filter BEFORE reading input or applying\n  the mutation, so misuse fails fast instead of hanging or doing throwaway work.\n- write_in_place: resolve symlinks (edit the real file, keep the link); create\n  the temp with owner-only perms before writing so a 0600 secret is never\n  briefly world-readable; fsync the temp before the atomic rename so a crash\n  cannot leave a truncated file. Owner/SELinux/ACL/xattr/hardlink limits of\n  temp+rename are documented.\n\nCleanup:\n- Read queries no longer parse the filter twice: main threads the already\n  parsed Ast via new eval_ast_str / fidelity::run_ast.\n- Extract shared verify_stream_tiles_input and offending_key helpers (were\n  duplicated across the read engine and write adapter).\n- Add PathSeg::key_is_plain so insert_key tests a &str key without allocating.\n\nRegression tests for every fix; README + spec §12.1 updated. The one refuted\ncandidate (emit() fidelity) needed no change: noyalib's Display re-tiles\nverbatim source, not a re-serializer.\n\n* test(f006): cover the temp-file security property and -i stdin guard\n\nAdd binary unit tests for the write-back path:\n- write_private_synced creates the temp with no group/other access, so a\n  restricted file's contents are never exposed via the temp during the write\n  (directly tests the security fix, not just the final file mode).\n- in_place_path rejects stdin / '-' and accepts a real file path.\n\nCloses the test gap for finding #3 (the transient-exposure property was only\ncovered end-to-end via final file mode before).",
+          "timestamp": "2026-07-11T08:36:57+02:00",
+          "tree_id": "cfc3f32a0d9fcd2b06d160838c4bca6ac2ce03b7",
+          "url": "https://github.com/zoosky/yqr/commit/7bf75038c988928572138fb9a8ca6f115ffddae3"
+        },
+        "date": 1783751898524,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 501,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5037,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 254926,
+            "range": "± 9968",
             "unit": "ns/iter"
           }
         ]
