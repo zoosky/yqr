@@ -41,7 +41,7 @@ Arguments:
 
 Options:
   -r, --raw-output    Emit string results without YAML quoting
-      --normalize     Re-serialize output (drop comments, canonicalize scalars)
+  -N, --normalize     Re-serialize output (drop comments, canonicalize scalars)
   -i, --in-place      Edit the input file in place (mutating filters only)
       --engine <ENGINE>  Backend parser for byte-preserving reads (default: noyalib)
   -h, --help          Print help
@@ -100,8 +100,8 @@ Planned: object/array construction, builtins (`length`, `keys`, `select`,
 **yqr preserves formatting by default.** Untouched nodes are emitted as their
 **original source bytes**, so the identity filter reproduces the input exactly —
 comments, quoting, indentation, and line endings all survive. Pass
-**`--normalize`** to opt into the classic re-serializing pipeline instead, which
-canonicalizes scalars and drops comments.
+**`--normalize`** (`-N`) to opt into the classic re-serializing pipeline instead,
+which canonicalizes scalars and drops comments.
 
 `--engine <name>` selects *which* backend parser performs the byte-preserving
 read (default `noyalib`, the always-available lossless CST). The experimental

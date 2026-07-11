@@ -557,8 +557,8 @@ spec:
       quoting, indentation, and line endings survive, and the identity filter
       reproduces the input byte-for-byte, no flag required.
       <pre><span class="prompt">$</span> yqr '.' pod.yaml</pre>
-      Pass <code>--normalize</code> to opt into the classic, re-serializing
-      pipeline (comments dropped, scalars canonicalized).
+      Pass <code>--normalize</code> (<code>-N</code>) to opt into the classic,
+      re-serializing pipeline (comments dropped, scalars canonicalized).
       <code>--engine &lt;name&gt;</code> selects which backend parser performs the
       byte-preserving read (default <code>noyalib</code>); an unknown engine name
       is rejected up front:

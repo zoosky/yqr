@@ -61,7 +61,7 @@ pub struct Cli {
     /// identity filter reproduces the input exactly. Pass `--normalize` to run
     /// the classic re-serializing pipeline instead, which canonicalizes scalars
     /// and drops comments and other formatting.
-    #[arg(long = "normalize")]
+    #[arg(short = 'N', long = "normalize")]
     pub normalize: bool,
 
     /// Backend YAML parser for byte-preserving reads (default: 'noyalib').
@@ -133,6 +133,9 @@ mod tests {
         let long = Cli::try_parse_from(["yqr", "--normalize", "."]).unwrap();
         assert!(long.normalize);
         assert_eq!(long.engine, None);
+
+        let short = Cli::try_parse_from(["yqr", "-N", "."]).unwrap();
+        assert!(short.normalize);
 
         let with_engine =
             Cli::try_parse_from(["yqr", "--normalize", "--engine", "noyalib", "."]).unwrap();

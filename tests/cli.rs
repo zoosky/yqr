@@ -160,10 +160,12 @@ fn engine_selects_backend_for_the_default_read() {
 #[test]
 fn normalize_re_serializes_and_drops_comments() {
     // `--normalize` runs the classic pipeline: comments are dropped and scalars
-    // are canonicalized.
-    let out = run(&["--normalize", "."], "name: web  # inline\n");
-    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-    assert_eq!(out.stdout, "name: web\n", "comment must be normalized away");
+    // are canonicalized. The `-N` short flag is equivalent.
+    for flag in ["--normalize", "-N"] {
+        let out = run(&[flag, "."], "name: web  # inline\n");
+        assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+        assert_eq!(out.stdout, "name: web\n", "comment must be normalized away");
+    }
 }
 
 #[test]

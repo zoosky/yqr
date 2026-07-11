@@ -45,8 +45,8 @@ Invert the default and rename the opt-out.
   untouched nodes are emitted as their original source bytes; computed, absent,
   and unaddressable nodes fall back to typed rendering **per node** (the
   existing `Resolved::Synthetic`/`Absent`/`Unaddressable` seam).
-- **`--normalize` = classic pipeline.** Opts into `eval_ast_str` + `render`,
-  which re-serializes from the typed value (comments dropped, scalars
+- **`--normalize` (short `-N`) = classic pipeline.** Opts into `eval_ast_str` +
+  `render`, which re-serializes from the typed value (comments dropped, scalars
   canonicalized). This is the previous default, unchanged, now explicit.
 - **`--engine <name>`** selects the backend parser for the default
   byte-preserving read (default `noyalib`). Under `--normalize` the classic
@@ -88,7 +88,8 @@ where they specifically exercise the re-serializing pipeline.
 - [x] `yqr '.' file` reproduces `file` byte-for-byte with **no flag** (comments,
       blank lines, quoting, block scalars, CRLF, BOM, multi-document all survive).
 - [x] `yqr '.zip'` on `zip: 007` prints `007` by default (original spelling kept).
-- [x] `--normalize` runs the classic pipeline: comments dropped, `007` → `7`.
+- [x] `--normalize` (and its short flag `-N`) runs the classic pipeline:
+      comments dropped, `007` → `7`.
 - [x] `--engine <name>` selects the backend for the default read; `--engine
       noyalib '.'` equals bare `'.'`. Under `--normalize` the engine choice has
       no observable effect beyond validation.

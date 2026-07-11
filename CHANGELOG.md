@@ -22,9 +22,9 @@ pipeline moves behind `--normalize`.
 
 ### Added
 
-- **`--normalize` flag** for the classic re-serializing pipeline: it drops
-  comments and canonicalizes scalars (e.g. `007` becomes `7`) -- the previous
-  default behaviour.
+- **`--normalize` / `-N` flag** for the classic re-serializing pipeline: it
+  drops comments and canonicalizes scalars (e.g. `007` becomes `7`) -- the
+  previous default behaviour.
 
 ### Breaking
 
