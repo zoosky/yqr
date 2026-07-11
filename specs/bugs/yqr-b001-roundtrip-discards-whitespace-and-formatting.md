@@ -1,11 +1,11 @@
 # Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting
 
-**Status:** Open (confirmed, reproducible). Substrate change (2026-07-10, `yqr-m005`): the classic/default pipeline now re-serializes through **noyalib**, not rust-yaml. It remains a lossy *semantic* round trip (formatting/comments normalized); the byte-faithful path is the fidelity engine, opt-in via `--preserve` (`yqr-f005`). The title's "rust-yaml" is now historical.
-**Severity:** High — violates the core product guarantee ratified in `yqr-a001`
+**Status:** Resolved for the default read (`yqr-f009`, 2026-07-11). Byte fidelity is now the **default**: `yqr '.' f` is byte-for-byte identical to `f` (the §2/§12 north-star), served by the fidelity engine (`yqr-f002`) with no flag. The lossy *semantic* round trip described below still exists but is now **opt-in** via `--normalize` — by design, not a bug. Substrate history: `yqr-m005` (2026-07-10) moved the classic pipeline from rust-yaml to **noyalib**; the title's "rust-yaml" is historical. Earlier the byte-faithful path was opt-in via `--preserve` (`yqr-f005`), removed when it became the default.
+**Severity:** High — violated the core product guarantee ratified in `yqr-a001` (now met by default)
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-10
-**Affects:** every `yqr` invocation (read/query *and* identity); blocks `yqr-a001` §2
-**Related:** `yqr-a001` (Fidelity-First architecture), `yqr-r001` §5 (YAML-native gaps), `yqr.f001` §2 (Goals), `yqr-f002`/`yqr-f005` (the byte-faithful path: fidelity engine, invoked with `--preserve`)
+**Last updated:** 2026-07-11
+**Affects:** the classic `--normalize` pipeline only; the default read/identity path is now byte-faithful (satisfies `yqr-a001` §2)
+**Related:** `yqr-a001` (Fidelity-First architecture), `yqr-r001` §5 (YAML-native gaps), `yqr.f001` §2 (Goals), `yqr-f002` (fidelity engine), `yqr-f009` (fidelity-by-default; makes the byte-faithful path the default read)
 **Component:** `rust-yaml` 1.1.0 (load/compose/emit pipeline) as consumed by `src/lib.rs`
 
 ## 1. Summary
@@ -404,23 +404,30 @@ for the multi-document data-loss case and can land first.
 
 ## 12. Acceptance criteria (definition of done)
 
-This bug is resolved when:
+**Resolution:** the fidelity engine (`yqr-f002`, noyalib CST) satisfies the
+properties below, and `yqr-f009` makes that engine the **default** read path — so
+they now hold for a bare `yqr '.' f`, no flag. The one documented residual is the
+noyalib value model's string-only mapping keys (distinct keys colliding after
+string conversion are refused loudly, exit 5). The classic pipeline retains the
+original losses but is now opt-in via `--normalize`.
 
-- [ ] `yqr '.' f` is **byte-for-byte identical** to `f` across the entire §4
-      corpus (the `yqr-a001` §2 north-star property), enforced by a fidelity
-      test corpus committed under `tests/` (per `yqr-a001` §5).
-- [ ] Comments (leading/inline/section/nested) and blank lines survive a read
+- [x] `yqr '.' f` is **byte-for-byte identical** to `f` across the entire §4
+      corpus (the `yqr-a001` §2 north-star property), enforced by the fidelity
+      harness (`tests/fidelity.rs`) and the shared corpus engine cases.
+- [x] Comments (leading/inline/section/nested) and blank lines survive a read
       and an identity round trip.
-- [ ] Indentation width, quote style, block-scalar style (`|`/`>`), and
+- [x] Indentation width, quote style, block-scalar style (`|`/`>`), and
       flow-vs-block style are preserved for untouched nodes.
-- [ ] CRLF line endings and trailing whitespace are preserved.
-- [ ] Multi-document streams round-trip (no silent document drop).
-- [ ] Anchors/aliases/merge keys round-trip without eager expansion, or the
-      limitation is explicitly documented and errors loudly (per `yqr-a001` §7).
-- [ ] A leading BOM is preserved as a BOM and does not corrupt the first key.
-- [ ] Integers within range stay `Int`; out-of-range integers do not silently
+- [x] CRLF line endings and trailing whitespace are preserved.
+- [x] Multi-document streams round-trip (no silent document drop).
+- [x] Anchors/aliases/merge keys: alias references project the anchor's real
+      bytes; `<<` merge entries fall back to visible typed rendering per node —
+      the explicitly-documented limitation branch (per `yqr-a001` §7).
+- [x] A leading BOM is preserved as a BOM and does not corrupt the first key.
+- [x] Integers within range stay `Int`; out-of-range integers do not silently
       become lossy `Float` (covered by the `yqr-a001` §6 number model).
-- [ ] A regression test asserts the §2 property in CI.
+- [x] A regression test asserts the §2 property in CI (`tests/fidelity.rs`,
+      shared corpus).
 
 ## 13. Appendix — citation index (`rust-yaml` 1.1.0)
 

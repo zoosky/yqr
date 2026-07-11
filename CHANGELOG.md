@@ -4,6 +4,34 @@ All notable changes to `yqr` are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Byte fidelity becomes the default read behaviour; the classic re-serializing
+pipeline moves behind `--normalize`.
+
+### Changed
+
+- **Byte-preserving reads are now the default.** `yqr '.' file.yaml` reproduces
+  the input byte-for-byte -- comments, quoting, indentation, scalar spellings,
+  and line endings survive -- with no flag. Untouched nodes are emitted as their
+  original source bytes; computed, absent, and unaddressable nodes fall back to
+  typed rendering per node.
+- **`--engine` now selects the backend for the default (byte-preserving) read.**
+  Under `--normalize` the classic pipeline runs and the engine choice has no
+  observable effect beyond the up-front name validation.
+
+### Added
+
+- **`--normalize` / `-N` flag** for the classic re-serializing pipeline: it
+  drops comments and canonicalizes scalars (e.g. `007` becomes `7`) -- the
+  previous default behaviour.
+
+### Breaking
+
+- **`--preserve` / `-p` removed.** Byte preservation is now the default, so the
+  flag is gone. Replace `yqr -p '.' f` with `yqr '.' f`; use
+  `yqr --normalize '.' f` for the old re-serializing behaviour.
+
 ## [0.3.0] - 2026-07-10
 
 Byte/comment preservation becomes its own flag, decoupled from backend

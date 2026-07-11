@@ -5,7 +5,8 @@
 **Owner:** yqr maintainers
 **Related:** `yqr-f007` (write tier: structural edits — the `b004` gaps),
 `yqr-f008` (write tier: computed updates `|=`), `yqr-f002` (fidelity read floor /
-engine seam), `yqr-f005` (`--preserve`), `yqr-m002` §4/§6.2 (write-tier seam
+engine seam), `yqr-f009` (fidelity-by-default read; supersedes the `yqr-f005`
+`--preserve` flag), `yqr-m002` §4/§6.2 (write-tier seam
 design), `yqr-b004` (noyalib 0.0.14 mutation-API gaps), `yqr.f001` (M1 literals)
 
 > **Epic anchor.** This is the first of three features in the **Fidelity write
@@ -60,9 +61,9 @@ guarded mutators above:
   Without `-i`, the mutated document is printed to stdout (byte-exact except the
   edit).
 
-All writes go through the fidelity engine (`--preserve` semantics are implied
-for any mutating filter; the classic re-serializing pipeline is never used for
-edits).
+All writes go through the fidelity engine (byte-preserving semantics are implied
+for any mutating filter, independent of `--normalize`; the classic re-serializing
+pipeline is never used for edits).
 
 ## 4. Out of scope (deferred to sibling features)
 

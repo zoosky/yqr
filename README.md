@@ -10,8 +10,8 @@ raw text).
 It operates natively on YAML via the
 [`noyalib`](https://crates.io/crates/noyalib) engine — no lossy round trip
 through JSON — and uses [`clap`](https://crates.io/crates/clap) for its CLI.
-noyalib is both the parser/emitter for the standard pipeline and the lossless
-CST behind the `--preserve` fidelity path.
+noyalib is both the lossless CST behind the default byte-preserving read path
+and the parser/emitter for the classic `--normalize` pipeline.
 
 ## Install / build
 
@@ -41,9 +41,9 @@ Arguments:
 
 Options:
   -r, --raw-output    Emit string results without YAML quoting
-  -p, --preserve      Preserve byte-for-byte formatting (comments, quoting, ...)
+  -N, --normalize     Re-serialize output (drop comments, canonicalize scalars)
   -i, --in-place      Edit the input file in place (mutating filters only)
-      --engine <ENGINE>  Backend parser for --preserve reads (default: noyalib)
+      --engine <ENGINE>  Backend parser for byte-preserving reads (default: noyalib)
   -h, --help          Print help
   -V, --version       Print version
 ```
@@ -95,29 +95,32 @@ echo 'name: yqr' | yqr '.name[]?'   # prints nothing, exits 0
 Planned: object/array construction, builtins (`length`, `keys`, `select`,
 `map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
 
-## Byte-preserving reads (`--preserve`)
+## Byte-preserving reads (default) and `--normalize`
 
-By default yqr re-serializes results, which normalizes formatting (comments,
-quoting, indentation are lost). Add **`--preserve`** (`-p`) and untouched nodes
-are emitted as their **original source bytes** instead, so the identity filter
-reproduces the input exactly.
+**yqr preserves formatting by default.** Untouched nodes are emitted as their
+**original source bytes**, so the identity filter reproduces the input exactly —
+comments, quoting, indentation, and line endings all survive. Pass
+**`--normalize`** (`-N`) to opt into the classic re-serializing pipeline instead,
+which canonicalizes scalars and drops comments.
 
-`--preserve` and `--engine` are independent: `--preserve` decides *whether* to
-keep bytes, while `--engine <name>` selects *which* backend parser performs the
+`--engine <name>` selects *which* backend parser performs the byte-preserving
 read (default `noyalib`, the always-available lossless CST). The experimental
 `skald` backend is recognized but built only on the `feat/skald-engine` branch.
+Under `--normalize` the classic pipeline runs and the engine choice has no
+observable effect (an unknown name is still rejected up front).
 
 ```bash
 # Identity reproduces the file byte-for-byte -- comments, blank lines,
 # quoting, block scalars, CRLF, BOM, and multi-document streams survive
-yqr --preserve '.' config.yaml | diff config.yaml -   # no diff
+yqr '.' config.yaml | diff config.yaml -   # no diff (no flag needed)
 
 # Projections keep the original spelling
-echo "zip: 007" | yqr -p '.zip'      # => 007   (not 7)
-echo "s: 'hi'"  | yqr -p '.s'        # => 'hi'  (quotes kept)
+echo "zip: 007" | yqr '.zip'      # => 007   (not 7)
+echo "s: 'hi'"  | yqr '.s'        # => 'hi'  (quotes kept)
 
-# --engine picks the backend parser (default noyalib); pair it with --preserve
-yqr -p --engine noyalib '.' config.yaml | diff config.yaml -   # no diff
+# --normalize opts into the lossy classic pipeline
+echo "zip: 007" | yqr --normalize '.zip'   # => 7    (re-typed)
+yqr --normalize '.' config.yaml            # comments dropped, scalars canonicalized
 ```
 
 Results that are computed rather than selected (and nodes an engine cannot
@@ -125,13 +128,13 @@ address faithfully — entries merged in via `<<`, alias references) fall back t
 the regular typed rendering. Multi-document inputs run the filter against every
 document. `-r` keeps its usual meaning and prints string *values*.
 
-Preserve-mode notes:
+Fidelity notes:
 
 - Projected nested **block collections** are emitted at their original
   indentation (the slice is extended to the line start), so the output is
   uniformly indented and re-parses to the selected value.
-- **Empty input** produces no output in preserve mode (byte-identity with the
-  empty file), where the default pipeline prints `null`.
+- **Empty input** produces no output in the default (byte-preserving) mode
+  (byte-identity with the empty file), where `--normalize` prints `null`.
 - The noyalib backend's value model has **string-only mapping keys**: non-string
   keys (`true:`, `8080:`) are matched by spelling; distinct keys that collide
   after string conversion (`1` and `"1"`) are refused with an error. Duplicate
@@ -230,7 +233,7 @@ YAML   ──▶ noyalib::from_str ──▶ Value ──┘
 | `src/ast.rs`    | Filter AST node definitions                       |
 | `src/eval.rs`   | `Ast` × `Value` → stream of `Value`               |
 | `src/value.rs`  | yqr's `Value` model (converts to/from `noyalib`)  |
-| `src/fidelity/` | Byte-preserving read engine (`--preserve`) + write tier (`src/fidelity/write.rs`) |
+| `src/fidelity/` | Byte-preserving read engine (default reads) + write tier (`src/fidelity/write.rs`) |
 | `src/error.rs`  | `YqrError` + jq-style exit-code mapping            |
 | `src/cli.rs`    | `clap` argument parsing                           |
 | `src/lib.rs`    | Public API (`eval_str`, `render`)                 |

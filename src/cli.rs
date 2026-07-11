@@ -51,25 +51,26 @@ pub struct Cli {
     #[arg(short = 'i', long = "in-place")]
     pub in_place: bool,
 
-    // Feature f005: `--preserve` decouples byte fidelity from `--engine`.
-    /// Preserve byte-for-byte formatting on reads.
+    // Feature f009: byte fidelity is the default read behaviour; `--normalize`
+    // opts back into the classic re-serializing pipeline.
+    /// Normalize output instead of preserving the input's bytes.
     ///
-    /// Untouched nodes are emitted as their original source bytes: comments,
-    /// quoting, indentation, and line endings survive, and the identity filter
-    /// reproduces the input exactly. Without this flag yqr uses its standard
-    /// (re-serializing) pipeline, which normalizes formatting and drops
-    /// comments.
-    #[arg(short = 'p', long = "preserve")]
-    pub preserve: bool,
+    /// By default yqr preserves byte-for-byte formatting on reads: untouched
+    /// nodes are emitted as their original source bytes, so comments, quoting,
+    /// indentation, scalar spellings, and line endings survive, and the
+    /// identity filter reproduces the input exactly. Pass `--normalize` to run
+    /// the classic re-serializing pipeline instead, which canonicalizes scalars
+    /// and drops comments and other formatting.
+    #[arg(short = 'N', long = "normalize")]
+    pub normalize: bool,
 
-    /// Backend YAML parser to use for `--preserve` reads (default: 'noyalib').
+    /// Backend YAML parser for byte-preserving reads (default: 'noyalib').
     ///
-    /// This selects the parsing library only; it does not by itself turn on
-    /// byte preservation — pair it with `--preserve` for that. The experimental
-    /// 'skald' backend is recognized but built only on the `feat/skald-engine`
-    /// branch. Without `--preserve`, the standard pipeline runs and the backend
-    /// choice does not affect the output, though an unknown engine name is
-    /// still rejected up front.
+    /// This selects the parsing library for the default (fidelity) read path.
+    /// Under `--normalize` the classic pipeline runs and the backend choice does
+    /// not affect the output, though an unknown engine name is still rejected up
+    /// front. The experimental 'skald' backend is recognized but built only on
+    /// the `feat/skald-engine` branch.
     #[arg(long = "engine", value_name = "ENGINE")]
     pub engine: Option<String>,
 }
@@ -106,7 +107,7 @@ mod tests {
         assert_eq!(cli.filter, ".");
         assert_eq!(cli.file, None);
         assert!(!cli.raw_output);
-        assert!(!cli.preserve);
+        assert!(!cli.normalize);
         assert!(!cli.in_place);
         assert_eq!(cli.engine, None);
     }
@@ -126,18 +127,27 @@ mod tests {
     }
 
     #[test]
-    fn parses_preserve_flag() {
-        // Both the long and short spellings set the same flag, and it is
-        // independent of `--engine`.
-        let long = Cli::try_parse_from(["yqr", "--preserve", "."]).unwrap();
-        assert!(long.preserve);
+    fn parses_normalize_flag() {
+        // `--normalize` opts into the classic pipeline and is independent of
+        // `--engine`.
+        let long = Cli::try_parse_from(["yqr", "--normalize", "."]).unwrap();
+        assert!(long.normalize);
         assert_eq!(long.engine, None);
 
-        let short = Cli::try_parse_from(["yqr", "-p", "."]).unwrap();
-        assert!(short.preserve);
+        let short = Cli::try_parse_from(["yqr", "-N", "."]).unwrap();
+        assert!(short.normalize);
 
-        let both = Cli::try_parse_from(["yqr", "-p", "--engine", "noyalib", "."]).unwrap();
-        assert!(both.preserve);
-        assert_eq!(both.engine.as_deref(), Some("noyalib"));
+        let with_engine =
+            Cli::try_parse_from(["yqr", "--normalize", "--engine", "noyalib", "."]).unwrap();
+        assert!(with_engine.normalize);
+        assert_eq!(with_engine.engine.as_deref(), Some("noyalib"));
+    }
+
+    #[test]
+    fn preserve_flag_is_removed() {
+        // `--preserve`/`-p` were removed when fidelity became the default read
+        // behaviour; clap must reject them rather than silently accept.
+        assert!(Cli::try_parse_from(["yqr", "--preserve", "."]).is_err());
+        assert!(Cli::try_parse_from(["yqr", "-p", "."]).is_err());
     }
 }
