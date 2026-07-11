@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783751899378,
+  "lastUpdate": 1783753230723,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -419,6 +419,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 254926,
             "range": "± 9968",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8ac57afd0fe8d361372b7bef6cbafb7fab29b60f",
+          "message": "fix(b005): bump crossbeam-epoch to 0.9.20 to clear RUSTSEC-2026-0204 (#30)\n\n`cargo update -p crossbeam-epoch` moves the transitive pin 0.9.18 -> 0.9.20\n(Rust 1.97-compatible), clearing the advisory that reached yqr only through the\n`criterion` dev-dependency. No manifest or source change is needed. `cargo audit`\nnow exits 0 and the full suite stays green (187 tests); only one Cargo.lock line\nchanged. Marks b005 Resolved in the bug tracker.",
+          "timestamp": "2026-07-11T08:59:11+02:00",
+          "tree_id": "18ebc9968b686bc44068919442e46362241b69e3",
+          "url": "https://github.com/zoosky/yqr/commit/8ac57afd0fe8d361372b7bef6cbafb7fab29b60f"
+        },
+        "date": 1783753230462,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 511,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5178,
+            "range": "± 47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 253928,
+            "range": "± 760",
             "unit": "ns/iter"
           }
         ]
