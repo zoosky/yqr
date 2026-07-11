@@ -2,16 +2,21 @@
 
 [![Benchmarks](https://img.shields.io/badge/benchmarks-live%20dashboard-blue?logo=rust&logoColor=white)](https://zoosky.github.io/yqr/dev/bench/)
 
-`yqr` ("YAML query in Rust") is a jq-style Swiss Army knife for **YAML**.
-It reads a YAML document from a file or
-stdin, applies a jq-like filter expression, and emits the result(s) as YAML (or
-raw text).
+`yqr` ("YAML query in Rust") is a **fidelity-first**, jq-style command-line tool
+for **YAML**. It queries *and* edits YAML while preserving every byte it was not
+asked to change — comments, quoting, indentation, key order, and line endings all
+survive.
 
-It operates natively on YAML via the
-[`noyalib`](https://crates.io/crates/noyalib) engine — no lossy round trip
-through JSON — and uses [`clap`](https://crates.io/crates/clap) for its CLI.
-noyalib is both the lossless CST behind the default byte-preserving read path
-and the parser/emitter for the classic `--normalize` pipeline.
+- **Byte-exact reads, by default.** `yqr '.' file.yaml` reproduces the input
+  exactly — no flag, no reflow.
+- **Surgical edits.** `yqr -i '.spec.replicas = 5' deploy.yaml` rewrites only the
+  bytes the filter targets, or refuses — clean diffs, guaranteed. jq is JSON-only
+  and cannot preserve YAML formatting at all; yq edits in place but its docs admit
+  comment and whitespace issues. yqr changes nothing but the edit site, or errors.
+- **Native YAML, no JSON round-trip.** Parsing and emission run through the
+  [`noyalib`](https://crates.io/crates/noyalib) engine — the lossless CST behind
+  both the default read path and the classic `--normalize` pipeline; the CLI uses
+  [`clap`](https://crates.io/crates/clap).
 
 ## Install / build
 
@@ -79,21 +84,6 @@ echo 'a: {b: {c: 42}}' | yqr '.a | .b | .c'
 # Optional `?` suppresses errors
 echo 'name: yqr' | yqr '.name[]?'   # prints nothing, exits 0
 ```
-
-## Supported filters (M0)
-
-| Filter         | Meaning                                             |
-|----------------|-----------------------------------------------------|
-| `.`            | Identity                                            |
-| `.foo`         | Field access (`.["foo"]` for non-bareword keys)     |
-| `.a.b`         | Nested field access                                  |
-| `.[n]`         | Array index (`.[-1]` counts from the end)           |
-| `.[]`          | Iterate sequence elements / mapping values          |
-| `a \| b`       | Pipe                                                |
-| `f?`           | Suppress errors from `f`                            |
-
-Planned: object/array construction, builtins (`length`, `keys`, `select`,
-`map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
 
 ## Byte-preserving reads (default) and `--normalize`
 
@@ -210,6 +200,21 @@ Guarantees and limits:
 - **Deferred to later releases.** Computed updates (`|=`), key rename, and
   sequence reorder / comment edits each fail with a clear "not yet supported"
   message.
+
+## Query filters
+
+| Filter    | Meaning                                          |
+|-----------|--------------------------------------------------|
+| `.`       | Identity                                         |
+| `.foo`    | Field access (`.["foo"]` for non-bareword keys)  |
+| `.a.b`    | Nested field access                              |
+| `.[n]`    | Array index (`.[-1]` counts from the end)        |
+| `.[]`     | Iterate sequence elements / mapping values       |
+| `a \| b`  | Pipe                                             |
+| `f?`      | Suppress errors from `f`                         |
+
+Planned: object/array construction, builtins (`length`, `keys`, `select`,
+`map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
 
 ## Using yqr in Kubernetes (and beyond)
 

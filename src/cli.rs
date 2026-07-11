@@ -18,16 +18,18 @@ const LONG_VERSION: &str = concat!(
     env!("BUILD_TARGET"),
 );
 
-/// A jq-style command-line processor for YAML.
+/// A fidelity-first, jq-style CLI for YAML.
 ///
 /// Reads a YAML document from a file or stdin, applies a jq-style filter, and
-/// writes the resulting value(s) back as YAML.
+/// writes the result back as YAML -- preserving the input's bytes by default,
+/// and applying surgical edits (`=`, `+=`, `del`, `-i`) that touch only the
+/// targeted bytes.
 #[derive(Debug, Parser)]
 #[command(
     name = "yqr",
     version = SHORT_VERSION,
     long_version = LONG_VERSION,
-    about = "A jq-style command-line processor for YAML",
+    about = "A fidelity-first, jq-style CLI for YAML (query and surgically edit, byte-for-byte)",
     long_about = None,
 )]
 pub struct Cli {
