@@ -579,7 +579,12 @@ yqr: io error: unknown engine "bogus" (available: noyalib, skald)</pre>
       <code>del(&hellip;)</code>:
       <pre><span class="prompt">$</span> yqr <span class="filter">'.spec.replicas = 5'</span> deploy.yaml
 <span class="prompt">$</span> yqr <span class="filter">'.spec.ports += 9090'</span> deploy.yaml
-<span class="prompt">$</span> yqr <span class="filter">'del(.metadata.labels)'</span> deploy.yaml</pre>
+<span class="prompt">$</span> yqr <span class="filter">'del(.metadata.labels)'</span> deploy.yaml
+<span class="prompt">$</span> yqr <span class="filter">'del(.spec.template)'</span> deploy.yaml   <span class="filter"># a nested block, closed up cleanly</span></pre>
+      <code>del</code> removes multi-line and nested block entries as well as
+      single-line ones, closing up the gap and leaving every surviving byte
+      identical; deleting the only entry of a block, or an item of a flow
+      collection (<code>[a, b]</code>), is refused with a clear message.
       Add <code>-i</code> (<code>--in-place</code>) and the file is rewritten
       atomically &mdash; a <code>git diff</code> touches only the line you
       changed. An edit that would restructure the document is refused (exit 5)

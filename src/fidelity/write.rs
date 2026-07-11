@@ -24,6 +24,12 @@ use crate::error::{Result, YqrError};
 use crate::eval::{AssignTarget, resolve_assign_target, resolve_rhs, resolve_target};
 use crate::fidelity::{BackendId, Path, PathSeg};
 
+// The structural-delete fallback (multi-line / nested block entries) lives in a
+// sub-module so the byte-arithmetic concern stays separate from the value-write
+// trait. It extends `NoyalibWriter` with `delete_structural`, addressing the
+// same private state through Rust's ancestor-module privacy.
+mod delete;
+
 /// A source-preserving *writer* over one parsed YAML input.
 ///
 /// Implementations own an editable view of the document stream and apply
@@ -198,6 +204,15 @@ impl NoyalibWriter {
             .get_mut(doc)
             .ok_or_else(|| YqrError::eval(format!("document index {doc} out of range ({len})")))
     }
+
+    /// Bounds-checked shared document accessor (used by the structural-delete
+    /// fallback, which reads spans and source bytes before it mutates).
+    fn doc_ref(&self, doc: usize) -> Result<&::noyalib::cst::Document> {
+        let len = self.docs.len();
+        self.docs
+            .get(doc)
+            .ok_or_else(|| YqrError::eval(format!("document index {doc} out of range ({len})")))
+    }
 }
 
 impl FidelityWriter for NoyalibWriter {
@@ -247,9 +262,14 @@ impl FidelityWriter for NoyalibWriter {
 
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()> {
         let path_str = noyalib_path(path)?;
-        self.doc_mut(doc)?
-            .remove(&path_str)
-            .map_err(|e| YqrError::eval(format!("cannot delete {path_str:?}: {e}")))
+        // noyalib 0.0.14's first-class `remove` handles only single-line block
+        // entries; a multi-line / nested value makes it refuse (b004 2.4). On
+        // refusal, fall through to the interim `replace_span` fallback, which
+        // owns the byte arithmetic behind the same structural-integrity guard.
+        match self.doc_mut(doc)?.remove(&path_str) {
+            Ok(()) => Ok(()),
+            Err(_) => self.delete_structural(doc, path),
+        }
     }
 
     fn emit(&self) -> String {
@@ -483,18 +503,33 @@ mod tests {
     }
 
     #[test]
-    fn multi_line_delete_is_refused() {
-        // Deleting a nested/multi-line entry is deferred; it must error, not
-        // silently corrupt the document.
-        let err = apply(
+    fn multi_line_delete_removes_the_nested_entry() {
+        // A nested/multi-line entry is deleted by the structural fallback,
+        // closing up its owned lines and leaving the sibling byte-identical.
+        let out = apply(
             BackendId::NoyalibCst,
             &Mutation::Delete {
                 path: crate::parser::parse(".outer").expect("valid"),
             },
             "outer:\n  inner: 1\nother: 2\n",
         )
+        .unwrap();
+        assert_eq!(out, "other: 2\n");
+    }
+
+    #[test]
+    fn sole_entry_delete_is_refused() {
+        // Removing the only entry of a block would leave an empty collection
+        // (a structural change); it is refused, not silently emptied.
+        let err = apply(
+            BackendId::NoyalibCst,
+            &Mutation::Delete {
+                path: crate::parser::parse(".only").expect("valid"),
+            },
+            "only:\n  a: 1\n  b: 2\n",
+        )
         .unwrap_err();
-        assert!(matches!(err, YqrError::Eval(_)));
+        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("only entry")));
     }
 
     #[test]

@@ -154,7 +154,7 @@ The mutation surface (v1):
 | `<path> = <value>`        | Replace the scalar at `path` (style-matched quoting) |
 | `<path>.<newkey> = <value>` | Add a new mapping entry under an existing mapping  |
 | `<path> += <value>`       | Append an item to the block sequence at `path`       |
-| `del(<path>)`             | Remove the single-line block entry at `path`         |
+| `del(<path>)`             | Remove the block entry at `path` (single- or multi-line) |
 
 `<value>` is a scalar literal (`5`, `1.5`, `"web"`, `true`, `false`, `null`) or a
 `.`-rooted path that copies the value found at another location.
@@ -171,9 +171,10 @@ echo 'spec:
 # Append to a block sequence at the right indent
 yqr '.spec.ports += 9090' deploy.yaml
 
-# Add a new key, delete an entry
+# Add a new key, delete an entry (a nested/multi-line block closes up cleanly)
 yqr '.metadata.env = "prod"' deploy.yaml
 yqr 'del(.metadata.labels)' deploy.yaml
+yqr 'del(.spec.template)' deploy.yaml
 
 # Edit the file in place (rewritten atomically: temp file + rename)
 yqr -i '.spec.replicas = 5' deploy.yaml
@@ -198,9 +199,14 @@ Guarantees and limits:
   others are emitted byte-identically.
 - **Scalar RHS only.** `=`, `+=`, and new-key values are scalars (number, string,
   bool, null) or a path copying a scalar; a collection RHS is refused.
-- **Deferred to later releases.** Computed updates (`|=`), key rename, sequence
-  reorder, multi-line/nested/sole-entry deletes, and comment edits each fail with
-  a clear "not yet supported" message.
+- **Structural delete.** `del` removes multi-line and nested block entries too,
+  not just single-line ones; it closes up the entry's lines and leaves every
+  surviving byte identical. Deleting the *only* entry of a block (which would
+  empty it) or an item of a *flow* collection (`[a, b]`) is refused with a clear
+  message.
+- **Deferred to later releases.** Computed updates (`|=`), key rename, and
+  sequence reorder / comment edits each fail with a clear "not yet supported"
+  message.
 
 ## Using yqr in Kubernetes (and beyond)
 

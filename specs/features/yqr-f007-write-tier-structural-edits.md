@@ -1,29 +1,27 @@
 # yqr.f007 — Write tier: structural edits (the `b004` gaps)
 
-**Status:** Draft (stub — gated on upstream noyalib)
+**Status:** In Progress (structural **delete** shipped on the interim
+`replace_span` fallback; comment editing, key rename, and sequence reorder
+remain deferred)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
 on), `yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog), `yqr-m002`
 §4/§6.2 (write-tier seam)
 
-> **Stub.** Detail is deliberately deferred: the gap inventory already lives in
-> `yqr-b004`, and this feature is gated on upstream noyalib work whose shape may
-> change. This spec is a roadmap marker; it gets fleshed out when f006 has
-> shipped and the first upstream API lands.
-
 ## 1. Scope
 
 The surgical edits that have **no first-class API** in noyalib 0.0.14 and so are
 excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 
-- **Comment editing** — add / change / remove a comment attached to a node
-  (`b004` 2.1; comments are read-only in 0.0.14).
-- **Key rename** — `.a.b` key renamed in place, preserving `:` and value
-  (`b004` 2.2).
-- **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
 - **Structural delete** — multi-line, nested, sole-entry, and flow deletes that
-  `Document::remove` rejects (`b004` 2.4).
+  `Document::remove` rejects (`b004` 2.4). **Shipped** (§5).
+- **Comment editing** — add / change / remove a comment attached to a node
+  (`b004` 2.1; comments are read-only in 0.0.14). **Deferred** (§6).
+- **Key rename** — `.a.b` key renamed in place, preserving `:` and value
+  (`b004` 2.2). **Deferred** (§6).
+- **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
+  **Deferred** (§6).
 
 ## 2. Dependencies & approach
 
@@ -32,25 +30,111 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
   (issues disabled upstream; #118/#123 precedent, `b004` §5). yqr then calls the
   guarded API directly.
 - **Interim:** where an upstream API is not yet available, yqr performs the edit
-  via raw `Document::replace_span`, owning the indent/quote arithmetic itself,
-  behind the same re-parse-safety guard f006 uses (see `f006` §7). Each such
+  via raw `Document::replace_span`, owning the indent/quote/line arithmetic
+  itself, behind an **integrity guard yqr enforces** (§3). `replace_span`
+  guarantees only that the result is *valid YAML*, not that it preserves
+  structure (`b004` 2.5), so the guard is yqr's, not the backend's. Each such
   fallback is called out in code and tests as a temporary path.
 
 ## 3. Structural-integrity contract
 
 Identical to `f006` §7: an accepted edit changes only the targeted node's bytes;
 an edit that would restructure the document is refused (exit 5); `-i` leaves the
-file untouched on refusal.
+file untouched on refusal. Because `replace_span` does not enforce this, each
+interim fallback must **prove** the property before committing: apply the edit to
+a private copy, re-parse it, and commit only if the re-parsed document equals the
+original value with exactly the target change applied — otherwise refuse, leaving
+the document untouched.
 
-## 4. Acceptance criteria (outline)
+## 4. Acceptance criteria
 
+- [x] Delete of a multi-line / nested node, byte-exact elsewhere; a clear error
+      where still unsupported (sole-entry, flow).
+- [x] Every interim `replace_span` fallback is guarded and covered by a
+      byte-exact test.
 - [ ] Comment set/insert/remove at a resolved path, byte-exact elsewhere.
 - [ ] `.old |= key-rename` (final syntax TBD) renames a key, preserving value +
       trailing comment.
 - [ ] Sequence reorder/move/swap by index, re-parse-guarded.
-- [ ] Delete of a multi-line / nested / sole-entry / flow node, or a clear error
-      where still unsupported.
-- [ ] Every interim `replace_span` fallback is guarded and covered by a
-      byte-exact test.
 
-_(Criteria firm up once the upstream API surface is known.)_
+## 5. Structural delete (shipped)
+
+### 5.1 Surface
+
+No new grammar: `del(<path>)` already parses (`f006`). f006 routed every delete
+through noyalib's `Document::remove`, which handles only single-line block
+entries and refuses everything else. f007 keeps `remove` as the first choice and
+adds a **fallback** for the entries it refuses:
+
+```
+del(path) -> Document::remove(path)              # single-line block entry
+          └─ on refusal -> delete_structural()   # multi-line / nested (interim)
+```
+
+`delete_structural` lives in `src/fidelity/write/delete.rs`, extending
+`NoyalibWriter` (the value-write trait stays in `write.rs`; the byte-arithmetic
+concern is a sibling sub-module).
+
+### 5.2 Algorithm
+
+For the target entry (final path segment `last`, resolved value byte offset
+`value_start` from `Document::span_at`):
+
+1. **Locate the entry's first line.** Walk back from `value_start` over
+   insignificant whitespace/newlines to the entry marker (`:` for a mapping key,
+   `-` for a sequence index), stepping over a trailing line comment on the key
+   line (`key:  # note`). The marker's line start is the entry's first line.
+2. **Compute the owned lines.** From the first line, include every following line
+   indented **deeper** than the key/`-` column (the entry's continuation), plus
+   interior blank lines; exclude trailing blank lines so surviving separation is
+   preserved. The deletion span is `[first_line_start, last_owned_line_end)` —
+   always a whole-line range, so it can never eat a preceding comment or a
+   following sibling.
+3. **Refuse the unsupported shapes** with a clear message: the **sole entry** of
+   a block (removing it would empty the block, which re-parses as `null`), and an
+   item of a **flow** collection (`[a, b]` / `{a: 1}`, detected from the parent's
+   own bytes).
+4. **Splice and guard.** Remove the span, re-parse the edited document, and
+   commit only if it lowers to the original document value with the target
+   removed (mapping key order preserved, sequence indices shifted). A dangling
+   alias (deleting a referenced anchor), an over-broad span, or a flow mis-edit
+   all diverge here and are refused with the document untouched.
+
+### 5.3 Why this is safe
+
+The deletion span is always the entry's own whole lines (key line through the
+last deeper-indented content line). It cannot extend above the key line or into a
+sibling, so surviving nodes keep their exact bytes by construction. The only
+proof obligation left — that the removed lines are precisely the target's — is
+discharged by the re-parse-equals-expected guard (§3). The worst failure mode is
+therefore a *refusal* of a deletable entry (a benign over-refusal), never a
+silent corruption.
+
+### 5.4 Coverage
+
+Unit (`write/delete.rs`), library (`tests/integration.rs`), and CLI
+(`tests/cli.rs`) tests cover: nested block-mapping delete; multi-line
+sequence-item delete; comment/blank-line/sibling preservation; a comment on the
+key line; last-entry and multi-document deletes; and the refusals (sole entry,
+sole top-level entry, flow item, alias-breaking delete). `-i` writes the
+closed-up document back atomically; a refused delete leaves the file unchanged.
+
+## 6. Deferred gaps (roadmap)
+
+The remaining three gaps each need **new user-facing grammar** the epic has not
+settled, plus harder byte arithmetic; they stay deferred and continue to error
+with a clear "not yet supported" message:
+
+- **Comment editing** (`b004` 2.1) — needs a comment-addressing syntax and
+  `#`-prefix / whitespace fixup over `comments_at` + `replace_span`.
+- **Key rename** (`b004` 2.2) — needs a rename syntax and the key-token span
+  (`span_at` resolves the *value* span, not the key), then `replace_span`
+  preserving the `:`, value, and trailing comment.
+- **Sequence reorder** (`b004` 2.3) — needs a reorder syntax and a multi-splice
+  that re-bases offsets after each move.
+
+Each is a `PR-with-fix` candidate upstream first (the preferred path, §2); the
+interim `replace_span` approach applies if the upstream API does not land.
+
+_(These criteria firm up once the grammar and the upstream API surface are
+known.)_
