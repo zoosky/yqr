@@ -94,10 +94,9 @@ comments, quoting, indentation, and line endings all survive. Pass
 which canonicalizes scalars and drops comments.
 
 `--engine <name>` selects *which* backend parser performs the byte-preserving
-read (default `noyalib`, the always-available lossless CST). The experimental
-`skald` backend is recognized but built only on the `feat/skald-engine` branch.
-Under `--normalize` the classic pipeline runs and the engine choice has no
-observable effect (an unknown name is still rejected up front).
+read (default `noyalib`, the always-available lossless CST). Under `--normalize`
+the classic pipeline runs and the engine choice has no observable effect (an
+unknown name is still rejected up front).
 
 ```bash
 # Identity reproduces the file byte-for-byte -- comments, blank lines,
