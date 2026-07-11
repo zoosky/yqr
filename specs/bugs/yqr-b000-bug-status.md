@@ -12,19 +12,20 @@ status tracker convention).
 |-----|-------|----------|--------|---------|
 | [b001](yqr-b001-roundtrip-discards-whitespace-and-formatting.md) | Round-trip through the default pipeline discards whitespace, comments, and formatting | High | Open (default pipeline is a lossy semantic round trip — now through noyalib, `yqr-m005`; the byte-faithful path is the fidelity engine, opt-in via `--preserve`, `yqr-f005`) | `yqr-a001`, `yqr-r001`, `yqr.f001`, `yqr-f002`, `yqr-f005`, `yqr-m005` |
 | [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Open (upstream noyalib 0.0.14; the write tier's structural edits `yqr-f007`; the value-write tier `yqr-f006` avoids these gaps) | `yqr-b002`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007` |
-| [b005](yqr-b005-crossbeam-epoch-advisory-via-criterion.md) | `cargo audit` fails on `crossbeam-epoch` advisory (RUSTSEC-2026-0204) via `criterion` dev-dep | Low | Open (dev-dependency only; refresh the transitive pin to `crossbeam-epoch >= 0.9.20`) | `yqr-m001` |
 
 ## Resolved
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b005](yqr-b005-crossbeam-epoch-advisory-via-criterion.md) | `cargo audit` fails on `crossbeam-epoch` advisory (RUSTSEC-2026-0204) via `criterion` dev-dep | Low | Resolved — `cargo update -p crossbeam-epoch` bumped the transitive pin `0.9.18 -> 0.9.20`; `cargo audit` exits 0, lockfile-only change | `yqr-m001` |
 | [b002](yqr-b002-noyalib-cst-span-and-key-model-deficiencies.md) | noyalib CST deficiencies: span boundaries, duplicate-key policy, string-only key model | Medium | Resolved — all 7 fixes released upstream in noyalib 0.0.14 (2.1 in 0.0.13; 2.2-2.7 in the v0.0.14 release #160); yqr pins crates.io `noyalib = "0.0.14"`, git-dep dropped — `yqr-m004`, `yqr-f004` | `yqr-f002`, `yqr-f004`, `yqr-r002`, `yqr-m002` |
 | [b003](yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker.md) | rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection | Medium | Resolved (moot) — the rust-yaml fork backend was removed when yqr consolidated on noyalib (`yqr-m005`); no longer affects yqr | `yqr-m005`, `yqr-b001`, `yqr-m002` |
 
 ## Summary
 
 - Total bugs: 5
-- Open: 3 (1 High — b001; 1 Medium — b004; 1 Low — b005, a `criterion` dev-dep advisory)
-- Resolved: 2 (b002 — 2.2-2.7 fixes released in noyalib 0.0.14, git-dep dropped;
+- Open: 2 (1 High — b001; 1 Medium — b004)
+- Resolved: 3 (b005 — `crossbeam-epoch` advisory cleared by `cargo update`;
+  b002 — 2.2-2.7 fixes released in noyalib 0.0.14, git-dep dropped;
   b003 — moot after the single-engine consolidation removed the rust-yaml
   backend, `yqr-m005`)

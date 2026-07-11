@@ -1,8 +1,13 @@
 # yqr.b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)
 
-**Status:** Open
+**Status:** Resolved
 **Severity:** Low
 **Related:** `yqr-m001` (CI/release), `.agent/skills/dep-upgrade`
+
+> **Resolved.** `cargo update -p crossbeam-epoch` bumped the transitive pin
+> `0.9.18 -> 0.9.20` (Rust 1.97-compatible); no manifest or code change was
+> needed. `cargo audit` now exits 0, the full suite stays green (187 tests), and
+> only the one lockfile line changed.
 
 ## Summary
 
@@ -53,6 +58,6 @@ and re-run the quality gate.
 
 ## Acceptance criteria
 
-- [ ] `cargo audit` reports no vulnerabilities.
-- [ ] `Cargo.lock` selects `crossbeam-epoch >= 0.9.20`.
-- [ ] `bash .github/scripts/local-ci.sh` is fully green.
+- [x] `cargo audit` reports no vulnerabilities.
+- [x] `Cargo.lock` selects `crossbeam-epoch >= 0.9.20`.
+- [x] `bash .github/scripts/local-ci.sh` is fully green.
