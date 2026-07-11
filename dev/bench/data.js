@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783762102862,
+  "lastUpdate": 1783763430824,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -503,6 +503,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 207016,
             "range": "± 9533",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dbf43e518a014fc7888220833f9b8edc422458cf",
+          "message": "fix(b006): correct structural-delete trivia handling and byte fidelity (#32)\n\nThe f007 structural-delete fallback derived the deleted byte range from an\nindentation walk backed only by a semantic Value-equality guard. Because the\nValue model carries no comments or blank lines, the guard was blind to trivia\nand several edits committed a byte-corruption at exit 0.\n\n- Derive the owned range from noyalib's authoritative value span (span_at)\n  instead of an indentation heuristic: a following sibling's comment survives,\n  an interleaved comment goes with its entry, and a keep-chomped (|+) scalar's\n  trailing blank lines are owned (no stray blank line).\n- Recover a same-column block sequence's end from its last item, so the common\n  K8s / GitHub Actions / Ansible list style deletes cleanly instead of being\n  refused.\n- Fold a contiguous same-indent head comment into the delete, so a comment is\n  never silently re-attributed to the following sibling; a blank-detached\n  comment is left in place.\n- Commit via the byte-preserving replace_span (in-place buffer splice) so an\n  untouched node can never be normalized by a parse->emit round-trip.\n- Detect a root-level flow collection for a clear message; thread the wrapped\n  remove error into the fallback's generic message; share walk_value from\n  noyalib.rs; consume the Value in remove_at_path instead of cloning the doc.\n\nAdds regression tests for each case and documents b006 (Resolved).",
+          "timestamp": "2026-07-11T11:49:13+02:00",
+          "tree_id": "25007a27e8a78dfc961c5623f0b42f444ad76daf",
+          "url": "https://github.com/zoosky/yqr/commit/dbf43e518a014fc7888220833f9b8edc422458cf"
+        },
+        "date": 1783763430389,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 528,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5040,
+            "range": "± 45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 260140,
+            "range": "± 1725",
             "unit": "ns/iter"
           }
         ]
