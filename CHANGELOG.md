@@ -6,6 +6,11 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- The pinned Rust toolchain was updated from 1.97 to 1.97.1 (point release;
+  no MSRV change -- `rust-version` stays 1.97).
+
 ## [0.4.0] - 2026-07-11
 
 The fidelity write tier arrives: surgical, byte-preserving edits that change only

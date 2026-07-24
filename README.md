@@ -27,7 +27,7 @@ cargo install yqr
 # binary at ~/.cargo/bin/yqr
 ```
 
-Or build from a source checkout (requires the Rust **1.97** toolchain, pinned
+Or build from a source checkout (requires the Rust **1.97.1** toolchain, pinned
 via `rust-toolchain.toml`):
 
 ```sh
