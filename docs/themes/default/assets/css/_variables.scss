@@ -1,31 +1,41 @@
 /// Design tokens as CSS custom properties (Feature 096).
 /// All color, font, spacing, and radius values are defined here
 /// so partials can reference `var(--color-*)` instead of hardcoded hex.
+///
+/// yqr design system, taken from the hand-authored home page
+/// (docs/content/home.html): an ink/brass/teal chart aesthetic.
+/// Light mode uses the home page's "paper" card palette; dark mode uses
+/// its ink background palette verbatim. Core tokens:
+///   ink #0b1524 / ink-2 #0f1d33 / panel #132340
+///   paper #f2ecda / paper-line #ddd3b2
+///   brass #c68a3e / brass-soft #e0b169
+///   route (teal) #4fb3ac / route-soft #2c6b67
+///   mark (red) #c1443c / ok (green) #5fae7a
 
 :root {
-  --color-text: #333;
-  --color-text-muted: #666;
-  --color-text-faint: #888;
-  --color-text-tag: #555;
-  --color-link: #cc3f32;
-  --color-bg: #fff;
-  --color-bg-subtle: #f8f8f8;
-  --color-bg-muted: #f4f4f4;
-  --color-bg-tag: #f0f0f0;
-  --color-bg-tag-hover: #e0e0e0;
-  --color-border: #eee;
-  --color-border-strong: #ddd;
-  --color-nav-label: #999;
-  --color-nav-pill-hover-bg: #e8e8e8;
-  --color-nav-pill-active-bg: rgba(255, 79, 62, 0.08);
-  --font-sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display: "Syne", "Source Sans 3", sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", "Fira Code", monospace;
+  --color-text: #332b1c;
+  --color-text-muted: #5a4c33;
+  --color-text-faint: #8a7a5e;
+  --color-text-tag: #5a4c33;
+  --color-link: #2c6b67;
+  --color-bg: #f2ecda;
+  --color-bg-subtle: #ece4cc;
+  --color-bg-muted: #e6dcc0;
+  --color-bg-tag: #e9e1c9;
+  --color-bg-tag-hover: #ddd3b2;
+  --color-border: #ddd3b2;
+  --color-border-strong: #c9bd96;
+  --color-nav-label: #8a7a5e;
+  --color-nav-pill-hover-bg: #e6dcc0;
+  --color-nav-pill-active-bg: rgba(198, 138, 62, 0.14);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, Helvetica, Arial, sans-serif;
+  --font-display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --max-width: 800px;
   --header-max-width: 1400px;
   --sidebar-width: 260px;
   --toc-width: 220px;
-  --color-sidebar-active-bg: rgba(255, 79, 62, 0.08);
+  --color-sidebar-active-bg: rgba(198, 138, 62, 0.14);
   // Diagram warning-box palette (Feature f161n).
   // Used by `.diagram-warning` and `.mermaid-diagram--error`. The
   // warning-box SVG itself reads `--diagram-warning-*` aliases set in
@@ -36,9 +46,9 @@
   //   --color-warning-bg     background fill behind the box
   //   --color-warning-highlight  bar behind the offending source line
   --color-warning-text: #92400e;
-  --color-warning-border: #d97706;
-  --color-warning-bg: #fef3c7;
-  --color-warning-highlight: #fde68a;
+  --color-warning-border: #c68a3e;
+  --color-warning-bg: #f5e7c8;
+  --color-warning-highlight: #ecd9a8;
   --line-height: 1.6;
   --radius-sm: 3px;
   --radius-md: 5px;

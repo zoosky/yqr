@@ -27,7 +27,7 @@ styling:
     typography: true
     extend:
       colors:
-        brand: "#FF4F3E"
-        accent: "#0066cc"
+        brand: "#c68a3e"
+        accent: "#4fb3ac"
   processing:
     minify: true

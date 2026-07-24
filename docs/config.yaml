@@ -6,8 +6,14 @@
 #                      spec tree, served as flat-file pages without any
 #                      restructuring
 #
+# The home page is NOT rendered by the CMS: the hand-authored
+# ./content/home.html (its own embedded design) is copied verbatim to
+# output/index.html after the build. The theme -- restyled with the home
+# page's ink/brass/teal design tokens -- covers everything else.
+#
 # Local development:  cd docs && accent serve
 # Static build:       cd docs && accent build --clean
+#                     cp content/home.html output/index.html
 # The GitHub Pages workflow (.github/workflows/pages.yml) builds with the
 # same config and rewrites root-absolute links for the /yqr/ sub-path.
 

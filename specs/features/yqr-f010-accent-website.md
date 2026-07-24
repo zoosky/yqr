@@ -24,15 +24,21 @@ a page; no wrapper folders, no required frontmatter):
 
 - **Site root:** `docs/` holds `config.yaml`, `content/`, and the vendored
   theme under `themes/default/`.
-- **Home page:** `docs/content/index.md` — the former `home.html` content
-  ported to markdown; the Accent theme owns all styling.
+- **Home page:** the hand-authored `docs/content/home.html` is served
+  **verbatim** — copied to `output/index.html` after the build, keeping its
+  own embedded design exactly as authored. It contains no root-absolute
+  URLs, so the sub-path rewrite leaves it byte-identical.
 - **Spec tree:** `../specs` is mounted at `/specs` via `content.mounts` and
   served as-is; each category directory carries a `README.md` index so it
   appears as a sidebar section. Relative `*.md` links between specs resolve
   to clean page URLs automatically.
 - **Theme:** the Accent CMS default docs theme (sidebar, search, dark mode,
-  code copy), vendored into `docs/themes/default/` and de-branded for yqr
-  (compass logo/favicon, yqr footer, sidebar rooted at `/specs/`).
+  code copy), vendored into `docs/themes/default/` and restyled with the
+  home page's design system: the ink/brass/teal palette (dark mode is the
+  home page's ink theme verbatim; light mode its paper card palette),
+  Georgia serif display type, system sans body, JetBrains Mono code, and
+  the brass-and-teal compass as logo/favicon. Sidebar rooted at `/specs/`;
+  yqr footer.
 - **Sub-path serving:** GitHub Pages serves the repo at
   `https://zoosky.github.io/yqr/`, but Accent emits root-absolute links with
   no sub-path setting. `.github/scripts/pages-path-prefix.sh` rewrites every
@@ -54,8 +60,10 @@ Local development uses the same binary: `cd docs && accent serve` (or
 
 - [x] `cd docs && accent build --clean` renders the full site: home page,
       `/demo`, and every spec under `/specs/<category>/<spec-name>`.
-- [x] The home page is the ported `home.html` content, styled entirely by the
-      Accent theme (the hand-written HTML file is removed).
+- [x] The home page is `docs/content/home.html` served verbatim at `/` —
+      byte-identical to the source file, its embedded design untouched.
+- [x] The theme's light and dark palettes, fonts, and logo derive from the
+      home page's design tokens (no colors or faces outside its system).
 - [x] The specs tree is served from `specs/` unmodified (flat-file model,
       no content restructuring), with sidebar sections per category.
 - [x] Cross-spec relative `*.md` links resolve to working site URLs.

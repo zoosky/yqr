@@ -9,7 +9,7 @@
        canonical, Open Graph, Twitter Cards, hreflang, and the open meta map. #}
     {% include "partials/head_meta.html.jinja" %}
     <link rel="icon" type="image/svg+xml" href="/theme/assets/favicon.svg">
-    <meta name="theme-color" content="#FF4F3E">
+    <meta name="theme-color" content="#0b1524">
     {# Canonical now emitted by partials/head_meta.html.jinja (build-safe). #}
     {# Feature f082: cdn_url() rewrites asset paths to the configured CDN origin
        when CDN integration is enabled (Pro), and returns the path unchanged
@@ -20,13 +20,13 @@
     {# Feature f082: to serve Google Fonts privately through the CMS origin
        (no visitor IP leak), enable cdn.font_proxy and link them via:
        <link rel="stylesheet" href="{{ font_css_url('Inter:wght@400;700') }}"> #}
-    {# Brand fonts, shared with accentcms.dev (Syne display, Source Sans 3
-       body, JetBrains Mono code). Self-hosting via font_proxy is the
-       planned follow-up above. #}
+    {# yqr type system (from docs/content/home.html): Georgia serif display,
+       system sans body, JetBrains Mono code. Only the mono face is a
+       webfont; serif and sans resolve locally. #}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     {% if theme.styling is defined and theme.styling.tailwind_cdn %}
     <script src="https://cdn.tailwindcss.com"></script>
@@ -64,8 +64,8 @@
         <nav>
             <a href="/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" stroke="#FF4F3E" stroke-width="1.6" />
-                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#FF4F3E" stroke-width="1.6"
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
                         stroke-linecap="round" />
                 </svg>{{ site.name }}</a>
             <ul>

@@ -27,8 +27,8 @@
 
   &:hover,
   &[aria-expanded="true"] {
-    border-color: var(--color-accent, #FF4F3E);
-    color: var(--color-accent, #FF4F3E);
+    border-color: var(--color-accent, #c68a3e);
+    color: var(--color-accent, #c68a3e);
     background: var(--color-bg-hover, #fff1ef);
   }
 }
@@ -85,8 +85,8 @@
     transition: border-color 0.15s, box-shadow 0.15s;
 
     &:focus {
-      border-color: var(--color-accent, #FF4F3E);
-      box-shadow: 0 0 0 3px rgba(255, 79, 62, 0.15), 0 8px 28px rgba(36, 41, 47, 0.2);
+      border-color: var(--color-accent, #c68a3e);
+      box-shadow: 0 0 0 3px rgba(198, 138, 62, 0.2), 0 8px 28px rgba(36, 41, 47, 0.2);
     }
 
     &::placeholder {
@@ -132,7 +132,7 @@
 
   &[aria-selected="true"] {
     background: #fff1ef;
-    box-shadow: inset 3px 0 0 #FF4F3E;
+    box-shadow: inset 3px 0 0 #c68a3e;
 
     .acms-search-result-title {
       color: #c2362a;
