@@ -1,0 +1,50 @@
+{# Demonstrating template for the diagram() template function (Feature f161h).
+
+   The diagram() function lets templates render diagrams whose source
+   comes from frontmatter, a layout context, or a shared file --
+   places the [diagram] shortcode (which lives in markdown content)
+   cannot reach.
+
+   This partial shows two usage shapes:
+     1. A live rendered diagram from a hardcoded inline source, so
+        theme authors can verify their CSS targets the diagram-wrapper
+        classes consistently regardless of which author path emitted
+        the SVG.
+     2. A frontmatter-driven render, gated on the page-level meta
+        field so it stays inert when the page doesn't supply a
+        diagram.
+
+   Usage in another template:
+       {% include "partials/diagram-fn-example.html.jinja" %}
+
+   Both forms route through the same RenderDispatcher and
+   DiagramCache as fenced blocks and the [diagram] shortcode, so the
+   rendered SVG is byte-identical for the same source. #}
+
+<section class="diagram-fn-example">
+  <h3>Diagram template function example</h3>
+  <p>
+    The <code>diagram()</code> template function renders a diagram
+    inline from a Jinja expression. Use it when the source belongs in
+    the template (or in frontmatter) rather than in the page body:
+  </p>
+
+  {# Live demonstration: the function actually renders here at build /
+     serve time, so this section provides theme authors with a visible
+     reference SVG to style. #}
+  {{ diagram("mermaid",
+             "flowchart LR\n  Author --> Template\n  Template --> SVG",
+             caption="Author path: template function",
+             alt="A flow showing author content rendered through a template into SVG") }}
+
+  {# Frontmatter-driven path (Feature f045): when a page sets
+     `architecture_diagram` in its frontmatter the function picks it up
+     here. Inert when unset so the partial is safe to include
+     unconditionally. #}
+  {% if page.custom.architecture_diagram %}
+  <h4>Page architecture (from frontmatter)</h4>
+  {{ diagram("mermaid", page.custom.architecture_diagram,
+             caption=page.custom.architecture_diagram_caption,
+             alt=page.custom.architecture_diagram_alt) }}
+  {% endif %}
+</section>

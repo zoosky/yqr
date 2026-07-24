@@ -214,13 +214,18 @@ Guarantees and limits:
 Planned: object/array construction, builtins (`length`, `keys`, `select`,
 `map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
 
-## Using yqr in Kubernetes (and beyond)
+## Website
 
-Install paths and recipes for running yqr against `kubectl` output, baking it
-into a container image, and reading CI configs, Compose files, Ansible
-playbooks, OpenAPI specs, alerting rules, and app config:
-[zoosky.github.io/yqr/docs/content/home.html](https://zoosky.github.io/yqr/docs/content/home.html)
-(source: [`docs/content/home.html`](docs/content/home.html)).
+The project website — install paths, recipes for running yqr against
+`kubectl` output and other YAML (CI configs, Compose files, Ansible
+playbooks, OpenAPI specs, alerting rules, app config), plus the full
+browsable spec tree — lives at
+**[zoosky.github.io/yqr](https://zoosky.github.io/yqr/)**.
+
+It is an [Accent CMS](https://github.com/AccentCMS/accent) site built from
+[`docs/`](docs/) with [`specs/`](specs/) mounted at `/specs`, deployed by the
+`Website` workflow on every push to `main`. Local preview:
+`cd docs && accent serve`.
 
 ## Architecture
 

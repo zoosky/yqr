@@ -1,0 +1,49 @@
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article>
+    {% include "breadcrumbs.html.jinja" %}
+
+    <h1>{{ page.title }}</h1>
+
+    {% if page.lead %}
+    <p class="lead">{{ page.lead }}</p>
+    {% endif %}
+
+    <div class="content prose">
+        {{ page.content | safe }}
+    </div>
+
+    {% if all_pages %}
+    <div class="page-index">
+        <table class="page-index-table">
+            <thead>
+                <tr>
+                    <th>Page</th>
+                    <th>Path</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in all_pages | sort(attribute="url") %}
+                {% set depth = p.url | split("/") | reject("eq", "") | list | length %}
+                <tr>
+                    <td style="padding-left: {{ depth * 1.5 }}em">
+                        <a href="{{ p.url }}">{{ p.title }}</a>
+                        {% if p.lead %}
+                        <br><small>{{ p.lead | truncate(80) }}</small>
+                        {% endif %}
+                    </td>
+                    <td><code>{{ p.url }}</code></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <p><em>{{ all_pages | length }} pages total</em></p>
+    </div>
+    {% endif %}
+</article>
+
+{% include "debug.html.jinja" %}
+
+{% endblock %}

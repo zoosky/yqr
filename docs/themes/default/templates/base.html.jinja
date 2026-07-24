@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="{{ page.language or site.current_language or site.language }}" dir="{{ page.direction or 'ltr' }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page.title }} - {{ site.name }}{% endblock %}</title>
+    {# Social-sharing + SEO head metadata: page-specific description, build-safe
+       canonical, Open Graph, Twitter Cards, hreflang, and the open meta map. #}
+    {% include "partials/head_meta.html.jinja" %}
+    <link rel="icon" type="image/svg+xml" href="/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#FF4F3E">
+    {# Canonical now emitted by partials/head_meta.html.jinja (build-safe). #}
+    {# Feature f082: cdn_url() rewrites asset paths to the configured CDN origin
+       when CDN integration is enabled (Pro), and returns the path unchanged
+       otherwise -- so this works on every edition. #}
+    {% for css in theme.assets.css %}
+    <link rel="stylesheet" href="{{ cdn_url('/' ~ (('theme/assets/' ~ css) | fingerprint)) }}">
+    {% endfor %}
+    {# Feature f082: to serve Google Fonts privately through the CMS origin
+       (no visitor IP leak), enable cdn.font_proxy and link them via:
+       <link rel="stylesheet" href="{{ font_css_url('Inter:wght@400;700') }}"> #}
+    {# Brand fonts, shared with accentcms.dev (Syne display, Source Sans 3
+       body, JetBrains Mono code). Self-hosting via font_proxy is the
+       planned follow-up above. #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
+        rel="stylesheet">
+    {% if theme.styling is defined and theme.styling.tailwind_cdn %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% if theme.styling.tailwind_config %}
+    <script>tailwind.config = {{ theme.styling.tailwind_config | safe }};</script>
+    {% endif %}
+    {% endif %}
+    {% set analytics_id = get_env(name="ACCENT_ANALYTICS_ID") %}
+    {% if analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ analytics_id }}"></script>
+    {% endif %}
+    {% if site.url %}
+    {% if page.language and page.language != site.language %}
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} RSS Feed ({{ page.language | upper }})"
+        href="{{ site.url }}/{{ page.language }}/feed.xml">
+    {% else %}
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} RSS Feed" href="{{ site.url }}/feed.xml">
+    {% endif %}
+    {% endif %}
+    {# Feature f121: the LLM-crawler discovery `<link rel="alternate" href="/llms.txt">` is auto-injected by the template engine. #}
+    <meta name="build-hash" content="{{ get_hash(literal=accent.version ~ accent.git_hash) }}">
+    {# Conditional KaTeX loading for pages with math expressions #}
+    {% if page.has_math %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]})"></script>
+    {% endif %}
+    {{ json_ld() }}
+</head>
+
+<body data-heading-anchor-style="{{ theme.heading_anchor_style }}">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#FF4F3E" stroke-width="1.6" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#FF4F3E" stroke-width="1.6"
+                        stroke-linecap="round" />
+                </svg>{{ site.name }}</a>
+            <ul>
+                {% for p in pages %}
+                {% set p_parts = p.url | split("/") | list %}
+                {% if p_parts | length <= 2 %} <li><a href="{{ p.url | safe }}" {% if p.url !="/" and page.url is
+                        startingwith(p.url) %} class="active" {% elif p.url==page.url %} class="active" {% endif
+                        %}>{{ p.nav_title or p.title }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+            </ul>
+            {% include "partials/language-switcher.html.jinja" %}
+            <div class="nav-tools">
+                {% include "partials/version-dropdown.html.jinja" %}
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> {{ accent.version_string }}</span>
+        {% if site.last_modified %}
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: {{ site.last_modified }}</span>
+        {% endif %}
+    </footer>
+
+    {# Search overlay — opened by the trigger button or the "/" shortcut #}
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            {{ search_form("Search docs…") }}
+        </div>
+    </div>
+
+    {% for js in theme.assets.js %}
+    <script src="/theme/assets/{{ js }}"></script>
+    {% endfor %}
+    {# Feature f164: click-to-copy handler is only loaded when the
+       heading_anchor_style preset needs it. Keeps pure-CSS presets
+       (`hash`, `pilcrow`, `gutter`) JS-free. #}
+    {% if theme.heading_anchor_style == "copy" %}
+    <script src="/theme/assets/js/heading-anchor-copy.js" defer></script>
+    {% endif %}
+    {% if page.islands is defined and page.islands | length > 0 %}
+    {% for island in page.islands %}
+    {% if island.source == "plugin" %}
+    <script src="/assets/plugins/{{ island.plugin }}/{{ island.js_path }}" defer></script>
+    {% else %}
+    <script src="/{{ ('theme/assets/js/islands/' ~ island.component ~ '.js') | fingerprint }}" defer></script>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    {# Feature f161e: Mermaid client-side loader (dev mode only). #}
+    {% include "partials/mermaid-loader.html.jinja" %}
+</body>
+
+</html>

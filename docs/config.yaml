@@ -1,0 +1,78 @@
+# Accent CMS configuration for the yqr website.
+#
+# The site combines two content sources:
+#   - ./content        (this directory) -- home page and usage documentation
+#   - ../specs         (mounted at /specs) -- the feature/bug/architecture
+#                      spec tree, served as flat-file pages without any
+#                      restructuring
+#
+# Local development:  cd docs && accent serve
+# Static build:       cd docs && accent build --clean
+# The GitHub Pages workflow (.github/workflows/pages.yml) builds with the
+# same config and rewrites root-absolute links for the /yqr/ sub-path.
+
+server:
+  address: "127.0.0.1"
+  port: 4400
+
+content:
+  directory: "./content"
+  mounts:
+    # Serve the repository's spec tree as-is. Every category directory
+    # (features, bugs, architecture, implementation, research) carries a
+    # README.md index so it appears as a sidebar section.
+    - source: ../specs
+      mount: /specs
+      default_template: docs
+
+theme:
+  name: "default"
+  directory: "./themes"
+
+site:
+  name: "yqr"
+  url: https://zoosky.github.io/yqr
+  description: "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes."
+
+code:
+  theme: "base16-ocean.dark"
+
+markdown:
+  tables: true
+  footnotes: true
+  strikethrough: true
+  tasklists: true
+  heading_attributes: true
+  wikilinks: true
+  smart_punctuation: true
+  math: true
+  definition_lists: true
+  gfm: true
+  superscript: true
+  subscript: true
+  metadata_blocks: true
+
+# Server-side diagram rendering so `accent build` output is self-contained.
+diagrams:
+  render_mode: server
+
+# LLM crawler discovery files (llms.txt / llms-full.txt).
+llms:
+  enabled: true
+  description: |
+    yqr is a jq-style query and editing tool for YAML written in Rust.
+    Reads are byte-preserving by default; the write tier performs surgical
+    edits that change only the targeted bytes. This site serves the usage
+    documentation and the full feature/bug/architecture spec tree.
+  exclude_paths:
+    - "/tags/*"
+
+search:
+  exclude:
+    - "/404"
+    - "/tags/*"
+
+dev:
+  hot_reload: true
+  browser_reload: true
+  debounce_ms: 50

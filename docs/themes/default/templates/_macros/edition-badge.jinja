@@ -1,0 +1,20 @@
+{# Edition badge macro (Feature f077a).
+   Renders an inline label for the license a reader must hold to use a
+   feature, under the two-binary "free to build, pay to serve" model.
+   Accepts: core_plus, standard, pro. Any other value (including free, the
+   legacy core alias, an omitted argument, or an unknown string) renders the
+   Free badge, matching the `edition` shortcode's default.
+   Usage: {% from "_macros/edition-badge.jinja" import edition_badge %}
+          {{ edition_badge("standard") }}
+#}
+{% macro edition_badge(edition) %}
+  {% if edition == "core_plus" %}
+    <span class="edition-badge edition-core-plus" title="Requires a Core+ (or Standard / Pro) license to mount the admin UI">Core+</span>
+  {% elif edition == "standard" %}
+    <span class="edition-badge edition-standard" title="Requires a Standard (or Pro) license to serve in production">Standard</span>
+  {% elif edition == "pro" %}
+    <span class="edition-badge edition-pro" title="Requires a Pro license (MCP, CDN integrations)">Pro</span>
+  {% else %}
+    <span class="edition-badge edition-free" title="Free in build and dev serve -- no license key required">Free</span>
+  {% endif %}
+{% endmacro %}

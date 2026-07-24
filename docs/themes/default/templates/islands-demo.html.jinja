@@ -1,0 +1,54 @@
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article>
+    <h1>{{ page.title }}</h1>
+    {% if page.lead %}<p class="lead">{{ page.lead }}</p>{% endif %}
+
+    {{ page.content | safe }}
+
+    <h2>Copy-Code Island Demo</h2>
+    <p>The code blocks below have a "Copy" button added by the <code>copy-code</code> island
+       using the <code>idle</code> hydration strategy. Try clicking "Copy" on any block.</p>
+
+    <accent-island data-component="copy-code" data-hydrate="idle">
+        <pre><code>accent serve --config config.yaml</code></pre>
+    </accent-island>
+
+    <accent-island data-component="copy-code" data-hydrate="idle">
+        <pre><code>curl http://127.0.0.1:4400/docs/islands-demo</code></pre>
+    </accent-island>
+
+    <h2>Search Island Demo</h2>
+    <p>This search widget uses the <code>visible</code> strategy -- it only hydrates
+       when you scroll it into view.</p>
+
+    <accent-island
+        data-component="search"
+        data-hydrate="visible"
+        data-props='{"endpoint": "/_search/index.json", "max_results": 5}'>
+        <form action="/search" method="get">
+            <input type="search" name="q" placeholder="Search the site...">
+            <button type="submit">Search</button>
+        </form>
+    </accent-island>
+
+    <h2>Hydration Strategies</h2>
+
+    <h3>Load (immediate)</h3>
+    <accent-island data-component="copy-code" data-hydrate="load">
+        <pre><code>echo "I hydrate immediately"</code></pre>
+    </accent-island>
+
+    <h3>Media (mobile only)</h3>
+    <accent-island
+        data-component="copy-code"
+        data-hydrate="media"
+        data-media="(max-width: 768px)">
+        <pre><code>echo "I only hydrate on screens under 768px"</code></pre>
+    </accent-island>
+    <p><small>Resize your browser below 768px to see the Copy button appear on the block above.</small></p>
+</article>
+
+<script src="/theme/assets/js/islands/search.js" defer></script>
+{% endblock %}

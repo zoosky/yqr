@@ -1,0 +1,9 @@
+name: Documentation Page
+description: >
+  Documentation page bound by template name (`docs`). It inherits the social /
+  SEO `meta` schema from the base model, so every docs page is validated for an
+  over-long description or a typo'd og:type / twitter:card value at load. It
+  adds no required fields and is not strict, so existing pages that omit
+  `description` or `meta` validate cleanly -- the schema only catches mistakes
+  in metadata that is actually present.
+extends: base

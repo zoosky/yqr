@@ -1,0 +1,24 @@
+/// Default Accent CMS theme - Sass entry point (Feature 096).
+///
+/// Imports all partials in dependency order. Design tokens (_variables)
+/// come first so all partials can reference `var(--color-*)` tokens.
+
+@use 'variables';
+@use 'reset';
+@use 'layout';
+@use 'content';
+@use 'components';
+@use 'listings';
+@use 'docs-nav';
+@use 'docs-layout';
+@use 'shortcodes';
+@use 'landing';
+@use 'gallery';
+@use 'taxonomy';
+@use 'search';
+@use 'debug';
+@use 'language';
+@use 'accessibility';
+@use 'islands';
+@use 'diagrams';
+@use 'dark-mode';

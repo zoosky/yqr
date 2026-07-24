@@ -1,0 +1,47 @@
+/// Design tokens as CSS custom properties (Feature 096).
+/// All color, font, spacing, and radius values are defined here
+/// so partials can reference `var(--color-*)` instead of hardcoded hex.
+
+:root {
+  --color-text: #333;
+  --color-text-muted: #666;
+  --color-text-faint: #888;
+  --color-text-tag: #555;
+  --color-link: #cc3f32;
+  --color-bg: #fff;
+  --color-bg-subtle: #f8f8f8;
+  --color-bg-muted: #f4f4f4;
+  --color-bg-tag: #f0f0f0;
+  --color-bg-tag-hover: #e0e0e0;
+  --color-border: #eee;
+  --color-border-strong: #ddd;
+  --color-nav-label: #999;
+  --color-nav-pill-hover-bg: #e8e8e8;
+  --color-nav-pill-active-bg: rgba(255, 79, 62, 0.08);
+  --font-sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Syne", "Source Sans 3", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", "Fira Code", monospace;
+  --max-width: 800px;
+  --header-max-width: 1400px;
+  --sidebar-width: 260px;
+  --toc-width: 220px;
+  --color-sidebar-active-bg: rgba(255, 79, 62, 0.08);
+  // Diagram warning-box palette (Feature f161n).
+  // Used by `.diagram-warning` and `.mermaid-diagram--error`. The
+  // warning-box SVG itself reads `--diagram-warning-*` aliases set in
+  // `_diagrams.scss` so this single set of tokens drives both
+  // light and dark modes via `_dark-mode.scss`. Roles:
+  //   --color-warning-text   text colour of the warning message
+  //   --color-warning-border outer stroke / accent border
+  //   --color-warning-bg     background fill behind the box
+  //   --color-warning-highlight  bar behind the offending source line
+  --color-warning-text: #92400e;
+  --color-warning-border: #d97706;
+  --color-warning-bg: #fef3c7;
+  --color-warning-highlight: #fde68a;
+  --line-height: 1.6;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+  --radius-pill: 12px;
+}

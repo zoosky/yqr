@@ -1,0 +1,20 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}404 Page Not Found - {{ site.name }}{% endblock %}
+
+{% block content %}
+<div class="error-page">
+  <h1 class="error-status">404</h1>
+  <h2 class="error-title">Page Not Found</h2>
+  {% if page.content %}
+    <div class="error-content">{{ page.content | safe }}</div>
+  {% else %}
+    <p>The page <code>{{ error.path }}</code> could not be found.</p>
+  {% endif %}
+  <nav class="error-nav">
+    <a href="/">Home</a>
+    <span aria-hidden="true">&middot;</span>
+    <a href="/docs">Documentation</a>
+  </nav>
+</div>
+{% endblock %}

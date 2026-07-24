@@ -1,0 +1,51 @@
+{# Docs sidebar: collapsible tree navigation built from all_pages.
+   Version-aware: when versioning is active, only shows pages for the
+   current version (e.g. /docs/v0.19/*), not other versions.
+   Sections are depth-1 children of the docs root.
+   Sub-pages are depth-2 children.
+   Uses <details>/<summary> for native collapsible sections.
+
+   Pages appear in menu_order then alphabetical order. For flat files
+   with numeric prefixes (e.g. 01.getting-started.md), menu_order is
+   auto-populated from the prefix so no frontmatter is needed. #}
+{# yqr serves its spec tree at /specs/ (mounted from the repository's specs/
+   directory); the sidebar sections are the spec categories below it. #}
+{% set docs_prefix = version.root ~ "/" ~ version.current ~ "/" if version else "/specs/" %}
+{% set section_depth = (docs_prefix | split("/") | list | length) %}
+{% set child_depth = section_depth + 1 %}
+<nav class="docs-sidebar" aria-label="Documentation navigation">
+  {% for section in all_pages %}
+    {% set parts = section.url | split("/") | list %}
+    {% if parts | length == section_depth and section.url is startingwith(docs_prefix) %}
+      {# Count this section's sub-pages so single-page sections collapse to one click. #}
+      {% set ns = namespace(child_count=0) %}
+      {% for child in all_pages %}
+        {% set child_parts = child.url | split("/") | list %}
+        {% if child_parts | length == child_depth and child.url is startingwith(section.url ~ "/") %}
+          {% set ns.child_count = ns.child_count + 1 %}
+        {% endif %}
+      {% endfor %}
+      {% if ns.child_count == 0 %}
+        {# Leaf section (only its own page): link directly, no Overview detour. #}
+        <a href="{{ section.url }}"
+           class="sidebar-top-link{% if page.url == section.url %} active{% endif %}">{{ section.nav_title or section.title }}</a>
+      {% else %}
+        <details class="sidebar-section"
+          {% if page.url is startingwith(section.url) %}open{% endif %}>
+          <summary class="sidebar-section-title">{{ section.nav_title or section.title }}</summary>
+          <div class="sidebar-children">
+            <a href="{{ section.url }}"
+               class="sidebar-link{% if page.url == section.url %} active{% endif %}">Overview</a>
+            {% for child in all_pages %}
+              {% set child_parts = child.url | split("/") | list %}
+              {% if child_parts | length == child_depth and child.url is startingwith(section.url ~ "/") %}
+                <a href="{{ child.url }}"
+                   class="sidebar-link{% if page.url == child.url %} active{% endif %}">{{ child.nav_title or child.title }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </details>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+</nav>

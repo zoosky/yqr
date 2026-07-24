@@ -1,0 +1,34 @@
+{# Demonstrating template for the [diagram] shortcode (Feature f161g).
+
+   Theme developers can include this partial to render a sample
+   diagram alongside written documentation, or to verify that the
+   theme's CSS targets the .diagram-wrapper / .diagram-caption
+   classes the shortcode produces.
+
+   Usage in another template:
+       {% include "partials/diagram-example.html.jinja" %}
+
+   The partial expects no template variables; it relies on the
+   shortcode preprocessor to expand the [diagram ...]…[/diagram]
+   markup into the inline-SVG output documented in
+   site-docs/content/04.docs/v0.19/04.markdown-guide/01.diagrams. #}
+
+<section class="diagram-example">
+  <h3>Diagram shortcode example</h3>
+  <p>
+    The <code>[diagram]</code> shortcode renders Mermaid (and future
+    Svgbob / plugin) diagrams server-side. Use it for diagrams that
+    need a caption, accessible alt text, or an external source file:
+  </p>
+  <pre><code class="language-markdown">[diagram type="mermaid" caption="Build flow" alt="A simple flowchart"]
+flowchart LR
+  A --&gt; B
+  B --&gt; C
+[/diagram]</code></pre>
+  <p>
+    Output is wrapped in <code>&lt;figure
+    class="diagram-wrapper diagram-wrapper--mermaid"&gt;</code> with a
+    <code>&lt;figcaption&gt;</code>; without caption / alt it falls
+    back to a bare <code>&lt;div class="diagram-wrapper"&gt;</code>.
+  </p>
+</section>

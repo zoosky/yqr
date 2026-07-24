@@ -58,12 +58,24 @@ each need new grammar and stay deferred. f008 (`|=` computed updates) is gated o
 `f001` M2 (arithmetic/builtins). Priority order: f006 (done) → f007 (delete done,
 rest deferred) → M2 → f008.
 
+## Epic: Project website (f010)
+
+| Feature | Title | Status |
+|---------|-------|--------|
+| [f010](yqr-f010-accent-website.md) | Accent CMS website over docs/ and specs/, deployed to GitHub Pages | Done |
+
+Progress: the site builds from `docs/` (home page ported from the former
+`home.html`) with `specs/` mounted at `/specs`, using the vendored Accent
+default theme. `pages.yml` fetches the pinned accent binary from the upstream
+GitHub release, builds, rewrites links for the `/yqr` sub-path, and deploys to
+`gh-pages` while preserving the benchmark dashboard.
+
 ## Summary
 
-- Total features: 9
+- Total features: 10
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 3 (f002, f006, f009)
+- Done: 4 (f002, f006, f009, f010)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

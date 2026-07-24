@@ -1,0 +1,73 @@
+{# Social-sharing and SEO head metadata.
+
+   Emits a complete, page-specific set of <meta> tags so every page unfurls as
+   a rich card on Slack, LinkedIn, iMessage, X, Mastodon, Facebook, and friends
+   -- with zero per-page authoring. Driven entirely by the resolved context
+   primitives (page.description, page.social_image, page.meta_tags) plus
+   absolute_url(), so it works identically in `serve` and static `build`.
+
+   Per-page and site-wide overrides flow through the open `meta` map
+   (page.meta_tags); see the templating guide. A standard tag whose key also
+   appears in the open map is suppressed here so the open-map value wins
+   (Open Graph parsers honour the first occurrence of a property). #}
+
+{# Keys present in the merged open map; used to let `meta:` override a standard tag. #}
+{% set meta_keys = page.meta_tags | map(attribute="key") | list %}
+
+{# Page-specific description (frontmatter description -> lead -> site.description). #}
+{% if "description" not in meta_keys %}<meta name="description" content="{{ page.description }}">{% endif %}
+
+{# Canonical -- absolute and build-safe (no `request` dependency). #}
+<link rel="canonical" href="{{ absolute_url(page.url) }}">
+
+{# Robots: keep non-published and explicitly-flagged pages out of indexes. #}
+{% if page.status in ["draft", "review", "archived"] or page.custom.noindex %}
+<meta name="robots" content="noindex,nofollow">
+{% endif %}
+
+{# og:type honours a `meta: { og:type: ... }` override; otherwise derived from the date. #}
+{% set og_type_override = page.meta_tags | selectattr("key", "equalto", "og:type") | map(attribute="value") | first %}
+{% set og_type = og_type_override if og_type_override else ("article" if page.date else "website") %}
+{# og:site_name is the organization name when configured, else the site name.
+   Sites that set structured_data.organization can surface it via a
+   `meta: { og:site_name: "..." }` entry; the default is site.name. #}
+{% set site_name = site.name %}
+
+{# Open Graph. A key listed in the open map is emitted by the loop below instead. #}
+{% if "og:title" not in meta_keys %}<meta property="og:title" content="{{ page.title }}">{% endif %}
+{% if "og:description" not in meta_keys %}<meta property="og:description" content="{{ page.description }}">{% endif %}
+{% if "og:type" not in meta_keys %}<meta property="og:type" content="{{ og_type }}">{% endif %}
+{% if "og:url" not in meta_keys %}<meta property="og:url" content="{{ absolute_url(page.url) }}">{% endif %}
+{% if "og:site_name" not in meta_keys %}<meta property="og:site_name" content="{{ site_name }}">{% endif %}
+{% if site.language and "og:locale" not in meta_keys %}<meta property="og:locale" content="{{ site.language }}">{% endif %}
+{% if page.social_image and "og:image" not in meta_keys %}<meta property="og:image" content="{{ page.social_image }}">{% endif %}
+
+{# Article namespace for dated pages. #}
+{% if og_type == "article" %}
+{% if page.date %}<meta property="article:published_time" content="{{ page.date }}">{% endif %}
+{% if page.modified_date %}<meta property="article:modified_time" content="{{ page.modified_date }}">{% endif %}
+{% if page.author %}<meta property="article:author" content="{{ page.author }}">{% endif %}
+{% for tag in page.tags %}<meta property="article:tag" content="{{ tag }}">
+{% endfor %}
+{% endif %}
+
+{# Twitter Card. #}
+{% if "twitter:card" not in meta_keys %}<meta name="twitter:card" content="{{ "summary_large_image" if page.social_image else "summary" }}">{% endif %}
+{% if "twitter:title" not in meta_keys %}<meta name="twitter:title" content="{{ page.title }}">{% endif %}
+{% if "twitter:description" not in meta_keys %}<meta name="twitter:description" content="{{ page.description }}">{% endif %}
+{% if page.social_image and "twitter:image" not in meta_keys %}<meta name="twitter:image" content="{{ page.social_image }}">{% endif %}
+
+{# hreflang alternates for multilingual pages. #}
+{% if page.translations | length > 1 %}
+{% for t in page.translations %}<link rel="alternate" hreflang="{{ t.language }}" href="{{ absolute_url(t.url) }}">
+{% endfor %}<link rel="alternate" hreflang="x-default" href="{{ absolute_url(page.url) }}">
+{% endif %}
+
+{# Open map: site.meta + page `meta:`, page wins. property=/name= by key prefix.
+   This is where twitter:site, fediverse:creator, fb:app_id, any future tag, and
+   any override of a standard key above land -- no template edit required. #}
+{% for tag in page.meta_tags %}
+{%- if tag.property %}<meta property="{{ tag.key }}" content="{{ tag.value }}">
+{% else %}<meta name="{{ tag.key }}" content="{{ tag.value }}">
+{% endif -%}
+{% endfor %}

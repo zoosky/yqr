@@ -1,0 +1,17 @@
+{# Demonstrating template for load_data() (Feature f141e).
+   Shows how to render user-generated comments stored in _data/.
+   Include in a page template: {% include "data-comments.html.jinja" %}
+#}
+{% set comments = load_data("comments", page.slug) %}
+{% if comments and comments | length > 0 %}
+<section class="ugc-comments">
+  <h3>Comments ({{ comments | length }})</h3>
+  {% for comment in comments %}
+  <div class="ugc-comment" style="margin-bottom: 1rem; padding: 0.75rem; border-left: 3px solid #ccc;">
+    <strong>{{ comment.author | default("Anonymous") }}</strong>
+    <time style="color: #666; font-size: 0.85em;">{{ comment.date | default("") }}</time>
+    <p style="margin: 0.5rem 0 0;">{{ comment.text | e }}</p>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}

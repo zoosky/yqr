@@ -1,0 +1,182 @@
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<div class="docs-layout">
+    {% include "partials/docs-sidebar.html.jinja" %}
+
+    <article class="docs-content">
+        {% include "breadcrumbs.html.jinja" %}
+
+        <h1>{{ page.title }}</h1>
+
+        {% if page.lead %}
+        <p class="lead">{{ page.lead }}</p>
+        {% endif %}
+
+        <style>
+        .island-demo-area {
+            border: 2px solid #FF4F3E;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0 2rem;
+            background: var(--color-bg-subtle);
+            color: var(--color-text);
+        }
+        .island-demo-area h2 { margin-top: 0; color: #FF4F3E; }
+        .island-demo-area h3 { color: var(--color-text); }
+        .island-demo-area p { color: var(--color-text-muted); }
+        .island-demo-area pre { position: relative; }
+        .island-demo-area code { color: var(--color-text); }
+        .island-demo-area input[type="search"] {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid var(--color-border-strong);
+            border-radius: 4px;
+            background: var(--color-bg);
+            color: var(--color-text);
+        }
+        .island-demo-area input[type="search"]::placeholder {
+            color: var(--color-text-faint);
+        }
+        .island-demo-btn {
+            padding: 0.6rem 1.4rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background: #FF4F3E;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .island-demo-btn:hover { background: #e6453a; }
+        .island-demo-btn:disabled { background: var(--color-text-faint); cursor: default; }
+        .island-demo-close {
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            background: var(--color-bg-muted);
+            border: 1px solid var(--color-border-strong);
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 0.75rem;
+        }
+        .island-demo-close:hover { background: var(--color-border); }
+        </style>
+
+        <div class="island-demo-area" id="island-demo">
+            <h2>Try It Live</h2>
+            <p>Click the button to activate real <code>&lt;accent-island&gt;</code> components on this page.</p>
+            <button type="button" class="island-demo-btn" id="island-demo-start">Start Demo</button>
+            <noscript><p>JavaScript is required for the interactive demo.</p></noscript>
+        </div>
+
+        <div class="content prose">
+            {{ page.content | safe }}
+        </div>
+
+        {% if page.children %}
+        <h2>In this section</h2>
+        <ul class="docs-listing">
+        {% for child in page.children %}
+            <li>
+                <h3><a href="{{ child.url }}">{{ child.title }}</a></h3>
+                {% if child.lead %}<p class="lead">{{ child.lead }}</p>{% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% include "page-nav.html.jinja" %}
+    </article>
+
+    {% if page.toc %}
+    <aside class="docs-toc" aria-label="Table of contents">
+        <h4>On this page</h4>
+        <ul>
+        {% for entry in page.toc %}
+            <li class="toc-level-{{ entry.level }}">
+                <a href="#{{ entry.id }}">{{ entry.text }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    </aside>
+    {% endif %}
+</div>
+
+<button class="sidebar-toggle" type="button" aria-label="Toggle documentation sidebar"
+        onclick="document.querySelector('.docs-sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');">
+    &#9776;
+</button>
+<div class="sidebar-overlay"
+     onclick="document.querySelector('.docs-sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+{% include "debug.html.jinja" %}
+
+<script>
+(function () {
+    var area = document.getElementById("island-demo");
+    var btn = document.getElementById("island-demo-start");
+    if (!btn || !area) return;
+
+    // Save initial HTML so we can restore on close
+    var initialHTML = area.innerHTML;
+
+    btn.addEventListener("click", function () {
+        btn.disabled = true;
+        btn.textContent = "Loading...";
+
+        area.innerHTML =
+            '<div style="display:flex;align-items:center;justify-content:space-between">' +
+                '<h2>Live Islands Demo</h2>' +
+                '<button type="button" class="island-demo-close" id="island-demo-close">Close Demo</button>' +
+            '</div>' +
+            '<h3>Copy-Code Island</h3>' +
+            '<p>Hover over the code blocks to see the Copy button appear.</p>' +
+            '<accent-island data-component="copy-code" data-hydrate="load">' +
+                '<pre><code>accent serve --config config.yaml</code></pre>' +
+            '</accent-island>' +
+            '<accent-island data-component="copy-code" data-hydrate="load">' +
+                '<pre><code>accent init my-site --docs\ncd my-site\naccent serve</code></pre>' +
+            '</accent-island>' +
+            '<h3>Search Island</h3>' +
+            '<p>Type a query to search the documentation.</p>' +
+            '<accent-island data-component="search" data-hydrate="load"' +
+                ' data-props=\'{"endpoint":"/_search/index.json","max_results":5}\'>' +
+                '<form onsubmit="return false">' +
+                    '<input type="search" name="q" placeholder="Try: theme, deploy, plugin...">' +
+                '</form>' +
+            '</accent-island>';
+
+        // Wire up close button
+        var closeBtn = document.getElementById("island-demo-close");
+        if (closeBtn) {
+            closeBtn.addEventListener("click", function () {
+                area.innerHTML = initialHTML;
+                // Re-attach the start listener to the restored button
+                var newBtn = document.getElementById("island-demo-start");
+                if (newBtn) {
+                    newBtn.addEventListener("click", arguments.callee.caller || btn.onclick);
+                    // Simpler: just reload the page section
+                    location.reload();
+                }
+            });
+        }
+
+        // Re-run the island loader to discover the new elements, then
+        // load component scripts which register and hydrate via pending queue
+        var loader = document.createElement("script");
+        loader.src = "/theme/assets/js/island-loader.js?v=" + Date.now();
+        loader.onload = function () {
+            var s1 = document.createElement("script");
+            s1.src = "/theme/assets/js/islands/copy-code.js?v=" + Date.now();
+            document.body.appendChild(s1);
+            var s2 = document.createElement("script");
+            s2.src = "/theme/assets/js/islands/search.js?v=" + Date.now();
+            document.body.appendChild(s2);
+        };
+        document.body.appendChild(loader);
+    });
+})();
+</script>
+{% endblock %}

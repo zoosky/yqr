@@ -1,0 +1,44 @@
+{# Modular/composite page template (Features f058, f182).
+
+   Renders a page composed of modules. Modules can be either:
+   - Directory modules: _hero/default.md  (can carry page-local media)
+   - File modules:      _hero.md          (lightweight, frontmatter + content only)
+
+   When both forms exist for the same name, the directory version wins.
+   Modules are available as page.modules, sorted by menu.order then name.
+   Each module has: name, title, content (rendered HTML), and custom fields.
+
+   Example directory structure:
+     content/01.home/
+       modular.md              (uses this template)
+       _hero/default.md        (directory module with media support)
+       _features.md            (file module -- lightweight alternative)
+       _cta/default.md         (directory module)
+#}
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article class="modular-page">
+    {% include "breadcrumbs.html.jinja" %}
+
+    {% if page.modules %}
+        {% for module in page.modules %}
+        <section class="module module-{{ module.name }}" id="module-{{ module.name }}">
+            {% if module.title %}
+            <h2>{{ module.title }}</h2>
+            {% endif %}
+            <div class="module-content">
+                {{ module.content | safe }}
+            </div>
+        </section>
+        {% endfor %}
+    {% else %}
+        {# Fallback: render the page's own content if no modules exist #}
+        <div class="content">
+            {{ page.content | safe }}
+        </div>
+    {% endif %}
+
+    {% include "page-nav.html.jinja" %}
+</article>
+{% endblock %}
