@@ -1,6 +1,8 @@
 /// Dark mode: CSS custom property overrides (Feature 096).
-/// The dark palette is the yqr home page's ink theme, verbatim
-/// (see _variables.scss for the token table).
+/// The dark palette is the yqr home page's ink theme: core tokens
+/// verbatim, with auxiliary values (hover tints, alert panels, badge
+/// backgrounds) derived from them (see _variables.scss for the token
+/// table).
 
 // Explicit dark mode via data-theme attribute (set by JS or user preference)
 [data-theme="dark"] {

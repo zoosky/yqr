@@ -4,8 +4,9 @@
 ///
 /// yqr design system, taken from the hand-authored home page
 /// (docs/content/home.html): an ink/brass/teal chart aesthetic.
-/// Light mode uses the home page's "paper" card palette; dark mode uses
-/// its ink background palette verbatim. Core tokens:
+/// Light mode builds on the home page's "paper" card palette, dark mode
+/// on its ink background palette -- core tokens verbatim, auxiliary
+/// tints and shades derived from them. Core tokens:
 ///   ink #0b1524 / ink-2 #0f1d33 / panel #132340
 ///   paper #f2ecda / paper-line #ddd3b2
 ///   brass #c68a3e / brass-soft #e0b169

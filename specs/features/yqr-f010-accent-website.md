@@ -3,9 +3,11 @@
 **Status:** Done
 **Epic:** Project website (f010)
 **Owner:** yqr maintainers
-**Related:** `yqr-m003` (the demo content served at `/demo`), the former
-`docs/content/home.html` (ported to the site home page), `benchmark.yml`
-(shares the `gh-pages` branch with the site deploy)
+**Related:** `yqr-m003` (the demo content served at `/demo`),
+`docs/content/home.html` (served verbatim as the site home page),
+`benchmark.yml` (shares the `gh-pages` branch with the site deploy),
+`docs-pages.yml` (the retired raw `docs/content/` mirror workflow --
+removed by this feature, its job subsumed by the Accent build)
 
 ## 1. Problem
 
@@ -51,19 +53,25 @@ a page; no wrapper folders, no required frontmatter):
   pushes the output to the `gh-pages` branch — preserving `dev/bench`, the
   Criterion benchmark dashboard that `benchmark.yml` publishes to the same
   branch. Pull requests touching `docs/`, `specs/`, or the workflow build and
-  verify without deploying.
+  verify without deploying. The pre-existing `docs-pages.yml` workflow,
+  which mirrored `docs/content/` raw onto `gh-pages`, is removed: its job is
+  subsumed by the Accent build, and left in place it would race the deploy
+  (no shared concurrency group) and keep resurrecting the retired raw
+  `/docs/content/` paths that `pages.yml`'s `rsync --delete` clears.
 
 Local development uses the same binary: `cd docs && accent serve` (or
 `accent build --clean` plus the rewrite script to reproduce CI output).
 
 ## 3. Acceptance criteria
 
-- [x] `cd docs && accent build --clean` renders the full site: home page,
-      `/demo`, and every spec under `/specs/<category>/<spec-name>`.
+- [x] `cd docs && accent build --clean` renders `/demo` and every spec under
+      `/specs/<category>/<spec-name>`; the post-build copy step installs the
+      home page at `/`.
 - [x] The home page is `docs/content/home.html` served verbatim at `/` —
       byte-identical to the source file, its embedded design untouched.
 - [x] The theme's light and dark palettes, fonts, and logo derive from the
-      home page's design tokens (no colors or faces outside its system).
+      home page's design tokens (core hues verbatim; auxiliary tints and
+      shades, e.g. hover states and alert panels, derived from them).
 - [x] The specs tree is served from `specs/` unmodified (flat-file model,
       no content restructuring), with sidebar sections per category.
 - [x] Cross-spec relative `*.md` links resolve to working site URLs.
@@ -74,6 +82,8 @@ Local development uses the same binary: `cd docs && accent serve` (or
       `https://github.com/AccentCMS/accent/releases` with checksum
       verification, and only deploys on pushes to `main`.
 - [x] The deploy preserves the benchmark dashboard at `/dev/bench`.
+- [x] The legacy `docs-pages.yml` raw-mirror workflow is removed;
+      `pages.yml` and `benchmark.yml` are the only `gh-pages` writers.
 
 ## 4. Out of scope / follow-ups
 
