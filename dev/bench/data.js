@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1783771099510,
+  "lastUpdate": 1784872628490,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -629,6 +629,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 247869,
             "range": "± 708",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f4c889cd2405404c09ddbfdaaa99f5032e1f732c",
+          "message": "chore: pin Rust toolchain to 1.97.1 (#35)",
+          "timestamp": "2026-07-24T07:55:36+02:00",
+          "tree_id": "43bd28ddc8442bc55cb1723ba3387856241173b2",
+          "url": "https://github.com/zoosky/yqr/commit/f4c889cd2405404c09ddbfdaaa99f5032e1f732c"
+        },
+        "date": 1784872628231,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 503,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5004,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 252480,
+            "range": "± 1250",
             "unit": "ns/iter"
           }
         ]
