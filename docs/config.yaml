@@ -49,6 +49,12 @@ site:
   name: "yqr"
   url: https://zoosky.github.io/yqr
   description: "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes."
+  # Site-wide <meta> defaults; the theme's head_meta partial emits each entry
+  # on every page. Google Search Console ownership verification -- keep this
+  # tag in place even after verification succeeds, or the site loses its
+  # verified status.
+  meta:
+    google-site-verification: "yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw"
 
 code:
   theme: "base16-ocean.dark"
