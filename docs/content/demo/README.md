@@ -2,7 +2,7 @@
 menu:
   order: 2
 ---
-# yqr demo
+# yqr Demo
 
 A runnable showcase of yqr, a jq-style query & transform tool for YAML.
 
