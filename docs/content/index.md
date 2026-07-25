@@ -99,7 +99,7 @@ spec:
     </div>
 
     <div class="callout" id="engines">
-      <strong style="color:#f4efe1;">Byte-preserving reads are the default.</strong>
+      <strong class="callout-title">Byte-preserving reads are the default.</strong>
       Untouched nodes come back as their original source bytes &mdash; comments,
       quoting, indentation, and line endings survive, and the identity filter
       reproduces the input byte-for-byte, no flag required.
@@ -118,7 +118,7 @@ yqr: io error: unknown engine "bogus" (available: noyalib, skald)</pre>
 
     <!-- Feature f006: write tier v1 (value assignment + in-place edits) -->
     <div class="callout" id="edits">
-      <strong style="color:#f4efe1;">It edits, too &mdash; and only the bytes you target.</strong>
+      <strong class="callout-title">It edits, too &mdash; and only the bytes you target.</strong>
       Give it a mutating filter and yqr changes just that node, leaving every
       other byte &mdash; comments, indentation, quoting, key order &mdash;
       untouched, or refuses. Replace a value with <code>=</code>, append to a

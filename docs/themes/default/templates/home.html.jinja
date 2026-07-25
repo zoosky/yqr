@@ -6,50 +6,84 @@
    untouched); this template carries the page's bespoke stylesheet and hands
    the theme its header menu and footer.
 
-   The page is ink-dark by design regardless of the visitor's theme toggle:
-   the style block pins the theme's custom properties to the dark ink
-   palette, so the base template's header and footer blend with the page. #}
+   The page follows the theme's color-mode mechanism: the ink palette is the
+   dark mode (the original design), and a paper "daylight" palette drives
+   light mode. All mode-dependent values live in the token blocks below --
+   `:root` holds daylight, `[data-theme="dark"]` and the no-preference media
+   query hold ink -- so the header's theme toggle re-skins the whole page,
+   and the theme chrome (header, footer, search) keeps its own light/dark
+   styling with proper contrast. #}
 {% extends "base.html.jinja" %}
 
 {% block content %}
 <style>
 {% raw %}
+  /* Daylight (light mode): the home page's paper palette. The token NAMES
+     keep the original ink-design vocabulary (--ink is "page background",
+     --panel is "raised card", --paper is "inverted card") so the rules
+     below stay identical across modes. */
   :root{
+    --ink:#f2ecda;
+    --ink-2:#e9e1c9;
+    --panel:#f8f4e9;
+    --paper:#fbf8ef;
+    --paper-line:#d9cda6;
+    --brass:#c68a3e;
+    --brass-soft:#8a5f22;
+    --route:#22706a;
+    --route-soft:#2c6b67;
+    --text:#332b1c;
+    --text-soft:#5a4c33;
+    --text-faint:#8a7a5e;
+    --mark:#c1443c;
+    --ok:#3e7d55;
+    --heading:#2b2415;
+    --tok-key:#3d5a78;
+    --tok-str:#6b5a2a;
+    --badge-drift:#a13830;
+    --line:rgba(51,43,28,0.14);
+    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    --sans: -apple-system, 'Segoe UI', Roboto, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  /* Ink (dark mode): the original hand-authored palette, verbatim. */
+  [data-theme="dark"]{
     --ink:#0b1524;
     --ink-2:#0f1d33;
     --panel:#132340;
     --paper:#f2ecda;
     --paper-line:#ddd3b2;
-    --brass:#c68a3e;
     --brass-soft:#e0b169;
     --route:#4fb3ac;
-    --route-soft:#2c6b67;
     --text:#dbe4f0;
     --text-soft:#8ea0b8;
     --text-faint:#5c6d84;
-    --mark:#c1443c;
     --ok:#5fae7a;
-    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
-    --sans: -apple-system, 'Segoe UI', Roboto, system-ui, sans-serif;
-    --mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    /* Pin the theme chrome (header, footer, search overlay) to the ink
-       palette so the always-dark page and the theme shell agree in both
-       light and dark modes. */
-    --color-bg:#0b1524;
-    --color-bg-subtle:#0f1d33;
-    --color-bg-muted:#132340;
-    --color-bg-tag:#132340;
-    --color-bg-tag-hover:#1a2d4f;
-    --color-text:#dbe4f0;
-    --color-text-muted:#8ea0b8;
-    --color-text-faint:#5c6d84;
-    --color-link:#e0b169;
-    --color-border:rgba(255,255,255,0.08);
-    --color-border-strong:rgba(255,255,255,0.16);
-    --color-nav-label:#5c6d84;
-    --color-nav-pill-hover-bg:#132340;
-    --color-nav-pill-active-bg:rgba(198,138,62,0.16);
-    --color-sidebar-active-bg:rgba(198,138,62,0.16);
+    --heading:#f4efe1;
+    --tok-key:#a9c3e0;
+    --tok-str:#e8dcb8;
+    --badge-drift:#e08d86;
+    --line:rgba(255,255,255,0.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme]){
+      --ink:#0b1524;
+      --ink-2:#0f1d33;
+      --panel:#132340;
+      --paper:#f2ecda;
+      --paper-line:#ddd3b2;
+      --brass-soft:#e0b169;
+      --route:#4fb3ac;
+      --text:#dbe4f0;
+      --text-soft:#8ea0b8;
+      --text-faint:#5c6d84;
+      --ok:#5fae7a;
+      --heading:#f4efe1;
+      --tok-key:#a9c3e0;
+      --tok-str:#e8dcb8;
+      --badge-drift:#e08d86;
+      --line:rgba(255,255,255,0.07);
+    }
   }
   body::before{
     content:"";
@@ -84,7 +118,7 @@
     font-size:clamp(34px, 5vw, 52px);
     line-height:1.12;
     margin:0 0 18px;
-    color:#f4efe1;
+    color:var(--heading);
     max-width:14ch;
   }
   .hero p{
@@ -153,7 +187,7 @@
   }
   .chart-yaml{
     background:var(--panel);
-    border:1px solid rgba(255,255,255,0.06);
+    border:1px solid var(--line);
     border-radius:8px;
     padding:16px 18px;
     font-size:13.5px;
@@ -161,8 +195,8 @@
     margin:0;
     color:var(--text-soft);
   }
-  .chart-yaml .tok-key{color:#a9c3e0;}
-  .chart-yaml .tok-str{color:#e8dcb8;}
+  .chart-yaml .tok-key{color:var(--tok-key);}
+  .chart-yaml .tok-str{color:var(--tok-str);}
   .chart-yaml .hit{
     display:inline-block;
     width:100%;
@@ -189,7 +223,7 @@
   @media (max-width:640px){ .outcomes{grid-template-columns:1fr;} }
   .outcome{
     background:var(--ink-2);
-    border:1px solid rgba(255,255,255,0.06);
+    border:1px solid var(--line);
     border-radius:8px;
     padding:16px 18px;
   }
@@ -203,7 +237,7 @@
     display:inline-block;
     margin-bottom:10px;
   }
-  .outcome.drift .badge{background:rgba(193,68,60,0.18); color:#e08d86;}
+  .outcome.drift .badge{background:rgba(193,68,60,0.18); color:var(--badge-drift);}
   .outcome.exact .badge{background:rgba(95,174,122,0.18); color:var(--ok);}
   .outcome pre{
     margin:0;
@@ -231,7 +265,7 @@
     font-weight:400;
     font-size:26px;
     margin:0 0 6px;
-    color:#f4efe1;
+    color:var(--heading);
   }
   .section-head p{color:var(--text-soft); margin:6px 0 0; max-width:60ch;}
 
@@ -278,6 +312,7 @@
     font-size:14px;
     color:var(--text-soft);
   }
+  .callout .callout-title{color:var(--heading);}
   .callout code{color:var(--brass-soft);}
   .callout pre{
     margin:10px 0 0;
@@ -296,7 +331,7 @@
   .card{
     min-width:0;
     background:var(--panel);
-    border:1px solid rgba(255,255,255,0.06);
+    border:1px solid var(--line);
     border-radius:10px;
     padding:22px 24px;
   }
@@ -305,7 +340,7 @@
     font-size:19px;
     font-weight:400;
     margin:0 0 8px;
-    color:#f4efe1;
+    color:var(--heading);
   }
   .card > p{font-size:14px; color:var(--text-soft); margin:0 0 16px;}
   .recipe{margin:0 0 16px;}
@@ -313,7 +348,7 @@
   .recipe .cmd{
     display:block;
     background:var(--ink-2);
-    border:1px solid rgba(255,255,255,0.07);
+    border:1px solid var(--line);
     border-radius:6px;
     padding:10px 12px;
     font-size:12.5px;
@@ -329,7 +364,7 @@
 
   .dockerfile{
     background:var(--ink-2);
-    border:1px solid rgba(255,255,255,0.07);
+    border:1px solid var(--line);
     border-radius:6px;
     padding:14px 16px;
     font-size:12.5px;
@@ -340,7 +375,7 @@
     overflow-wrap:break-word;
   }
   .dockerfile .rem{color:var(--text-faint);}
-  .dockerfile .kw{color:#a9c3e0;}
+  .dockerfile .kw{color:var(--tok-key);}
 
   /* ---------- beyond-kubernetes trio ---------- */
   .trio{
@@ -352,7 +387,7 @@
   .mini-card{
     min-width:0;
     background:var(--panel);
-    border:1px solid rgba(255,255,255,0.06);
+    border:1px solid var(--line);
     border-radius:10px;
     padding:18px 20px;
   }
@@ -361,7 +396,7 @@
     font-size:17px;
     font-weight:400;
     margin:0 0 6px;
-    color:#f4efe1;
+    color:var(--heading);
   }
   .mini-card > p{font-size:13px; color:var(--text-soft); margin:0 0 14px;}
   .mini-card .recipe{margin:0 0 12px;}
@@ -374,7 +409,7 @@
   /* ---------- further-afield stack ---------- */
   .explicit-card{
     background:var(--panel);
-    border:1px solid rgba(255,255,255,0.06);
+    border:1px solid var(--line);
     border-radius:10px;
     padding:24px 26px;
     margin-bottom:20px;
@@ -385,12 +420,12 @@
     font-size:19px;
     font-weight:400;
     margin:0 0 8px;
-    color:#f4efe1;
+    color:var(--heading);
   }
   .explicit-card > p.lede{font-size:14px; color:var(--text-soft); margin:0 0 16px; max-width:64ch;}
   .snippet{
     background:var(--ink-2);
-    border:1px solid rgba(255,255,255,0.07);
+    border:1px solid var(--line);
     border-radius:6px;
     padding:12px 16px;
     font-size:12.5px;
@@ -398,7 +433,7 @@
     color:var(--text-soft);
     margin:0 0 18px;
   }
-  .snippet .tok-key{color:#a9c3e0;}
+  .snippet .tok-key{color:var(--tok-key);}
   .explicit-recipes{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -418,7 +453,7 @@
   .wrap th, .wrap td{
     text-align:left;
     padding:10px 14px;
-    border-bottom:1px solid rgba(255,255,255,0.08);
+    border-bottom:1px solid var(--line);
   }
   .wrap th{
     font-family:var(--mono);
