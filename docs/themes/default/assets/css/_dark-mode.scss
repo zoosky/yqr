@@ -1,0 +1,184 @@
+/// Dark mode: CSS custom property overrides (Feature 096).
+/// The dark palette is the yqr home page's ink theme: core tokens
+/// verbatim, with auxiliary values (hover tints, alert panels, badge
+/// backgrounds) derived from them (see _variables.scss for the token
+/// table).
+
+// Explicit dark mode via data-theme attribute (set by JS or user preference)
+[data-theme="dark"] {
+  --color-text: #dbe4f0;
+  --color-text-muted: #8ea0b8;
+  --color-text-faint: #5c6d84;
+  --color-text-tag: #8ea0b8;
+  --color-link: #e0b169;
+  --color-bg: #0b1524;
+  --color-bg-subtle: #0f1d33;
+  --color-bg-muted: #132340;
+  --color-bg-tag: #132340;
+  --color-bg-tag-hover: #1a2d4f;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-nav-label: #5c6d84;
+  --color-nav-pill-hover-bg: #132340;
+  --color-nav-pill-active-bg: rgba(198, 138, 62, 0.16);
+  --color-sidebar-active-bg: rgba(198, 138, 62, 0.16);
+  // Feature f161n: diagram warning-box palette in dark mode. The
+  // light/dark choice flows through to the inline `<style>` block
+  // inside `.diagram-warning` SVGs via the `--diagram-warning-*`
+  // aliases declared in `_diagrams.scss`. Roles match `_variables.scss`:
+  // text / border / bg / highlight (the offending-line bar).
+  --color-warning-text: #e0b169;
+  --color-warning-border: #c68a3e;
+  --color-warning-bg: #22201a;
+  --color-warning-highlight: #33291a;
+
+  // Alert dark overrides -- ink panels with the home page's accent hues
+  // (route teal for info, ok green for success, brass for warnings,
+  // mark red for danger).
+  .alert-info {
+    background: #0f2230;
+    color: #a5d3cf;
+    border-left-color: #4fb3ac;
+  }
+
+  .alert-warning {
+    background: #22201a;
+    color: #e0b169;
+    border-left-color: #c68a3e;
+  }
+
+  .alert-success {
+    background: #12241a;
+    color: #a6d4b5;
+    border-left-color: #5fae7a;
+  }
+
+  .alert-danger {
+    background: #26141a;
+    color: #e0938c;
+    border-left-color: #c1443c;
+  }
+
+  // Infobox dark overrides (Feature f145i)
+  .infobox-info {
+    background: #0f2230;
+    border-left-color: #4fb3ac;
+  }
+
+  .infobox-prereq {
+    background: #12241a;
+    border-left-color: #5fae7a;
+  }
+
+  .infobox-api {
+    background: #0f2230;
+    border-left-color: #4fb3ac;
+  }
+
+  .infobox-security {
+    background: #26141a;
+    border-left-color: #c1443c;
+  }
+
+  .infobox-version {
+    background: #22201a;
+    border-left-color: #c68a3e;
+  }
+
+  .infobox-warning {
+    background: #22201a;
+    border-left-color: #c68a3e;
+  }
+
+  .infobox-success {
+    background: #12241a;
+    border-left-color: #5fae7a;
+  }
+
+  .infobox-danger {
+    background: #26141a;
+    border-left-color: #c1443c;
+  }
+
+  // Debug styles dark overrides
+  .debug {
+    background: #22201a;
+    border-color: #6b5a35;
+  }
+
+  .debug-panel {
+    border-color: #6b5a35;
+    background: #0f1d33;
+
+    pre {
+      background: #132340;
+      border-color: #1a2d4f;
+    }
+  }
+
+  // Edition badges dark overrides
+  .edition-free,
+  .edition-core {
+    background-color: #12241a;
+    color: #5fae7a;
+    border-color: #1f4f31;
+  }
+
+  .edition-core-plus {
+    background-color: #0f2230;
+    color: #4fb3ac;
+    border-color: #2c6b67;
+  }
+
+  .edition-standard {
+    background-color: #132340;
+    color: #8ea0b8;
+    border-color: #1a2d4f;
+  }
+
+  .edition-pro {
+    background-color: #22201a;
+    color: #e0b169;
+    border-color: #6b5a35;
+  }
+}
+
+// Automatic dark mode for users without explicit preference
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-text: #dbe4f0;
+    --color-text-muted: #8ea0b8;
+    --color-text-faint: #5c6d84;
+    --color-text-tag: #8ea0b8;
+    --color-link: #e0b169;
+    --color-bg: #0b1524;
+    --color-bg-subtle: #0f1d33;
+    --color-bg-muted: #132340;
+    --color-bg-tag: #132340;
+    --color-bg-tag-hover: #1a2d4f;
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-strong: rgba(255, 255, 255, 0.16);
+    --color-nav-label: #5c6d84;
+    --color-nav-pill-hover-bg: #132340;
+    --color-nav-pill-active-bg: rgba(198, 138, 62, 0.16);
+    --color-sidebar-active-bg: rgba(198, 138, 62, 0.16);
+  }
+
+  // Toggle icon: show sun when auto-detected dark
+  :root:not([data-theme]) .theme-toggle-light {
+    display: none;
+  }
+
+  :root:not([data-theme]) .theme-toggle-dark {
+    display: inline;
+  }
+}
+
+// Light mode override: ensure toggle shows moon
+[data-theme="light"] .theme-toggle-light {
+  display: inline;
+}
+
+[data-theme="light"] .theme-toggle-dark {
+  display: none;
+}

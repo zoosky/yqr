@@ -9,7 +9,7 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 
 | Feature | Title | Status |
 |---------|-------|--------|
-| [f001](yqr.f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
+| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 
@@ -58,12 +58,28 @@ each need new grammar and stay deferred. f008 (`|=` computed updates) is gated o
 `f001` M2 (arithmetic/builtins). Priority order: f006 (done) → f007 (delete done,
 rest deferred) → M2 → f008.
 
+## Epic: Project website (f010)
+
+| Feature | Title | Status |
+|---------|-------|--------|
+| [f010](yqr-f010-accent-website.md) | Accent CMS website over docs/ and specs/, deployed to GitHub Pages | Done |
+
+Progress: the site builds from `docs/` (the home page is a real CMS page:
+original hand-authored markup in `content/index.md` with the design as a
+dedicated `home` template, framed by the theme header and footer) with
+`specs/` mounted at `/specs`, using the vendored Accent default theme
+restyled with the home page's design tokens. `pages.yml`
+fetches the pinned accent binary (>= v0.23.0, native sub-path support) from
+the upstream GitHub release, builds with the `/yqr` prefix derived from the
+base URL, and deploys to `gh-pages` while preserving the benchmark
+dashboard.
+
 ## Summary
 
-- Total features: 9
+- Total features: 10
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 3 (f002, f006, f009)
+- Done: 4 (f002, f006, f009, f010)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

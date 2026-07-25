@@ -1,0 +1,54 @@
+/* Edition badges (Feature 077a)
+ *
+ * Small inline labels indicating the license a reader must hold to use a
+ * documented feature, under the two-binary "free to build, pay to serve"
+ * model: Free (no key), Core+ (admin UI), Standard (production serving),
+ * Pro (MCP / CDN integrations). Designed for minimal visual weight so they
+ * inform without dominating the page layout.
+ */
+
+.edition-badge {
+  display: inline-block;
+  font-size: 0.7em;
+  font-weight: 600;
+  padding: 0.1em 0.45em;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-left: 0.4em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Free tier (no license key). `.edition-core` is retained only as a
+   backward-compatibility safety net: the current shortcode and macro map the
+   legacy `core` value to `.edition-free`, so nothing in the pipeline emits
+   `.edition-core` anymore -- the rule just keeps any previously generated or
+   cached HTML that still carries the old class rendering in the same green. */
+.edition-free,
+.edition-core {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+/* Core+ (admin UI seat). Teal keeps it distinct from the Standard blue
+   without reaching for a purple hue. */
+.edition-core-plus {
+  background-color: #e0f2f1;
+  color: #00695c;
+  border: 1px solid #b2dfdb;
+}
+
+.edition-standard {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #bbdefb;
+}
+
+.edition-pro {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+}

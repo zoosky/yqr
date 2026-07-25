@@ -1,0 +1,24 @@
+{# Recently-updated documents widget.
+
+   Demonstrates the recent_documents(limit, model?) template function: it
+   returns the most-recently-updated pages across the whole site, sorted by
+   their frontmatter `date` (falling back to file modification time when a page
+   has no explicit date). Pages with neither are omitted.
+
+   The block renders nothing when the list is empty, so it is safe to include
+   unconditionally and degrades cleanly on a brand-new or dateless site. #}
+{% set recent = recent_documents(limit | default(5)) %}
+{% if recent %}
+<aside class="recent-docs" aria-label="Recently updated documents">
+  <h4>Recently updated</h4>
+  <ul class="recent-docs-list">
+    {% for p in recent %}
+    <li class="recent-docs-item">
+      <a href="{{ p.url }}">{{ p.title }}</a>
+      {% set updated = p.date or p.modified_date %}
+      {% if updated %}<time class="recent-docs-date" datetime="{{ updated }}">{{ updated }}</time>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</aside>
+{% endif %}

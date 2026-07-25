@@ -1,0 +1,51 @@
+{# Demonstrating template for a mount-fed page.
+
+   Set `default_template: remote-doc` on a single-file or remote content mount
+   (see the "Content Mounts" docs) and its one page renders through this
+   template. It is a thin variant of `default.html.jinja`: the same prose
+   column, plus a small banner that signals the document is mirrored from
+   another source so readers know the canonical copy lives elsewhere.
+
+   Mounted pages are ordinary pages -- they flow through the same content index,
+   navigation, search, and sitemap as any other page -- so this template needs
+   no special data: it reads `page.title` and `page.content` like every other
+   template. An optional `page.custom.source_url` (set it in the mount's source
+   document frontmatter) links back to the origin. #}
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article class="remote-doc">
+    {% include "breadcrumbs.html.jinja" %}
+
+    <h1>{{ page.title }}</h1>
+
+    {# Provenance banner: this page is sourced from a content mount, not the
+       primary content directory. The link is optional and only shown when the
+       source document declares `source_url` in its frontmatter. #}
+    <aside class="remote-doc-banner" role="note">
+        <p>
+            This page is mirrored from an external source via a content mount.
+            {% if page.custom.source_url is defined %}
+            View the original at
+            <a href="{{ page.custom.source_url }}" rel="noopener external">{{ page.custom.source_url }}</a>.
+            {% endif %}
+        </p>
+    </aside>
+
+    {% include "toc.html.jinja" %}
+
+    <div class="content prose">
+        {{ page.content | safe }}
+    </div>
+
+    {% if page.tags %}
+    <div class="tags">
+        {% for tag in page.tags %}
+        <a href="{{ url('/tags/' ~ tag) }}" class="tag">{{ tag }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% include "page-nav.html.jinja" %}
+</article>
+{% endblock %}

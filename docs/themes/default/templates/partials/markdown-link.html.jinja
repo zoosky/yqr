@@ -1,0 +1,6 @@
+{# "View as Markdown" link partial (Feature f109).
+   Include this in HTML templates to add a link to the raw markdown source.
+   Only rendered when markdown_view_enabled is true and page.markdown_url is set. #}
+{% if markdown_view_enabled and page.markdown_url %}
+<a href="{{ page.markdown_url }}" class="markdown-link" title="View raw markdown source" rel="alternate" type="text/markdown">View as Markdown</a>
+{% endif %}

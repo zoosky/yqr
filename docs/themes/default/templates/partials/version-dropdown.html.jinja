@@ -1,0 +1,21 @@
+{# Version switcher dropdown (Feature f100).
+   Renders a <select> element when the current page belongs to a versioning
+   root with more than one version. Include in any template with:
+     {% include "partials/version-dropdown.html.jinja" %}
+
+   The dropdown also surfaces the per-version lifecycle state
+   (Feature f193): every non-dev version is a stable release, marked
+   "(Release)" in the option label so readers can tell it apart from the
+   in-development version.
+-#}
+{% if version and version.all | length > 1 %}
+<div class="version-switcher">
+  <select onchange="window.location.href=this.value" aria-label="Select version">
+    {% for v in version.all %}
+    <option value="{{ v.url }}"{{ ' selected' if v.is_current }}>
+      {{ v.label }}{% if v.state and v.state != 'dev' %} (Release){% endif %}
+    </option>
+    {% endfor %}
+  </select>
+</div>
+{% endif %}

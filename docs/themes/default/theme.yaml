@@ -1,0 +1,33 @@
+name: Default
+description: Default Accent CMS theme - showcases Sass, utility CSS, icons, and typography
+version: "1.0.0"
+author: Accent CMS
+license: MIT
+assets:
+  css:
+    - css/main.scss
+    - css/editions.css
+    - css/utilities.css
+  js:
+    - js/island-loader.js
+    - js/islands/copy-code.js
+    - js/tabs.js
+    - js/search-keys.js
+styling:
+  sass:
+    enabled: true
+    load_paths:
+      - css
+  utilities:
+    enabled: true
+    scan:
+      - templates/**/*.jinja
+    output: css/utilities.css
+    icons: true
+    typography: true
+    extend:
+      colors:
+        brand: "#c68a3e"
+        accent: "#4fb3ac"
+  processing:
+    minify: true

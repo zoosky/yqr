@@ -1,0 +1,18 @@
+{# Base markdown template (Feature f109).
+   Provides the skeleton for markdown-mode output. Child templates
+   override the "body" block to insert their content. #}
+{% block header %}
+# {{ site.name }}
+
+{% for p in pages %}[{{ p.title }}]({{ p.url }}) | {% endfor %}
+
+---
+{% endblock %}
+
+{% block body %}{% endblock %}
+
+---
+
+{% block footer %}
+*{{ site.name }}* | Powered by [Accent CMS](https://github.com/AccentCMS/accent) {{ accent.version_string }}{% if site.last_modified %} | Last updated: {{ site.last_modified }}{% endif %}
+{% endblock %}

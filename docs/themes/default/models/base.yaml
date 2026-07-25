@@ -1,0 +1,54 @@
+name: Base Document
+description: >
+  Shared base model carrying the semantic `description` field and the open
+  social / SEO `meta` object. Bundled content models inherit it with
+  `extends: base`, so every page that opts in gets load-time validation of its
+  share metadata (description length, og:type / twitter:card enums) without
+  re-declaring the schema. The object is an open carrier: keys not listed here
+  pass through unvalidated, so any current or future platform tag still works.
+
+# `description` is the page-specific meta description (frontmatter description
+# -> lead -> site.description at render). Capping it keeps unfurls from being
+# silently truncated by platforms.
+fields:
+  description:
+    type: string
+    label: Meta description
+    description: Page-specific description used for the social card and search snippet.
+    constraints:
+      max_length: 200
+
+  # The open social / SEO tag bag. Only the keys described below are validated;
+  # add fediverse:creator, og:video, product:*, the-next-network freely -- they
+  # ride through as undeclared keys with no schema change.
+  meta:
+    type: object
+    label: Social / SEO tags
+    description: Open Graph, Twitter Card, and arbitrary platform meta tags.
+    fields:
+      og:type:
+        type: enum
+        values: [website, article, profile]
+        default: website
+        label: Open Graph type
+      og:title:
+        type: string
+        label: Open Graph title
+        constraints:
+          max_length: 70
+      og:description:
+        type: string
+        label: Open Graph description
+        constraints:
+          max_length: 200
+      twitter:card:
+        type: enum
+        values: [summary, summary_large_image]
+        default: summary
+        label: Twitter card type
+      twitter:site:
+        type: string
+        label: Twitter site handle
+      twitter:creator:
+        type: string
+        label: Twitter creator handle

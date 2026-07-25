@@ -1,0 +1,43 @@
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article>
+    {% include "breadcrumbs.html.jinja" %}
+
+    <h1>{{ page.title }}</h1>
+
+    <div class="content">
+        {{ page.content | safe }}
+    </div>
+
+    <h2>Latest News</h2>
+    <ul class="news-listing">
+    {% for p in page.collection %}
+        <li>
+            <h3><a href="{{ p.url | safe }}">{{ p.title }}</a></h3>
+            {% if p.lead %}<p class="lead">{{ p.lead }}</p>{% endif %}
+            <div class="listing-meta">
+                {% if p.date %}<time>{{ p.date }}</time>{% endif %}
+                {% if p.tags %}
+                <span class="listing-tags">{% for tag in p.tags %}<a href="{{ url('/tags/' ~ tag) }}" class="tag">{{ tag }}</a>{% endfor %}</span>
+                {% endif %}
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+
+    {% if page.pagination %}
+    <nav class="pagination" aria-label="Pagination">
+        {% if page.pagination.prev_url %}
+        <a href="{{ page.pagination.prev_url }}" class="pagination-prev">Previous</a>
+        {% endif %}
+        <span class="pagination-info">Page {{ page.pagination.current_page }} of {{ page.pagination.total_pages }}</span>
+        {% if page.pagination.next_url %}
+        <a href="{{ page.pagination.next_url }}" class="pagination-next">Next</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% include "page-nav.html.jinja" %}
+</article>
+{% endblock %}

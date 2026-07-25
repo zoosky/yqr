@@ -1,0 +1,200 @@
+{# Default page template.
+This template also serves as the universal fallback when a page's filename-derived
+template does not exist (Feature f067c). For example, README.md looks for
+readme.html.jinja; when that is missing, this template is used instead. #}
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article>
+    {% include "breadcrumbs.html.jinja" %}
+
+    <h1>{{ page.title }}</h1>
+
+    {# Document model badge when a model is resolved for this page (Feature f112a).
+    The model name reflects inheritance: a child model extending a parent
+    displays the child name, with all parent fields merged in (Feature f112b).
+    Cross-field rules, module constraints, and section constraints are
+    validated automatically and appear in the debug panel when violations
+    occur. Filename and directory name patterns (Feature f112c) are also
+    validated against the model's declared naming conventions.
+    In strict validation mode, pages with errors return HTTP 500.
+    CLI: `accent model show <name>` inspects the schema, and
+        `accent new <model>
+            <title>` scaffolds content (Feature f112d).
+                Models can be provided by plugins (Feature f112e) -- plugin-provided
+                models appear here the same as project or theme models.
+                Collections can filter by model via `content.model` in frontmatter. #}
+                {% if page.model %}
+                <span class="model-badge" title="Content type: {{ page.model }}">{{ page.model }}</span>
+                {% endif %}
+
+                {# Page metadata: date, author, reading time, word count (Feature f050) #}
+                {% if page.date or page.author or page.reading_time %}
+                <div class="page-meta">
+                    {% if page.date %}<time>{{ page.date }}</time>{% endif %}
+                    {% if page.author %}<span class="author">by {{ page.author }}</span>{% endif %}
+                    {% if page.reading_time %}<span class="reading-time">{{ page.reading_time }} min read</span>{% endif
+                    %}
+                </div>
+                {% endif %}
+
+                {% include "toc.html.jinja" %}
+
+                {# Page-local hero image via media() function (Feature f066a) #}
+                {% if page.custom.hero_image is defined %}
+                <figure class="hero-image">
+                    <img src="{{ media(page.custom.hero_image, page.url) }}" alt="{{ page.title }}">
+                </figure>
+                {% endif %}
+
+                {# Responsive hero variant via responsive_image() function (Feature f066c).
+                Unlike the plain media() hero above, this emits an <img> with a srcset at
+                each configured breakpoint plus a sizes hint, so the browser fetches the
+                right width for the viewport. The path is resolved page-local through
+                media() first, then handed to responsive_image() for srcset generation. #}
+                {% if page.custom.responsive_hero is defined %}
+                <figure class="hero-image">
+                    {{ responsive_image(media(page.custom.responsive_hero, page.url), page.title, "(max-width: 768px) 100vw, 50vw") }}
+                </figure>
+                {% endif %}
+
+                <div class="content prose">
+                    {{ page.content | safe }}
+                </div>
+
+                {% if page.tags %}
+                <div class="tags">
+                    {% for tag in page.tags %}
+                    <a href="{{ url('/tags/' ~ tag) }}" class="tag">{{ tag }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# Page media gallery with thumbnail processing (Features f066b, f066c, 066e).
+                When plugins contribute metadata via on_media_discover hooks (Feature f066e),
+                it is available as img.metadata. For example, a blurhash plugin would set
+                img.metadata.blurhash, and an EXIF plugin would set img.metadata.exif. #}
+                {% set images = page.media | filter_images %}
+                {% if images %}
+                <div class="gallery">
+                    <h4>Gallery</h4>
+                    <div class="gallery-grid">
+                        {% for img in images %}
+                        <figure>
+                            <a href="{{ img.url }}">
+                                <img src="{{ img.url | thumbnail(400) }}" alt="{{ img.filename }}" loading="lazy">
+                            </a>
+                            <figcaption>
+                                {{ img.filename }}
+                                {% if img.metadata and img.metadata.exif and img.metadata.exif.camera %}
+                                <span class="exif-info">{{ img.metadata.exif.camera }}</span>
+                                {% endif %}
+                            </figcaption>
+                        </figure>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Page-local video gallery (Feature f066d) #}
+                {% set videos = page.media | filter_videos %}
+                {% if videos %}
+                <div class="video-gallery">
+                    <h4>Videos</h4>
+                    {% for vid in videos %}
+                    <figure>
+                        {{ video(vid.filename, page_url=page.url) }}
+                        <figcaption>{{ vid.filename }}</figcaption>
+                    </figure>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# Embedded YouTube/Vimeo video via video_embed() function (Feature f066d).
+                While video() above embeds self-hosted page-local files, video_embed()
+                turns a YouTube or Vimeo URL into a privacy-respecting iframe
+                (youtube-nocookie.com / Vimeo dnt=1). The optional width/height kwargs
+                size the iframe; they default to 560x315 when omitted. #}
+                {% if page.custom.video_embed is defined %}
+                <figure class="video-embed">
+                    {{ video_embed(page.custom.video_embed, width="800", height="450") }}
+                    {% if page.custom.video_caption is defined %}
+                    <figcaption>{{ page.custom.video_caption }}</figcaption>
+                    {% endif %}
+                </figure>
+                {% endif %}
+
+                {# Page-local PDF downloads with thumbnail previews
+                (Feature f066f). Uses the built-in `pdf_card()` helper
+                so each PDF renders as a self-contained download card
+                with a thumbnail (or generic SVG icon) on the left
+                and the title plus file size on the right. The
+                `filter_pdfs` filter narrows `filter_documents` to
+                `application/pdf` only, since `pdf_card()` is
+                PDF-specific. #}
+                {% set pdfs = page.media | filter_pdfs %}
+                {% if pdfs %}
+                <div class="pdf-downloads">
+                    {% for doc in pdfs %}
+                    {{ pdf_card(doc, width=300) }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# Content relationships (Feature f055) #}
+                {% if page.relations.series %}
+                <nav class="series-nav" aria-label="Series navigation">
+                    <h4>In this series</h4>
+                    <ol>
+                        {% for part in page.relations.series %}
+                        <li>
+                            {% if part.url == page.url %}
+                            <strong>{{ part.title }}</strong> (current)
+                            {% else %}
+                            <a href="{{ part.url }}">{{ part.title }}</a>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ol>
+                </nav>
+                {% endif %}
+
+                {% if page.relations.related %}
+                <aside class="related-pages">
+                    <h4>Related</h4>
+                    <ul>
+                        {% for article in page.relations.related %}
+                        <li><a href="{{ article.url }}">{{ article.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </aside>
+                {% endif %}
+
+                {% if page.relations.prerequisites %}
+                <div class="prerequisites">
+                    <p>Before reading this, you should be familiar with:</p>
+                    <ul>
+                        {% for prereq in page.relations.prerequisites %}
+                        <li><a href="{{ prereq.url }}">{{ prereq.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {# Backlinks: pages that link here via wikilinks #}
+                {% if page.backlinks %}
+                <aside class="backlinks">
+                    <h4>Linked from</h4>
+                    <ul>
+                        {% for backlink in page.backlinks %}
+                        <li><a href="{{ backlink.url }}">{{ backlink.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </aside>
+                {% endif %}
+
+                {% include "partials/markdown-link.html.jinja" %}
+
+                {% include "page-nav.html.jinja" %}
+</article>
+{% endblock %}

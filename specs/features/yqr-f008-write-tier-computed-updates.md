@@ -1,4 +1,4 @@
-# yqr.f008 — Write tier: computed updates (`|=`)
+# Feature f008 — Write tier: computed updates (`|=`)
 
 **Status:** Draft (stub — gated on `f001` M2)
 **Epic:** Fidelity write tier (`f006`–`f008`)

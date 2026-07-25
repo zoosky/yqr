@@ -1,0 +1,64 @@
+/// Landing page and modular page section styles (Feature 096).
+
+.landing-page {
+  max-width: 100%;
+}
+
+.landing-hero {
+  text-align: center;
+  padding: 3rem 1rem;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+.landing-content {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.landing-features {
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2rem 0;
+}
+
+.landing-cta {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.landing-section {
+  padding: 2rem 0;
+}
+
+// Modular pages (Feature 058)
+.modular-page {
+  max-width: 100%;
+}
+
+.module {
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.module-content {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}

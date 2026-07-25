@@ -1,0 +1,62 @@
+{# Mermaid.js client-side loader (Features f161e, f161h) #}
+{# Renders only in dev mode; production builds server-render SVG so #}
+{# the loader is unnecessary. The "any passthrough blocks?" check #}
+{# happens JS-side rather than in this template, because the #}
+{# `diagram_passthrough_count` template variable is only updated by #}
+{# the markdown pipeline (fenced blocks + shortcodes). The diagram() #}
+{# template function (f161h) emits passthrough markup directly into #}
+{# the rendered HTML, bypassing that counter; gating on it would #}
+{# leave template-fn diagrams un-rendered on pages with no fenced #}
+{# blocks. Mermaid.js is still imported lazily so pages with zero #}
+{# diagrams pay no network cost. #}
+{% if not site.production %}
+<script type="module">
+    async function renderAll() {
+        const blocks = document.querySelectorAll('pre.diagram-passthrough[data-diagram-lang="mermaid"]');
+        if (blocks.length === 0) return;
+        const { default: mermaid } = await import("{{ diagrams.mermaid.cdn_url | safe }}");
+        // ZenUML is an external Mermaid diagram type (not in core); register
+        // the plugin so `zenuml` fenced blocks render in the dev preview,
+        // matching the server-side renderer (accent-mmdr), which supports it.
+        // The plugin facade is tiny and lazy-loads the heavy @zenuml/core
+        // chunk only when a zenuml diagram is actually rendered. Wrapped so a
+        // plugin-load failure degrades to "zenuml unsupported" rather than
+        // breaking every other diagram on the page.
+        try {
+            const { default: zenuml } = await import("https://cdn.jsdelivr.net/npm/@mermaid-js/mermaid-zenuml@0.2.3/+esm");
+            await mermaid.registerExternalDiagrams([zenuml]);
+        } catch (err) {
+            console.warn("[mermaid] ZenUML plugin failed to load; zenuml diagrams will not render:", err);
+        }
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: "{{ diagrams.mermaid.theme | safe }}",
+        });
+        let i = 0;
+        for (const block of blocks) {
+            const source = block.textContent;
+            const id = "mermaid-diagram-" + (++i);
+            const wrapper = document.createElement("div");
+            wrapper.className = "mermaid-diagram mermaid-diagram--loading";
+            block.replaceWith(wrapper);
+            try {
+                const { svg } = await mermaid.render(id, source);
+                wrapper.classList.remove("mermaid-diagram--loading");
+                // innerHTML uses the permissive HTML parser; DOMParser with
+                // "image/svg+xml" rejects mermaid's HTML-style <br> tags
+                // inside foreignObject labels and shows an XML-error overlay.
+                wrapper.innerHTML = svg;
+            } catch (err) {
+                wrapper.classList.remove("mermaid-diagram--loading");
+                wrapper.classList.add("mermaid-diagram--error");
+                wrapper.textContent = "Diagram failed to render: " + err.message;
+            }
+        }
+    }
+
+    renderAll();
+    if (window.__accent_sse) {
+        window.__accent_sse.addEventListener("reload", renderAll);
+    }
+</script>
+{% endif %}

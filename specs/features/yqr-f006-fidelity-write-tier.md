@@ -1,4 +1,4 @@
-# yqr.f006 — Write tier v1: value assignment and in-place edits (`--in-place`)
+# Feature f006 — Write tier v1: value assignment and in-place edits (`--in-place`)
 
 **Status:** Done
 **Epic:** Fidelity write tier (`f006`–`f008`)

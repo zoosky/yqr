@@ -1,0 +1,5 @@
+{# Theme-specific button shortcode that overrides the built-in (Feature f074). #}
+{# Usage: [button primary href="/signup"]Get Started[/button] #}
+{% set variant = args.positional[0] | default("default") %}
+{% set href = args.named.href | default("#") %}
+<a href="{{ href }}" class="btn btn-{{ variant }}">{{ body }}</a>

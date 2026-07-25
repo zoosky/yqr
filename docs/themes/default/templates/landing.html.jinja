@@ -1,0 +1,64 @@
+{# Landing page template with structured content sections (Feature f059).
+
+   Renders a page composed of named content sections defined with
+   ---section: name--- markers in the markdown file.
+
+   Available sections are accessed via page.sections.<name>.
+   Each section's content is rendered markdown (HTML), so use | safe.
+
+   Example markdown:
+     ---
+     title: Landing Page
+     template: landing
+     ---
+     Main introduction content.
+
+     ---section: features---
+     ## Features
+     - Fast performance
+     - Easy to use
+
+     ---section: cta---
+     ## Get Started
+     Sign up today!
+#}
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article class="landing-page">
+    {% if page.content %}
+    <section class="landing-hero">
+        <div class="landing-content">
+            {{ page.content | safe }}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if page.sections.features is defined and page.sections.features %}
+    <section class="landing-features" id="features">
+        <div class="landing-content">
+            {{ page.sections.features | safe }}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if page.sections.cta is defined and page.sections.cta %}
+    <section class="landing-cta" id="cta">
+        <div class="landing-content">
+            {{ page.sections.cta | safe }}
+        </div>
+    </section>
+    {% endif %}
+
+    {# Render any additional sections not explicitly handled above #}
+    {% for name in page.sections %}
+        {% if name != "features" and name != "cta" %}
+        <section class="landing-section landing-{{ name }}" id="{{ name }}">
+            <div class="landing-content">
+                {{ page.sections[name] | safe }}
+            </div>
+        </section>
+        {% endif %}
+    {% endfor %}
+</article>
+{% endblock %}

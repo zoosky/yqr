@@ -1,0 +1,95 @@
+{# Island-enhanced contact form template (Feature f138d).
+   Uses the contact-form theme island to progressively enhance the
+   form with client-side validation and fetch-based submission.
+
+   The accent-contact plugin's on_render hook still injects the CSRF
+   token into the <form>. The island JS intercepts submit and shows
+   inline feedback. With JavaScript disabled, the form works exactly
+   like the plain contact template (POST + redirect).
+
+   Note: the accent-contact plugin redirects errors to /contact (not
+   /contact-island), so no-JS users see errors on the plain contact
+   page. The error block below handles the case where a user navigates
+   to /contact-island?error=X directly.
+
+   Requires: accent-contact plugin (f138c), contact-form.js theme
+   island, island-loader.js (f101a). #}
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<article>
+    {% include "breadcrumbs.html.jinja" %}
+
+    <h1>{{ page.title }}</h1>
+
+    {{ page.content | safe }}
+
+    {# Server-side error messages from query params. Rendered always by
+       Jinja (server-side). When the island JS hydrates, it hides this
+       block and handles errors inline instead. Guard: request is
+       undefined during accent build (no HTTP context). #}
+    {% if request is defined and request.query %}
+        {% if request.query.error == "csrf" %}
+        <div class="alert alert-error contact-server-error">
+            <p>Security token expired. Please try again.</p>
+        </div>
+        {% elif request.query.error == "name" %}
+        <div class="alert alert-error contact-server-error">
+            <p>Please enter your name.</p>
+        </div>
+        {% elif request.query.error == "email" %}
+        <div class="alert alert-error contact-server-error">
+            <p>Please enter a valid email address.</p>
+        </div>
+        {% elif request.query.error == "message" %}
+        <div class="alert alert-error contact-server-error">
+            <p>Please enter a message.</p>
+        </div>
+        {% elif request.query.error == "smtp" %}
+        <div class="alert alert-error contact-server-error">
+            <p>Unable to send your message. Please try again later or email us directly.</p>
+        </div>
+        {% elif request.query.error %}
+        <div class="alert alert-error contact-server-error">
+            <p>Something went wrong. Please check your input and try again.</p>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <accent-island data-component="contact-form" data-hydrate="load">
+        <form action="{{ url('/contact-submit') }}" method="POST" class="contact-form">
+            {# CSRF token injected here by accent-contact plugin on_render hook #}
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" required
+                       placeholder="Your name">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required
+                       placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" required rows="6"
+                          placeholder="How can we help?"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Send Message</button>
+        </form>
+    </accent-island>
+</article>
+
+{# Island scripts: the contact-form island is a theme asset (like
+   copy-code and search). Loaded explicitly because the <accent-island>
+   element is in the template, not in markdown (so page.islands is empty).
+   Guard: only load island-loader if base template did not already load
+   it via page.islands. #}
+{% if not (page.islands is defined and page.islands | length > 0) %}
+<script src="{{ url('/' ~ ('theme/assets/js/island-loader.js' | fingerprint)) }}" defer></script>
+{% endif %}
+<script src="{{ url('/' ~ (('theme/assets/js/islands/contact-form.js') | fingerprint)) }}" defer></script>
+{% endblock %}

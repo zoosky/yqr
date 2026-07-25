@@ -1,4 +1,4 @@
-# yqr.f009 — Byte fidelity by default; classic pipeline behind `--normalize`
+# Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`
 
 **Status:** Done
 **Epic:** Fidelity-first architecture (a001)

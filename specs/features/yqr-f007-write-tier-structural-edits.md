@@ -1,4 +1,4 @@
-# yqr.f007 — Write tier: structural edits (the `b004` gaps)
+# Feature f007 — Write tier: structural edits (the `b004` gaps)
 
 **Status:** In Progress (structural **delete** shipped on the interim
 `replace_span` fallback; comment editing, key rename, and sequence reorder

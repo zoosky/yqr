@@ -1,0 +1,98 @@
+name: Website
+
+# Builds the Accent CMS site (docs/ plus the specs/ tree mounted at /specs)
+# and deploys it to GitHub Pages. Pull requests only build and verify; the
+# deploy runs on pushes to main and manual dispatch.
+#
+# Sub-path serving: the site lives under /yqr/ on GitHub Pages. Accent
+# v0.23.0+ handles this natively -- the deployment path prefix is derived
+# from the --base-url path component, every internal URL is emitted
+# prefixed, and `accent build` fails its built-in conformance check if an
+# unprefixed root-absolute link slips through.
+#
+# The gh-pages branch also hosts the Criterion benchmark dashboard under
+# dev/bench (pushed independently by benchmark.yml) -- the deploy step
+# preserves that directory.
+#
+# The accent binary is fetched from the upstream GitHub release and verified
+# against the published checksums. Requires accent >= v0.23.0 (base-path
+# support); keep ACCENT_VERSION in sync with the version used for local
+# development (accent --version).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "specs/**"
+      - ".github/workflows/pages.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "specs/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One deploy at a time; a queued run supersedes older queued runs but an
+# in-flight deploy is never cancelled mid-push.
+concurrency:
+  group: website
+  cancel-in-progress: false
+
+env:
+  ACCENT_VERSION: v0.23.0
+  SITE_URL: https://zoosky.github.io/yqr
+
+jobs:
+  website:
+    name: build website
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install accent from GitHub releases
+        run: |
+          set -euo pipefail
+          ASSET="accent-${ACCENT_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          BASE="https://github.com/AccentCMS/accent/releases/download/${ACCENT_VERSION}"
+          curl -fsSLO "${BASE}/${ASSET}"
+          curl -fsSLO "${BASE}/checksums-${ACCENT_VERSION}.txt"
+          grep "  ${ASSET}\$" "checksums-${ACCENT_VERSION}.txt" | sha256sum -c -
+          tar -xzf "${ASSET}" ./accent
+          install -D -m 0755 accent "${HOME}/.local/bin/accent"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+          "${HOME}/.local/bin/accent" --version
+
+      - name: Build site
+        working-directory: docs
+        run: accent build --clean --base-url "${SITE_URL}"
+
+      - name: Deploy to gh-pages
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages
+          git worktree add ../gh-pages gh-pages
+          rsync -a --delete --exclude=.git --exclude=dev/ docs/output/ ../gh-pages/
+          touch ../gh-pages/.nojekyll
+          cd ../gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No site changes to deploy"
+            exit 0
+          fi
+          git commit -m "site: deploy ${GITHUB_SHA}"
+          # benchmark.yml pushes to gh-pages independently; rebase and retry
+          # if a benchmark commit lands between our fetch and push.
+          for attempt in 1 2 3; do
+            if git push origin gh-pages; then
+              exit 0
+            fi
+            git pull --rebase origin gh-pages
+          done
+          echo "Failed to push gh-pages after 3 attempts" >&2
+          exit 1

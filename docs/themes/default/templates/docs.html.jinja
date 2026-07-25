@@ -1,0 +1,59 @@
+{% extends "base.html.jinja" %}
+
+{% block content %}
+<div class="docs-layout">
+    {% include "partials/docs-sidebar.html.jinja" %}
+
+    <article class="docs-content">
+        {% include "breadcrumbs.html.jinja" %}
+
+        <h1>{{ page.title }}</h1>
+
+        <accent-island data-component="copy-code" data-hydrate="load">
+        <div class="content prose">
+            {{ page.content | safe }}
+        </div>
+        </accent-island>
+
+        {# Children listing for section index pages #}
+        {% if page.children %}
+        <h2>In this section</h2>
+        <ul class="docs-listing">
+        {% for child in page.children %}
+            <li>
+                <h3><a href="{{ child.url }}">{{ child.title }}</a></h3>
+                {% if child.lead %}<p class="lead">{{ child.lead }}</p>{% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% include "page-nav.html.jinja" %}
+    </article>
+
+    {% if page.toc %}
+    <aside class="docs-toc" aria-label="Table of contents">
+        <h4>On this page</h4>
+        <ul>
+        {% for entry in page.toc %}
+            <li class="toc-level-{{ entry.level }}">
+                <a href="#{{ entry.id }}">{{ entry.text }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+
+        {% include "partials/recent-documents.html.jinja" %}
+    </aside>
+    {% endif %}
+</div>
+
+<button class="sidebar-toggle" type="button" aria-label="Toggle documentation sidebar"
+        onclick="document.querySelector('.docs-sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');">
+    &#9776;
+</button>
+<div class="sidebar-overlay"
+     onclick="document.querySelector('.docs-sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+{% include "debug.html.jinja" %}
+
+{% endblock %}

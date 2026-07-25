@@ -1,0 +1,26 @@
+{# Language switcher (Feature f057).
+   Renders a list of every translation of the current page when the site is
+   multilingual and the page has 2+ translations. Include in any template with:
+     {% include "partials/language-switcher.html.jinja" %}
+
+   Driven entirely by `page.translations`, where each entry carries:
+     - language: the language code (e.g. "de")
+     - url:      the URL of that translation (the default language has no
+                 prefix; others are served under /{lang}/...)
+     - active:   true for the language currently being displayed
+   The active language is rendered as plain text; the rest are links.
+   Styled by `_language.scss` via the `.language-switcher` class.
+-#}
+{% if page.translations | length > 1 %}
+<ul class="language-switcher" aria-label="Language">
+  {% for t in page.translations %}
+  <li>
+    {% if t.active %}
+    <span class="active" lang="{{ t.language }}">{{ t.language | upper }}</span>
+    {% else %}
+    <a href="{{ t.url }}" lang="{{ t.language }}" hreflang="{{ t.language }}">{{ t.language | upper }}</a>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
