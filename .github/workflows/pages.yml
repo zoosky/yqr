@@ -69,13 +69,6 @@ jobs:
         working-directory: docs
         run: accent build --clean --base-url "${SITE_URL}"
 
-      # The home page is the hand-authored docs/content/home.html, served
-      # verbatim with its own embedded design; the theme covers the rest of
-      # the site. It contains no root-absolute URLs, so it needs no path
-      # prefixing.
-      - name: Install the hand-authored home page
-        run: cp docs/content/home.html docs/output/index.html
-
       - name: Deploy to gh-pages
         if: github.event_name != 'pull_request'
         run: |

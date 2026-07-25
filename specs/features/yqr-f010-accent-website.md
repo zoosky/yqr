@@ -4,7 +4,8 @@
 **Epic:** Project website (f010)
 **Owner:** yqr maintainers
 **Related:** `yqr-m003` (the demo content served at `/demo`),
-`docs/content/home.html` (served verbatim as the site home page),
+the former `docs/content/home.html` (its markup now the body of
+`content/index.md`, its design the `home` template),
 `benchmark.yml` (shares the `gh-pages` branch with the site deploy),
 `docs-pages.yml` (the retired raw `docs/content/` mirror workflow --
 removed by this feature, its job subsumed by the Accent build)
@@ -26,11 +27,18 @@ a page; no wrapper folders, no required frontmatter):
 
 - **Site root:** `docs/` holds `config.yaml`, `content/`, and the vendored
   theme under `themes/default/`.
-- **Home page:** the hand-authored `docs/content/home.html` is served
-  **verbatim** — copied to `output/index.html` after the build, keeping its
-  own embedded design exactly as authored. It contains no root-absolute
-  URLs, so sub-path serving needs no changes to it — the deployed file is
-  byte-identical to the source.
+- **Home page:** a real CMS page, so `accent serve` and `accent build`
+  render the same site (serve/build parity — the earlier copy-after-build
+  approach meant the dev server had no home page at all). The original
+  hand-authored markup is the body of `docs/content/index.md`, passed
+  through untouched via `process.markdown: false`; the page's bespoke
+  stylesheet lives in the dedicated `home` template
+  (`themes/default/templates/home.html.jinja`, selected via `template:`
+  frontmatter). The theme contributes the header menu and the footer with
+  the Accent CMS link; the template pins the theme's custom properties to
+  the ink palette so the always-dark page and the theme chrome agree in
+  both color modes. The page's own topbar and footer were dropped in favor
+  of the theme chrome that replaces them.
 - **Spec tree:** `../specs` is mounted at `/specs` via `content.mounts` and
   served as-is; each category directory carries a `README.md` index so it
   appears as a sidebar section. Relative `*.md` links between specs resolve
@@ -70,11 +78,14 @@ prefix).
 
 ## 3. Acceptance criteria
 
-- [x] `cd docs && accent build --clean` renders `/demo` and every spec under
-      `/specs/<category>/<spec-name>`; the post-build copy step installs the
-      home page at `/`.
-- [x] The home page is `docs/content/home.html` served verbatim at `/` —
-      byte-identical to the source file, its embedded design untouched.
+- [x] `cd docs && accent build --clean` renders the full site — home page,
+      `/demo`, and every spec under `/specs/<category>/<spec-name>` — with
+      no post-build steps; `accent serve` renders the identical site
+      (serve/build parity).
+- [x] The home page keeps the original hand-authored content and design:
+      the markup (body of `content/index.md`) reaches the browser
+      unprocessed, styled by the ported stylesheet in the `home` template,
+      framed by the theme's header menu and Accent-linked footer.
 - [x] The theme's light and dark palettes, fonts, and logo derive from the
       home page's design tokens (core hues verbatim; auxiliary tints and
       shades, e.g. hover states and alert panels, derived from them).

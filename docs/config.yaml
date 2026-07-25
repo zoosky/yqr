@@ -6,10 +6,12 @@
 #                      spec tree, served as flat-file pages without any
 #                      restructuring
 #
-# The home page is NOT rendered by the CMS: the hand-authored
-# ./content/home.html (its own embedded design) is copied verbatim to
-# output/index.html after the build. The theme -- restyled with the home
-# page's ink/brass/teal design tokens -- covers everything else.
+# The home page is a real CMS page, so serve and build agree: the
+# hand-authored design lives in themes/default/templates/home.html.jinja
+# and the page body in content/index.md (frontmatter `template: home`,
+# `process.markdown: false` -- the HTML passes through untouched). The
+# theme provides the header menu and the footer; the rest of the site uses
+# the standard theme, restyled with the home page's ink/brass/teal tokens.
 #
 # Requires accent >= v0.23.0. The site is served under the /yqr/ sub-path
 # on GitHub Pages; accent derives the deployment path prefix from the
@@ -20,7 +22,6 @@
 #
 # Local development:  cd docs && accent serve
 # Static build:       cd docs && accent build --clean
-#                     cp content/home.html output/index.html
 # Sub-path preview:   accent serve-static --dir output   (mounts under /yqr)
 # (accent build takes the base URL from site.url below; CI passes
 # --base-url explicitly with the same value, so the two produce identical

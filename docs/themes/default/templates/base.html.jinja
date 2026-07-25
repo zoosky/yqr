@@ -69,9 +69,16 @@
                         stroke-linecap="round" />
                 </svg>{{ site.name }}</a>
             <ul>
+                {# Top-level pages only. Depth is measured against url('/')
+                   rather than a literal "/" so the menu survives sub-path
+                   deployments (site.base_path): with a prefix, every page
+                   URL is one segment deeper and the home URL is the
+                   prefixed root, not "/". #}
+                {% set home_url = url('/') %}
+                {% set nav_depth = home_url | split("/") | list | length %}
                 {% for p in pages %}
                 {% set p_parts = p.url | split("/") | list %}
-                {% if p_parts | length <= 2 %} <li><a href="{{ p.url | safe }}" {% if p.url !="/" and page.url is
+                {% if p_parts | length <= nav_depth %} <li><a href="{{ p.url | safe }}" {% if p.url != home_url and page.url is
                         startingwith(p.url) %} class="active" {% elif p.url==page.url %} class="active" {% endif
                         %}>{{ p.nav_title or p.title }}</a></li>
                     {% endif %}
