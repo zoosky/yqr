@@ -9,8 +9,11 @@
    with numeric prefixes (e.g. 01.getting-started.md), menu_order is
    auto-populated from the prefix so no frontmatter is needed. #}
 {# yqr serves its spec tree at /specs/ (mounted from the repository's specs/
-   directory); the sidebar sections are the spec categories below it. #}
-{% set docs_prefix = version.root ~ "/" ~ version.current ~ "/" if version else "/specs/" %}
+   directory); the sidebar sections are the spec categories below it.
+   The prefix goes through url() so the depth math and startingwith()
+   matches survive sub-path deployments (site.base_path), where every page
+   URL carries an extra leading segment. #}
+{% set docs_prefix = version.root ~ "/" ~ version.current ~ "/" if version else url('/specs/') %}
 {% set section_depth = (docs_prefix | split("/") | list | length) %}
 {% set child_depth = section_depth + 1 %}
 <nav class="docs-sidebar" aria-label="Documentation navigation">
