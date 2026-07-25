@@ -2,9 +2,9 @@
 
 > yqr is a jq-style query and editing tool for YAML written in Rust. Reads are byte-preserving by default; the write tier performs surgical edits that change only the targeted bytes. This site serves the usage documentation and the full feature/bug/architecture spec tree.
 
-## yqr demo
+## yqr Demo
 
-- [yqr demo](/yqr/demo): A runnable showcase of yqr, a jq-style query & transform tool for YAML.
+- [yqr Demo](/yqr/demo): A runnable showcase of yqr, a jq-style query & transform tool for YAML.
 
 ## yqr Specs
 

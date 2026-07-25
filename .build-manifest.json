@@ -1,94 +1,14 @@
 {
   "version": 1,
-  "timestamp": "2026-07-25T18:18:54Z",
+  "timestamp": "2026-07-25T18:28:26Z",
   "pages": {
-    "/specs/features/yqr-f010-accent-website": {
-      "content_hash": "3be13ab2c6f17ae0",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/implementation/yqr-m003-shared-corpus": {
-      "content_hash": "f2718956fc642e1c",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/implementation/yqr-m005-single-engine-noyalib": {
-      "content_hash": "f7c886fc3a1eced8",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/features/yqr-f006-fidelity-write-tier": {
-      "content_hash": "587a3037c71d7a1f",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/features/yqr-f002-fidelity-read-floor": {
-      "content_hash": "6aa5763d3ec2e69a",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/architecture/yqr-a001-fidelity-surgical-edit": {
-      "content_hash": "1531497ef5df10aa",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "7ee54ab3763ec5ed",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
     "/specs/implementation/yqr-m004-crates-io-release-posture": {
       "content_hash": "a99980fdb3fc1649",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
-    "/specs/architecture": {
-      "content_hash": "b24e962a6486c6a2",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/research/yqr-r002-noyalib-fidelity-evaluation": {
-      "content_hash": "a0d878c2520dc856",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/features/yqr-f008-write-tier-computed-updates": {
-      "content_hash": "c7f555f028e1f89c",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/bugs": {
-      "content_hash": "abe46fa9846a257d",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/bugs/yqr-b005-crossbeam-epoch-advisory-via-criterion": {
-      "content_hash": "5d8fb92170f0f3af",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps": {
-      "content_hash": "5255f224c1899d90",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/bugs/yqr-b002-noyalib-cst-span-and-key-model-deficiencies": {
-      "content_hash": "037593c2727eef64",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "9a0e7e506813327b",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/features/yqr-f001-yaml-jq-m0": {
-      "content_hash": "b6d509ba2c06edf3",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs": {
-      "content_hash": "796acaa4f46ccd50",
+    "/specs/features": {
+      "content_hash": "64caeda468267e11",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
@@ -97,8 +17,28 @@
       "template": "home.html.jinja",
       "template_hash": "3adb50126d7f644f"
     },
-    "/specs/features/yqr-f003-fidelity-backend-a-rustyaml": {
-      "content_hash": "6c2a3c781faded12",
+    "/specs/implementation": {
+      "content_hash": "143f803bc7ff1d07",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/bugs/yqr-b001-roundtrip-discards-whitespace-and-formatting": {
+      "content_hash": "7d0f153c4a16e44d",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/features/yqr-f001-yaml-jq-m0": {
+      "content_hash": "b6d509ba2c06edf3",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/features/yqr-f0000-feature-status": {
+      "content_hash": "9a0e7e506813327b",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/features/yqr-f007-write-tier-structural-edits": {
+      "content_hash": "7ee54ab3763ec5ed",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
@@ -107,8 +47,58 @@
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
-    "/specs/implementation": {
-      "content_hash": "143f803bc7ff1d07",
+    "/specs/features/yqr-f008-write-tier-computed-updates": {
+      "content_hash": "c7f555f028e1f89c",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/architecture": {
+      "content_hash": "b24e962a6486c6a2",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/features/yqr-f010-accent-website": {
+      "content_hash": "3be13ab2c6f17ae0",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/implementation/yqr-m005-single-engine-noyalib": {
+      "content_hash": "f7c886fc3a1eced8",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/features/yqr-f009-fidelity-default-normalize": {
+      "content_hash": "1f94f761adc5eba7",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/implementation/yqr-m003-shared-corpus": {
+      "content_hash": "f2718956fc642e1c",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/bugs/yqr-b005-crossbeam-epoch-advisory-via-criterion": {
+      "content_hash": "5d8fb92170f0f3af",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/demo": {
+      "content_hash": "2eecae123f2dba19",
+      "template": "README.html.jinja",
+      "template_hash": "30406ea523c53def"
+    },
+    "/specs/features/yqr-f003-fidelity-backend-a-rustyaml": {
+      "content_hash": "6c2a3c781faded12",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs": {
+      "content_hash": "796acaa4f46ccd50",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/implementation/yqr-m002-fidelity-engine-adapter": {
+      "content_hash": "1fa20f885ab177ab",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
@@ -117,8 +107,13 @@
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
-    "/specs/features": {
-      "content_hash": "64caeda468267e11",
+    "/specs/bugs": {
+      "content_hash": "abe46fa9846a257d",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/architecture/yqr-a001-fidelity-surgical-edit": {
+      "content_hash": "1531497ef5df10aa",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
@@ -132,23 +127,8 @@
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
-    "/specs/implementation/yqr-m002-fidelity-engine-adapter": {
-      "content_hash": "1fa20f885ab177ab",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/specs/features/yqr-f009-fidelity-default-normalize": {
-      "content_hash": "1f94f761adc5eba7",
-      "template": "docs.html.jinja",
-      "template_hash": "d9d752c8f5bb9c21"
-    },
-    "/demo": {
-      "content_hash": "7c2d69a609ecf35a",
-      "template": "README.html.jinja",
-      "template_hash": "30406ea523c53def"
-    },
-    "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "41ee96d83efe08d0",
+    "/specs/bugs/yqr-b002-noyalib-cst-span-and-key-model-deficiencies": {
+      "content_hash": "037593c2727eef64",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
@@ -157,8 +137,13 @@
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
-    "/specs/bugs/yqr-b001-roundtrip-discards-whitespace-and-formatting": {
-      "content_hash": "7d0f153c4a16e44d",
+    "/specs/research/yqr-r002-noyalib-fidelity-evaluation": {
+      "content_hash": "a0d878c2520dc856",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/features/yqr-f002-fidelity-read-floor": {
+      "content_hash": "6aa5763d3ec2e69a",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
     },
@@ -166,18 +151,26 @@
       "content_hash": "aede3fa496b15052",
       "template": "docs.html.jinja",
       "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/bugs/yqr-b000-bug-status": {
+      "content_hash": "41ee96d83efe08d0",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps": {
+      "content_hash": "5255f224c1899d90",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
+    },
+    "/specs/features/yqr-f006-fidelity-write-tier": {
+      "content_hash": "587a3037c71d7a1f",
+      "template": "docs.html.jinja",
+      "template_hash": "d9d752c8f5bb9c21"
     }
   },
   "templates": {
-    "contact-island.html.jinja": {
-      "hash": "56e503f2b2aaab07",
-      "includes": [
-        "base.html.jinja",
-        "breadcrumbs.html.jinja"
-      ]
-    },
-    "islands-demo.html.jinja": {
-      "hash": "3764d63a6b8f8f5a",
+    "landing.html.jinja": {
+      "hash": "c23703ae4c9dfb65",
       "includes": [
         "base.html.jinja"
       ]
@@ -188,11 +181,116 @@
         "partials/diagram-example.html.jinja"
       ]
     },
+    "partials/head_meta.html.jinja": {
+      "hash": "11091e720ff85260",
+      "includes": []
+    },
+    "debug.html.jinja": {
+      "hash": "a02425cbbbfa6db6",
+      "includes": [
+        "debug.html.jinja"
+      ]
+    },
+    "news.html.jinja": {
+      "hash": "d68634aa5cd2fb08",
+      "includes": [
+        "base.html.jinja",
+        "breadcrumbs.html.jinja",
+        "page-nav.html.jinja"
+      ]
+    },
+    "page-nav.html.jinja": {
+      "hash": "9f92fdf1a9a4b0a9",
+      "includes": [
+        "page-nav.html.jinja"
+      ]
+    },
+    "toc.html.jinja": {
+      "hash": "bb16f2fdf8d4619d",
+      "includes": [
+        "toc.html.jinja"
+      ]
+    },
+    "breadcrumbs.html.jinja": {
+      "hash": "9ee05c9c95fc0126",
+      "includes": [
+        "breadcrumbs.html.jinja"
+      ]
+    },
+    "home.html.jinja": {
+      "hash": "3aed36fced0b825a",
+      "includes": [
+        "base.html.jinja"
+      ]
+    },
+    "islands-demo.html.jinja": {
+      "hash": "3764d63a6b8f8f5a",
+      "includes": [
+        "base.html.jinja"
+      ]
+    },
+    "partials/docs-sidebar.html.jinja": {
+      "hash": "b872c32e5c65a70a",
+      "includes": []
+    },
+    "error.html.jinja": {
+      "hash": "1392a7dae147f351",
+      "includes": [
+        "base.html.jinja"
+      ]
+    },
+    "contact-island.html.jinja": {
+      "hash": "56e503f2b2aaab07",
+      "includes": [
+        "base.html.jinja",
+        "breadcrumbs.html.jinja"
+      ]
+    },
     "partials/language-switcher.html.jinja": {
       "hash": "5bc4be146ebac056",
       "includes": [
         "partials/language-switcher.html.jinja"
       ]
+    },
+    "data-comments.html.jinja": {
+      "hash": "01dade3dd72018f7",
+      "includes": [
+        "data-comments.html.jinja"
+      ]
+    },
+    "docs-islands.html.jinja": {
+      "hash": "7f7484f83b8161f8",
+      "includes": [
+        "base.html.jinja",
+        "breadcrumbs.html.jinja",
+        "debug.html.jinja",
+        "page-nav.html.jinja",
+        "partials/docs-sidebar.html.jinja"
+      ]
+    },
+    "partials/diagram-fn-example.html.jinja": {
+      "hash": "c54106aeeff16b26",
+      "includes": [
+        "partials/diagram-fn-example.html.jinja"
+      ]
+    },
+    "partials/version-dropdown.html.jinja": {
+      "hash": "91b03f148f730e08",
+      "includes": [
+        "partials/version-dropdown.html.jinja"
+      ]
+    },
+    "page-index.html.jinja": {
+      "hash": "ff4a2801ef2c5ae3",
+      "includes": [
+        "base.html.jinja",
+        "breadcrumbs.html.jinja",
+        "debug.html.jinja"
+      ]
+    },
+    "partials/markdown-link.html.jinja": {
+      "hash": "1699b111be5f05fe",
+      "includes": []
     },
     "base.html.jinja": {
       "hash": "9a7b411fc275cf35",
@@ -203,21 +301,19 @@
         "partials/version-dropdown.html.jinja"
       ]
     },
-    "home.html.jinja": {
-      "hash": "3aed36fced0b825a",
+    "error/404.html.jinja": {
+      "hash": "2afe6c945a7186c2",
       "includes": [
         "base.html.jinja"
       ]
     },
-    "page-nav.html.jinja": {
-      "hash": "9f92fdf1a9a4b0a9",
+    "modular.html.jinja": {
+      "hash": "38e09abd9aae4071",
       "includes": [
+        "base.html.jinja",
+        "breadcrumbs.html.jinja",
         "page-nav.html.jinja"
       ]
-    },
-    "partials/docs-sidebar.html.jinja": {
-      "hash": "b872c32e5c65a70a",
-      "includes": []
     },
     "remote-doc.html.jinja": {
       "hash": "b99bd7310b2d5493",
@@ -234,44 +330,6 @@
         "base.html.jinja"
       ]
     },
-    "error.html.jinja": {
-      "hash": "1392a7dae147f351",
-      "includes": [
-        "base.html.jinja"
-      ]
-    },
-    "docs-islands.html.jinja": {
-      "hash": "7f7484f83b8161f8",
-      "includes": [
-        "base.html.jinja",
-        "breadcrumbs.html.jinja",
-        "debug.html.jinja",
-        "page-nav.html.jinja",
-        "partials/docs-sidebar.html.jinja"
-      ]
-    },
-    "toc.html.jinja": {
-      "hash": "bb16f2fdf8d4619d",
-      "includes": [
-        "toc.html.jinja"
-      ]
-    },
-    "page-index.html.jinja": {
-      "hash": "ff4a2801ef2c5ae3",
-      "includes": [
-        "base.html.jinja",
-        "breadcrumbs.html.jinja",
-        "debug.html.jinja"
-      ]
-    },
-    "partials/recent-documents.html.jinja": {
-      "hash": "454fc111772c0724",
-      "includes": []
-    },
-    "partials/markdown-link.html.jinja": {
-      "hash": "1699b111be5f05fe",
-      "includes": []
-    },
     "docs.html.jinja": {
       "hash": "8ce13efd73d6bf46",
       "includes": [
@@ -283,69 +341,13 @@
         "partials/recent-documents.html.jinja"
       ]
     },
-    "partials/head_meta.html.jinja": {
-      "hash": "11091e720ff85260",
+    "partials/recent-documents.html.jinja": {
+      "hash": "454fc111772c0724",
       "includes": []
-    },
-    "tag.html.jinja": {
-      "hash": "ba17e7e911bf550e",
-      "includes": [
-        "base.html.jinja"
-      ]
-    },
-    "debug.html.jinja": {
-      "hash": "a02425cbbbfa6db6",
-      "includes": [
-        "debug.html.jinja"
-      ]
     },
     "partials/mermaid-loader.html.jinja": {
       "hash": "76486288227f61f2",
       "includes": []
-    },
-    "error/404.html.jinja": {
-      "hash": "2afe6c945a7186c2",
-      "includes": [
-        "base.html.jinja"
-      ]
-    },
-    "partials/version-dropdown.html.jinja": {
-      "hash": "91b03f148f730e08",
-      "includes": [
-        "partials/version-dropdown.html.jinja"
-      ]
-    },
-    "breadcrumbs.html.jinja": {
-      "hash": "9ee05c9c95fc0126",
-      "includes": [
-        "breadcrumbs.html.jinja"
-      ]
-    },
-    "modular.html.jinja": {
-      "hash": "38e09abd9aae4071",
-      "includes": [
-        "base.html.jinja",
-        "breadcrumbs.html.jinja",
-        "page-nav.html.jinja"
-      ]
-    },
-    "partials/diagram-fn-example.html.jinja": {
-      "hash": "c54106aeeff16b26",
-      "includes": [
-        "partials/diagram-fn-example.html.jinja"
-      ]
-    },
-    "landing.html.jinja": {
-      "hash": "c23703ae4c9dfb65",
-      "includes": [
-        "base.html.jinja"
-      ]
-    },
-    "data-comments.html.jinja": {
-      "hash": "01dade3dd72018f7",
-      "includes": [
-        "data-comments.html.jinja"
-      ]
     },
     "default.html.jinja": {
       "hash": "20d43fb9b3da6af8",
@@ -357,12 +359,10 @@
         "toc.html.jinja"
       ]
     },
-    "news.html.jinja": {
-      "hash": "d68634aa5cd2fb08",
+    "tag.html.jinja": {
+      "hash": "ba17e7e911bf550e",
       "includes": [
-        "base.html.jinja",
-        "breadcrumbs.html.jinja",
-        "page-nav.html.jinja"
+        "base.html.jinja"
       ]
     }
   },
