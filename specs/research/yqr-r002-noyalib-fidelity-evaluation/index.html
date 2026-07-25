@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research r002 — Evaluating `noyalib` as a fidelity engine for yqr - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r002-noyalib-fidelity-evaluation">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Research r002 — Evaluating `noyalib` as a fidelity engine for yqr">
+<meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r002-noyalib-fidelity-evaluation">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Research r002 — Evaluating `noyalib` as a fidelity engine for yqr">
+<meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+
+
+
+
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="4b3bef6403">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-07-25",
+  "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
+  "inLanguage": "en",
+  "name": "Research r002 — Evaluating `noyalib` as a fidelity engine for yqr",
+  "url": "https://zoosky.github.io/yqr/specs/research/yqr-r002-noyalib-fidelity-evaluation",
+  "wordCount": 3552
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs",
+      "name": "yqr Specs",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/research",
+      "name": "Research Notes",
+      "position": 3
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/research/yqr-r002-noyalib-fidelity-evaluation",
+      "name": "Research r002 — Evaluating `noyalib` as a fidelity engine for yqr",
+      "position": 4
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs"  class="active" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<div class="docs-layout">
+    
+
+
+
+
+<nav class="docs-sidebar" aria-label="Documentation navigation">
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Feature Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
+                   class="sidebar-link">Feature Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f001-yaml-jq-m0"
+                   class="sidebar-link">Feature f001 — `yqr`: a Swiss Army knife for YAML</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f002-fidelity-read-floor"
+                   class="sidebar-link">Feature f002 — Fidelity read floor (`FidelityEngine` seam + noyalib backend)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml"
+                   class="sidebar-link">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f004-engine-parity-runtime-switch"
+                   class="sidebar-link">Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f005-preserve-flag-decouple"
+                   class="sidebar-link">Feature f005 — Decouple byte&#x2f;comment preservation from backend selection (`--preserve`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f006-fidelity-write-tier"
+                   class="sidebar-link">Feature f006 — Write tier v1: value assignment and in-place edits (`--in-place`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits"
+                   class="sidebar-link">Feature f007 — Write tier: structural edits (the `b004` gaps)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates"
+                   class="sidebar-link">Feature f008 — Write tier: computed updates (`|=`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize"
+                   class="sidebar-link">Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f010-accent-website"
+                   class="sidebar-link">Feature f010 — Project website: Accent CMS site over docs&#x2f; and specs&#x2f;, on GitHub Pages</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Bug Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status"
+                   class="sidebar-link">Bug Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting"
+                   class="sidebar-link">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies"
+                   class="sidebar-link">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker"
+                   class="sidebar-link">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps"
+                   class="sidebar-link">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion"
+                   class="sidebar-link">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity"
+                   class="sidebar-link">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Architecture Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit"
+                   class="sidebar-link">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Implementation Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter"
+                   class="sidebar-link">Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m003-shared-corpus"
+                   class="sidebar-link">Implementation m003 — Shared real-world corpus for validation and benchmarks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture"
+                   class="sidebar-link">Implementation m004 — crates.io release posture (git-dep fidelity backends)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m005-single-engine-noyalib"
+                   class="sidebar-link">Implementation m005 — Single YAML engine: consolidation on noyalib</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          open>
+          <summary class="sidebar-section-title">Research Notes</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r001-jq-feature-gap"
+                   class="sidebar-link">Research r001 — jq Feature-Gap Analysis</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r002-noyalib-fidelity-evaluation"
+                   class="sidebar-link active">Research r002 — Evaluating `noyalib` as a fidelity engine for yqr</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+</nav>
+
+    <article class="docs-content">
+        
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;research">Research Notes</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Research r002 — Evaluating `noyalib` as a fidelity engine for yqr</span>
+</nav>
+
+
+        <h1>Research r002 — Evaluating `noyalib` as a fidelity engine for yqr</h1>
+
+        <accent-island data-component="copy-code" data-hydrate="load">
+        <div class="content prose">
+            <p><strong>Status:</strong> Draft
+<strong>Owner:</strong> yqr maintainers
+<strong>Last updated:</strong> 2026-07-03
+<strong>Subject:</strong> Does <code>noyalib</code> solve the round-trip fidelity problem (<code>yqr-b001</code>) better than <code>rust-yaml</code> 1.1.0? (evaluated on 0.0.8; BOM fix re-verified on 0.0.12)
+<strong>Related:</strong> <code>yqr-b001</code> (the fidelity bug), <code>yqr-a001</code> (Fidelity-First architecture), <code>yqr-r001</code> §5/§9 (YAML-native gaps)
+<strong>Evaluated:</strong> <code>noyalib</code> 0.0.8 (workspace at <code>../yqr-deps/noyalib</code>, crate <code>crates/noyalib</code>); crates.io max version 0.0.8 (2026-06-17, independently verified)</p>
+<h2 id="1-question">1. Question<a class="heading-anchor" href="#1-question" aria-label="Link to this section"></a></h2>
+<p><code>yqr-b001</code> proved that <code>rust-yaml</code>’s <code>text → Value → dump_str</code> pipeline is a
+lossy semantic round-trip: it cannot satisfy the <code>yqr-a001</code> guarantee (“yqr never
+rewrites bytes it did not change”). <code>yqr-a001</code> §4 prescribes building a
+source-preserving, span-based layer ourselves on top of <code>rust-yaml</code>’s scanner
+tokens.</p>
+<p>This document asks whether <strong><code>noyalib</code></strong> — which ships a CST “tooling” API that
+claims to “reproduce the source byte-for-byte” and to edit YAML by rewriting only
+the touched span — is a better foundation than either today’s <code>rust-yaml</code> path or
+a hand-built span layer.</p>
+<h2 id="2-method">2. Method<a class="heading-anchor" href="#2-method" aria-label="Link to this section"></a></h2>
+<p>Three independent, cross-checked lines of evidence:</p>
+<ol>
+<li><strong>Empirical</strong> — the exact <code>yqr-b001</code> reproduction corpus (14 files, one per
+fidelity dimension) was run through <code>noyalib::cst::parse_document(input)</code>
+<code>→ .to_string()</code> and diffed byte-for-byte against the input, plus a surgical
+edit (<code>doc.set</code>) and a multi-document (<code>parse_stream</code>) probe. Built against the
+local checkout via a throwaway path-dependency harness.</li>
+<li><strong>Source review</strong> — a multi-agent pass over <code>noyalib</code>’s source and docs (CST
+mechanism, trivia capture, API fit, maturity, dependencies, comparison), with
+an <strong>adversarial verification stage</strong> that re-checked every load-bearing claim
+against the code. The reproduced BOM defect (§5.3) was found by this pass and
+confirmed empirically.</li>
+<li><strong>External facts</strong> — <code>noyalib</code>’s crates.io publication, versions, and dates
+were fetched and verified directly (not taken from the README).</li>
+</ol>
+<h2 id="3-recommendation-tl-dr">3. Recommendation (TL;DR)<a class="heading-anchor" href="#3-recommendation-tl-dr" aria-label="Link to this section"></a></h2>
+<p><strong>The architecture is right; the dependency is not yet trustworthy enough to be
+the foundation of a hard guarantee. Recommended path: HYBRID, GATED — prototype,
+do not yet commit.</strong></p>
+<ul>
+<li><code>noyalib</code>’s CST <strong>is</strong> the <code>yqr-a001</code> §4 architecture (original text +
+node→byte-span index + splice) <strong>already implemented, exercised, and
+<code>#![forbid(unsafe_code)]</code></strong>. Empirically it round-trips <strong>13 of 14</strong> <code>b001</code>
+corpus files byte-for-byte and performs the exact a001 §4.2 surgical edit —
+where <code>rust-yaml</code> fails <strong>13 of 14</strong> (§5).</li>
+<li><strong>Weigh three findings (one now resolved):</strong> (1) the <strong>reproduced BOM bug</strong> — a
+BOM followed by any multi-node document was a hard parse error in 0.0.8 — has
+been <strong>fixed upstream and released</strong>: PR
+<a href="https://github.com/sebastienrousseau/noyalib/pull/118">noyalib#118</a> landed as
+<a href="https://github.com/sebastienrousseau/noyalib/pull/123">#123</a> and shipped in
+<strong>0.0.12</strong>, where all 14 corpus dimensions (BOM included) round-trip
+byte-for-byte (re-verified). (2) it is still <strong>pre-1.0 with a self-declared
+“every minor bump may be breaking” policy</strong> (0.0.8 → 0.0.12 in ~2 weeks), 1.0
+deferred to ~2028, single-maintainer; (3) <strong>no large-file CST performance/memory
+data exists</strong> and each edit copies the whole source.</li>
+<li><code>noyalib</code> has <strong>no jq evaluator</strong>, so it can never fully replace yqr’s engine —
+only a <strong>hybrid</strong> (noyalib for the fidelity/CST layer, yqr’s own evaluator) is
+viable.</li>
+</ul>
+<p><strong>Action:</strong> keep yqr’s evaluator; spike <code>noyalib</code>’s CST behind a thin internal
+adapter (so a break or abandonment is contained); pin the exact version; and gate
+real adoption on the three checks in §13. If the gates pass (and the BOM bug is
+fixed upstream or pre-normalized by yqr), adopt as a hybrid. If not, build the
+span layer in-house <strong>using <code>noyalib</code>’s design as the proven blueprint</strong> rather
+than <code>rust-yaml</code>’s scanner.</p>
+<h2 id="4-what-noyalib-is">4. What <code>noyalib</code> is<a class="heading-anchor" href="#4-what-noyalib-is" aria-label="Link to this section"></a></h2>
+<p>A YAML 1.2 library (<code>serde</code>-integrated, zero <code>unsafe</code>) that exposes <strong>two APIs
+over one parser</strong> (<code>README.md</code> “Two APIs, one parser”):</p>
+<ul>
+<li><strong>Data binding</strong> — <code>from_str</code> / <code>to_string</code> / <code>Value</code>. The round-trip travels
+through a <code>Value</code>, so “comments and exact whitespace are not preserved.” This is
+the same lossy shape as <code>rust-yaml</code> and is <strong>not</strong> the interesting part.</li>
+<li><strong>Tooling / automation</strong> — <code>noyalib::cst::parse_document</code> / <code>parse_stream</code> →
+<code>Document</code>. “Read YAML into a side-table CST that reproduces the source
+byte-for-byte, then run targeted edits like <code>doc.set("version", "0.0.2")</code> —
+only the touched span is rewritten, every comment and the original indentation
+is left alone.” This is the candidate fidelity engine.</li>
+</ul>
+<p>The <code>Document</code> holds three coordinated views of one input: a <strong>green tree</strong> that
+reproduces the source verbatim, a typed <code>Value</code> for data access, and a <strong>span
+tree</strong> mapping any path to a byte range (<code>examples/lossless_edit.rs</code>).</p>
+<h2 id="5-empirical-results-the-b001-corpus-through-noyalib-s-cst">5. Empirical results (the <code>b001</code> corpus through <code>noyalib</code>’s CST)<a class="heading-anchor" href="#5-empirical-results-the-b001-corpus-through-noyalib-s-cst" aria-label="Link to this section"></a></h2>
+<h3 id="5-1-round-trip-matrix">5.1 Round-trip matrix<a class="heading-anchor" href="#5-1-round-trip-matrix" aria-label="Link to this section"></a></h3>
+<p><code>parse_document(input).to_string()</code> vs input, byte-for-byte:</p>
+<table><thead><tr><th>Corpus file (dimension)</th><th><code>rust-yaml</code> (<code>b001</code>)</th><th><code>noyalib</code> CST</th></tr></thead><tbody>
+<tr><td>01 comments + blank lines</td><td>DIFFERS (all lost)</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>02 blank lines</td><td>DIFFERS</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>03 indent width (4-space)</td><td>DIFFERS</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>04 quote styles (<code>'</code>/<code>"</code>)</td><td>DIFFERS</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>05 block scalars (<code>|</code>/<code>&gt;</code>)</td><td>DIFFERS</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>06 numbers (<code>007</code>, etc.)</td><td>DIFFERS (<code>007</code>→<code>7</code>)</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>07 flow style <code>{}</code>/<code>[]</code></td><td>DIFFERS (→block)</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>08 key order</td><td>IDENTICAL</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>09 anchors / merge <code>&lt;&lt;</code></td><td>DIFFERS (expanded)</td><td><strong>IDENTICAL</strong> (not expanded)</td></tr>
+<tr><td>10 CRLF</td><td>DIFFERS (→LF)</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>12 trailing whitespace</td><td>DIFFERS (stripped)</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>13 multi-document</td><td>DIFFERS (2nd doc dropped)</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>14 realistic k8s manifest</td><td>DIFFERS</td><td><strong>IDENTICAL</strong></td></tr>
+<tr><td>11 BOM + multiple keys</td><td>“identical” bytes but key corrupted</td><td><strong>PARSE ERROR</strong> (see §5.3)</td></tr>
+</tbody></table>
+<p><code>noyalib</code>: <strong>13 / 14 byte-identical</strong>; the one failure is a hard error, not silent
+corruption. <code>rust-yaml</code>: <strong>1 / 14</strong>.</p>
+<h3 id="5-2-surgical-edit-the-a001-4-2-property">5.2 Surgical edit (the a001 §4.2 property)<a class="heading-anchor" href="#5-2-surgical-edit-the-a001-4-2-property" aria-label="Link to this section"></a></h3>
+<p><code>doc.set("replicas", "5")</code> on the commented file rewrote only that value:</p>
+<pre><code># Top-level header comment
+name: my-app   # inline comment on a scalar
+
+# Section: replicas
+replicas: 5            # &lt;- only this byte changed; every comment + blank line intact
+
+config:
+  # nested comment
+  debug: true
+  level: info
+</code></pre>
+<p>Comment preservation across the edit: header <code>true</code>, inline <code>true</code>, nested
+<code>true</code>. Multi-document via <code>parse_stream</code> parsed 2 documents and re-joined
+byte-identically.</p>
+<h3 id="5-3-the-one-failure-bom-multi-node-hard-parse-error-reproduced">5.3 The one failure: BOM + multi-node = hard parse error (reproduced)<a class="heading-anchor" href="#5-3-the-one-failure-bom-multi-node-hard-parse-error-reproduced" aria-label="Link to this section"></a></h3>
+<p>A UTF-8 BOM followed by <strong>any multi-node</strong> document fails to parse in 0.0.8:</p>
+<pre><code>"\u{FEFF}a: 1\n"            → round-trips OK (single node)
+"\u{FEFF}a: 1\nb: 2\n"      → ERROR: stray content after document …
+"\u{FEFF}- 1\n- 2\n"        → ERROR (sequence)
+"\u{FEFF}a:\n  b: 1\n"      → ERROR (nested)
+</code></pre>
+<p>A <code>Bom</code> trivia leaf kind exists (<code>cst/syntax.rs:33-34</code>) and a single-node BOM file
+round-trips, but the parser mis-scopes the document after a BOM — so essentially
+every real-world BOM-prefixed file would be <strong>rejected</strong>. This is one of the very
+<code>b001</code> dimensions adoption is meant to fix, and upstream docs/tests never disclose
+it (their BOM tests are single-key only). Failing loudly is better than
+<code>rust-yaml</code>’s silent corruption, but it is still a blocker until fixed upstream or
+pre-normalized by yqr (stripping a leading BOM before parse is trivial).</p>
+<p><strong>Root cause and upstream fix (merged + released).</strong> The scanner consumed the BOM
+but counted its three bytes toward the column of the following content (and
+treated the BOM’s last byte as the character before a first-line <code>#</code>), so the
+first node landed at column 3 and a following sibling at column 0 was misread as a
+dedent below the document. Fix submitted upstream as PR
+<a href="https://github.com/sebastienrousseau/noyalib/pull/118">noyalib#118</a> (the project
+has GitHub issues disabled, so a PR is the only channel): it makes a leading BOM
+zero-width in the three column/comment sites and adds scanner regression tests.
+The maintainer reviewed and accepted it, rebased it (authorship preserved) as
+<a href="https://github.com/sebastienrousseau/noyalib/pull/123">#123</a>, <strong>merged it to
+<code>main</code> (2026-06-30), and shipped it in noyalib 0.0.12</strong>. <strong>Re-verified on 0.0.12</strong>
+via <code>tests/fidelity.rs</code>: all BOM forms (multi-key, sequence, nested, BOM+CRLF,
+BOM+comment, single) now round-trip byte-identically. <strong>Blocker cleared</strong> — this
+dimension is fixed in a released version yqr can pin.</p>
+<h2 id="6-how-the-fidelity-works-mechanism-verified-in-source">6. How the fidelity works (mechanism, verified in source)<a class="heading-anchor" href="#6-how-the-fidelity-works-mechanism-verified-in-source" aria-label="Link to this section"></a></h2>
+<p><code>noyalib</code>’s CST is byte-faithful <strong>by construction</strong>, not by careful emitter
+tuning:</p>
+<ul>
+<li>The <code>Document</code> owns the original input <strong>once</strong> as <code>source: Arc&lt;str&gt;</code>
+(<code>cst/document.rs:54</code>).</li>
+<li>The green tree stores <strong>no text</strong> — each leaf is <code>Token { kind, len: u32 }</code>,
+only a byte length (<code>cst/green.rs:64-69</code>). Every input byte, including all
+trivia (whitespace, newlines incl. <code>\r\n</code>, comments, BOM, directives), is
+recorded as a leaf (<code>cst/syntax.rs:26-37</code>); distinct scalar leaf kinds
+(<code>PlainScalar</code> / <code>SingleQuotedScalar</code> / <code>DoubleQuotedScalar</code> / <code>LiteralScalar</code> /
+<code>FoldedScalar</code>, <code>cst/syntax.rs:67-77</code>) preserve quote and block-scalar style.</li>
+<li><code>Display</code>/<code>to_string()</code> walks the tree concatenating <code>source[offset..offset+len]</code>
+slices (<code>cst/document.rs:911-913</code>, <code>cst/green.rs:128-137</code>). For an unmodified
+parse this <strong>equals the input</strong>. The project asserts this as a round-trip
+property test over the YAML test suite (<code>tests/cst_round_trip.rs:140-178</code>),
+excluding an 18-case <code>SKIP_LIST</code> (mostly <code>%TAG</code>/tag-shorthand/empty-key edges).</li>
+<li>Edits are a true splice: <code>replace_span(start,end,repl)</code> builds
+<code>source[..start] + repl + source[end..]</code> (<code>cst/document.rs:320-324</code>), then
+<strong>locally re-parses only the smallest affected sub-tree</strong> and reuses every
+untouched sibling via O(1) <code>Arc</code> clones (<code>cst/builder.rs:573-575</code>), guarded by a
+contract that the re-parsed fragment has the expected kind and exact length
+(<code>cst/document.rs:406-408</code>). On any parse failure the document is left unchanged
+(<code>cst/document.rs:349-355</code>).</li>
+<li>The higher-level mutators all resolve a path to a span and delegate to
+<code>replace_span</code>: <code>set:458</code>, <code>set_value:500</code>, <code>remove:557</code>, <code>push_back:593</code>,
+<code>insert_entry:767</code>, <code>insert_after:883</code>, with <code>span_at:175</code> and <code>get:281</code> for
+reads, and <code>materialise_aliases_of</code> (<code>cst/anchor.rs:262</code>) for opt-in alias
+inlining (all <code>cst/document.rs</code> unless noted).</li>
+</ul>
+<h3 id="caveats-on-the-mechanism">Caveats on the mechanism<a class="heading-anchor" href="#caveats-on-the-mechanism" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>“Only the touched span” is not universal.</strong> Edits touching/introducing
+anchors, aliases, or tags escalate to a <strong>full-document re-parse</strong>
+(<code>cst/document.rs:369-376</code>), as do edits whose local re-parse does not fit. Still
+byte-faithful on unedited regions; just not O(1).</li>
+<li><strong><code>set()</code> splices verbatim</strong> — no auto-formatting (<code>cst/document.rs:435-441</code>).
+<code>set_value()</code> does scalar style-matching but is scalar-oriented and rejects
+collections (<code>cst/document.rs:474-487</code>); exact block-scalar handling is ambiguous
+between the doc comment and the code. <strong>yqr still owns correct fragment
+generation</strong> (quoting, indentation, block-scalar emission) for non-trivial
+transforms.</li>
+<li><strong>Optimistic commit.</strong> A locally-repairable but globally-invalid edit (e.g.
+<code>set("name","[")</code>) can return <code>Ok</code> and commit while <code>validate()</code> would fail; only
+edits that escalate to the full re-parse are atomic (<code>cst/document.rs:213-250</code>).
+<strong>yqr must call <code>validate()</code> after edits.</strong></li>
+</ul>
+<h2 id="7-b001-dimension-coverage">7. <code>b001</code> dimension coverage<a class="heading-anchor" href="#7-b001-dimension-coverage" aria-label="Link to this section"></a></h2>
+<table><thead><tr><th>Dimension</th><th>Covered by <code>noyalib</code> CST?</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>Comments (leading/inline/nested)</td><td>Yes</td><td><code>Comment</code> leaf (<code>syntax.rs:26-37</code>); empirical 01/14</td></tr>
+<tr><td>Blank lines</td><td>Yes</td><td>Whitespace/Newline trivia tile every byte; empirical 02</td></tr>
+<tr><td>Indent width</td><td>Yes</td><td>leading indent = Whitespace trivia; empirical 03</td></tr>
+<tr><td>Single vs double quotes</td><td>Yes</td><td>distinct quoted-scalar leaf kinds; empirical 04</td></tr>
+<tr><td>Literal/folded block scalars</td><td>Yes</td><td><code>LiteralScalar</code>/<code>FoldedScalar</code> incl. header/chomping; empirical 05</td></tr>
+<tr><td>Flow vs block</td><td>Yes</td><td>separate Flow*/Block* composites; empirical 07</td></tr>
+<tr><td>CRLF</td><td>Yes (alone)</td><td><code>Newline</code> leaf verbatim <code>\r\n</code>; empirical 10. Caveat: CRLF+BOM hits the BOM bug</td></tr>
+<tr><td>Trailing whitespace</td><td>Yes</td><td>Whitespace trivia; empirical 12</td></tr>
+<tr><td>Multi-document</td><td>Yes</td><td><code>parse_stream</code> slices byte ranges; empirical 13 — fixes b001’s silent drop</td></tr>
+<tr><td>Anchors/aliases/merge keys</td><td>Yes (preserved, not expanded)</td><td>source bytes kept; edits near <code>&amp;</code>/<code>*</code>/<code>!</code> escalate to full re-parse; empirical 09</td></tr>
+<tr><td>Number/type fidelity</td><td>Yes (CST path)</td><td>never re-serialized; <code>007</code>, out-of-i64, hi-precision floats round-trip. Note: the <strong>typed <code>Value</code></strong> path can still lose precision — yqr must not route untouched numbers through it</td></tr>
+<tr><td>Key order (+ duplicate keys)</td><td>Yes</td><td>verbatim emission; empirical 08</td></tr>
+<tr><td><strong>BOM</strong></td><td><strong>Fixed in 0.0.12</strong> (was broken in 0.0.8)</td><td>single-node OK; BOM+multi-node errored on 0.0.8, fixed via <a href="https://github.com/sebastienrousseau/noyalib/pull/123">#123</a>, released in 0.0.12; re-verified round-trips (§5.3)</td></tr>
+</tbody></table>
+<h2 id="8-api-fit-for-yqr">8. API fit for yqr<a class="heading-anchor" href="#8-api-fit-for-yqr" aria-label="Link to this section"></a></h2>
+<p><code>noyalib</code> supplies exactly the two primitives <code>yqr-a001</code> §4 needs — a byte-offset
+splice (<code>replace_span</code>) and a path→span resolver (<code>span_at</code>) — plus multi-doc
+slicing (<code>parse_stream</code>). But the fit is <strong>sharp, not seamless</strong>:</p>
+<ul>
+<li><strong>No jq query language</strong> (confirmed by grep). yqr keeps its own evaluator and
+must translate each selected node’s concrete path into <code>noyalib</code>’s string-path
+syntax.</li>
+<li><strong>Path syntax</strong> is <code>foo.bar</code> / <code>items[0]</code> / <code>items[0].name</code> — <strong>no wildcards,
+no recursive descent</strong> (<code>cst/document.rs:160-163</code>). yqr’s iteration / <code>map</code> /
+recursive selections must be lowered into per-element concrete paths before
+calling <code>span_at</code>.</li>
+<li><strong>String paths only, no key escaping</strong> — the structured <code>QuerySegment</code> is
+<code>pub(crate)</code>. Special-character keys (dots/brackets/stars in key names) are not
+addressable via <code>span_at</code>; yqr would need a fallback that walks the public
+<code>GreenNode</code> tree directly to compute spans — partially re-implementing what
+<code>noyalib</code> keeps private.</li>
+<li><strong>Two <code>Value</code> models.</strong> <code>noyalib::Value</code> (7 variants incl. <code>Tagged</code>) differs
+from yqr’s; a conversion/bridge layer is unavoidable, or a larger migration of
+<code>eval.rs</code> onto <code>noyalib::Value</code>.</li>
+</ul>
+<p>Net: <code>noyalib</code> gives yqr the hard part (lossless CST + spans + splice) but yqr
+must still build a path-translation/enumeration adapter and own fragment
+formatting.</p>
+<h2 id="9-maturity-and-risk">9. Maturity and risk<a class="heading-anchor" href="#9-maturity-and-risk" aria-label="Link to this section"></a></h2>
+<p>Verified facts (crates.io, fetched 2026-06-26): published, <strong>max version 0.0.8</strong>
+(2026-06-17), 37,601 downloads, created 2026-05-10, <strong>8 versions</strong> (0.0.1–0.0.4
+all within ~2 days), none yanked. docs.rs present.</p>
+<p>Strong engineering posture: <code>#![forbid(unsafe_code)]</code> (<code>lib.rs:342</code>, 0 <code>unsafe</code>
+tokens in src), 9 fuzz targets, Miri, proptest, a high coverage gate,
+<code>cargo audit</code>/<code>deny</code>/<code>vet</code>, CodeQL, cosign+SLSA, high OpenSSF Scorecard.</p>
+<p>But material risks for a hard-guarantee dependency:</p>
+<ul>
+<li><strong>Pre-1.0, self-declared breakage.</strong> <code>doc/POLICIES.md</code> states every minor bump
+may be breaking; stable 1.0 is targeted ~2028 (CHANGELOG); the maintainer
+documents planned SemVer-breaking refactors (compact-string keys, arena
+lifetimes, <strong>eliminating the <code>Value</code> AST</strong>). yqr would build its core guarantee
+on an API permitted to break every release.</li>
+<li><strong>Bus factor 1.</strong> Single author; security disclosure to a personal email; the
+OpenSSF Code-Review check is satisfied mechanically (auto-approve Dependabot).</li>
+<li><strong>Docs are demonstrably unreliable</strong> (MSRV stated as 1.75 while the manifest is
+edition-2024 / 1.85; inconsistent YAML-suite pass counts across files; stale
+module docs; a CHANGELOG entry falsely claiming an inconsistency was fixed). The
+README’s unqualified “reproduces source byte-for-byte” therefore cannot be
+trusted on faith — which is exactly why we ran our own corpus, surfacing the BOM
+bug the docs never mention.</li>
+<li><strong>Stricter parser.</strong> The eager green-tree builder is stricter than a lazy
+<code>from_str</code> (tab-indentation rejected; ~94 suite cases skipped as parse-rejects).
+Files yqr accepts today via <code>rust-yaml</code> could become <strong>hard parse errors</strong> — a
+behavior change, not just a fidelity upgrade. Must be quantified against real
+inputs.</li>
+</ul>
+<h2 id="10-dependency-and-build-footprint">10. Dependency and build footprint<a class="heading-anchor" href="#10-dependency-and-build-footprint" aria-label="Link to this section"></a></h2>
+<ul>
+<li>
+<p>The CST API is gated only on the <code>std</code> feature (default on), so the minimal
+line is:</p>
+<pre><code class="language-toml">noyalib = { version = "0.0.8", default-features = false, features = ["std"] }
+</code></pre>
+</li>
+<li>
+<p><strong><code>serde</code> is a mandatory, non-feature-gateable dependency</strong> of <code>noyalib</code>.
+Adopting it <strong>forfeits yqr’s current “no mandatory serde” property</strong> (yqr’s
+production tree has no <code>serde</code> today).</p>
+</li>
+<li>
+<p>Genuinely-new crates are ~5 (<code>noyalib</code>, <code>serde</code>, <code>serde_derive</code>, <code>rustc-hash</code>,
+<code>smallvec</code>); the proc-macro toolchain and <code>indexmap</code>/<code>memchr</code> are already pulled
+via <code>clap_derive</code> / <code>rust-yaml</code>. If <code>noyalib</code> fully replaced <code>rust-yaml</code>, net
+crate count could <strong>drop ~3</strong> (removing <code>rust-yaml</code>’s regex/memmap2/libc/base64
+subtree). During any transition where both are present, the tree grows by ~5.</p>
+</li>
+<li>
+<p>MSRV 1.85 &lt; yqr’s 1.97 (compatible).</p>
+</li>
+</ul>
+<p>These counts are reasoned from <code>Cargo.lock</code>/manifests, not from a resolved
+<code>yqr + noyalib</code> build (noyalib is not yet wired into yqr).</p>
+<h2 id="11-performance-unverified-a-real-gap">11. Performance — unverified, a real gap<a class="heading-anchor" href="#11-performance-unverified-a-real-gap" aria-label="Link to this section"></a></h2>
+<ul>
+<li><code>doc/BENCHMARKS.md</code> has <strong>no CST or large-file numbers</strong> (it tops out at
+~500-item / k8s fixtures via the <code>Value</code> path) and <strong>no direct
+noyalib-vs-rust-yaml</strong> comparison. Any “faster” assumption is unsupported.</li>
+<li><code>replace_span</code> copies the <strong>entire source</strong> on every edit (O(n) per edit;
+<code>cst/document.rs:320-324</code>); many edits on a large file are O(n × edits).</li>
+<li><code>parse_document</code> eagerly materializes three views (green tree + typed <code>Value</code> +
+span tree), so peak memory is higher than a single semantic tree.</li>
+</ul>
+<p>yqr targets large files, so CST parse time, edit cost, and peak memory <strong>must be
+measured</strong> before committing (§13).</p>
+<h2 id="12-options-comparison">12. Options comparison<a class="heading-anchor" href="#12-options-comparison" aria-label="Link to this section"></a></h2>
+<table><thead><tr><th>Criterion</th><th>A: <code>rust-yaml</code> + own span layer (a001 §4)</th><th>B: full <code>noyalib</code></th><th>C: hybrid <code>noyalib</code> CST + yqr evaluator</th></tr></thead><tbody>
+<tr><td>Solves <code>b001</code> fidelity</td><td>If we build &amp; prove it</td><td>Yes (12/13 dims)</td><td><strong>Yes (12/13 dims)</strong></td></tr>
+<tr><td>Surgical edit (a001 §4.2)</td><td>Build ourselves</td><td>Built</td><td><strong>Built (reuse)</strong></td></tr>
+<tr><td>Multi-doc / anchors</td><td>Build ourselves</td><td>Built</td><td><strong>Built (reuse)</strong></td></tr>
+<tr><td>jq evaluator</td><td>Keep yqr’s</td><td><strong>Missing — infeasible</strong></td><td><strong>Keep yqr’s</strong></td></tr>
+<tr><td>Implementation effort</td><td>High (re-implement + prove)</td><td>n/a</td><td><strong>Medium (adapter + bridge)</strong></td></tr>
+<tr><td>Dependency risk</td><td>Low (stay on current dep)</td><td>High (0.0.x core)</td><td><strong>Medium (contained behind adapter)</strong></td></tr>
+<tr><td>BOM</td><td>We control it</td><td>Fixed in 0.0.12 (#123)</td><td>Fixed in 0.0.12 (#123)</td></tr>
+<tr><td>Large-file perf</td><td>We control it</td><td>Unknown</td><td><strong>Unknown — must measure</strong></td></tr>
+<tr><td>Foundation built on</td><td>the lib that caused <code>b001</code></td><td>proven CST design</td><td>proven CST design</td></tr>
+</tbody></table>
+<p>Option B is infeasible (no evaluator). The real choice is <strong>A vs C</strong>. C reuses a
+working implementation of a001’s architecture; A re-implements it on the very
+library that caused <code>b001</code>. C wins on effort and on correctness-of-design, and
+loses on dependency maturity — which the gating plan in §13 is designed to manage.</p>
+<p><strong>Update (2026-07-03): Option A’s economics changed.</strong> The span layer was built
+and submitted <strong>upstream to rust-yaml itself</strong> as <code>RoundTripDocument</code> — PR
+<a href="https://github.com/elioetibr/rust-yaml/pull/73">rust-yaml#73</a> (source kept
+verbatim + event×token span index + <code>set</code>/<code>replace_span</code> splices + <code>parse_all</code>
+multi-doc + BOM handling; yaml-test-suite fidelity property: 1,501 accepted
+inputs byte-identical, 0 violations). If #73 merges and releases, Option A drops
+from “High (re-implement + prove)” to <strong>“Low (adapter over an upstream API)”</strong> —
+the same containment shape as Option C, but on the dependency yqr already ships
+and with no new crates. The A-vs-C decision then hinges mainly on noyalib’s
+maturity risk vs rust-yaml’s review/release timeline. Tracked in <code>yqr-m002</code>
+§7.1.</p>
+<h2 id="13-decisive-risks-and-the-gating-plan">13. Decisive risks and the gating plan<a class="heading-anchor" href="#13-decisive-risks-and-the-gating-plan" aria-label="Link to this section"></a></h2>
+<p><strong>Blockers before any adoption:</strong></p>
+<ol>
+<li><del><strong>BOM bug</strong> (§5.3)</del> <strong>Cleared</strong> — fixed upstream via
+<a href="https://github.com/sebastienrousseau/noyalib/pull/123">#123</a> and released in
+0.0.12; re-verified against the corpus. No longer a blocker.</li>
+<li><strong>0.0.x churn</strong> — pin the <strong>exact</strong> version; wrap the CST behind a thin
+internal <code>yqr</code> adapter trait so a break/abandonment is contained and Option A
+stays reachable.</li>
+<li><strong>Unverified large-file behavior</strong> — measure.</li>
+</ol>
+<p><strong>Gates (run before committing to C):</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Run <code>noyalib::cst::parse_document</code> over the full <code>b001</code> corpus <strong>and real
+yqr inputs</strong> (K8s/Helm/CI YAML) to quantify: BOM/multi-node failures, and
+how many files yqr accepts today that <code>noyalib</code> <strong>hard-rejects</strong> (stricter
+parser).</li>
+<li><input disabled="" type="checkbox"/>
+Measure CST parse time, single- and multi-edit cost, and peak memory on
+representative <strong>large</strong> files vs the current <code>rust-yaml</code> path.</li>
+<li><input disabled="" type="checkbox"/>
+Confirm the <code>validate()</code>-after-edit guard closes the optimistic-commit hole.</li>
+<li><input disabled="" type="checkbox"/>
+Diff <code>crates/noyalib/src/cst</code> across 0.0.1→0.0.8 tags to quantify
+CST-specific API churn (CHANGELOG focuses on the data-binding/serializer
+side and claims “no public API change” for 0.0.7/0.0.8).</li>
+</ul>
+<p><strong>Decision rule:</strong> if the BOM bug is resolved/worked-around and the corpus + perf
+gates pass, adopt <strong>C (hybrid)</strong> behind the adapter with a pinned version.
+Otherwise, take <strong>A</strong> — which no longer means building in-house from scratch: if
+<a href="https://github.com/elioetibr/rust-yaml/pull/73">rust-yaml#73</a> merges, A is an
+adapter over the upstream <code>RoundTripDocument</code> API (see the §12 update); only if
+#73 is rejected does A fall back to an in-house build using <code>noyalib</code>’s
+green-tree-of-lengths + <code>Arc&lt;str&gt;</code> source + splice design (§6) as the blueprint.</p>
+<h2 id="14-follow-up-actions">14. Follow-up actions<a class="heading-anchor" href="#14-follow-up-actions" aria-label="Link to this section"></a></h2>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+<strong>Done + landed</strong> — the BOM + multi-node parse fix was submitted as
+<a href="https://github.com/sebastienrousseau/noyalib/pull/118">noyalib#118</a>, accepted,
+rebased as <a href="https://github.com/sebastienrousseau/noyalib/pull/123">#123</a>, merged
+to <code>main</code> (2026-06-30), and released in <strong>noyalib 0.0.12</strong>. yqr’s test-backend
+pin was bumped <code>0.0.8 → 0.0.12</code> and the <code>bom-multinode</code> expectation in
+<code>tests/fidelity.rs</code> flipped <code>Error → Identical</code> — all 14 dimensions now
+round-trip on the CST backend.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<strong>Done</strong> — filed the <strong>fidelity adapter trait</strong> spec (<code>yqr-m002</code>,
+<code>specs/implementation/</code>): one <code>FidelityEngine</code> + <code>FidelityEdit</code> interface both
+Option A (rust-yaml span layer) and Option C (noyalib CST) implement, so the
+backend choice never leaks into the evaluator and stays reversible.</li>
+<li>Fold the §9 corrections about <code>noyalib</code>’s scanner/CST into the eventual
+source-preserving read-path spec (<code>f002</code>, proposed in <code>yqr-r001</code> §9).</li>
+</ul>
+<h2 id="15-open-questions">15. Open questions<a class="heading-anchor" href="#15-open-questions" aria-label="Link to this section"></a></h2>
+<ul>
+<li>Can yqr’s jq evaluator paths be lowered to <code>noyalib</code> string-paths cheaply for
+the common cases, with a green-tree-walk fallback for special-character keys and
+iteration? (api-fit §8.)</li>
+<li>Is the typed-<code>Value</code> precision loss fully avoidable by always emitting untouched
+nodes from CST bytes and only synthesizing for genuinely new values? (§7 number
+note.)</li>
+<li>What is the real large-file cost of the three-view eager parse and O(n)-per-edit
+splice at yqr’s target sizes? (§11.)</li>
+</ul>
+<h2 id="16-appendix-citation-index">16. Appendix — citation index<a class="heading-anchor" href="#16-appendix-citation-index" aria-label="Link to this section"></a></h2>
+<table><thead><tr><th>Topic</th><th>Location</th></tr></thead><tbody>
+<tr><td>Source owned once as <code>Arc&lt;str&gt;</code></td><td><code>crates/noyalib/src/cst/document.rs:54</code></td></tr>
+<tr><td>Green leaf stores only length</td><td><code>crates/noyalib/src/cst/green.rs:64-69</code></td></tr>
+<tr><td><code>to_string</code> concatenates source slices</td><td><code>cst/document.rs:911-913</code>; <code>cst/green.rs:128-137</code></td></tr>
+<tr><td>Trivia + scalar leaf kinds (Bom, Comment, quotes, block)</td><td><code>cst/syntax.rs:26-37,67-77</code></td></tr>
+<tr><td><code>replace_span</code> splice + local repair + safety net</td><td><code>cst/document.rs:308,320-324,337-355</code></td></tr>
+<tr><td>Anchor/alias/tag edits → full re-parse</td><td><code>cst/document.rs:369-376</code></td></tr>
+<tr><td>Untouched-sibling reuse via <code>Arc</code> clone</td><td><code>cst/builder.rs:573-575</code></td></tr>
+<tr><td>Splice length/kind contract</td><td><code>cst/document.rs:406-408</code></td></tr>
+<tr><td>Mutators (set/set_value/remove/push_back/insert_*)</td><td><code>cst/document.rs:458,500,557,593,767,883</code></td></tr>
+<tr><td><code>span_at</code> / <code>get</code></td><td><code>cst/document.rs:175,281</code></td></tr>
+<tr><td>Path syntax (no wildcard/recursive)</td><td><code>cst/document.rs:160-163</code></td></tr>
+<tr><td><code>set</code> splices verbatim; <code>set_value</code> scalar-only</td><td><code>cst/document.rs:435-441,474-487</code></td></tr>
+<tr><td>Optimistic-commit / <code>validate</code></td><td><code>cst/document.rs:213-250</code></td></tr>
+<tr><td><code>parse_stream</code> multi-doc slicing</td><td><code>cst/document.rs:984-997</code></td></tr>
+<tr><td><code>materialise_aliases_of</code></td><td><code>cst/anchor.rs:262</code></td></tr>
+<tr><td>Round-trip property test + 18-case skip</td><td><code>tests/cst_round_trip.rs:23-26,140-178</code></td></tr>
+<tr><td>Zero unsafe</td><td><code>crates/noyalib/src/lib.rs:342</code></td></tr>
+<tr><td><code>serde</code> mandatory; CST under <code>std</code></td><td><code>crates/noyalib/Cargo.toml</code> (<code>[dependencies]</code>, <code>[features]</code>)</td></tr>
+<tr><td>Breakage policy / 1.0 target</td><td><code>doc/POLICIES.md</code>; <code>CHANGELOG.md</code></td></tr>
+<tr><td>crates.io 0.0.8 / 8 versions / 37,601 dl</td><td>crates.io API (verified 2026-06-26)</td></tr>
+</tbody></table>
+<p><em>Method note: CST-mechanism and trivia claims were verified against the 0.0.8
+source by an adversarial review pass; the <code>b001</code>-corpus round-trip, surgical edit,
+multi-doc, and BOM results were obtained by running <code>noyalib</code> over the corpus in a
+path-dependency harness; crates.io metadata was fetched directly.</em></p>
+
+        </div>
+        </accent-island>
+
+        
+        
+
+        
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r001-jq-feature-gap" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Research r001 — jq Feature-Gap Analysis</span>
+    </a>
+    
+    
+</nav>
+
+    </article>
+
+    
+    <aside class="docs-toc" aria-label="Table of contents">
+        <h4>On this page</h4>
+        <ul>
+        
+            <li class="toc-level-2">
+                <a href="#1-question">1. Question</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#2-method">2. Method</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#3-recommendation-tl-dr">3. Recommendation (TL;DR)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#4-what-noyalib-is">4. What noyalib is</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#5-empirical-results-the-b001-corpus-through-noyalib-s-cst">5. Empirical results (the b001 corpus through noyalib’s CST)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-1-round-trip-matrix">5.1 Round-trip matrix</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-2-surgical-edit-the-a001-4-2-property">5.2 Surgical edit (the a001 §4.2 property)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-3-the-one-failure-bom-multi-node-hard-parse-error-reproduced">5.3 The one failure: BOM + multi-node = hard parse error (reproduced)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#6-how-the-fidelity-works-mechanism-verified-in-source">6. How the fidelity works (mechanism, verified in source)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#caveats-on-the-mechanism">Caveats on the mechanism</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#7-b001-dimension-coverage">7. b001 dimension coverage</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#8-api-fit-for-yqr">8. API fit for yqr</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#9-maturity-and-risk">9. Maturity and risk</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#10-dependency-and-build-footprint">10. Dependency and build footprint</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#11-performance-unverified-a-real-gap">11. Performance — unverified, a real gap</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#12-options-comparison">12. Options comparison</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#13-decisive-risks-and-the-gating-plan">13. Decisive risks and the gating plan</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#14-follow-up-actions">14. Follow-up actions</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#15-open-questions">15. Open questions</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#16-appendix-citation-index">16. Appendix — citation index</a>
+            </li>
+        
+        </ul>
+
+        
+
+
+<aside class="recent-docs" aria-label="Recently updated documents">
+  <h4>Recently updated</h4>
+  <ul class="recent-docs-list">
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+  </ul>
+</aside>
+
+    </aside>
+    
+</div>
+
+<button class="sidebar-toggle" type="button" aria-label="Toggle documentation sidebar"
+        onclick="document.querySelector('.docs-sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');">
+    &#9776;
+</button>
+<div class="sidebar-overlay"
+     onclick="document.querySelector('.docs-sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+
+
+
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.0 (8d32978)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-07-25</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

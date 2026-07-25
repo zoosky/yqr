@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam) - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)">
+<meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)">
+<meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+
+
+
+
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="4b3bef6403">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-07-25",
+  "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
+  "inLanguage": "en",
+  "name": "Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)",
+  "url": "https://zoosky.github.io/yqr/specs/implementation/yqr-m002-fidelity-engine-adapter",
+  "wordCount": 3263
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs",
+      "name": "yqr Specs",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/implementation",
+      "name": "Implementation Specs",
+      "position": 3
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/implementation/yqr-m002-fidelity-engine-adapter",
+      "name": "Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)",
+      "position": 4
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs"  class="active" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<div class="docs-layout">
+    
+
+
+
+
+<nav class="docs-sidebar" aria-label="Documentation navigation">
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Feature Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
+                   class="sidebar-link">Feature Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f001-yaml-jq-m0"
+                   class="sidebar-link">Feature f001 — `yqr`: a Swiss Army knife for YAML</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f002-fidelity-read-floor"
+                   class="sidebar-link">Feature f002 — Fidelity read floor (`FidelityEngine` seam + noyalib backend)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml"
+                   class="sidebar-link">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f004-engine-parity-runtime-switch"
+                   class="sidebar-link">Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f005-preserve-flag-decouple"
+                   class="sidebar-link">Feature f005 — Decouple byte&#x2f;comment preservation from backend selection (`--preserve`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f006-fidelity-write-tier"
+                   class="sidebar-link">Feature f006 — Write tier v1: value assignment and in-place edits (`--in-place`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits"
+                   class="sidebar-link">Feature f007 — Write tier: structural edits (the `b004` gaps)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates"
+                   class="sidebar-link">Feature f008 — Write tier: computed updates (`|=`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize"
+                   class="sidebar-link">Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f010-accent-website"
+                   class="sidebar-link">Feature f010 — Project website: Accent CMS site over docs&#x2f; and specs&#x2f;, on GitHub Pages</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Bug Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status"
+                   class="sidebar-link">Bug Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting"
+                   class="sidebar-link">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies"
+                   class="sidebar-link">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker"
+                   class="sidebar-link">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps"
+                   class="sidebar-link">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion"
+                   class="sidebar-link">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity"
+                   class="sidebar-link">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Architecture Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit"
+                   class="sidebar-link">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          open>
+          <summary class="sidebar-section-title">Implementation Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter"
+                   class="sidebar-link active">Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m003-shared-corpus"
+                   class="sidebar-link">Implementation m003 — Shared real-world corpus for validation and benchmarks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture"
+                   class="sidebar-link">Implementation m004 — crates.io release posture (git-dep fidelity backends)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m005-single-engine-noyalib"
+                   class="sidebar-link">Implementation m005 — Single YAML engine: consolidation on noyalib</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Research Notes</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r001-jq-feature-gap"
+                   class="sidebar-link">Research r001 — jq Feature-Gap Analysis</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r002-noyalib-fidelity-evaluation"
+                   class="sidebar-link">Research r002 — Evaluating `noyalib` as a fidelity engine for yqr</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+</nav>
+
+    <article class="docs-content">
+        
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation">Implementation Specs</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</span>
+</nav>
+
+
+        <h1>Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</h1>
+
+        <accent-island data-component="copy-code" data-hydrate="load">
+        <div class="content prose">
+            <p><strong>Status:</strong> In Progress (read floor shipped on the single noyalib backend via <code>yqr-f002</code>; backend A retired in <code>yqr-m005</code>; write tier unstarted — <code>yqr-b004</code> is its driver)
+<strong>Owner:</strong> yqr maintainers
+<strong>Last updated:</strong> 2026-07-03
+<strong>Implements:</strong> <code>yqr-a001</code> §4.3 (the source/span implementation seam)
+<strong>Related:</strong> <code>yqr-b001</code> (the fidelity bug this unblocks), <code>yqr-r001</code> §9, <code>yqr-r002</code> (the rust-yaml-vs-noyalib backend decision this abstracts over)</p>
+<h2 id="1-purpose">1. Purpose<a class="heading-anchor" href="#1-purpose" aria-label="Link to this section"></a></h2>
+<p><code>yqr-a001</code> makes a hard guarantee — <strong>yqr never rewrites bytes it did not
+change</strong> — and §4.3 calls for an <em>implementation seam</em>: a backend-agnostic
+interface so yqr’s own jq evaluator can drive fidelity-preserving reads and edits
+over <strong>either</strong> of the two engines evaluated in <code>yqr-r002</code>:</p>
+<ul>
+<li><strong>Backend A</strong> — yqr’s own source/span layer built on <code>rust-yaml</code>’s public
+scanner <code>Token</code> stream (no new dependency; this is what yqr ships today, and
+fixing <code>b001</code> is exactly building this).</li>
+<li><strong>Backend C</strong> — <code>noyalib</code>’s lossless CST (<code>cst::Document</code>), adopted behind a
+feature flag once its maturity/BOM gates clear (<code>yqr-r002</code> §13).</li>
+</ul>
+<p>This spec defines that seam: a Rust trait pair (<code>FidelityEngine</code> +
+<code>FidelityEdit</code>), the supporting types, the per-node resolution semantics, the
+backend mappings, the module layout, and the first shippable increment. It is the
+single interface both backends satisfy so the decision between A and C never
+leaks into yqr’s evaluator.</p>
+<h2 id="2-goals-non-goals">2. Goals / non-goals<a class="heading-anchor" href="#2-goals-non-goals" aria-label="Link to this section"></a></h2>
+<p><strong>Goals</strong></p>
+<ul>
+<li>One object-safe interface that yqr holds as <code>Box&lt;dyn FidelityEngine&gt;</code>, chosen at
+startup, with <strong>read fidelity shippable before any mutation exists</strong>.</li>
+<li>Enforce a001 §2 <em>by construction</em>: a selected node is emitted by <strong>slicing its
+original bytes</strong>, never re-serialized; only synthesized values are formatted.</li>
+<li>Keep yqr’s evaluator unchanged in spirit: it still runs over
+<code>rust_yaml::Value</code>; the seam only adds a <code>path → span</code> resolution it threads
+alongside each produced value.</li>
+<li>Make every fidelity compromise <strong>visible per node</strong>, never silent (the a001
+“never silently rewrite” promise).</li>
+<li>Multi-document, BOM, and CRLF are first-class from day one (a001 §5).</li>
+</ul>
+<p><strong>Non-goals</strong></p>
+<ul>
+<li>A query language. yqr keeps its own lexer/parser/eval; the trait never parses
+jq and never interprets jq semantics (iteration, negative indices, <code>select</code>).</li>
+<li>Structural edits (insert/append/delete an entry) in the first write surface —
+those are a later, separately-specified extension on top of <code>splice</code>.</li>
+<li>A borrowing zero-copy value model — <code>value()</code> returns an owned <code>Value</code> (see
+§12 risk on allocation cost).</li>
+</ul>
+<h2 id="3-design-decisions">3. Design decisions<a class="heading-anchor" href="#3-design-decisions" aria-label="Link to this section"></a></h2>
+<p>Chosen by a three-stance design panel (read-first-minimal / full-read-mutate /
+capability-oriented) with an adversarial realizability check that every method
+maps to <strong>both</strong> backends. The synthesis:</p>
+<ol>
+<li><strong>Layered supertrait, not capability flags.</strong> <code>FidelityEngine</code> is the read
+floor every backend implements; <code>FidelityEdit: FidelityEngine</code> is an additive
+supertrait a backend opts into. A read-only backend is a <em>complete, compiling</em>
+implementation with no <code>unimplemented!</code> stubs — “can it mutate?” is a
+compile-time fact (does it implement <code>FidelityEdit</code>?), surfaced at runtime via
+the <code>Loaded</code> enum.</li>
+<li><strong>Per-node <code>Resolved</code> enum is the fidelity-correctness core.</strong> A four-way
+outcome — <code>Found</code> / <code>Synthetic</code> / <code>Absent</code> / <code>Unaddressable</code> — keeps jq-<code>null</code>
+(<code>Absent</code>) cleanly separate from “this backend cannot slice it faithfully”
+(<code>Unaddressable</code>). The latter triggers <em>visible</em> lossy fallback for that one
+node; every other byte stays faithful. This is what lets two structurally
+different backends coexist without a lowest-common-denominator.</li>
+<li><strong>One structural parse owns both <code>value()</code> and <code>resolve()</code>.</strong> A contract, not a
+hint: the typed value the evaluator walks and the spans the emitter slices must
+come from the <em>same</em> parse, so a path valid against <code>value()</code> can never resolve
+to the wrong span (duplicate keys, merge keys, anchors).</li>
+<li><strong>Parsing lives outside the object-safe traits</strong> (the <code>open()</code> factory), so the
+trait objects carry no lifetime and each engine owns its source bytes.</li>
+<li><strong>Structured <code>Path</code>/<code>PathSeg</code> with <code>is_plain()</code></strong> turns noyalib’s
+“no-key-escaping” limit into a <em>deterministic</em> <code>Unaddressable::SpecialCharKey</code>
+instead of a silent mis-resolution.</li>
+</ol>
+<h2 id="4-the-interface-canonical">4. The interface (canonical)<a class="heading-anchor" href="#4-the-interface-canonical" aria-label="Link to this section"></a></h2>
+<blockquote>
+<p>The Rust below is the canonical seam. When implemented, cross-references to
+<code>a001</code>/this spec must live in plain <code>//</code> comments, <strong>not</strong> <code>///</code>/<code>//!</code> doc
+comments (CLAUDE.md rule 19 — spec IDs must not render in <code>cargo doc</code>). The
+doc-comment spec references shown here are for the spec only.</p>
+</blockquote>
+<pre style="background-color:#2b303b;">
+<span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">std::borrow::Cow;
+</span><span style="color:#b48ead;">use crate</span><span style="color:#c0c5ce;">::error::Result;
+</span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">rust_yaml::Value; </span><span style="color:#65737e;">// yqr&#39;s evaluation currency (lib.rs `pub use rust_yaml::Value`)
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// A half-open byte range `[start, end)` into `FidelityEngine::source`.
+</span><span style="color:#65737e;">/// Byte offsets line up with rust-yaml `Position.index` and noyalib `(usize,usize)`.
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span style="color:#b48ead;">pub struct </span><span style="color:#c0c5ce;">Span { </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">start</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">, </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">end</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize </span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">impl </span><span style="color:#c0c5ce;">Span {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub const fn </span><span style="color:#8fa1b3;">new</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">start</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">end</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">) -&gt; </span><span style="color:#b48ead;">Self </span><span style="color:#c0c5ce;">{ </span><span style="color:#b48ead;">Self </span><span style="color:#c0c5ce;">{ start, end } }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub const fn </span><span style="color:#8fa1b3;">len</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; </span><span style="color:#b48ead;">usize </span><span style="color:#c0c5ce;">{ </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.end - </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.start }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub const fn </span><span style="color:#8fa1b3;">is_empty</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; </span><span style="color:#b48ead;">bool </span><span style="color:#c0c5ce;">{ </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.start == </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.end }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// The entire read-path emit primitive: print a node with
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// `print!(&quot;{}&quot;, span.slice(engine.source()))` — no re-serialization.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">slice</span><span style="color:#c0c5ce;">&lt;</span><span style="color:#b48ead;">&#39;s</span><span style="color:#c0c5ce;">&gt;(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">source</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">&#39;s str</span><span style="color:#c0c5ce;">) -&gt; &amp;</span><span style="color:#b48ead;">&#39;s str </span><span style="color:#c0c5ce;">{ &amp;source[</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.start..</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.end] }
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// One step of a concrete, fully-resolved access path. yqr&#39;s evaluator desugars a
+</span><span style="color:#65737e;">/// filter into these *after* resolving dynamic forms; the key is logical (decoded).
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug, Clone, PartialEq, Eq)]
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">PathSeg {
+</span><span style="color:#c0c5ce;">    Key(String),
+</span><span style="color:#c0c5ce;">    Index(</span><span style="color:#b48ead;">i64</span><span style="color:#c0c5ce;">), </span><span style="color:#65737e;">// may be negative; backend resolves against live length
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">impl </span><span style="color:#c0c5ce;">PathSeg {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Expressible through a plain dotted/bracketed string-path backend (noyalib)
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// with no key escaping. Lets such a backend return `Unaddressable`
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// deterministically instead of mis-resolving a key like `&quot;a.b&quot;`.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">is_plain</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; </span><span style="color:#b48ead;">bool </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">match </span><span style="color:#bf616a;">self </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">            PathSeg::Index(_) =&gt; </span><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">            PathSeg::Key(k) =&gt; !k.</span><span style="color:#96b5b4;">is_empty</span><span style="color:#c0c5ce;">() &amp;&amp; !k.</span><span style="color:#96b5b4;">contains</span><span style="color:#c0c5ce;">([&#39;</span><span style="color:#a3be8c;">.</span><span style="color:#c0c5ce;">&#39;, &#39;</span><span style="color:#a3be8c;">[</span><span style="color:#c0c5ce;">&#39;, &#39;</span><span style="color:#a3be8c;">]</span><span style="color:#c0c5ce;">&#39;, &#39;</span><span style="color:#a3be8c;">*</span><span style="color:#c0c5ce;">&#39;]),
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// A concrete path root→node. Empty == document root (how `.` round-trips).
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug, Clone, Default, PartialEq, Eq)]
+</span><span style="color:#b48ead;">pub struct </span><span style="color:#c0c5ce;">Path(pub Vec&lt;PathSeg&gt;);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">impl </span><span style="color:#c0c5ce;">Path {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">root</span><span style="color:#c0c5ce;">() -&gt; </span><span style="color:#b48ead;">Self </span><span style="color:#c0c5ce;">{ Path(Vec::new()) }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">is_root</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; </span><span style="color:#b48ead;">bool </span><span style="color:#c0c5ce;">{ </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.</span><span style="color:#d08770;">0.</span><span style="color:#96b5b4;">is_empty</span><span style="color:#c0c5ce;">() }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">child</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">seg</span><span style="color:#c0c5ce;">: PathSeg) -&gt; </span><span style="color:#b48ead;">Self </span><span style="color:#c0c5ce;">{ </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> n = </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.</span><span style="color:#d08770;">0.</span><span style="color:#96b5b4;">clone</span><span style="color:#c0c5ce;">(); n.</span><span style="color:#96b5b4;">push</span><span style="color:#c0c5ce;">(seg); Path(n) }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">segments</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; &amp;[PathSeg] { &amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.</span><span style="color:#d08770;">0 </span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">is_fully_plain</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; </span><span style="color:#b48ead;">bool </span><span style="color:#c0c5ce;">{ </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.</span><span style="color:#d08770;">0.</span><span style="color:#96b5b4;">iter</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">all</span><span style="color:#c0c5ce;">(PathSeg::is_plain) }
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// Why a node that genuinely exists cannot be sliced from source on this backend.
+</span><span style="color:#65737e;">/// NOT absence (jq `null`) — &quot;no faithful span available here&quot;.
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug, Clone, PartialEq, Eq)]
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">Unaddressable {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Key uses characters a string-path backend cannot express. The rust-yaml
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// backend addresses these natively (token-text match) and never returns this
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// — a declared, honest inter-backend gap.
+</span><span style="color:#c0c5ce;">    SpecialCharKey(String),
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Reachable only through an alias/merge; no stable source bytes without
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// materialising (write-path concern).
+</span><span style="color:#c0c5ce;">    AliasIndirect,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Recognised path, no span index for this node kind yet (e.g. flow interior
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// in the first increment). `&amp;str` names the kind for diagnostics.
+</span><span style="color:#c0c5ce;">    Unindexed(&amp;</span><span style="color:#b48ead;">&#39;static str</span><span style="color:#c0c5ce;">),
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// Outcome of resolving a concrete path against one document. The four arms are
+</span><span style="color:#65737e;">/// mutually exclusive and each drives a distinct emit choice in yqr.
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug)]
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">Resolved&lt;&#39;a&gt; {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Found. `bytes` is the exact original source (read path emits verbatim);
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// `span` locates it for a later `FidelityEdit::splice`.
+</span><span style="color:#c0c5ce;">    Found { span: Span, bytes: &amp;</span><span style="color:#b48ead;">&#39;a str </span><span style="color:#c0c5ce;">},
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Valid path selecting an implicit node with no source bytes (implicit null);
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// caller re-serializes from its own `Value`.
+</span><span style="color:#c0c5ce;">    Synthetic,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Path does not resolve here. jq `null`, not an error.
+</span><span style="color:#c0c5ce;">    Absent,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Real node this backend cannot address faithfully. yqr falls back to lossy
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// `crate::render` for THIS node only (and may warn); every other byte stays faithful.
+</span><span style="color:#c0c5ce;">    Unaddressable(Unaddressable),
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// Stable backend id (diagnostics + the `open` factory).
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">non_exhaustive</span><span style="color:#c0c5ce;">]
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">BackendId { RustYamlSpans, NoyalibCst }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// The read/query seam (a001 §4.1) — the floor every backend implements.
+</span><span style="color:#65737e;">/// Object-safe: every method takes `&amp;self`; parsing is kept out (see `open`).
+</span><span style="color:#65737e;">///
+</span><span style="color:#65737e;">/// CONTRACT: `value()` and `resolve()` MUST derive from the SAME structural parse.
+</span><span style="color:#b48ead;">pub trait </span><span style="color:#c0c5ce;">FidelityEngine {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">backend_id</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; BackendId;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// The entire original input, byte-for-byte (BOM, CRLF, trailing ws, `---`/`...`).
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// `yqr &#39;.&#39; f` emits exactly this; the a001 §2 gate is `source() == cat f` unedited.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">source</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; &amp;</span><span style="color:#b48ead;">str</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Number of logical documents (always &gt;= 1).
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">doc_count</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Byte span of document `doc`, including the inter-doc trivia it owns by the
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// §6.1 boundary policy. Concatenating every `doc_span` slice reproduces `source()`.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">doc_span</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">doc</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">) -&gt; Option&lt;Span&gt;;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Typed value of document `doc`. The only point a native model (noyalib&#39;s
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// 7-variant Value incl. Tagged) lowers into yqr&#39;s Value; intentionally lossy,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// never used for faithful emit (fidelity comes from `resolve`).
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">value</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">doc</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">) -&gt; Result&lt;Value&gt;;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Resolve a concrete path against document `doc`. Root → `Found` over the
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// whole-doc span. Missing key → `Absent` (jq null), not an error.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">resolve</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">doc</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">path</span><span style="color:#c0c5ce;">: &amp;Path) -&gt; Result&lt;Resolved&lt;&#39;_&gt;&gt;;
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// Preferred quoting when a typed scalar replacement is restyled to the site.
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">QuoteHint { MatchSite, Plain, SingleQuoted, DoubleQuoted }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// What a splice puts at a target span. Mirrors noyalib `replace_span`/`set`
+</span><span style="color:#65737e;">/// (verbatim) vs `set_value` (typed, restyled).
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug, Clone)]
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">Replacement {
+</span><span style="color:#c0c5ce;">    Verbatim(String),
+</span><span style="color:#c0c5ce;">    Scalar { value: Value, quote: QuoteHint },
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// The write seam (a001 §4.2), layered additively. Read fidelity ships WITHOUT it.
+</span><span style="color:#b48ead;">pub trait </span><span style="color:#c0c5ce;">FidelityEdit: FidelityEngine {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Splice `repl` into `span` of `doc`, copy every other byte verbatim, then
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// re-validate that the result still parses as the same number of documents.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// On failure the stream is left untouched.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">splice</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">doc</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">span</span><span style="color:#c0c5ce;">: Span, </span><span style="color:#bf616a;">repl</span><span style="color:#c0c5ce;">: &amp;Replacement) -&gt; Result&lt;()&gt;;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// The current (possibly edited) stream. `Cow` so the unedited identity path
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// is allocation-free and byte-identical to `source()`.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">render</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; Result&lt;Cow&lt;&#39;_, </span><span style="color:#b48ead;">str</span><span style="color:#c0c5ce;">&gt;&gt;;
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// A loaded source at whichever capability tier its backend supports.
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">Loaded {
+</span><span style="color:#c0c5ce;">    ReadOnly(Box&lt;dyn FidelityEngine&gt;),
+</span><span style="color:#c0c5ce;">    Mutable(Box&lt;dyn FidelityEdit&gt;),
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;">/// Parse `source` with the chosen backend, keeping bytes verbatim. Parsing lives
+</span><span style="color:#65737e;">/// here (outside the object-safe traits) so engines own their source. yqr sets
+</span><span style="color:#65737e;">/// `want_mutation` after checking whether the filter assigns/deletes; a read-only
+</span><span style="color:#65737e;">/// backend asked to mutate errors early.
+</span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">open</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">backend</span><span style="color:#c0c5ce;">: BackendId, </span><span style="color:#bf616a;">source</span><span style="color:#c0c5ce;">: impl Into&lt;String&gt;, </span><span style="color:#bf616a;">want_mutation</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">bool</span><span style="color:#c0c5ce;">) -&gt; Result&lt;Loaded&gt;;
+</span></pre>
+<h2 id="5-per-node-resolution-semantics">5. Per-node resolution semantics<a class="heading-anchor" href="#5-per-node-resolution-semantics" aria-label="Link to this section"></a></h2>
+<p><code>resolve(doc, path)</code> is where a001’s “never silently rewrite” guarantee is
+enforced, one node at a time:</p>
+<table><thead><tr><th><code>Resolved</code> arm</th><th>When</th><th>yqr’s emit choice</th></tr></thead><tbody>
+<tr><td><code>Found { span, bytes }</code></td><td>node exists with original source bytes</td><td><strong>slice</strong> <code>bytes</code> verbatim (zero re-serialization)</td></tr>
+<tr><td><code>Synthetic</code></td><td>valid path, implicit node (e.g. implicit null value)</td><td>re-serialize from the typed <code>Value</code></td></tr>
+<tr><td><code>Absent</code></td><td>path does not resolve</td><td>emit <code>null</code> (jq semantics) — not an error</td></tr>
+<tr><td><code>Unaddressable(_)</code></td><td>real node this backend cannot slice</td><td><strong>visible</strong> lossy fallback via <code>crate::render</code> for this node only; everything else faithful</td></tr>
+</tbody></table>
+<p>The critical separation is <code>Absent</code> (jq <code>null</code>) vs <code>Unaddressable</code> (a fidelity
+compromise). Collapsing them — as a naive <code>Option&lt;Span&gt;</code> would — is exactly the
+silent-rewrite failure a001 forbids.</p>
+<h2 id="6-read-path-and-write-path">6. Read path and write path<a class="heading-anchor" href="#6-read-path-and-write-path" aria-label="Link to this section"></a></h2>
+<h3 id="6-1-read-a001-4-1-slice-on-emit">6.1 Read (a001 §4.1) — slice-on-emit<a class="heading-anchor" href="#6-1-read-a001-4-1-slice-on-emit" aria-label="Link to this section"></a></h3>
+<p>yqr’s evaluator threads a <code>Path</code> next to each <code>Value</code> it produces, extending it
+with <code>Path::child</code> on field/index steps and branching it on <code>.[]</code> iteration
+(negative indices are resolved to non-negative offsets in yqr <em>before</em> a <code>PathSeg</code>
+is built). To emit a result, yqr calls <code>resolve(doc, path)</code>:</p>
+<ul>
+<li>a <strong>path-derived</strong> result (untouched projection) → <code>Found</code> → slice;</li>
+<li>a <strong>computed</strong> result (literal, <code>{...}</code>, <code>[...]</code>, arithmetic) carries no path →
+re-serialize via <code>crate::render</code>.</li>
+</ul>
+<p>This requires a small <strong>evaluator change</strong> (not a trait change): each produced
+value carries <code>Option&lt;Path&gt;</code>, set to <code>None</code> for computed values. That provenance
+threading is the prerequisite for wiring <code>resolve()</code> into emit.</p>
+<p><strong>Document-boundary policy (must be specified and identical across backends):</strong>
+leading trivia (BOM, comments, blank lines before the first <code>---</code>) belongs to
+document 0; trivia between <code>...</code>/<code>---</code> and the next node belongs to the following
+document; the last document extends to EOF including trailing trivia.
+Concatenating <code>doc_span</code> slices must reproduce <code>source()</code> exactly.</p>
+<h3 id="6-2-write-a001-4-2-splice">6.2 Write (a001 §4.2) — splice<a class="heading-anchor" href="#6-2-write-a001-4-2-splice" aria-label="Link to this section"></a></h3>
+<p>A single edit is <code>(span, Replacement)</code>. yqr already holds the <code>span</code> from a prior
+<code>resolve</code>, so <code>splice</code> is uniform: replace those bytes, copy the rest, re-validate
+by re-parse. <code>Replacement::Verbatim</code> is universal; <code>Replacement::Scalar</code> is
+restyled to the site (indent + quote) by backends that can, else the caller
+pre-formats to <code>Verbatim</code>. Structural edits are a later extension.</p>
+<h2 id="7-backend-mappings">7. Backend mappings<a class="heading-anchor" href="#7-backend-mappings" aria-label="Link to this section"></a></h2>
+<h3 id="7-1-backend-a-rust-yaml-token-span-layer-ships-first">7.1 Backend A — rust-yaml token+span layer (ships first)<a class="heading-anchor" href="#7-1-backend-a-rust-yaml-token-span-layer-ships-first" aria-label="Link to this section"></a></h3>
+<blockquote>
+<p><strong>Update (2026-07-03): backend A may reduce to a thin adapter.</strong> The span
+layer described below was implemented <strong>upstream</strong> and submitted as
+<a href="https://github.com/elioetibr/rust-yaml/pull/73">rust-yaml#73</a>
+(<code>rust_yaml::RoundTripDocument</code>: source verbatim + event×token span index +
+<code>span_of</code>/<code>get</code>/<code>set</code>/<code>replace_span</code> + <code>parse_all</code> multi-doc + BOM handling;
+yaml-test-suite fidelity property 1,501/0). If #73 merges and releases, this
+backend becomes an adapter mapping the seam onto the upstream API —
+<code>source()</code> → <code>RoundTripDocument::source()</code>, <code>doc_*</code> → <code>parse_all</code> slices,
+<code>value()</code> → <code>RoundTripDocument::value()</code> (upstream honors the parse-once
+contract via <code>load_all_str</code>), <code>resolve()</code> → <code>span_of(&amp;[PathSegment])</code> with
+<code>None</code> mapped to <code>Absent</code>/<code>Synthetic</code>/<code>Unaddressable</code> by consulting <code>value()</code>,
+<code>splice()</code> → <code>replace_span</code>. Caveats vs. this spec: upstream paths are
+<code>PathSegment::Key(&amp;str)</code>/<code>Index(usize)</code> (no negative indices — resolve in
+yqr), and merge-key/alias-interior nodes resolve to no span (map to
+<code>Unaddressable</code>, matching §5). Only if #73 is rejected does the in-yqr build
+below proceed.</p>
+<p><strong>Update (2026-07-04): backend A SHIPPED as the adapter</strong> (<code>yqr-f003</code>).
+<code>src/fidelity/rustyaml.rs</code> maps the seam onto <code>rust_yaml_rt::RoundTripDocument</code>
+from the fork’s <code>feat/roundtrip-document</code> branch, behind the
+<code>backend-rust-yaml</code> feature and the <code>--engine rust-yaml</code> switch. It never
+produces <code>Unaddressable</code> (keys resolve by scalar text), keeps full typed keys
+(no collision guard), and resolves duplicates last-wins. The in-yqr token
+walk below was not needed.</p>
+</blockquote>
+<table><thead><tr><th>Method</th><th>Implementation (in-yqr build, if #73 does not land)</th></tr></thead><tbody>
+<tr><td><code>source()</code></td><td>the owned input <code>String</code>, verbatim</td></tr>
+<tr><td><code>doc_count</code> / <code>doc_span</code></td><td>from <code>DocumentStart</code>/<code>DocumentEnd</code> token positions (marker-less input = one implicit doc; last doc → EOF incl. trailing trivia)</td></tr>
+<tr><td><code>value(doc)</code></td><td><code>rust_yaml::Value</code> built from the <strong>same</strong> structural token walk that builds the span index — <strong>do not</strong> call <code>Yaml::load_str</code> a second time (the §3.3 parse-once contract)</td></tr>
+<tr><td><code>resolve(doc, path)</code></td><td>walk the span index by segment; <code>Key</code> via <strong>token-text match</strong> (handles special-char keys natively → never <code>SpecialCharKey</code>); <code>Index</code> resolves negatives against length; root → whole-doc span; missing → <code>Absent</code>; not-yet-indexed kinds → <code>Unaddressable::Unindexed</code></td></tr>
+<tr><td><code>splice</code> (<code>FidelityEdit</code>)</td><td>edit the owned <code>String</code>, re-validate by re-parse</td></tr>
+</tbody></table>
+<h3 id="7-2-backend-c-noyalib-cst-default-on-after-r002-gates">7.2 Backend C — noyalib CST (default-on, after r002 gates)<a class="heading-anchor" href="#7-2-backend-c-noyalib-cst-default-on-after-r002-gates" aria-label="Link to this section"></a></h3>
+<blockquote>
+<p><strong>Update (2026-07-08, <code>yqr-f004</code>): both backends are now on by default and
+runtime-switchable in one binary.</strong> <code>noyalib</code> is pinned to the
+<code>zoosky/noyalib</code> <code>feat/fidelity-span-fixes</code> branch (2.2-2.7 from <code>yqr-b002</code>),
+paralleling backend A’s <code>zoosky/rust-yaml</code> <code>feat/roundtrip-document</code> pin. The
+adapter consumed the fork’s fixes: keep-chomped/alias spans now resolve to
+<code>Found</code>, block-collection spans start at the line indent, and the loader’s
+<code>Error::KeyCollision</code> replaced the adapter’s rust-yaml entry-count
+cross-check. <code>--no-default-features</code> still yields a backend-less minimal build.</p>
+</blockquote>
+<table><thead><tr><th>Method</th><th>Implementation</th></tr></thead><tbody>
+<tr><td><code>source()</code></td><td>reconstructed whole-stream bytes (<code>parse_stream</code> docs each own a slice)</td></tr>
+<tr><td><code>value(doc)</code></td><td>lower <code>Document::as_value()</code> (noyalib <code>Value</code>) into <code>rust_yaml::Value</code></td></tr>
+<tr><td><code>resolve(doc, path)</code></td><td>if <code>path.is_fully_plain()</code> → build noyalib string path (<code>a.b</code>, <code>items[0].name</code>), call <code>span_at</code> → <code>Found</code>; else → <code>Unaddressable::SpecialCharKey</code>; root → whole-doc span; missing → <code>Absent</code></td></tr>
+<tr><td><code>splice</code> (<code>FidelityEdit</code>)</td><td><code>Document::replace_span</code> (<code>Replacement::Scalar</code> → <code>set_value</code>, scalar-only); <code>render</code> via <code>to_string</code></td></tr>
+</tbody></table>
+<h2 id="8-module-layout">8. Module layout<a class="heading-anchor" href="#8-module-layout" aria-label="Link to this section"></a></h2>
+<p><code>src/fidelity/</code> as a directory module (CLAUDE.md rule 9, 500-line split),
+re-exported from <code>lib.rs</code> via <code>pub mod fidelity;</code>:</p>
+<ul>
+<li><code>src/fidelity/mod.rs</code> — the seam: the two traits + <code>Span</code>, <code>Path</code>/<code>PathSeg</code>,
+<code>Resolved</code>/<code>Unaddressable</code>, <code>Replacement</code>/<code>QuoteHint</code>, <code>BackendId</code>, <code>Loaded</code>,
+<code>open()</code>. If it nears ~500 lines, split the plain data types into
+<code>src/fidelity/types.rs</code> and <code>pub use types::*;</code> to keep import paths stable.</li>
+<li><code>src/fidelity/rust_yaml.rs</code> — <code>RustYamlEngine</code> (backend A). The token-stream
+span-index builder is the bulk; pre-plan a further split
+(<code>src/fidelity/rust_yaml/span_index.rs</code>) before it crosses the limit.</li>
+<li><code>src/fidelity/noyalib.rs</code> — <code>NoyalibEngine</code> (backend C), behind a
+<code>noyalib-backend</code> feature.</li>
+</ul>
+<h2 id="9-first-increment">9. First increment<a class="heading-anchor" href="#9-first-increment" aria-label="Link to this section"></a></h2>
+<blockquote>
+<p><strong>Update (2026-07-03): the read floor SHIPPED — on backend C, inverting the
+ordering below.</strong> Implemented by <code>yqr-f002</code>: <code>src/fidelity/</code> (seam + <code>open</code> +
+<code>run</code> driver), the noyalib backend behind <code>backend-noyalib</code>, provenance
+threading in the evaluator, and the CLI <code>--engine noyalib</code> switch. The
+ordering inverted because noyalib 0.0.12 is released and verified while
+backend A’s substrate (<a href="https://github.com/elioetibr/rust-yaml/pull/73">rust-yaml#73</a>)
+is still in review — backend A follows as an adapter when #73 lands (§7.1).
+Deviations from the sketch in this section are recorded in <code>yqr-f002</code> §2.</p>
+</blockquote>
+<p><strong>Original plan: ship the read floor only, on backend A (rust-yaml spans) — no
+new dependency; this is exactly what <code>b001</code> needs.</strong></p>
+<ol>
+<li>Add <code>src/fidelity/mod.rs</code> (traits + value types + <code>open</code>).</li>
+<li>Implement <code>FidelityEngine</code> for <code>RustYamlEngine</code>: <code>source()</code> verbatim;
+<code>doc_count</code>/<code>doc_span</code> from document-marker tokens; <code>value()</code> + <code>resolve()</code> from
+one shared token walk.</li>
+<li>Thread <code>Option&lt;Path&gt;</code> through the evaluator and switch emit to slice-on-<code>Found</code>.</li>
+<li>Land the <code>b001</code> fidelity corpus as the gate (§10).</li>
+</ol>
+<p>Deferred to later increments: <code>FidelityEdit</code> (mutation), flow-collection interior
+spans, the noyalib backend, structural edits, a batched multi-splice API.</p>
+<h2 id="10-contract-and-acceptance">10. Contract and acceptance<a class="heading-anchor" href="#10-contract-and-acceptance" aria-label="Link to this section"></a></h2>
+<p>This seam is correct when, on backend A:</p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>engine.source() == cat f</code> for every file in the <code>b001</code> corpus (the a001 §2
+identity gate), enforced by <code>tests/fidelity.rs</code> extended to drive the engine.</li>
+<li><input disabled="" type="checkbox"/>
+A path projection (<code>.a.b</code>) emits the selected node’s <strong>original bytes</strong>
+(comments/quotes/indent intact), via <code>Found</code>.</li>
+<li><input disabled="" type="checkbox"/>
+A computed result (<code>{x: 1}</code>, <code>1+1</code>) re-serializes (carries no path).</li>
+<li><input disabled="" type="checkbox"/>
+A missing path emits <code>null</code> (<code>Absent</code>), distinct from any <code>Unaddressable</code>.</li>
+<li><input disabled="" type="checkbox"/>
+Multi-document, BOM, and CRLF inputs round-trip (doc-boundary policy holds).</li>
+<li><input disabled="" type="checkbox"/>
+(When <code>FidelityEdit</code> lands) a single-scalar assignment changes only that
+span; <code>diff</code> shows exactly one hunk.</li>
+</ul>
+<h2 id="11-relationship-to-yqr-r002">11. Relationship to <code>yqr-r002</code><a class="heading-anchor" href="#11-relationship-to-yqr-r002" aria-label="Link to this section"></a></h2>
+<p>This seam is what makes the r002 A-vs-C decision <strong>reversible and contained</strong>:
+both options implement the same trait, so yqr can ship backend A now (Option A,
+no dependency, fixes <code>b001</code>) and later add backend C (Option C, noyalib) behind a
+feature flag without touching the evaluator — exactly the “thin internal adapter”
+r002 §3/§13 recommends. If noyalib’s gates never clear, backend A stands alone; if
+they do, backend C drops in.</p>
+<h2 id="12-risks-and-open-issues">12. Risks and open issues<a class="heading-anchor" href="#12-risks-and-open-issues" aria-label="Link to this section"></a></h2>
+<ul>
+<li><strong>Span-boundary policy is load-bearing and unspecified.</strong> The two backends WILL
+slice different bytes for the same path unless the trailing-trivia rule is
+pinned: noyalib’s <code>span_at</code> trims trailing blanks; a rust-yaml token walk may
+include or exclude them. Define the policy once (in §6.1) and conformance-test
+both backends against it.</li>
+<li><strong>rust-yaml collection spans via <code>BlockEnd</code> are uncertain.</strong> <code>BlockEnd</code> can be a
+zero-width token positioned at the following dedented line, so a collection’s
+union span may over-cover trailing blank lines/comments. Validate before relying
+on collection-level <code>Found</code>.</li>
+<li><strong>BOM/CRLF byte-accuracy on backend A is unverified.</strong> rust-yaml has no BOM-skip
+(a leading <code>U+FEFF</code> is scanned as ordinary content); <code>Position.index</code> advances
+by <code>len_utf8</code> so arithmetic stays consistent, but span <em>meaning</em> near a BOM must
+be checked against the corpus.</li>
+<li><strong>The parse-once contract must actually be honored</strong> in backend A (build <code>Value</code>
+from the token walk; do not re-<code>load_str</code>), or <code>value()</code>/<code>resolve()</code> can diverge
+on duplicate/merge keys.</li>
+<li><strong>Multi-doc boundary parity</strong> between backend A’s hand-rolled splitter and
+noyalib’s <code>parse_stream</code> inter-doc trivia ownership must match.</li>
+<li><strong>Inter-backend fidelity divergence is real and by design:</strong> special-char/quoted
+keys are <code>Found</code> on backend A (token match) yet <code>Unaddressable::SpecialCharKey</code>
+→ lossy on backend C. Documented, not hidden.</li>
+<li><strong>Provenance threading is an evaluator change</strong> (<code>eval</code> carries <code>Option&lt;Path&gt;</code>
+beside each <code>Value</code>, <code>None</code> for computed) — a prerequisite, not part of the trait.</li>
+<li><strong><code>value()</code> returns an owned <code>Value</code> clone per document</strong> (object-safe; no borrow
+across noyalib’s <code>Ref</code> and rust-yaml’s owned <code>Value</code>) — a per-call allocation on
+large files; a borrowing variant is a possible later optimization.</li>
+<li><strong><code>splice</code> re-validates by full re-parse</strong> (O(edits × parse)); a batched
+non-overlapping multi-splice API that re-indexes once is a likely follow-up,
+deliberately excluded from the first write surface.</li>
+</ul>
+
+        </div>
+        </accent-island>
+
+        
+        
+
+        
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m003-shared-corpus" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Implementation m003 — Shared real-world corpus for validation and benchmarks</span>
+    </a>
+    
+</nav>
+
+    </article>
+
+    
+    <aside class="docs-toc" aria-label="Table of contents">
+        <h4>On this page</h4>
+        <ul>
+        
+            <li class="toc-level-2">
+                <a href="#1-purpose">1. Purpose</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#2-goals-non-goals">2. Goals &#x2f; non-goals</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#3-design-decisions">3. Design decisions</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#4-the-interface-canonical">4. The interface (canonical)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#5-per-node-resolution-semantics">5. Per-node resolution semantics</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#6-read-path-and-write-path">6. Read path and write path</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#6-1-read-a001-4-1-slice-on-emit">6.1 Read (a001 §4.1) — slice-on-emit</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#6-2-write-a001-4-2-splice">6.2 Write (a001 §4.2) — splice</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#7-backend-mappings">7. Backend mappings</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-1-backend-a-rust-yaml-token-span-layer-ships-first">7.1 Backend A — rust-yaml token+span layer (ships first)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-2-backend-c-noyalib-cst-default-on-after-r002-gates">7.2 Backend C — noyalib CST (default-on, after r002 gates)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#8-module-layout">8. Module layout</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#9-first-increment">9. First increment</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#10-contract-and-acceptance">10. Contract and acceptance</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#11-relationship-to-yqr-r002">11. Relationship to yqr-r002</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#12-risks-and-open-issues">12. Risks and open issues</a>
+            </li>
+        
+        </ul>
+
+        
+
+
+<aside class="recent-docs" aria-label="Recently updated documents">
+  <h4>Recently updated</h4>
+  <ul class="recent-docs-list">
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+  </ul>
+</aside>
+
+    </aside>
+    
+</div>
+
+<button class="sidebar-toggle" type="button" aria-label="Toggle documentation sidebar"
+        onclick="document.querySelector('.docs-sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');">
+    &#9776;
+</button>
+<div class="sidebar-overlay"
+     onclick="document.querySelector('.docs-sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+
+
+
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.0 (8d32978)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-07-25</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

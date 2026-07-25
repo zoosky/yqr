@@ -1,0 +1,382 @@
+/// Article content styles: headings, code, tables, blockquotes (Feature 096).
+///
+/// Explicit font-size and font-weight on all headings are required because
+/// the encre-css utility reset sets `h1-h6 { font-size: inherit; font-weight: inherit; }`,
+/// which strips browser defaults. Without these declarations, headings render
+/// at body-text size (16px / 400 weight).
+///
+/// Explicit `color` declarations are required throughout because the encre-css
+/// Preflight sets hardcoded colors on many elements:
+///   - `body, p, li, td, th { color: #374151 }` (dark gray)
+///   - `h1-h6, strong, b, th { color: #111827 }` (near-black)
+///   - `pre { color: #e5e7eb }` (light gray for dark backgrounds)
+/// These hardcoded values override CSS custom properties in dark mode,
+/// making text unreadable on dark backgrounds. We must explicitly set
+/// `color: var(--color-text)` on article content to ensure our design
+/// tokens take precedence.
+
+article h1 {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+article h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+article h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+article h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.25rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+}
+
+/// Heading anchor presets (Features f110, f164).
+///
+/// The renderer emits an empty `<a class="heading-anchor" href="#id">`
+/// after every heading. The visible marker is supplied here via CSS
+/// preset blocks scoped by the body-level `data-heading-anchor-style`
+/// attribute, populated from the theme config field of the same name.
+///
+/// Four presets are supported: `copy` (default, gutter chain icon with
+/// click-to-copy + toast), `gutter` (gutter chain icon, plain link),
+/// `hash` (legacy appended `#`), `pilcrow` (appended pilcrow). Each
+/// preset hides the marker until the heading is hovered or focused.
+
+article .heading-anchor {
+  text-decoration: none;
+  color: var(--color-text-faint);
+  transition: opacity 0.15s, color 0.15s;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-link);
+  }
+}
+
+/// Shared hover/focus reveal: the marker becomes visible when the
+/// heading row is interacted with by mouse or keyboard.
+article :is(h1, h2, h3, h4, h5, h6):hover .heading-anchor,
+article :is(h1, h2, h3, h4, h5, h6):focus-within .heading-anchor {
+  opacity: 1;
+}
+
+/// Preset: copy (default). Chain-icon SVG floated in the left gutter,
+/// click-to-copy via the small heading-anchor-copy.js handler.
+[data-heading-anchor-style="copy"],
+[data-heading-anchor-style="gutter"] {
+  article :is(h1, h2, h3, h4, h5, h6) {
+    position: relative;
+  }
+
+  article .heading-anchor {
+    position: absolute;
+    left: -1.5em;
+    top: 0.1em;
+    opacity: 0;
+    width: 1.2em;
+    height: 1.2em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &::after {
+      content: "";
+      width: 0.95em;
+      height: 0.95em;
+      background-color: currentColor;
+      mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/><path d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/></svg>") center / contain no-repeat;
+      -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/><path d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/></svg>") center / contain no-repeat;
+    }
+  }
+
+  /// Toast for the copy preset (only meaningful when JS is loaded).
+  .heading-anchor-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text);
+    color: var(--color-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+    z-index: 1000;
+
+    &.visible {
+      opacity: 0.95;
+    }
+  }
+}
+
+/// Narrow viewports: gutter is too tight for an absolutely-positioned
+/// marker; fall back to the appended-hash style.
+@media (max-width: 720px) {
+  [data-heading-anchor-style="copy"],
+  [data-heading-anchor-style="gutter"] {
+    article .heading-anchor {
+      position: static;
+      opacity: 0;
+      margin-left: 0.25em;
+      width: auto;
+      height: auto;
+
+      &::after {
+        content: "#";
+        background: none;
+        mask: none;
+        -webkit-mask: none;
+        width: auto;
+        height: auto;
+      }
+    }
+  }
+}
+
+/// Preset: hash. Legacy appended `#` revealed on hover.
+[data-heading-anchor-style="hash"] article .heading-anchor {
+  opacity: 0;
+  margin-left: 0.25em;
+  font-weight: 400;
+
+  &::after {
+    content: "#";
+  }
+}
+
+/// Preset: pilcrow. Appended pilcrow `\00B6` revealed on hover.
+[data-heading-anchor-style="pilcrow"] article .heading-anchor {
+  opacity: 0;
+  margin-left: 0.25em;
+  font-weight: 400;
+
+  &::after {
+    content: "\00B6";
+  }
+}
+
+article time,
+article .author {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+article .content {
+  margin-top: 1.5rem;
+  color: var(--color-text);
+
+  // Override encre-css .prose token definitions.
+  // utilities.css defines `.prose { --en-prose-bold: #111827; ... }` which
+  // sets hardcoded colors at the element level, beating our :root definitions.
+  // Using `article .content` (higher specificity than `.prose`) ensures our
+  // design tokens win regardless of stylesheet load order.
+  &.prose {
+    --en-prose-body: var(--color-text);
+    --en-prose-headings: var(--color-text);
+    --en-prose-bold: var(--color-text);
+    --en-prose-links: var(--color-link);
+    --en-prose-lead: var(--color-text-muted);
+    --en-prose-bullets: var(--color-text-faint);
+    --en-prose-counters: var(--color-text-faint);
+    --en-prose-captions: var(--color-text-muted);
+    --en-prose-quotes: var(--color-text-muted);
+    --en-prose-quote-borders: var(--color-link);
+    --en-prose-code: var(--color-text);
+    --en-prose-pre-bg: var(--color-bg-muted);
+    --en-prose-pre-code: var(--color-text);
+    --en-prose-hr: var(--color-border);
+    --en-prose-td-borders: var(--color-border);
+    --en-prose-th-borders: var(--color-border-strong);
+    --en-prose-kbd-bg: var(--color-bg-muted);
+    --en-prose-kbd-text: var(--color-text);
+  }
+}
+
+article .content p {
+  margin-bottom: 1rem;
+}
+
+article .content ul,
+article .content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+article .content code {
+  background: var(--color-bg-muted);
+  padding: 0.15rem 0.35rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+article .content pre {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+article .content pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+article .content blockquote {
+  border-left: 3px solid var(--color-link);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--color-text-muted);
+}
+
+// GFM blockquote alerts / admonitions
+.admonition {
+  border-left: 4px solid;
+  padding: 1em 1.5em;
+  margin: 1.5em 0;
+  border-radius: 4px;
+  color: var(--color-text);
+}
+
+.admonition-title {
+  font-weight: 600;
+  margin-bottom: 0.5em;
+}
+
+.admonition-note {
+  border-color: #0969da;
+  background: rgba(9, 105, 218, 0.06);
+}
+
+.admonition-tip {
+  border-color: #1a7f37;
+  background: rgba(26, 127, 55, 0.06);
+}
+
+.admonition-important {
+  border-color: #0598a6;
+  background: rgba(5, 152, 166, 0.06);
+}
+
+.admonition-warning {
+  border-color: #bf8700;
+  background: rgba(191, 135, 0, 0.06);
+}
+
+.admonition-caution {
+  border-color: #cf222e;
+  background: rgba(207, 34, 46, 0.06);
+}
+
+// Tables
+article .content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+article .content th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--color-border-strong);
+  background: var(--color-bg-subtle);
+  white-space: nowrap;
+}
+
+article .content td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+article .content tbody tr:last-child td {
+  border-bottom: none;
+}
+
+article .content td code,
+article .content th code {
+  font-size: 0.85em;
+  padding: 0.1rem 0.3rem;
+}
+
+// Feature f145b: definition lists
+article .content dl {
+  margin: 1em 0;
+}
+
+article .content dt {
+  font-weight: 600;
+  margin-top: 0.5em;
+}
+
+article .content dd {
+  margin-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+// Feature f145b: superscript and subscript
+// Prevent sup/sub from increasing parent line-height while remaining visible.
+article .content sup,
+article .content sub {
+  position: relative;
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+article .content sup {
+  top: -0.5em;
+}
+
+article .content sub {
+  top: 0.25em;
+}
+
+// Feature f145c: wikilink styling
+article .content .wikilink-broken {
+  color: #b91c1c;
+  text-decoration: underline wavy;
+  cursor: help;
+}
+
+article .content .wikilink-embed {
+  font-style: italic;
+  border-left: 2px solid #6b7280;
+  padding-left: 0.25em;
+}
+
+// Feature f161n: diagram-pipeline theming lives in `_diagrams.scss`
+// (warning box, shortcode wrappers, mermaid loader output, dev overlay
+// affordance). Imported via `main.scss::@use 'diagrams';`.

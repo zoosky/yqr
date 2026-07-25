@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Specs - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Architecture Specs">
+<meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Architecture Specs">
+<meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+
+
+
+
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="4b3bef6403">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-07-25",
+  "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
+  "inLanguage": "en",
+  "name": "Architecture Specs",
+  "url": "https://zoosky.github.io/yqr/specs/architecture",
+  "wordCount": 13
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs",
+      "name": "yqr Specs",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/architecture",
+      "name": "Architecture Specs",
+      "position": 3
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs"  class="active" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<div class="docs-layout">
+    
+
+
+
+
+<nav class="docs-sidebar" aria-label="Documentation navigation">
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Feature Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
+                   class="sidebar-link">Feature Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f001-yaml-jq-m0"
+                   class="sidebar-link">Feature f001 — `yqr`: a Swiss Army knife for YAML</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f002-fidelity-read-floor"
+                   class="sidebar-link">Feature f002 — Fidelity read floor (`FidelityEngine` seam + noyalib backend)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml"
+                   class="sidebar-link">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f004-engine-parity-runtime-switch"
+                   class="sidebar-link">Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f005-preserve-flag-decouple"
+                   class="sidebar-link">Feature f005 — Decouple byte&#x2f;comment preservation from backend selection (`--preserve`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f006-fidelity-write-tier"
+                   class="sidebar-link">Feature f006 — Write tier v1: value assignment and in-place edits (`--in-place`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits"
+                   class="sidebar-link">Feature f007 — Write tier: structural edits (the `b004` gaps)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates"
+                   class="sidebar-link">Feature f008 — Write tier: computed updates (`|=`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize"
+                   class="sidebar-link">Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f010-accent-website"
+                   class="sidebar-link">Feature f010 — Project website: Accent CMS site over docs&#x2f; and specs&#x2f;, on GitHub Pages</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Bug Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status"
+                   class="sidebar-link">Bug Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting"
+                   class="sidebar-link">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies"
+                   class="sidebar-link">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker"
+                   class="sidebar-link">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps"
+                   class="sidebar-link">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion"
+                   class="sidebar-link">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity"
+                   class="sidebar-link">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          open>
+          <summary class="sidebar-section-title">Architecture Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture"
+               class="sidebar-link active">Overview</a>
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit"
+                   class="sidebar-link">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Implementation Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter"
+                   class="sidebar-link">Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m003-shared-corpus"
+                   class="sidebar-link">Implementation m003 — Shared real-world corpus for validation and benchmarks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture"
+                   class="sidebar-link">Implementation m004 — crates.io release posture (git-dep fidelity backends)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m005-single-engine-noyalib"
+                   class="sidebar-link">Implementation m005 — Single YAML engine: consolidation on noyalib</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Research Notes</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r001-jq-feature-gap"
+                   class="sidebar-link">Research r001 — jq Feature-Gap Analysis</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r002-noyalib-fidelity-evaluation"
+                   class="sidebar-link">Research r002 — Evaluating `noyalib` as a fidelity engine for yqr</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+</nav>
+
+    <article class="docs-content">
+        
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Architecture Specs</span>
+</nav>
+
+
+        <h1>Architecture Specs</h1>
+
+        <accent-island data-component="copy-code" data-hydrate="load">
+        <div class="content prose">
+            <p>Cross-cutting design documents (<code>yqr-aNNN-*</code>), such as the fidelity
+surgical-edit architecture.</p>
+
+        </div>
+        </accent-island>
+
+        
+        
+        <h2>In this section</h2>
+        <ul class="docs-listing">
+        
+            <li>
+                <h3><a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a></h3>
+                <p class="lead">Status: Accepted Owner: yqr maintainers Last updated: 2026-06-26 Supersedes: open questions in yqr-r001 §8 (number model, comments) Affects: yqr.f001 goals; all future mutation&#x2f;emit features</p>
+            </li>
+        
+        </ul>
+        
+
+        
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Bug Specs</span>
+    </a>
+    
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Implementation Specs</span>
+    </a>
+    
+</nav>
+
+    </article>
+
+    
+</div>
+
+<button class="sidebar-toggle" type="button" aria-label="Toggle documentation sidebar"
+        onclick="document.querySelector('.docs-sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');">
+    &#9776;
+</button>
+<div class="sidebar-overlay"
+     onclick="document.querySelector('.docs-sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+
+
+
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.0 (8d32978)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-07-25</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

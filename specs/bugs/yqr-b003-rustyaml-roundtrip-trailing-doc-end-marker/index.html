@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection">
+<meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection">
+<meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+
+
+
+
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="4b3bef6403">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-07-25",
+  "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
+  "inLanguage": "en",
+  "name": "Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection",
+  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker",
+  "wordCount": 673
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs",
+      "name": "yqr Specs",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/bugs",
+      "name": "Bug Specs",
+      "position": 3
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker",
+      "name": "Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection",
+      "position": 4
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs"  class="active" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<div class="docs-layout">
+    
+
+
+
+
+<nav class="docs-sidebar" aria-label="Documentation navigation">
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Feature Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
+                   class="sidebar-link">Feature Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f001-yaml-jq-m0"
+                   class="sidebar-link">Feature f001 — `yqr`: a Swiss Army knife for YAML</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f002-fidelity-read-floor"
+                   class="sidebar-link">Feature f002 — Fidelity read floor (`FidelityEngine` seam + noyalib backend)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml"
+                   class="sidebar-link">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f004-engine-parity-runtime-switch"
+                   class="sidebar-link">Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f005-preserve-flag-decouple"
+                   class="sidebar-link">Feature f005 — Decouple byte&#x2f;comment preservation from backend selection (`--preserve`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f006-fidelity-write-tier"
+                   class="sidebar-link">Feature f006 — Write tier v1: value assignment and in-place edits (`--in-place`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits"
+                   class="sidebar-link">Feature f007 — Write tier: structural edits (the `b004` gaps)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates"
+                   class="sidebar-link">Feature f008 — Write tier: computed updates (`|=`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize"
+                   class="sidebar-link">Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f010-accent-website"
+                   class="sidebar-link">Feature f010 — Project website: Accent CMS site over docs&#x2f; and specs&#x2f;, on GitHub Pages</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          open>
+          <summary class="sidebar-section-title">Bug Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status"
+                   class="sidebar-link">Bug Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting"
+                   class="sidebar-link">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies"
+                   class="sidebar-link">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker"
+                   class="sidebar-link active">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps"
+                   class="sidebar-link">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion"
+                   class="sidebar-link">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity"
+                   class="sidebar-link">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Architecture Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit"
+                   class="sidebar-link">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Implementation Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter"
+                   class="sidebar-link">Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m003-shared-corpus"
+                   class="sidebar-link">Implementation m003 — Shared real-world corpus for validation and benchmarks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture"
+                   class="sidebar-link">Implementation m004 — crates.io release posture (git-dep fidelity backends)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m005-single-engine-noyalib"
+                   class="sidebar-link">Implementation m005 — Single YAML engine: consolidation on noyalib</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Research Notes</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r001-jq-feature-gap"
+                   class="sidebar-link">Research r001 — jq Feature-Gap Analysis</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r002-noyalib-fidelity-evaluation"
+                   class="sidebar-link">Research r002 — Evaluating `noyalib` as a fidelity engine for yqr</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+</nav>
+
+    <article class="docs-content">
+        
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</span>
+</nav>
+
+
+        <h1>Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</h1>
+
+        <accent-island data-component="copy-code" data-hydrate="load">
+        <div class="content prose">
+            <p><strong>Status:</strong> Resolved — moot (2026-07-10). The rust-yaml fork <code>RoundTripDocument</code> backend was removed when yqr consolidated on noyalib (<code>yqr-m005</code>), so this fork bug no longer affects yqr. (The upstream fork issue itself is unchanged.)
+<strong>Severity:</strong> Medium — breaks the a001 byte-for-byte identity of <code>--engine rust-yaml</code> for any stream ending in a <code>...</code> document-end marker after a top-level block collection; the default pipeline and other engine inputs are unaffected
+<strong>Owner:</strong> yqr maintainers
+<strong>Last updated:</strong> 2026-07-04
+<strong>Affects:</strong> the <code>--engine rust-yaml</code> fidelity read path (<code>yqr-f003</code>); irrelevant to the default pipeline and to <code>--engine noyalib</code>
+<strong>Component:</strong> the rust-yaml fork’s <code>roundtrip::document_boundaries</code> / <code>RoundTripDocument::parse_all</code> (<a href="https://github.com/zoosky/rust-yaml">zoosky/rust-yaml</a> branch <code>feat/roundtrip-document</code>; the rust-yaml#73 substrate)
+<strong>Related:</strong> <code>yqr-f003</code> (backend A), <code>yqr-b001</code> §8 (#73), <code>yqr-m002</code> §6.1 (document-boundary policy)</p>
+<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
+<p>Adversarially reviewing backend A surfaced a document-segmentation bug in the
+fork’s <code>RoundTripDocument::parse_all</code>: a stream that <strong>ends with a <code>...</code>
+document-end marker after a top-level block collection</strong> is rejected with a
+leaked internal error instead of parsing. Because it fails in <code>parse_all</code>, the
+whole stream is rejected before evaluation, so <strong>every</strong> filter (identity and
+projections) aborts — the a001 north-star (<code>yqr --engine rust-yaml '.' f</code> ==
+<code>cat f</code>) is impossible for such a file.</p>
+<pre><code class="language-text">$ printf 'a: 1\n...\n' | yqr --engine rust-yaml '.'
+yqr: io error: failed to parse YAML input: Error at line 1, column 1: \
+internal document accounting mismatch: 2 byte ranges, 1 span trees, 1 values
+$ printf 'a: 1\n...\n' | yqr '.'      # default pipeline: fine
+a: 1
+</code></pre>
+<p>The input is textbook-valid YAML (one block mapping terminated by an explicit
+<code>...</code> marker), which the default pipeline handles.</p>
+<h2 id="2-root-cause">2. Root cause<a class="heading-anchor" href="#2-root-cause" aria-label="Link to this section"></a></h2>
+<p><code>parse_all</code> cross-checks three per-document counts and refuses on any mismatch:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> boundaries.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() != trees.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() || trees.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() != values.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">return </span><span style="color:#c0c5ce;">Err(Error::parse(</span><span style="color:#65737e;">/* &quot;internal document accounting mismatch: N byte
+</span><span style="color:#65737e;">                                ranges, M span trees, K values&quot; */</span><span style="color:#c0c5ce;">));
+</span><span style="color:#c0c5ce;">}
+</span></pre>
+<p>For <code>a: 1\n...\n</code> the composer yields <strong>1</strong> span tree and <strong>1</strong> value, but
+<code>document_boundaries</code> returns <strong>2</strong> byte ranges: <code>[0, input_len]</code>. The trailing
+<code>...</code> after block content leaves a phantom boundary at EOF (an empty
+<code>[input_len, input_len]</code> range) with no matching tree or value, tripping the
+guard.</p>
+<p>Confirmed specificity (from the review):</p>
+<ul>
+<li><strong>Fails</strong> (exit 5): <code>a: 1\n...\n</code> (block map), <code>- a\n- b\n...\n</code> (block seq),
+<code>a: {b: 1}\n...\n</code> (block map with nested value).</li>
+<li><strong>Works</strong> (exit 0): <code>42\n...\n</code>, <code>"hi"\n...\n</code> (scalars); <code>{}\n...\n</code>,
+<code>{a: 1}\n...\n</code> (flow collections); <code>a: 1\n...\n---\nb: 2\n</code> (content follows
+the marker); <code>a: 1\n</code> (no marker).</li>
+</ul>
+<p>The block-vs-flow/scalar asymmetry points at how the block-collection close
+tokens interact with the boundary counter around the <code>...</code> <code>DocumentEnd</code>.</p>
+<h2 id="3-upstream-ask-fork">3. Upstream ask (fork)<a class="heading-anchor" href="#3-upstream-ask-fork" aria-label="Link to this section"></a></h2>
+<p>In <code>roundtrip::document_boundaries</code> (or the reconciliation in <code>parse_all</code>): do
+not emit a boundary for an empty trailing region after a <code>...</code> marker — an
+explicit <code>---</code> starts a new (possibly null) document, but a trailing <code>...</code> only
+closes the current one. The boundary count must agree with the composer’s
+document count for a stream ending in <code>...</code> after a block collection. Add
+<code>a: 1\n...\n</code> and <code>- a\n- b\n...\n</code> to <code>parse_all</code>’s round-trip cases.</p>
+<p>Per <code>yqr-m002</code> §6.1, the last document extends to EOF including trailing trivia,
+so <code>a: 1\n...\n</code> is a single document whose slice is the whole input.</p>
+<h2 id="4-yqr-side-handling-shipped-in-f003">4. yqr-side handling (shipped in f003)<a class="heading-anchor" href="#4-yqr-side-handling-shipped-in-f003" aria-label="Link to this section"></a></h2>
+<ul>
+<li><strong>Documented limitation.</strong> <code>yqr-f003</code> and the README <code>--engine</code> notes record
+that backend A currently rejects a trailing <code>...</code> after a block collection.</li>
+<li><strong>Pinned as a test.</strong> <code>tests/fidelity_engine_rustyaml.rs</code>
+(<code>document_end_marker_after_block_is_a_known_limitation</code>) asserts the current
+error, so a future fork bump that fixes this flips the test and prompts
+turning it into a byte-for-byte identity assertion.</li>
+<li>No adapter work-around is attempted: <code>parse_all</code> fails wholesale, so there is
+no faithful span to recover; consistent with how <code>--engine noyalib</code> errors on
+inputs its parser rejects (<code>yqr-f002</code> §4a).</li>
+</ul>
+<h2 id="5-acceptance-criteria">5. Acceptance criteria<a class="heading-anchor" href="#5-acceptance-criteria" aria-label="Link to this section"></a></h2>
+<p>Resolved when the fork’s <code>parse_all</code> accepts a trailing <code>...</code> after a block
+collection (byte-for-byte), the yqr git dependency is bumped to include the fix,
+and the pinning test is converted to assert <code>yqr --engine rust-yaml '.' f == cat f</code> for <code>a: 1\n...\n</code> and <code>- a\n- b\n...\n</code>.</p>
+
+        </div>
+        </accent-island>
+
+        
+        
+
+        
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</span>
+    </a>
+    
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</span>
+    </a>
+    
+</nav>
+
+    </article>
+
+    
+    <aside class="docs-toc" aria-label="Table of contents">
+        <h4>On this page</h4>
+        <ul>
+        
+            <li class="toc-level-2">
+                <a href="#1-summary">1. Summary</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#2-root-cause">2. Root cause</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#3-upstream-ask-fork">3. Upstream ask (fork)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#4-yqr-side-handling-shipped-in-f003">4. yqr-side handling (shipped in f003)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#5-acceptance-criteria">5. Acceptance criteria</a>
+            </li>
+        
+        </ul>
+
+        
+
+
+<aside class="recent-docs" aria-label="Recently updated documents">
+  <h4>Recently updated</h4>
+  <ul class="recent-docs-list">
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+      
+      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+    </li>
+    
+  </ul>
+</aside>
+
+    </aside>
+    
+</div>
+
+<button class="sidebar-toggle" type="button" aria-label="Toggle documentation sidebar"
+        onclick="document.querySelector('.docs-sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');">
+    &#9776;
+</button>
+<div class="sidebar-overlay"
+     onclick="document.querySelector('.docs-sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+
+
+
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.0 (8d32978)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-07-25</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

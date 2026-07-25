@@ -1,0 +1,137 @@
+/// Diagram-pipeline theming (Feature f161n).
+///
+/// Centralises every `.diagram-*` and `.mermaid-diagram*` rule the
+/// E030 pipeline emits. Pulled out of `_content.scss` so theme
+/// authors have one file to copy or override.
+///
+/// Third-party themes have three options for diagram styling:
+///
+/// 1. **Copy this file verbatim** into the theme's CSS bundle.
+/// 2. **Reimplement** the same class names with bespoke rules.
+/// 3. **Inherit and override** -- extend the default theme and only
+///    redeclare the rules that differ.
+///
+/// All colour declarations route through CSS custom properties
+/// declared in `_variables.scss` and overridden in `_dark-mode.scss`,
+/// so a `[data-theme="dark"]` swap restyles the chrome without rule
+/// duplication.
+
+article .content {
+  // Feature f161i: inline diagram warning-box theming.
+  //
+  // The renderer emits a self-contained <svg class="diagram-warning">
+  // with hardcoded amber/red fallbacks. Theme-level overrides go
+  // through the four CSS variables consumed by the inline <style>
+  // block inside the SVG. The aliases below wire the
+  // `--color-warning-*` tokens (which `_dark-mode.scss` swaps) into
+  // the SVG-level `--diagram-warning-*` slots.
+  --diagram-warning-bg: var(--color-warning-bg, #fef3c7);
+  --diagram-warning-border: var(--color-warning-border, #d97706);
+  --diagram-warning-highlight: var(--color-warning-highlight, #fde68a);
+  --diagram-warning-color: var(--color-warning-text, #92400e);
+
+  .diagram-warning {
+    display: block;
+    margin: 1rem 0;
+    max-width: 100%;
+    height: auto;
+  }
+
+  // Feature f161g: [diagram] shortcode wrappers (also produced by
+  // the dev-mode DiagramProcessor in f161j). Wraps both successful
+  // SVGs and warning boxes; pulldown-cmark treats <div> as a
+  // CommonMark type-6 raw HTML block, which prevents the SVG's
+  // inline <style> contents from being mangled by SmartyPants.
+  .diagram-wrapper {
+    display: block;
+    margin: 1.5rem 0;
+    max-width: 100%;
+
+    > svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    // Future: when E029 f160i ships CSS-variable-based themes
+    // inside the rendered SVG, declare the renderer-specific
+    // overrides here so dark-mode can restyle the SVG without
+    // re-rendering. Until then the fallback values inside the
+    // mmdr SVG drive appearance.
+    //
+    // Enabled when E029 f160i ships:
+    //
+    // &.diagram-wrapper--mermaid {
+    //   --mermaid-primary-color: var(--color-link);
+    //   --mermaid-line-color: var(--color-text);
+    //   --mermaid-background: var(--color-bg);
+    //   // ...one entry per variable declared in f160i
+    // }
+  }
+
+  figure.diagram-wrapper {
+    text-align: center;
+
+    .diagram-caption {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      font-style: italic;
+      color: var(--color-text-muted, #6b7280);
+    }
+  }
+
+  // Feature f161j: dev-mode source-provenance overlay affordance.
+  //
+  // When the dev overlay JS binds clicks (it sets `data-acdiag-bound`
+  // on each clickable element), give the user a visual cue. The
+  // outline is suppressed in normal viewing because the attribute is
+  // only set by the dev script in `accent serve` with
+  // `dev.browser_reload: true`.
+  .diagram-wrapper [data-acdiag-bound] {
+    cursor: pointer;
+    transition: outline 0.1s ease-in-out;
+
+    &:hover {
+      outline: 1px dashed var(--color-link, #2563eb);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Feature f161e: Mermaid client-side loader output.
+//
+// The loader replaces each <pre class="diagram-passthrough"> with a
+// <div class="mermaid-diagram"> that contains the rendered SVG. The
+// `--loading` modifier provides a CLS-free placeholder until
+// `mermaid.render` resolves; the `--error` modifier surfaces
+// failures inline.
+.mermaid-diagram {
+  display: block;
+  max-width: 100%;
+  margin: 1em 0;
+
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.mermaid-diagram--loading {
+  min-height: 200px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-bg-muted, #f0f0f0),
+    var(--color-bg-muted, #f0f0f0) 10px,
+    var(--color-bg-subtle, #e8e8e8) 10px,
+    var(--color-bg-subtle, #e8e8e8) 20px
+  );
+}
+
+.mermaid-diagram--error {
+  padding: 1rem;
+  border: 1px dashed var(--diagram-warning-border);
+  background: var(--diagram-warning-bg);
+  color: var(--diagram-warning-color);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+  font-size: 0.875em;
+}

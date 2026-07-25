@@ -1,0 +1,180 @@
+/// Search overlay styles (Features 092, 102).
+///
+/// A trigger button in the nav opens a modal overlay containing the search
+/// form. The built-in search bundle (/_search/search.js) handles result
+/// rendering and ArrowUp/ArrowDown/Enter navigation; search-keys.js manages
+/// overlay open/close and the "/" keyboard shortcut.
+///
+/// Supports both the Simple and DocFind (WASM) search backends.
+/// The `.acms-search-stale` class is added by the DocFind JS when the
+/// WASM index is being rebuilt after a content change in serve mode.
+
+// Trigger button in the nav bar
+.search-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  background: var(--color-bg-subtle, #f6f8fa);
+  color: var(--color-text-muted, #57606a);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  &:hover,
+  &[aria-expanded="true"] {
+    border-color: var(--color-accent, #c68a3e);
+    color: var(--color-accent, #c68a3e);
+    background: var(--color-bg-hover, #fff1ef);
+  }
+}
+
+// Full-screen overlay container
+#search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+#search-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 41, 47, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+#search-overlay-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 1rem;
+}
+
+// Form and input inside the overlay
+#search-overlay-card {
+  .acms-search-form {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  .acms-search-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 1px solid var(--color-border, #d0d7de);
+    border-radius: 8px;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #24292f);
+    outline: none;
+    box-shadow: 0 8px 28px rgba(36, 41, 47, 0.2);
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:focus {
+      border-color: var(--color-accent, #c68a3e);
+      box-shadow: 0 0 0 3px rgba(198, 138, 62, 0.2), 0 8px 28px rgba(36, 41, 47, 0.2);
+    }
+
+    &::placeholder {
+      color: var(--color-text-muted, #8b949e);
+    }
+  }
+
+  .acms-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 100;
+    background: var(--color-bg, #fff);
+    border: 1px solid var(--color-border, #d1d5db);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 12px 28px rgba(36, 41, 47, 0.15);
+  }
+}
+
+// Result items
+.acms-search-result {
+  display: block;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: var(--color-text, #24292f);
+  border-bottom: 1px solid var(--color-border-light, #eaecef);
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--color-bg-subtle, #f6f8fa);
+  }
+
+  &[aria-selected="true"] {
+    background: #fff1ef;
+    box-shadow: inset 3px 0 0 #c68a3e;
+
+    .acms-search-result-title {
+      color: #c2362a;
+    }
+  }
+}
+
+.acms-search-result-title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.acms-search-result-snippet {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #57606a);
+  line-height: 1.4;
+}
+
+.acms-search-highlight {
+  background: rgba(255, 220, 0, 0.35);
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+.acms-search-empty {
+  padding: 12px;
+  text-align: center;
+  color: var(--color-text-muted, #8b949e);
+  font-size: 0.85rem;
+}
+
+// DocFind stale index indicator (Feature 102).
+// Shown when the WASM search index is being rebuilt after a content change.
+.acms-search-form.acms-search-stale .acms-search-input {
+  border-color: var(--color-warning, #d29922);
+}
+
+@media (max-width: 640px) {
+  #search-overlay {
+    padding-top: 5vh;
+  }
+}

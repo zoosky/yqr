@@ -1,0 +1,445 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>yqr demo - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;demo">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="yqr demo">
+<meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;demo">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="yqr demo">
+<meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+
+
+
+
+
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="4b3bef6403">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-07-25",
+  "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
+  "inLanguage": "en",
+  "name": "yqr demo",
+  "url": "https://zoosky.github.io/yqr/demo",
+  "wordCount": 209
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/demo",
+      "name": "yqr demo",
+      "position": 2
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo"  class="active" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">yqr demo</span>
+</nav>
+
+
+    <h1>yqr demo</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">2 min read</span>
+                </div>
+                
+
+                
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-2">
+            <a href="#run-it">Run it</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#what-s-in-here">What’s in here</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#what-it-shows">What it shows</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <p>A runnable showcase of yqr, a jq-style query &amp; transform tool for YAML.</p>
+<h2 id="run-it">Run it<a class="heading-anchor" href="#run-it" aria-label="Link to this section"></a></h2>
+<pre style="background-color:#2b303b;">
+<span style="color:#8fa1b3;">bash</span><span style="color:#c0c5ce;"> yqr-demo.sh
+</span></pre>
+<p>The script needs <code>yqr</code> on your <code>PATH</code>. It resolves its own directory, so it
+works from any working directory and reads the sample files in place.</p>
+<h2 id="what-s-in-here">What’s in here<a class="heading-anchor" href="#what-s-in-here" aria-label="Link to this section"></a></h2>
+<table><thead><tr><th>File</th><th>Role</th></tr></thead><tbody>
+<tr><td><code>yqr-demo.sh</code></td><td>The narrated walkthrough (seven sections, each a real query).</td></tr>
+<tr><td><code>deploy.yaml</code></td><td>A Kubernetes Deployment – the input for navigation &amp; iteration.</td></tr>
+<tr><td><code>config.yaml</code></td><td>A hand-commented config – the input for the fidelity engine.</td></tr>
+</tbody></table>
+<h2 id="what-it-shows">What it shows<a class="heading-anchor" href="#what-it-shows" aria-label="Link to this section"></a></h2>
+<ol>
+<li>Navigate nested structure – dotted paths and array indexing (<code>.spec.containers[0].image</code>, negative indices).</li>
+<li>Iterate collections – <code>[]</code> streams every element.</li>
+<li>Compose with pipes – <code>|</code> feeds one filter into the next.</li>
+<li>Raw output – <code>-r</code> drops YAML quoting for shell scripting.</li>
+<li>Reads from stdin – pipe YAML straight in.</li>
+<li>Fidelity by default – <code>yqr '.'</code> reproduces the input byte-for-byte, comments and all, with no flag. <code>--normalize</code> opts into the classic re-serializing pipeline; <code>--engine</code> picks the backend parser for the default read (default <code>noyalib</code>).</li>
+<li>jq-style exit codes – <code>3</code> for parse errors, <code>5</code> for runtime errors, for scriptable error handling.</li>
+</ol>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    
+    <a href="&#x2f;yqr&#x2f;specs" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">yqr Specs</span>
+    </a>
+    
+</nav>
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.0 (8d32978)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-07-25</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

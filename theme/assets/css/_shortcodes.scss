@@ -1,0 +1,221 @@
+/// Alert and button shortcode styles (Feature 096).
+
+// Alert base
+.alert {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--color-border-strong);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.alert-info {
+  border-left-color: #2196f3;
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.alert-warning {
+  border-left-color: #ff9800;
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.alert-success {
+  border-left-color: #4caf50;
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.alert-danger {
+  border-left-color: #f44336;
+  background: #ffebee;
+  color: #b71c1c;
+}
+
+// Button base
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-default {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+
+  &:hover {
+    background: var(--color-bg-tag);
+  }
+}
+
+.btn-primary {
+  background: var(--color-link);
+  color: #fff;
+
+  &:hover {
+    background: #0055aa;
+  }
+}
+
+.btn-secondary {
+  background: var(--color-text-muted);
+  color: #fff;
+
+  &:hover {
+    background: var(--color-text-tag);
+  }
+}
+
+// Infobox shortcode styles.
+// Feature f145i
+.infobox {
+  border-left: 4px solid var(--color-border-strong);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 1em 1.25em;
+  margin: 1.5em 0;
+  font-size: 0.95rem;
+  color: var(--color-text);
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.infobox-title {
+  font-weight: 600;
+  margin-bottom: 0.5em;
+}
+
+// Collapsible variant: reset details/summary browser chrome.
+details.infobox {
+  > summary {
+    cursor: pointer;
+    list-style: none;
+
+    &::marker,
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: "\25B6\00A0"; // right-pointing triangle + space
+      font-size: 0.7em;
+      transition: transform 0.15s;
+      display: inline-block;
+    }
+  }
+
+  &[open] > summary::before {
+    transform: rotate(90deg);
+  }
+}
+
+.infobox-info {
+  border-left-color: #2196f3;
+  background: rgba(33, 150, 243, 0.06);
+}
+
+.infobox-prereq {
+  border-left-color: #4caf50;
+  background: rgba(76, 175, 80, 0.06);
+}
+
+.infobox-api {
+  border-left-color: #009688;
+  background: rgba(0, 150, 136, 0.06);
+}
+
+.infobox-security {
+  border-left-color: #f44336;
+  background: rgba(244, 67, 54, 0.06);
+}
+
+.infobox-version {
+  border-left-color: #ff9800;
+  background: rgba(255, 152, 0, 0.06);
+}
+
+// Backward-compatible variants for deprecated [alert] shortcode.
+// Feature f145i
+.infobox-warning {
+  border-left-color: #ff9800;
+  background: rgba(255, 152, 0, 0.06);
+}
+
+.infobox-success {
+  border-left-color: #4caf50;
+  background: rgba(76, 175, 80, 0.06);
+}
+
+.infobox-danger {
+  border-left-color: #f44336;
+  background: rgba(244, 67, 54, 0.06);
+}
+
+// Tabs shortcode styles.
+// Feature f145j
+.tabs {
+  margin: 1.5em 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.tabs-nav {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  overflow-x: auto;
+}
+
+.tabs-tab {
+  padding: 0.5em 1em;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  &.active {
+    color: var(--color-link);
+    border-bottom-color: var(--color-link);
+  }
+}
+
+.tabs-panel {
+  display: none;
+  padding: 1em 1.25em;
+
+  &.active {
+    display: block;
+  }
+
+  // Reset margins on first/last children inside panels.
+  > *:first-child {
+    margin-top: 0;
+  }
+
+  > *:last-child {
+    margin-bottom: 0;
+  }
+}

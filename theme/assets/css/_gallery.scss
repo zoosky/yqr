@@ -1,0 +1,47 @@
+/// Gallery and video gallery styles (Feature 096).
+
+.gallery {
+  margin: 1.5rem 0;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+  }
+}
+
+.video-gallery {
+  margin: 1.5rem 0;
+
+  iframe,
+  video {
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+}
+
+// Embedded YouTube/Vimeo iframe (video_embed() helper). Keeps a 16:9 box
+// and lets the iframe fill it regardless of the width/height attributes.
+.video-embed {
+  margin: 1.5rem 0;
+
+  iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    border-radius: var(--radius-md);
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+}

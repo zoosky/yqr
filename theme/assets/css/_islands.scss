@@ -1,0 +1,85 @@
+/// Styles for island components (copy-code, search).
+///
+/// Minimal styling that works in both light and dark themes.
+/// Islands are progressively enhanced -- these styles apply
+/// only after hydration adds the interactive elements.
+
+// -- Copy-code island --
+
+.copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: 4px;
+    background: var(--color-bg, #fff);
+    color: var(--color-text-muted, #666);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: auto;
+
+    pre:hover &,
+    &:focus {
+        opacity: 1;
+    }
+}
+
+// -- Search island --
+
+accent-island[data-component="search"] {
+    position: relative;
+    display: block;
+}
+
+.island-search-results {
+    position: absolute;
+    z-index: 100;
+    left: 0;
+    right: 0;
+    max-height: 24rem;
+    overflow-y: auto;
+    background: var(--color-bg, #fff);
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 0.25rem;
+}
+
+.search-hit {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: var(--color-text, #333);
+    border-bottom: 1px solid var(--color-border, #eee);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--color-bg-subtle, #f5f5f5);
+    }
+
+    strong {
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    span {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--color-text-muted, #666);
+        margin-top: 0.15rem;
+    }
+}
+
+.no-results {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #666);
+    text-align: center;
+}
