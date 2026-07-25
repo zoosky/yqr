@@ -18,7 +18,7 @@
     {% else %}
     <p>No pages found for this tag.</p>
     {% endif %}
-    <p><a href="/tags" class="back-link">&larr; All tags</a></p>
+    <p><a href="{{ url('/tags') }}" class="back-link">&larr; All tags</a></p>
     {% if taxonomy.tags | length > 1 %}
     <nav class="tag-siblings">
         <h3>Other Tags</h3>
@@ -26,7 +26,7 @@
             {% for tag in taxonomy.tags %}
             {% if tag.name != taxonomy.current_tag %}
             <li>
-                <a href="/tags/{{ tag.name }}">{{ tag.name }}</a>
+                <a href="{{ url('/tags/' ~ tag.name) }}">{{ tag.name }}</a>
                 <span class="tag-count">({{ tag.count }})</span>
             </li>
             {% endif %}

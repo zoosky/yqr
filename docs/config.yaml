@@ -11,14 +11,20 @@
 # output/index.html after the build. The theme -- restyled with the home
 # page's ink/brass/teal design tokens -- covers everything else.
 #
+# Requires accent >= v0.23.0. The site is served under the /yqr/ sub-path
+# on GitHub Pages; accent derives the deployment path prefix from the
+# site.url path component below, emits every internal URL prefixed, and
+# fails the build if an unprefixed root-absolute link slips through.
+# Moving to a custom domain later just means changing site.url -- the
+# prefix disappears with it.
+#
 # Local development:  cd docs && accent serve
 # Static build:       cd docs && accent build --clean
 #                     cp content/home.html output/index.html
-# (accent build takes the base URL for sitemap/canonicals from site.url
-# below; CI passes --base-url explicitly with the same value, so the two
-# produce identical output.)
-# The GitHub Pages workflow (.github/workflows/pages.yml) builds with the
-# same config and rewrites root-absolute links for the /yqr/ sub-path.
+# Sub-path preview:   accent serve-static --dir output   (mounts under /yqr)
+# (accent build takes the base URL from site.url below; CI passes
+# --base-url explicitly with the same value, so the two produce identical
+# output.)
 
 server:
   address: "127.0.0.1"

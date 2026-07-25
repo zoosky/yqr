@@ -12,9 +12,9 @@
     <p>The page <code>{{ error.path }}</code> could not be found.</p>
   {% endif %}
   <nav class="error-nav">
-    <a href="/">Home</a>
+    <a href="{{ url('/') }}">Home</a>
     <span aria-hidden="true">&middot;</span>
-    <a href="/docs">Documentation</a>
+    <a href="{{ url('/docs') }}">Documentation</a>
   </nav>
 </div>
 {% endblock %}

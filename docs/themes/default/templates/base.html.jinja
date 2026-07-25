@@ -8,7 +8,7 @@
     {# Social-sharing + SEO head metadata: page-specific description, build-safe
        canonical, Open Graph, Twitter Cards, hreflang, and the open meta map. #}
     {% include "partials/head_meta.html.jinja" %}
-    <link rel="icon" type="image/svg+xml" href="/theme/assets/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="{{ url('/theme/assets/favicon.svg') }}">
     <meta name="theme-color" content="#0b1524">
     {# Canonical now emitted by partials/head_meta.html.jinja (build-safe). #}
     {# Feature f082: cdn_url() rewrites asset paths to the configured CDN origin
@@ -41,9 +41,9 @@
     {% if site.url %}
     {% if page.language and page.language != site.language %}
     <link rel="alternate" type="application/rss+xml" title="{{ site.name }} RSS Feed ({{ page.language | upper }})"
-        href="{{ site.url }}/{{ page.language }}/feed.xml">
+        href="{{ absolute_url('/' ~ page.language ~ '/feed.xml') }}">
     {% else %}
-    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} RSS Feed" href="{{ site.url }}/feed.xml">
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} RSS Feed" href="{{ absolute_url('/feed.xml') }}">
     {% endif %}
     {% endif %}
     {# Feature f121: the LLM-crawler discovery `<link rel="alternate" href="/llms.txt">` is auto-injected by the template engine. #}
@@ -62,7 +62,7 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <nav>
-            <a href="/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+            <a href="{{ url('/') }}" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
                     <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
@@ -116,20 +116,20 @@
     </div>
 
     {% for js in theme.assets.js %}
-    <script src="/theme/assets/{{ js }}"></script>
+    <script src="{{ url('/theme/assets/' ~ js) }}"></script>
     {% endfor %}
     {# Feature f164: click-to-copy handler is only loaded when the
        heading_anchor_style preset needs it. Keeps pure-CSS presets
        (`hash`, `pilcrow`, `gutter`) JS-free. #}
     {% if theme.heading_anchor_style == "copy" %}
-    <script src="/theme/assets/js/heading-anchor-copy.js" defer></script>
+    <script src="{{ url('/theme/assets/js/heading-anchor-copy.js') }}" defer></script>
     {% endif %}
     {% if page.islands is defined and page.islands | length > 0 %}
     {% for island in page.islands %}
     {% if island.source == "plugin" %}
-    <script src="/assets/plugins/{{ island.plugin }}/{{ island.js_path }}" defer></script>
+    <script src="{{ url('/assets/plugins/' ~ island.plugin ~ '/' ~ island.js_path) }}" defer></script>
     {% else %}
-    <script src="/{{ ('theme/assets/js/islands/' ~ island.component ~ '.js') | fingerprint }}" defer></script>
+    <script src="{{ url('/' ~ (('theme/assets/js/islands/' ~ island.component ~ '.js') | fingerprint)) }}" defer></script>
     {% endif %}
     {% endfor %}
     {% endif %}

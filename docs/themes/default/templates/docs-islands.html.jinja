@@ -166,13 +166,13 @@
         // Re-run the island loader to discover the new elements, then
         // load component scripts which register and hydrate via pending queue
         var loader = document.createElement("script");
-        loader.src = "/theme/assets/js/island-loader.js?v=" + Date.now();
+        loader.src = "{{ url('/theme/assets/js/island-loader.js') }}?v=" + Date.now();
         loader.onload = function () {
             var s1 = document.createElement("script");
-            s1.src = "/theme/assets/js/islands/copy-code.js?v=" + Date.now();
+            s1.src = "{{ url('/theme/assets/js/islands/copy-code.js') }}?v=" + Date.now();
             document.body.appendChild(s1);
             var s2 = document.createElement("script");
-            s2.src = "/theme/assets/js/islands/search.js?v=" + Date.now();
+            s2.src = "{{ url('/theme/assets/js/islands/search.js') }}?v=" + Date.now();
             document.body.appendChild(s2);
         };
         document.body.appendChild(loader);

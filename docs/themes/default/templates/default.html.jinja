@@ -65,7 +65,7 @@ readme.html.jinja; when that is missing, this template is used instead. #}
                 {% if page.tags %}
                 <div class="tags">
                     {% for tag in page.tags %}
-                    <a href="/tags/{{ tag }}" class="tag">{{ tag }}</a>
+                    <a href="{{ url('/tags/' ~ tag) }}" class="tag">{{ tag }}</a>
                     {% endfor %}
                 </div>
                 {% endif %}

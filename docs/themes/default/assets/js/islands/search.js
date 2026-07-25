@@ -5,14 +5,28 @@
  * against a JSON search index. The fallback form works without JS.
  *
  * Props:
- *   endpoint    - URL to the search index JSON (default: "/_search/index.json")
+ *   endpoint    - URL to the search index JSON (default: the site's
+ *                 "/_search/index.json", resolved against the deployment
+ *                 path prefix this script was served under)
  *   max_results - Maximum number of results to show (default: 10)
  *   min_chars   - Minimum characters before searching (default: 2)
  *   debounce    - Debounce delay in ms (default: 300)
  */
 if (window.AccentIslands) {
+// Derive the deployment path prefix from this script's own URL so the
+// default endpoint works on sub-path deployments (the template emits the
+// script src through url(), so the prefix is present when configured).
+var accentSearchIslandBasePath = (function () {
+    var marker = "/theme/assets/js/islands/search.js";
+    var script = document.currentScript;
+    if (!script || !script.src) return "";
+    var path = new URL(script.src, document.baseURI).pathname;
+    return path.slice(-marker.length) === marker
+        ? path.slice(0, -marker.length)
+        : "";
+})();
 window.AccentIslands.register("search", function (el, props) {
-    var endpoint = props.endpoint || "/_search/index.json";
+    var endpoint = props.endpoint || accentSearchIslandBasePath + "/_search/index.json";
     var maxResults = props.max_results || 10;
     var minChars = props.min_chars || 2;
     var debounceMs = props.debounce || 300;

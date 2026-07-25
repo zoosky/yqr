@@ -29,7 +29,8 @@ a page; no wrapper folders, no required frontmatter):
 - **Home page:** the hand-authored `docs/content/home.html` is served
   **verbatim** — copied to `output/index.html` after the build, keeping its
   own embedded design exactly as authored. It contains no root-absolute
-  URLs, so the sub-path rewrite leaves it byte-identical.
+  URLs, so sub-path serving needs no changes to it — the deployed file is
+  byte-identical to the source.
 - **Spec tree:** `../specs` is mounted at `/specs` via `content.mounts` and
   served as-is; each category directory carries a `README.md` index so it
   appears as a sidebar section. Relative `*.md` links between specs resolve
@@ -42,15 +43,18 @@ a page; no wrapper folders, no required frontmatter):
   the brass-and-teal compass as logo/favicon. Sidebar rooted at `/specs/`;
   yqr footer.
 - **Sub-path serving:** GitHub Pages serves the repo at
-  `https://zoosky.github.io/yqr/`, but Accent emits root-absolute links with
-  no sub-path setting. `.github/scripts/pages-path-prefix.sh` rewrites every
-  root-absolute URL form in the build output (HTML `href`/`src`, the
-  HTML-escaped variant, meta-refresh redirect stubs, the DocFind search
-  assets and index, `llms.txt`) and fails the build if an unprefixed link
-  survives.
+  `https://zoosky.github.io/yqr/`. Accent v0.23.0+ handles this natively:
+  the deployment path prefix is derived from the `--base-url`/`site.url`
+  path component (or set via `site.base_path`/`--base-path`), every
+  internal URL is emitted prefixed, and `accent build` fails its built-in
+  conformance check if an unprefixed root-absolute link slips through.
+  The interim post-build rewrite script (`pages-path-prefix.sh`) that
+  patched six URL surfaces by hand was deleted once this landed upstream;
+  the vendored theme was updated to the upstream templates that route
+  hardcoded paths through the `url()` helper.
 - **Deploy:** `.github/workflows/pages.yml` fetches the pinned accent binary
-  from the upstream GitHub release (checksum-verified), builds, rewrites, and
-  pushes the output to the `gh-pages` branch — preserving `dev/bench`, the
+  from the upstream GitHub release (checksum-verified), builds, and pushes
+  the output to the `gh-pages` branch — preserving `dev/bench`, the
   Criterion benchmark dashboard that `benchmark.yml` publishes to the same
   branch. Pull requests touching `docs/`, `specs/`, or the workflow build and
   verify without deploying. The pre-existing `docs-pages.yml` workflow,
@@ -60,7 +64,9 @@ a page; no wrapper folders, no required frontmatter):
   `/docs/content/` paths that `pages.yml`'s `rsync --delete` clears.
 
 Local development uses the same binary: `cd docs && accent serve` (or
-`accent build --clean` plus the rewrite script to reproduce CI output).
+`accent build --clean` plus the home-page copy to reproduce CI output;
+`accent serve-static --dir output` previews the build under the `/yqr`
+prefix).
 
 ## 3. Acceptance criteria
 
@@ -75,9 +81,10 @@ Local development uses the same binary: `cd docs && accent serve` (or
 - [x] The specs tree is served from `specs/` unmodified (flat-file model,
       no content restructuring), with sidebar sections per category.
 - [x] Cross-spec relative `*.md` links resolve to working site URLs.
-- [x] After `pages-path-prefix.sh`, no unprefixed root-absolute link remains
-      in the output (the script self-verifies), and the site serves correctly
-      under a `/yqr` sub-path.
+- [x] No unprefixed root-absolute link remains in the output (`accent
+      build`'s base-path conformance check enforces this), and the site
+      serves correctly under a `/yqr` sub-path
+      (`accent serve-static --dir output` mounts it there for preview).
 - [x] The Pages workflow installs accent from
       `https://github.com/AccentCMS/accent/releases` with checksum
       verification, and only deploys on pushes to `main`.
@@ -90,7 +97,7 @@ Local development uses the same binary: `cd docs && accent serve` (or
 - The repository homepage metadata still points at the old
   `docs/content/home.html` path; update it to the site root after the first
   deploy.
-- A custom domain (root serving) would make the sub-path rewrite unnecessary;
-  revisit if a domain is assigned.
+- Moving to a custom domain (root serving) only requires changing
+  `site.url` — the derived path prefix disappears with it.
 - `accent validate` does not traverse content mounts, so spec pages are only
   link-checked at build time.

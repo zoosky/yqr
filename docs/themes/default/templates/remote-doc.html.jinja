@@ -41,7 +41,7 @@
     {% if page.tags %}
     <div class="tags">
         {% for tag in page.tags %}
-        <a href="/tags/{{ tag }}" class="tag">{{ tag }}</a>
+        <a href="{{ url('/tags/' ~ tag) }}" class="tag">{{ tag }}</a>
         {% endfor %}
     </div>
     {% endif %}

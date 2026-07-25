@@ -57,7 +57,7 @@
     {% endif %}
 
     <accent-island data-component="contact-form" data-hydrate="load">
-        <form action="/contact-submit" method="POST" class="contact-form">
+        <form action="{{ url('/contact-submit') }}" method="POST" class="contact-form">
             {# CSRF token injected here by accent-contact plugin on_render hook #}
 
             <div class="form-group">
@@ -89,7 +89,7 @@
    Guard: only load island-loader if base template did not already load
    it via page.islands. #}
 {% if not (page.islands is defined and page.islands | length > 0) %}
-<script src="/{{ 'theme/assets/js/island-loader.js' | fingerprint }}" defer></script>
+<script src="{{ url('/' ~ ('theme/assets/js/island-loader.js' | fingerprint)) }}" defer></script>
 {% endif %}
-<script src="/{{ ('theme/assets/js/islands/contact-form.js') | fingerprint }}" defer></script>
+<script src="{{ url('/' ~ (('theme/assets/js/islands/contact-form.js') | fingerprint)) }}" defer></script>
 {% endblock %}

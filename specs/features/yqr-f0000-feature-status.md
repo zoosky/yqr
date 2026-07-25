@@ -64,11 +64,13 @@ rest deferred) → M2 → f008.
 |---------|-------|--------|
 | [f010](yqr-f010-accent-website.md) | Accent CMS website over docs/ and specs/, deployed to GitHub Pages | Done |
 
-Progress: the site builds from `docs/` (home page ported from the former
-`home.html`) with `specs/` mounted at `/specs`, using the vendored Accent
-default theme. `pages.yml` fetches the pinned accent binary from the upstream
-GitHub release, builds, rewrites links for the `/yqr` sub-path, and deploys to
-`gh-pages` while preserving the benchmark dashboard.
+Progress: the site builds from `docs/` (`home.html` served verbatim as the
+home page) with `specs/` mounted at `/specs`, using the vendored Accent
+default theme restyled with the home page's design tokens. `pages.yml`
+fetches the pinned accent binary (>= v0.23.0, native sub-path support) from
+the upstream GitHub release, builds with the `/yqr` prefix derived from the
+base URL, and deploys to `gh-pages` while preserving the benchmark
+dashboard.
 
 ## Summary
 

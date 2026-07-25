@@ -27,7 +27,7 @@
         data-component="search"
         data-hydrate="visible"
         data-props='{"endpoint": "/_search/index.json", "max_results": 5}'>
-        <form action="/search" method="get">
+        <form action="{{ url('/search') }}" method="get">
             <input type="search" name="q" placeholder="Search the site...">
             <button type="submit">Search</button>
         </form>
@@ -50,5 +50,5 @@
     <p><small>Resize your browser below 768px to see the Copy button appear on the block above.</small></p>
 </article>
 
-<script src="/theme/assets/js/islands/search.js" defer></script>
+<script src="{{ url('/theme/assets/js/islands/search.js') }}" defer></script>
 {% endblock %}
