@@ -17,11 +17,11 @@ works from any working directory and reads the sample files in place.
 
 ## What's in here
 
-| File            | Role                                                              |
-|-----------------|-------------------------------------------------------------------|
-| `yqr-demo.sh`   | The narrated walkthrough (seven sections, each a real query).     |
-| `deploy.yaml`   | A Kubernetes Deployment -- the input for navigation & iteration.  |
-| `config.yaml`   | A hand-commented config -- the input for the fidelity engine.     |
+| File                                                | Role                                                              |
+|-----------------------------------------------------|-------------------------------------------------------------------|
+| [`yqr-demo.sh`](/content-media/demo/yqr-demo.sh)    | The narrated walkthrough (seven sections, each a real query).     |
+| [`deploy.yaml`](/content-media/demo/deploy.yaml)    | A Kubernetes Deployment -- the input for navigation & iteration.  |
+| [`config.yaml`](/content-media/demo/config.yaml)    | A hand-commented config -- the input for the fidelity engine.     |
 
 ## What it shows
 
