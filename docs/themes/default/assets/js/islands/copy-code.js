@@ -55,7 +55,14 @@ window.AccentIslands.register("copy-code", function (el, props) {
             btn.setAttribute("aria-label", "Copy code to clipboard");
 
             btn.addEventListener("click", function () {
-                var text = pre.textContent;
+                // The button lives inside the <pre>, so reading the pre's
+                // textContent directly would prepend the button label
+                // ("Copy"/"Copied!") to the copied code. Strip it from a
+                // clone before extracting the text.
+                var clone = pre.cloneNode(true);
+                var cloneBtn = clone.querySelector(".copy-btn");
+                if (cloneBtn) cloneBtn.parentNode.removeChild(cloneBtn);
+                var text = clone.textContent;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(
                         function () { showCopied(btn); },
