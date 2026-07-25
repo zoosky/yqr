@@ -1,4 +1,4 @@
-# yqr.b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)
+# Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)
 
 **Status:** Resolved
 **Severity:** Low

@@ -1,3 +1,7 @@
+---
+menu:
+  order: 3
+---
 # yqr Specs
 
 The living issue tracker and design record for yqr. Every feature, bug,

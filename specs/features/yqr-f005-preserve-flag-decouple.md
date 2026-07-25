@@ -1,4 +1,4 @@
-# yqr.f005 — Decouple byte/comment preservation from backend selection (`--preserve`)
+# Feature f005 — Decouple byte/comment preservation from backend selection (`--preserve`)
 
 **Status:** Superseded (`yqr-f009`)
 **Epic:** Fidelity-first architecture (a001)

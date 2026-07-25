@@ -1,4 +1,4 @@
-# Feature 001 — `yqr`: a Swiss Army knife for YAML
+# Feature f001 — `yqr`: a Swiss Army knife for YAML
 
 Status: **In progress** (foundation landed)
 Owner: yqr maintainers

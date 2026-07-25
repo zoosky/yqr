@@ -2,6 +2,7 @@
 title: yqr in Kubernetes
 menu:
   title: Home
+  order: 1
 template: home
 process:
   markdown: false

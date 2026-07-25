@@ -1,3 +1,7 @@
+---
+menu:
+  order: 5
+---
 # Research Notes
 
 Evaluations and investigations (`yqr-rNNN-*`), such as the jq feature-gap

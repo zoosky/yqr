@@ -1,3 +1,7 @@
+---
+menu:
+  order: 2
+---
 # Bug Specs
 
 Bug reports and resolutions (`yqr-bNNN-*`). `yqr-b000-bug-status.md` tracks

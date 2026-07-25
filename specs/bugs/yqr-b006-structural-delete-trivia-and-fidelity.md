@@ -1,4 +1,4 @@
-# yqr.b006 — Structural delete mishandles comments, blank lines, and same-column sequences
+# Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences
 
 **Status:** Resolved
 **Severity:** High

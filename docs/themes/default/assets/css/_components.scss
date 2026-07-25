@@ -127,9 +127,13 @@ article .tag:hover,
     font-size: 0.95rem;
     color: var(--color-link);
     font-weight: 600;
+    // Spec titles are long; give them two lines before clamping instead
+    // of a single-line ellipsis that eats the distinguishing tail.
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .nav-prev {

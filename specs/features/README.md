@@ -1,3 +1,7 @@
+---
+menu:
+  order: 1
+---
 # Feature Specs
 
 Feature specifications (`yqr-fNNN-*`). Each spec carries a `**Status:**`

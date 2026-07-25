@@ -1,4 +1,4 @@
-# yqr.f010 — Project website: Accent CMS site over docs/ and specs/, on GitHub Pages
+# Feature f010 — Project website: Accent CMS site over docs/ and specs/, on GitHub Pages
 
 **Status:** Done
 **Epic:** Project website (f010)

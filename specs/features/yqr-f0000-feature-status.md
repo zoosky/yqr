@@ -9,7 +9,7 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 
 | Feature | Title | Status |
 |---------|-------|--------|
-| [f001](yqr.f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
+| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 
