@@ -6,6 +6,34 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **`yqr validate [--strict] FILES...` -- YAML correctness checking with
+  compiler-style diagnostics.** yqr's first subcommand closes the editing
+  loop: after a surgical, hand-made, or agent-made edit, one command answers
+  whether a file is still correct YAML. A pass certifies that every document
+  parses *and* that the parsed documents reproduce the input byte-for-byte
+  (the fidelity invariant). Failures are rustc-style diagnostics on stderr
+  with stable codes (`Y001` syntax, `Y002` stream integrity, `Y003`
+  non-UTF-8 input, `Y101` duplicate key under `--strict`, `Y102`
+  stringified-key collision), a `file:line:column` location whenever a
+  position is known, the offending source line with a caret, and a
+  suggested fix. `--strict` reports every duplicate mapping key in one run
+  -- nested, flow, quoted respellings, and duplicate `<<` merge keys
+  included -- with the positions of both occurrences (found by walking the
+  lossless CST). A file containing unresolved merge-conflict markers gets a
+  dedicated hint anchored at the first marker, end-of-input errors clamp
+  their source window to the last line, and CR-only line endings render
+  correctly. Exit codes: 0 all inputs valid, 1 validation findings, 5 an
+  input could not be read (highest wins; every input is checked in one
+  run). Stdin is explicit (`-`, at most once); an empty file list is a
+  usage error rather than a silent stdin fallback, so a CI gate whose glob
+  expands to nothing fails loudly. clap's auto-generated `help` subcommand
+  is disabled: `yqr help` keeps failing as an invalid filter instead of
+  becoming a success, and `validate` stays the only word the subcommand
+  namespace claims. The library gains the `validate` module (`check_str` /
+  `encoding_diagnostic` / `render`).
+
 ### Removed
 
 - **The `--engine` flag is gone.** yqr has settled on noyalib as its one and

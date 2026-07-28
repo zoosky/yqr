@@ -24,6 +24,10 @@ const LONG_VERSION: &str = concat!(
 /// writes the result back as YAML -- preserving the input's bytes by default,
 /// and applying surgical edits (`=`, `+=`, `del`, `-i`) that touch only the
 /// targeted bytes.
+///
+/// The filter form is the default; `validate` is the one subcommand. A bare
+/// word is not a valid filter, so the subcommand namespace cannot collide
+/// with any working filter invocation.
 #[derive(Debug, Parser)]
 #[command(
     name = "yqr",
@@ -31,10 +35,27 @@ const LONG_VERSION: &str = concat!(
     long_version = LONG_VERSION,
     about = "A fidelity-first, jq-style CLI for YAML (query and surgically edit, byte-for-byte)",
     long_about = None,
+    args_conflicts_with_subcommands = true,
+    subcommand_negates_reqs = true,
+    disable_help_subcommand = true,
 )]
 pub struct Cli {
+    /// Subcommand, when the invocation is not the default filter form.
+    ///
+    /// clap's auto-generated `help` subcommand is disabled so the word
+    /// `help` keeps failing as an invalid filter (exit 3) instead of
+    /// silently becoming a success — `validate` is the only word the
+    /// subcommand namespace claims.
+    #[command(subcommand)]
+    pub command: Option<Command>,
+
     /// The filter to apply, e.g. '.foo.bar', '.items[]', '.[-1]'.
-    pub filter: String,
+    ///
+    /// Required in the filter form (`subcommand_negates_reqs` lifts the
+    /// requirement when a subcommand runs), so usage renders it as
+    /// `<FILTER>`; the `Option` only models the subcommand case.
+    #[arg(required = true)]
+    pub filter: Option<String>,
 
     /// Input YAML file. Reads from stdin when omitted or set to '-'.
     pub file: Option<String>,
@@ -67,6 +88,34 @@ pub struct Cli {
     pub normalize: bool,
 }
 
+/// The non-filter operations yqr offers.
+#[derive(Debug, clap::Subcommand)]
+pub enum Command {
+    // Feature f012: YAML correctness checking for the editing loop.
+    /// Check YAML files for correctness without evaluating a filter.
+    ///
+    /// Parses every document in each input and verifies that the parsed
+    /// documents reproduce the input byte-for-byte. Prints nothing on
+    /// success; failures are reported as compiler-style diagnostics on
+    /// stderr. Exit codes: 0 when every input is valid, 1 when any input
+    /// fails validation, 5 when an input cannot be read.
+    Validate(ValidateArgs),
+}
+
+/// Arguments of the `validate` subcommand.
+#[derive(Debug, clap::Args)]
+pub struct ValidateArgs {
+    /// YAML files to check. Reads stdin when omitted or set to '-'.
+    pub files: Vec<String>,
+
+    /// Also report duplicate mapping keys.
+    ///
+    /// Ordinary reads accept duplicates silently, resolving them
+    /// last-wins — which after a bad edit means silently dropped data.
+    #[arg(long)]
+    pub strict: bool,
+}
+
 impl Cli {
     /// Parse arguments from the process environment.
     pub fn parse_args() -> Self {
@@ -88,19 +137,71 @@ mod tests {
     #[test]
     fn parses_filter_and_flags() {
         let cli = Cli::try_parse_from(["yqr", "-r", ".a.b", "in.yaml"]).unwrap();
-        assert_eq!(cli.filter, ".a.b");
+        assert_eq!(cli.filter.as_deref(), Some(".a.b"));
         assert_eq!(cli.file.as_deref(), Some("in.yaml"));
         assert!(cli.raw_output);
+        assert!(cli.command.is_none());
     }
 
     #[test]
     fn file_is_optional() {
         let cli = Cli::try_parse_from(["yqr", "."]).unwrap();
-        assert_eq!(cli.filter, ".");
+        assert_eq!(cli.filter.as_deref(), Some("."));
         assert_eq!(cli.file, None);
         assert!(!cli.raw_output);
         assert!(!cli.normalize);
         assert!(!cli.in_place);
+    }
+
+    #[test]
+    fn parses_validate_subcommand() {
+        // Feature f012: `validate` with files and --strict.
+        let cli = Cli::try_parse_from(["yqr", "validate", "a.yaml", "b.yaml", "--strict"]).unwrap();
+        let Some(Command::Validate(args)) = cli.command else {
+            panic!("expected the validate subcommand");
+        };
+        assert_eq!(args.files, ["a.yaml", "b.yaml"]);
+        assert!(args.strict);
+        assert!(cli.filter.is_none());
+    }
+
+    #[test]
+    fn validate_accepts_no_files() {
+        // Bare `yqr validate` reads stdin.
+        let cli = Cli::try_parse_from(["yqr", "validate"]).unwrap();
+        let Some(Command::Validate(args)) = cli.command else {
+            panic!("expected the validate subcommand");
+        };
+        assert!(args.files.is_empty());
+        assert!(!args.strict);
+    }
+
+    #[test]
+    fn filter_flags_force_the_filter_form() {
+        // A filter-form flag before the word `validate` commits to the
+        // filter form: the word parses as the filter, and the binary then
+        // rejects it with a usage hint pointing at the subcommand.
+        let cli = Cli::try_parse_from(["yqr", "-r", "validate", "a.yaml"]).unwrap();
+        assert!(cli.command.is_none());
+        assert_eq!(cli.filter.as_deref(), Some("validate"));
+    }
+
+    #[test]
+    fn help_word_stays_a_filter() {
+        // clap's auto `help` subcommand is disabled: the word parses as a
+        // filter (and fails later at the lexer), preserving the pre-f012
+        // contract that only `validate` is claimed by subcommands.
+        let cli = Cli::try_parse_from(["yqr", "help"]).unwrap();
+        assert!(cli.command.is_none());
+        assert_eq!(cli.filter.as_deref(), Some("help"));
+    }
+
+    #[test]
+    fn bare_invocation_is_a_clap_usage_error() {
+        // With subcommand_negates_reqs the filter stays required in the
+        // filter form, so usage renders `<FILTER>` and clap itself rejects
+        // a bare invocation.
+        assert!(Cli::try_parse_from(["yqr"]).is_err());
     }
 
     #[test]

@@ -15,7 +15,41 @@ use yqr::{YqrError, render};
 
 fn main() -> ExitCode {
     let args = Cli::parse_args();
-    match run(&args) {
+
+    // Feature f012: the validate subcommand has its own output contract
+    // (diagnostics on stderr, exit 0/1/5) and never evaluates a filter.
+    if let Some(cli::Command::Validate(validate_args)) = &args.command {
+        return run_validate(validate_args);
+    }
+
+    // clap enforces the filter positional in the filter form
+    // (subcommand_negates_reqs lifts it only when a subcommand runs); this
+    // fallback is defensive.
+    let Some(filter) = args.filter.clone() else {
+        use clap::CommandFactory;
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::MissingRequiredArgument,
+                "the <FILTER> argument is required",
+            )
+            .exit();
+    };
+
+    // A flag before the word `validate` commits clap to the filter form,
+    // where `validate` is never a valid filter — diagnose the likely
+    // intent instead of surfacing a baffling filter parse error.
+    if filter == "validate" {
+        use clap::CommandFactory;
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::InvalidValue,
+                "'validate' is a subcommand and must come first: \
+                 yqr validate [--strict] [FILES]... (its flags go after it)",
+            )
+            .exit();
+    }
+
+    match run(&args, &filter) {
         Ok(output) => {
             if let Err(e) = io::stdout().write_all(output.as_bytes()) {
                 eprintln!("yqr: io error: {e}");
@@ -30,7 +64,7 @@ fn main() -> ExitCode {
     }
 }
 
-fn run(args: &Cli) -> Result<String, YqrError> {
+fn run(args: &Cli, filter: &str) -> Result<String, YqrError> {
     // Feature f009: byte-preserving reads are the default; `--normalize` opts
     // back into the classic re-serializing pipeline.
     // Feature f011: noyalib is yqr's only engine — the former `--engine`
@@ -39,7 +73,7 @@ fn run(args: &Cli) -> Result<String, YqrError> {
     // Feature f006: decide read vs write before consuming input, so a filter
     // error (or a misused `-i`) is diagnosed up front. A mutating filter always
     // goes through the fidelity write path, regardless of `--normalize`.
-    match yqr::parser::parse_program(&args.filter)? {
+    match yqr::parser::parse_program(filter)? {
         Program::Mutate(mutation) => {
             // Validate the `-i` target before consuming stdin or applying the
             // mutation, so a misused `-i` (stdin, no file) fails immediately
@@ -80,6 +114,95 @@ fn run(args: &Cli) -> Result<String, YqrError> {
             fidelity::run_ast(&ast, &input, args.raw_output)
         }
     }
+}
+
+/// Run the `validate` subcommand over every requested input.
+///
+/// Each input gets a verdict in one run — validation never stops at the
+/// first bad file. Diagnostics go to stderr; stdout stays silent. The exit
+/// code is the worst outcome across all inputs: 0 when everything is valid,
+/// 1 when any input fails validation, 5 when any input cannot be read.
+///
+/// An empty file list is a usage error, not a silent stdin fallback: a
+/// validation gate whose argument expansion came up empty must fail
+/// loudly, never report "all valid" having checked nothing. Stdin is
+/// explicit (`-`) and accepted at most once — a second `-` would re-read
+/// an exhausted stream as an empty (vacuously valid) input.
+// Feature f012.
+fn run_validate(args: &cli::ValidateArgs) -> ExitCode {
+    use clap::CommandFactory;
+
+    if args.files.is_empty() {
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::MissingRequiredArgument,
+                "no input files; pass one or more YAML files, or '-' to read stdin",
+            )
+            .exit();
+    }
+    if args.files.iter().filter(|f| *f == "-").count() > 1 {
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::ValueValidation,
+                "stdin ('-') may be given at most once",
+            )
+            .exit();
+    }
+
+    let mut worst: u8 = 0;
+    for path in &args.files {
+        let display = if path == "-" { "<stdin>" } else { path };
+        match read_validate_bytes(path) {
+            Err(message) => {
+                eprintln!("error: {message}");
+                worst = worst.max(5);
+            }
+            Ok(bytes) => {
+                let (source, findings) = match String::from_utf8(bytes) {
+                    Ok(source) => {
+                        let findings = yqr::validate::check_str(&source, args.strict);
+                        (source, findings)
+                    }
+                    // Wrong encoding is a content defect (exit 1 with a
+                    // coded finding), not an unreadable input: the window
+                    // renders from the valid prefix.
+                    Err(err) => {
+                        let valid_up_to = err.utf8_error().valid_up_to();
+                        let mut bytes = err.into_bytes();
+                        bytes.truncate(valid_up_to);
+                        let prefix = String::from_utf8(bytes)
+                            .expect("prefix up to valid_up_to is valid UTF-8");
+                        let findings = vec![yqr::validate::encoding_diagnostic(&prefix)];
+                        (prefix, findings)
+                    }
+                };
+                for diagnostic in &findings {
+                    eprint!("{}", yqr::validate::render(diagnostic, display, &source));
+                }
+                if !findings.is_empty() {
+                    worst = worst.max(1);
+                }
+            }
+        }
+    }
+    ExitCode::from(worst)
+}
+
+/// Read one validate input's raw bytes (`-` means stdin), with an uncoded
+/// plain-text error message on failure — read failures are environment
+/// problems, not validation findings, so they bypass the diagnostic
+/// renderer. Bytes, not text: encoding problems must reach the validator
+/// as findings instead of failing the read.
+// Feature f012.
+fn read_validate_bytes(path: &str) -> Result<Vec<u8>, String> {
+    if path == "-" {
+        let mut buf = Vec::new();
+        io::stdin()
+            .read_to_end(&mut buf)
+            .map_err(|e| format!("failed to read stdin: {e}"))?;
+        return Ok(buf);
+    }
+    std::fs::read(path).map_err(|e| format!("failed to read {path:?}: {e}"))
 }
 
 /// Resolve the file path to rewrite for `-i`, rejecting stdin.
