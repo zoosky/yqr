@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 724
+  "wordCount": 816
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -360,6 +363,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -388,6 +394,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -601,6 +612,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f012-validate-command"
+                   class="sidebar-link">Feature f012 — `yqr validate`: actionable YAML correctness checking</a>
+              
+            
+              
+              
             
               
               
@@ -695,6 +712,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -912,6 +932,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -928,6 +951,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1148,6 +1174,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1157,6 +1186,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1278,6 +1310,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1483,6 +1518,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -1522,6 +1560,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1713,6 +1754,17 @@ refused. The remaining f007 gaps (comment editing, key rename, sequence reorder)
 each need new grammar and stay deferred. f008 (<code>|=</code> computed updates) is gated on
 <code>f001</code> M2 (arithmetic/builtins). Priority order: f006 (done) → f007 (delete done,
 rest deferred) → M2 → f008.</p>
+<h2 id="epic-editing-loop-tooling-f012">Epic: Editing-loop tooling (f012)<a class="heading-anchor" href="#epic-editing-loop-tooling-f012" aria-label="Link to this section"></a></h2>
+<table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
+<tr><td><a href="/yqr/specs/features/yqr-f012-validate-command">f012</a></td><td><code>yqr validate</code>: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, <code>--strict</code>)</td><td>Draft</td></tr>
+</tbody></table>
+<p>Progress: spec drafted. Closes the editing loop (edit, then verify): a
+dedicated subcommand that parses every document, re-asserts the a001
+byte-tiling invariant, and reports rustc-style diagnostics
+(<code>error[Ynnn]</code>, <code>--&gt; file:line:col</code>, source window, help) that humans and
+agents can act on. <code>--strict</code> adds duplicate-key and stringified-key
+collision findings. Rendering is hand-rolled over noyalib’s core
+<code>Location</code>/<code>CroppedRegion</code> API — no new dependencies.</p>
 <h2 id="epic-project-website-f010">Epic: Project website (f010)<a class="heading-anchor" href="#epic-project-website-f010" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
 <tr><td><a href="/yqr/specs/features/yqr-f010-accent-website">f010</a></td><td>Accent CMS website over docs/ and specs/, deployed to GitHub Pages</td><td>Done</td></tr>
@@ -1728,8 +1780,9 @@ base URL, and deploys to <code>gh-pages</code> while preserving the benchmark
 dashboard.</p>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total features: 11</li>
-<li>Draft: 1 (f008 — computed updates, gated on <code>f001</code> M2)</li>
+<li>Total features: 12</li>
+<li>Draft: 2 (f008 — computed updates, gated on <code>f001</code> M2; f012 — validate
+command)</li>
 <li>In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)</li>
 <li>Done: 5 (f002, f006, f009, f010, f011)</li>
 <li>Superseded: 3 (f003, f004 — single-engine consolidation, <code>yqr-m005</code>; f005 —
@@ -1776,6 +1829,10 @@ superseded by f009 which makes fidelity the default)</li>
         
             <li class="toc-level-2">
                 <a href="#epic-fidelity-write-tier-f006-f008">Epic: Fidelity write tier (f006–f008)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#epic-editing-loop-tooling-f012">Epic: Editing-loop tooling (f012)</a>
             </li>
         
             <li class="toc-level-2">

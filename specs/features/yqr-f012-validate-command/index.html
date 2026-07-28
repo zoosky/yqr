@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter) - yqr</title>
+    <title>Feature f012 — `yqr validate`: actionable YAML correctness checking - yqr</title>
     
     
 
@@ -15,7 +15,7 @@
 <meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f012-validate-command">
 
 
 
@@ -27,10 +27,10 @@
 
 
 
-<meta property="og:title" content="Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)">
+<meta property="og:title" content="Feature f012 — `yqr validate`: actionable YAML correctness checking">
 <meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f012-validate-command">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -40,7 +40,7 @@
 
 
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)">
+<meta name="twitter:title" content="Feature f012 — `yqr validate`: actionable YAML correctness checking">
 <meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
@@ -87,9 +87,9 @@
   "dateModified": "2026-07-28",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
-  "name": "Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)",
-  "url": "https://zoosky.github.io/yqr/specs/features/yqr-f003-fidelity-backend-a-rustyaml",
-  "wordCount": 1167
+  "name": "Feature f012 — `yqr validate`: actionable YAML correctness checking",
+  "url": "https://zoosky.github.io/yqr/specs/features/yqr-f012-validate-command",
+  "wordCount": 2042
 }
 </script>
 <script type="application/ld+json">
@@ -117,8 +117,8 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/features/yqr-f003-fidelity-backend-a-rustyaml",
-      "name": "Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)",
+      "item": "https://zoosky.github.io/yqr/specs/features/yqr-f012-validate-command",
+      "name": "Feature f012 — `yqr validate`: actionable YAML correctness checking",
       "position": 4
     }
   ]
@@ -559,7 +559,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml"
-                   class="sidebar-link active">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</a>
+                   class="sidebar-link">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</a>
               
             
               
@@ -613,7 +613,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f012-validate-command"
-                   class="sidebar-link">Feature f012 — `yqr validate`: actionable YAML correctness checking</a>
+                   class="sidebar-link active">Feature f012 — `yqr validate`: actionable YAML correctness checking</a>
               
             
               
@@ -1696,157 +1696,264 @@
         <a href="&#x2f;yqr&#x2f;specs&#x2f;features">Feature Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</span>
+    <span aria-current="page">Feature f012 — `yqr validate`: actionable YAML correctness checking</span>
 </nav>
 
 
-        <h1>Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</h1>
+        <h1>Feature f012 — `yqr validate`: actionable YAML correctness checking</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Superseded by <code>yqr-m005</code> (2026-07-10) — the rust-yaml fork <code>RoundTripDocument</code> backend (backend A) was removed when yqr consolidated on noyalib as its sole engine. (Was: Done.)
+            <p><strong>Status:</strong> Draft
+<strong>Epic:</strong> Editing-loop tooling (f012)
 <strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-07-04
-<strong>Implements:</strong> <code>yqr-m002</code> §7.1 (backend A), <code>yqr-a001</code> §4.1 (slice-on-emit)
-<strong>Related:</strong> <code>yqr-f002</code> (the seam + backend C this parallels), <code>yqr-b001</code> (the
-bug this closes on the engine path), <code>yqr-m002</code> (the adapter mapping),
-<code>yqr-b003</code> (a fork parser limitation surfaced by this feature’s review)</p>
-<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
-<p>Add the second concrete fidelity backend — <strong>backend A</strong> — over our rust-yaml
-fork’s source-preserving <code>RoundTripDocument</code> API, exactly parallel to the
-<code>f002</code> noyalib backend:</p>
+<strong>Related:</strong> <code>yqr-a001</code> (the fidelity invariant validate re-uses), <code>yqr-f006</code>/<code>yqr-f007</code>
+(the write tier — the editing loop this closes), <code>yqr-m005</code> (noyalib is the one
+engine), <code>yqr-r001</code> (jq feature gap — jq’s <code>empty</code>-filter idiom belongs there),
+<code>yqr-b004</code> §“string-only key model” (the collision <code>--strict</code> surfaces)</p>
+<h2 id="1-problem">1. Problem<a class="heading-anchor" href="#1-problem" aria-label="Link to this section"></a></h2>
+<p>yqr’s editing loop — human or agent — is read, edit, and then… trust. yqr’s
+own write tier refuses edits whose result would re-parse differently, but yqr
+is not the only writer of a YAML file: hand edits, other tools, templating,
+file concatenation, and half-resolved merge conflicts all produce files whose
+correctness is unknown at the moment an agent most needs to know it — right
+after the edit.</p>
+<p>Today the only check is the exit-code idiom <code>yqr '.' f &gt; /dev/null</code>, which is
+deficient in exactly the ways that matter for that loop:</p>
 <ul>
-<li><code>src/fidelity/rustyaml.rs</code> — <code>RustYamlEngine</code>, a <code>FidelityEngine</code> adapter over
-<code>rust_yaml_rt::RoundTripDocument</code> (<code>parse_all</code> multi-doc, <code>source()</code>,
-<code>value()</code>, <code>span_of(&amp;[PathSegment])</code>), behind a new <code>backend-rust-yaml</code>
-feature so the default build stays dependency-minimal.</li>
-<li><code>BackendId::RustYamlRoundTrip</code> + <code>open()</code> dispatch + the CLI switch
-<code>--engine rust-yaml</code> (feature-gated, with a helpful error when not compiled
-in). The default pipeline and the noyalib backend are unchanged.</li>
-<li>A comparison backend in the round-trip harness (<code>tests/fidelity.rs</code>) and an
-end-to-end engine test file (<code>tests/fidelity_engine_rustyaml.rs</code>).</li>
+<li>Invalid YAML and I/O failure share exit 5, so a script cannot tell “the
+file is broken” (fix the content) from “the file is missing/unreadable”
+(fix the environment).</li>
+<li>One file per invocation; validating a directory means a shell loop.</li>
+<li>The error is a single flat line (<code>yqr: io error: failed to parse YAML input: ...</code>) — the structured location noyalib reports is stringified away
+at the engine boundary (<code>src/fidelity/noyalib.rs</code> maps the parse error to
+<code>YqrError::io(format!(...))</code>), so nothing is machine-actionable.</li>
+<li>The document itself is emitted to stdout unless redirected.</li>
 </ul>
-<p>The fork is the <strong>same crate</strong> yqr already depends on from crates.io
-(<code>rust-yaml</code> 1.1.0), brought in under the distinct name <code>rust-yaml-rt</code> from the
-<code>feat/roundtrip-document</code> branch (which carries the additive <code>RoundTripDocument</code>
-submitted upstream as rust-yaml#73). The two <code>Value</code> enums are structurally
-identical, so lowering the fork’s value into yqr’s evaluation model is a
-one-to-one structural map — the same shape as the noyalib lowering.</p>
-<p>With <code>--engine rust-yaml</code>, <code>yqr '.' f</code> reproduces <code>f</code> <strong>byte-for-byte</strong> across
-every <code>yqr-b001</code> corpus dimension, and path projections emit the selected
-node’s original bytes.</p>
-<h2 id="2-why-this-is-the-m002-7-1-adapter-not-the-in-yqr-token-walk">2. Why this is the m002 §7.1 adapter (not the in-yqr token walk)<a class="heading-anchor" href="#2-why-this-is-the-m002-7-1-adapter-not-the-in-yqr-token-walk" aria-label="Link to this section"></a></h2>
-<p><code>yqr-m002</code> §7.1 planned backend A as either (a) a thin adapter over the upstream
-<code>RoundTripDocument</code> if rust-yaml#73 lands, or (b) an in-yqr token/span-index
-walk if #73 is rejected. #73 is implemented on our fork and verified over the
-yaml-test-suite (1,501 accepted inputs reproduced byte-for-byte, 0 violations,
-per <code>yqr-b001</code> §8), so this feature ships path (a): the adapter. The span-index
-construction lives in the fork, not in yqr.</p>
-<p>Mapping onto the seam (<code>yqr-m002</code> §7.1):</p>
-<table><thead><tr><th>Seam method</th><th>Fork API</th></tr></thead><tbody>
-<tr><td><code>source()</code></td><td>owned input <code>String</code>, verbatim</td></tr>
-<tr><td><code>doc_count</code> / <code>doc_span</code></td><td><code>parse_all</code> document slices, rebased by cumulative byte offset</td></tr>
-<tr><td><code>value(doc)</code></td><td><code>RoundTripDocument::value()</code> lowered <code>rust_yaml_rt::Value</code> → <code>rust_yaml::Value</code></td></tr>
-<tr><td><code>resolve(doc, path)</code></td><td>root → whole-doc span; else <code>span_of(&amp;[PathSegment])</code>; <code>None</code> → <code>Absent</code>/<code>Synthetic</code> via the typed view</td></tr>
-<tr><td><code>Unaddressable</code></td><td><strong>never produced</strong> — the fork addresses keys by resolved scalar text, so special-character keys resolve to their bytes</td></tr>
+<p>Agents act well on two things: exit codes they can branch on, and diagnostics
+with a precise location, a labeled span, and a suggested fix — the shape they
+already know from rustc and cargo. That is the target output format.</p>
+<h2 id="2-prior-art">2. Prior art<a class="heading-anchor" href="#2-prior-art" aria-label="Link to this section"></a></h2>
+<ul>
+<li><strong>jq</strong> has no validate command; the canonical idiom is <code>jq empty f.json</code> —
+parse, print nothing, exit code speaks. (yqr has no <code>empty</code> filter; that
+gap stays with <code>yqr-r001</code>.)</li>
+<li><strong>yq v3</strong> shipped a dedicated <code>yq validate</code>; <strong>v4 dropped it</strong> and the docs
+recommend <code>yq --exit-status 'tag == "!!map" or tag == "!!seq"' f &gt; /dev/null</code> — an idiom, again, because bare YAML validity is so lenient.</li>
+<li><strong>yamllint</strong> is the dedicated checker and the only tool in this family that
+catches duplicate keys — invalid per the YAML spec’s key-uniqueness
+requirement, silently accepted last-wins by virtually every parser.</li>
+<li><strong>xmllint –noout</strong> is the long-standing precedent for a built-in
+well-formedness check with no output and a meaningful exit code.</li>
+</ul>
+<p>Decision: a dedicated subcommand with rustc-style diagnostics. The idiom
+approach is what f012 exists to replace, and a flag on the filter form cannot
+express multi-file validation.</p>
+<h2 id="3-design">3. Design<a class="heading-anchor" href="#3-design" aria-label="Link to this section"></a></h2>
+<h3 id="3-1-cli-surface">3.1 CLI surface<a class="heading-anchor" href="#3-1-cli-surface" aria-label="Link to this section"></a></h3>
+<pre><code>yqr validate [FILES]...
+</code></pre>
+<ul>
+<li>No <code>FILES</code>, or <code>-</code>, reads stdin (rendered as <code>&lt;stdin&gt;</code> in diagnostics).</li>
+<li>Multiple files are validated in argument order; validation never
+fail-fasts across files — every input gets a verdict in one run.</li>
+<li>Success is silent (Unix convention; composable in CI).</li>
+<li><code>--strict</code> promotes the lint-class findings of §3.3 to errors.</li>
+</ul>
+<p>This is yqr’s first subcommand. The filter form stays the default: clap gains
+an optional subcommand with <code>subcommand_negates_reqs</code> so <code>yqr validate a.yaml b.yaml</code> parses as the subcommand while <code>yqr '.a' f.yaml</code> is untouched. There
+is no ambiguity to inherit: a bare word is not a valid filter (<code>yqr validate x</code> today is a filter parse error, exit 3), so no currently-working invocation
+changes meaning.</p>
+<h3 id="3-2-what-is-checked-default-mode">3.2 What is checked (default mode)<a class="heading-anchor" href="#3-2-what-is-checked-default-mode" aria-label="Link to this section"></a></h3>
+<ol>
+<li><strong>Syntax</strong> — every document in the stream parses on noyalib’s CST.</li>
+<li><strong>Stream integrity</strong> — the parsed documents tile the input byte-for-byte
+(the <code>yqr-a001</code> invariant the fidelity engine already asserts at open).
+A pass therefore certifies not just “parses” but “parses and
+round-trips losslessly” — a stronger guarantee than other validators give.</li>
+</ol>
+<p>Nothing else. Valid-but-unusual YAML (empty file, scalar root, duplicate
+keys) passes by default, matching the leniency of every mainstream parser —
+default validate answers “is this YAML?”, not “is this the YAML you meant?”.</p>
+<h3 id="3-3-strict-findings-an-edited-file-almost-never-wants">3.3 <code>--strict</code>: findings an edited file almost never wants<a class="heading-anchor" href="#3-3-strict-findings-an-edited-file-almost-never-wants" aria-label="Link to this section"></a></h3>
+<p>Two additional checks, both aimed at damage that editing sessions introduce
+and parsers hide:</p>
+<ol>
+<li><strong>Duplicate mapping keys</strong> (<code>a: 1</code> twice in one mapping). The YAML spec
+requires key uniqueness; parsers resolve last-wins silently, which after
+a bad edit means silently dropped data. Diagnostic spans both
+occurrences: primary label on the second key, secondary note on the
+first.</li>
+<li><strong>Stringified-key collisions</strong> (<code>1:</code> and <code>"1":</code> in one mapping) — valid
+YAML that yqr’s engine refuses at query time (<code>yqr-b004</code>, string-only key
+model). An agent should hear about this at validate time, not on the
+next read.</li>
+</ol>
+<p>The strict list is closed for v1; candidates like tab indentation belong to a
+future lint tier, if ever (yamllint’s territory — see §5).</p>
+<h3 id="3-4-diagnostics-rustc-style">3.4 Diagnostics: rustc style<a class="heading-anchor" href="#3-4-diagnostics-rustc-style" aria-label="Link to this section"></a></h3>
+<p>All diagnostics go to stderr, in the shape agents and humans already parse:</p>
+<pre><code>error[Y001]: mapping values are not allowed in this context
+  --&gt; deploy.yaml:12:14
+   |
+12 |   ports: 80: 443
+   |              ^ second ':' on one line
+   |
+   = help: quote the value ("80: 443") or split it into its own mapping
+</code></pre>
+<p>Components and rules:</p>
+<ul>
+<li><strong>Severity + stable code.</strong> <code>error[Ynnn]</code> with a small closed registry:
+<code>Y001</code> syntax error, <code>Y002</code> stream-integrity failure, <code>Y101</code> duplicate
+key, <code>Y102</code> stringified-key collision. Codes are documented on the site
+and never renumbered, so scripts may match on them. I/O failures are not
+coded (plain <code>error: failed to read "f.yaml": ...</code>).</li>
+<li><strong>Location line</strong> <code>--&gt; file:line:col</code>, 1-based — the clickable rustc/cargo
+convention editors and terminals already linkify.</li>
+<li><strong>Source window</strong>: gutter with line numbers, the offending line, and a
+caret span under the offending bytes. noyalib’s core error API provides
+everything needed — <code>Error::ParseWithLocation</code>, <code>Location</code> (line, column,
+byte index), and <code>CroppedRegion::extract</code> (a windowed slice of source
+lines around a location) — with <strong>no new dependency</strong>: the renderer is
+hand-rolled (matching the <code>error.rs</code> posture), and noyalib’s optional
+<code>miette</code> feature stays off.</li>
+<li><strong><code>= help:</code></strong> line whenever a concrete fix can be suggested (from
+noyalib’s message or yqr’s own mapping for Y101/Y102).</li>
+<li>Per file, syntax reports the first parse error only (YAML error recovery
+is not reliable enough to trust follow-on errors); strict findings may be
+multiple.</li>
+</ul>
+<h3 id="3-5-exit-codes">3.5 Exit codes<a class="heading-anchor" href="#3-5-exit-codes" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Code</th><th>Meaning</th><th>Agent action</th></tr></thead><tbody>
+<tr><td>0</td><td>every input valid</td><td>proceed</td></tr>
+<tr><td>1</td><td>at least one input failed validation (Y001/Y002, or strict findings)</td><td>fix the content at the diagnostic’s span</td></tr>
+<tr><td>5</td><td>an input could not be read</td><td>fix the path/permissions</td></tr>
 </tbody></table>
-<h2 id="3-how-backend-a-differs-from-backend-c-noyalib">3. How backend A differs from backend C (noyalib)<a class="heading-anchor" href="#3-how-backend-a-differs-from-backend-c-noyalib" aria-label="Link to this section"></a></h2>
-<p>The fork’s model is a closer fit for the seam, so several noyalib mitigations
-are unnecessary here:</p>
+<p>Mixed outcomes take the highest applicable code (5 beats 1 beats 0); all
+diagnostics are still printed. Usage errors remain clap’s exit 2. The filter
+pipeline’s jq-style 3/5 taxonomy is untouched — exit 1 exists only in
+validate mode, following the linter/grep convention that “findings” are
+distinct from “the tool failed”.</p>
+<h3 id="3-6-the-editing-loop-end-to-end">3.6 The editing loop, end to end<a class="heading-anchor" href="#3-6-the-editing-loop-end-to-end" aria-label="Link to this section"></a></h3>
+<pre><code>yqr -i '.spec.replicas = 5' deploy.yaml   # surgical edit (guarded)
+vi deploy.yaml                            # unguarded human edit
+yqr validate --strict deploy.yaml         # verdict + actionable diagnostics
+</code></pre>
+<p>A merge conflict left in a file — the classic agent trap — fails Y001 with
+the <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> line in the source window, named by file, line, and column.</p>
+<h2 id="4-implementation-notes">4. Implementation notes<a class="heading-anchor" href="#4-implementation-notes" aria-label="Link to this section"></a></h2>
 <ul>
-<li><strong>Full typed keys.</strong> The fork keeps <code>Value</code> mapping keys (not string-only), so
-distinct keys that share a spelling (<code>1</code> and <code>"1"</code>) never collide — the
-entry-count collision guard the noyalib backend needs is dropped. Non-string
-keys are keyed by their full value, matching the classic pipeline (a
-string-spelled filter like <code>.true</code> misses a boolean <code>true:</code> key, as in jq).</li>
-<li><strong>Last-wins duplicates.</strong> The span index and the typed value both resolve
-duplicate keys to the last occurrence, so a duplicate-key projection emits its
-real bytes (the noyalib backend degrades here because its span layer is
-first-wins while the typed view is last-wins).</li>
-<li><strong>Addressable special-character keys.</strong> <code>.["a.b"]</code> emits the original quoted
-bytes rather than degrading to typed rendering.</li>
-<li><strong>Anchored scalars.</strong> The fork indexes a scalar’s value token separately from
-its <code>&amp;anchor</code> property, so an anchored scalar projects its <strong>value</strong> bytes
-(the anchor label is dropped); the CST backend keeps the property bytes.</li>
+<li>New module <code>src/validate.rs</code> (diagnostic types, checks, renderer), kept
+under the 500-line rule; <code>src/cli.rs</code> gains the optional subcommand;
+<code>src/main.rs</code> dispatches and owns the exit-code mapping.</li>
+<li>The engine boundary today throws away noyalib’s structured error
+(<code>format!</code>). Validate must consume <code>Error::ParseWithLocation</code> /
+<code>Location</code> directly. As a side benefit, the ordinary read path’s parse
+errors can adopt the same renderer later without a new spec (same Y001
+shape, exit 5 as today) — explicitly optional, not part of f012’s
+acceptance.</li>
+<li>Duplicate-key detection walks the CST’s mapping entries per node with
+decoded keys and both spans; noyalib 0.0.15’s loader key-collision guard
+is worth investigating first so yqr does not re-implement what upstream
+exposes.</li>
+<li>Corpus (<code>yqr-m003</code>): add validation cases — one valid case per corpus
+document, plus one case per diagnostic code — driving both
+<code>tests/corpus_validation.rs</code> and black-box CLI tests (exit codes, the
+<code>--&gt;</code> line, code presence). Diagnostic rendering gets golden tests.</li>
 </ul>
-<p>The wrong-node guard (<code>verified_found</code>: the emitted slice must re-parse to the
-selected value, with block-collection spans extended to the line start so the
-emitted bytes are uniformly indented) is retained unchanged from <code>f002</code> §4a —
-it is cheap insurance and still fires on block-collection re-indentation.</p>
-<h2 id="4-acceptance-criteria">4. Acceptance criteria<a class="heading-anchor" href="#4-acceptance-criteria" aria-label="Link to this section"></a></h2>
+<h2 id="5-out-of-scope-follow-ups">5. Out of scope / follow-ups<a class="heading-anchor" href="#5-out-of-scope-follow-ups" aria-label="Link to this section"></a></h2>
+<h3 id="5-1-schema-validation-sized-follow-up-own-spec-builds-on-f012">5.1 Schema validation — sized follow-up (own spec, builds on f012)<a class="heading-anchor" href="#5-1-schema-validation-sized-follow-up-own-spec-builds-on-f012" aria-label="Link to this section"></a></h3>
+<p>Out of f012’s scope, but surveyed and sized so it can be picked up as the
+next feature (a separate spec, next free <code>yqr-fNNN</code>), landing as a
+<code>--schema &lt;FILE&gt;</code> flag on this subcommand — not a new command.</p>
+<p><strong>What upstream provides.</strong> noyalib’s <code>validate-schema</code> cargo feature wraps
+the standard <code>jsonschema</code> crate: JSON Schema <strong>2020-12</strong> validation of a
+parsed <code>Value</code> tree via <code>validate_against_schema</code>, with the schema document
+itself authorable in YAML. Violations carry RFC 6901 JSON-pointer instance
+paths (<code>/items/0/name</code>) but <strong>no source line/column</strong> — validation runs on
+the value tree, not the source.</p>
+<p><strong>Design shape.</strong></p>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>src/fidelity/rustyaml.rs</code>: <code>RustYamlEngine</code> over <code>RoundTripDocument</code>
-(multi-doc via <code>parse_all</code>, byte-offset rebasing, value lowering, resolve
-with <code>Found</code>/<code>Synthetic</code>/<code>Absent</code>), documented, no feature IDs in doc
-comments.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>BackendId::RustYamlRoundTrip</code>, <code>open()</code> dispatch, CLI <code>--engine rust-yaml</code>
-(feature-gated behind <code>backend-rust-yaml</code>; helpful error when not compiled
-in); default path and the noyalib backend untouched.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>Cargo.toml</code>: <code>rust-yaml-rt</code> optional git dependency (fork branch
-<code>feat/roundtrip-document</code>), <code>backend-rust-yaml</code> feature; <code>Cargo.lock</code>
-committed.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>yqr --engine rust-yaml '.' f == cat f</code> byte-for-byte across the b001
-corpus dimensions, enforced in <code>tests/fidelity_engine_rustyaml.rs</code> and the
-<code>rust_yaml_round_trip_is_faithful</code> matrix test in <code>tests/fidelity.rs</code>.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-Projections emit original bytes; merged/alias/implicit-null/computed
-results degrade visibly to typed rendering; missing paths → <code>null</code>.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-Quality gates green in the default and <code>--all-features</code> profiles (fmt,
-clippy <code>-D warnings</code>, tests, bench compile).</li>
+<li><code>yqr validate --schema schema.yaml [FILES]...</code> — default checks (§3.2)
+run first; each document in each stream is then validated against the
+schema. New codes in the registry: <code>Y201</code> schema violation, <code>Y202</code> the
+schema file itself is not a valid JSON Schema. Findings exit 1 like every
+other validation failure.</li>
+<li>Call <code>jsonschema</code>’s <code>iter_errors</code> directly for structured violations (one
+diagnostic per violation) rather than parsing noyalib’s aggregated
+error string.</li>
+<li><strong>The differentiator — span mapping.</strong> A violation’s JSON pointer
+translates mechanically into a fidelity <code>Path</code> (<code>/spec/containers/0/image</code>
+becomes <code>Key/Key/Index/Key</code>; RFC 6901 <code>~0</code>/<code>~1</code> unescaping), and
+<code>FidelityEngine::resolve</code> already maps that to a byte span in the
+original source. Schema violations therefore render as the same
+rustc-style diagnostics as Y001 — <code>--&gt; deploy.yaml:14:9</code>, offending line,
+caret — on the original bytes, which no kubeconform-class tool offers.
+Missing-required-property violations point at the parent mapping’s span.</li>
 </ul>
-<h2 id="5-non-goals-deferred">5. Non-goals (deferred)<a class="heading-anchor" href="#5-non-goals-deferred" aria-label="Link to this section"></a></h2>
+<p><strong>Costs and decisions to make in that spec.</strong></p>
 <ul>
-<li>Mutation (<code>FidelityEdit</code> / <code>set</code> / <code>replace_span</code>) — no assignment grammar in
-yqr yet. The fork exposes <code>set</code>/<code>replace_span</code>; wiring them is the write-tier
-feature, tracked when yqr grows an assignment grammar (<code>yqr-m002</code> §6.2).</li>
-<li>Replacing the default (crates.io) pipeline with the fork — the fork is added
-additively and off by default; the default build is unchanged.</li>
-<li>Per-node fidelity warnings on stderr (candidate follow-up, shared with f002).</li>
+<li>Dependency weight: the feature pulls <code>schemars</code>, <code>serde_json</code>, and
+<code>jsonschema</code> (plus tree) into a deliberately minimal-deps project —
+decide between a yqr cargo feature and an accepted binary-size bump.</li>
+<li>Remote <code>$ref</code> resolution stays off — a validator must not touch the
+network.</li>
+<li>Dialect expectations: 2020-12 covers SchemaStore-style schemas (GitHub
+Actions, docker-compose) well; Kubernetes CRD/OpenAPI schemas are an
+older dialect with partial compatibility and remain kubeconform’s job.</li>
 </ul>
-<h2 id="6-notes-deviations">6. Notes / deviations<a class="heading-anchor" href="#6-notes-deviations" aria-label="Link to this section"></a></h2>
+<p><strong>Effort estimate</strong> (on top of an implemented f012, whose renderer and exit
+contract it reuses wholesale): flag + per-violation diagnostics with
+pointer paths, roughly one day; pointer-to-span mapping through the
+fidelity engine, one to two more; dependency audit, docs, and corpus
+cases, half a day to a day — <strong>about 2 to 4 days total</strong>, splittable into
+two PRs (paths first, spans second).</p>
+<h3 id="5-2-not-planned">5.2 Not planned<a class="heading-anchor" href="#5-2-not-planned" aria-label="Link to this section"></a></h3>
 <ul>
-<li><strong>Module name.</strong> <code>yqr-m002</code> §8 sketched the file as <code>src/fidelity/rust_yaml.rs</code>.
-It is <code>src/fidelity/rustyaml.rs</code> instead: a <code>mod rust_yaml</code> would shadow the
-<code>rust_yaml</code> extern crate that <code>src/fidelity/mod.rs</code> imports (<code>use rust_yaml::Value</code>), so the underscore-free name avoids the collision.</li>
-<li><strong>Dependency naming.</strong> The fork is pulled in as <code>rust-yaml-rt</code> (Cargo
-<code>package = "rust-yaml"</code> rename) so it coexists with the crates.io <code>rust-yaml</code>
-the default build uses; in code it is <code>rust_yaml_rt</code>.</li>
-<li><strong>Verification loader.</strong> <code>verified_found</code> re-parses candidate slices with the
-fork’s own <code>RoundTripDocument::parse</code>, so acceptance matches the pass that
-produced the spans.</li>
+<li><strong>Style linting</strong> (indentation width, line length, quoting preferences) —
+yamllint exists.</li>
+<li><strong><code>--format json</code></strong> — rustc-style text is the machine interface for v1;
+structured output is a follow-up if a consumer materializes.</li>
+<li><strong>Auto-fix</strong> — validate reports; the write tier edits.</li>
+<li><strong>jq’s <code>empty</code> filter</strong> — tracked with the jq feature gap (<code>yqr-r001</code>).</li>
 </ul>
-<h2 id="7-adversarial-review-outcomes">7. Adversarial review outcomes<a class="heading-anchor" href="#7-adversarial-review-outcomes" aria-label="Link to this section"></a></h2>
-<p>A multi-agent adversarial review (eight category finders against the real
-binary, each finding independently verified) surfaced two defect classes:</p>
+<h2 id="6-acceptance-criteria">6. Acceptance criteria<a class="heading-anchor" href="#6-acceptance-criteria" aria-label="Link to this section"></a></h2>
 <ul>
-<li><strong>Block re-indentation guard bypass (fixed here).</strong> The wrong-node guard first
-tried the <em>raw</em> span and only extended to the line start on failure. Because
-the fork’s own loader is lenient enough to accept some first-line-dedented
-block slices (e.g. <code>.a.b</code> on <code>a:\n  b:\n    c: 1\n    d: 2</code> yielded
-<code>c: 1\n    d: 2</code>, which PyYAML / Ruby Psych / go-yaml all reject), the guard
-waved through a slice that stricter downstream parsers reject. <code>verified_found</code>
-now <strong>prefers the line-start-extended slice</strong> whenever the node begins after
-pure indentation and never falls back to the mis-indented raw slice. Regression
-tests: <code>deeply_nested_block_mapping_projection_*</code>,
-<code>int_first_two_space_block_mapping_extends_to_line_start</code>,
-<code>anchored_block_mapping_projection_is_uniformly_indented</code>, and the e2e
-<code>deeply_nested_block_mapping_projection_reparses_uniformly</code>.</li>
-<li><strong>Trailing <code>...</code> after a block collection (fork bug, tracked as <code>yqr-b003</code>).</strong>
-The fork’s <code>parse_all</code> mis-accounts a phantom EOF boundary and errors on
-<code>a: 1\n...\n</code>. Not fixable in the adapter (the whole parse fails); documented
-as a limitation and pinned by
-<code>document_end_marker_after_block_is_a_known_limitation</code>, to be converted to an
-identity assertion when the fork is fixed.</li>
+<li><input disabled="" type="checkbox"/>
+<code>yqr validate f.yaml</code> on a valid file prints nothing and exits 0;
+stdin works both bare (<code>yqr validate</code>) and explicit (<code>yqr validate -</code>).</li>
+<li><input disabled="" type="checkbox"/>
+Invalid YAML exits 1 with a rustc-style diagnostic: <code>error[Y001]</code>,
+<code>--&gt; file:line:col</code> (1-based), numbered source window with caret span,
+and <code>= help:</code> where a suggestion exists.</li>
+<li><input disabled="" type="checkbox"/>
+A stream-integrity failure reports <code>error[Y002]</code> and exits 1.</li>
+<li><input disabled="" type="checkbox"/>
+Multiple files: every input is validated in one run, each diagnostic
+names its file, and the exit code is the highest applicable (5 over 1
+over 0).</li>
+<li><input disabled="" type="checkbox"/>
+An unreadable input exits 5 with an uncoded error; remaining files are
+still validated.</li>
+<li><input disabled="" type="checkbox"/>
+<code>--strict</code> reports duplicate keys (<code>Y101</code>) and stringified-key
+collisions (<code>Y102</code>) with primary and secondary spans, exit 1; without
+<code>--strict</code> both pass.</li>
+<li><input disabled="" type="checkbox"/>
+The filter form is behaviorally untouched (flags, exit codes 0/3/5,
+byte-identical output); <code>yqr validate &lt;word&gt;</code> was a filter parse error
+before f012, so no valid invocation changes meaning.</li>
+<li><input disabled="" type="checkbox"/>
+Diagnostic codes Y001/Y002/Y101/Y102 are documented in the site docs
+and README alongside the validate usage (rule: content documentation),
+with no feature IDs in CLI output or doc comments.</li>
+<li><input disabled="" type="checkbox"/>
+Corpus and CLI tests cover every diagnostic code and exit path;
+rendering is pinned by golden tests.</li>
+<li><input disabled="" type="checkbox"/>
+No new dependencies (noyalib’s <code>miette</code> feature stays off; the
+renderer is hand-rolled).</li>
 </ul>
-<p>Findings deliberately <strong>not</strong> treated as defects (documented/expected): an
-anchored scalar projecting its value without the <code>&amp;anchor</code> label; empty input →
-empty output; non-string keys keyed by full value so a string-spelled filter
-misses; merge/alias/implicit-null degrading to typed rendering.</p>
 
         </div>
         </accent-island>
@@ -1858,16 +1965,11 @@ misses; merge/alias/implicit-null degrading to typed rendering.</p>
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f002-fidelity-read-floor" class="nav-prev">
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f011-remove-engine-flag" class="nav-prev">
         <span class="nav-label">&larr; Previous</span>
-        <span class="nav-title">Feature f002 — Fidelity read floor (`FidelityEngine` seam + noyalib backend)</span>
+        <span class="nav-title">Feature f011 — Remove `--engine`: noyalib is the only engine</span>
     </a>
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f004-engine-parity-runtime-switch" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks</span>
-    </a>
     
 </nav>
 
@@ -1879,31 +1981,59 @@ misses; merge/alias/implicit-null degrading to typed rendering.</p>
         <ul>
         
             <li class="toc-level-2">
-                <a href="#1-summary">1. Summary</a>
+                <a href="#1-problem">1. Problem</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#2-why-this-is-the-m002-7-1-adapter-not-the-in-yqr-token-walk">2. Why this is the m002 §7.1 adapter (not the in-yqr token walk)</a>
+                <a href="#2-prior-art">2. Prior art</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#3-how-backend-a-differs-from-backend-c-noyalib">3. How backend A differs from backend C (noyalib)</a>
+                <a href="#3-design">3. Design</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-1-cli-surface">3.1 CLI surface</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-2-what-is-checked-default-mode">3.2 What is checked (default mode)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-3-strict-findings-an-edited-file-almost-never-wants">3.3 --strict: findings an edited file almost never wants</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-4-diagnostics-rustc-style">3.4 Diagnostics: rustc style</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-5-exit-codes">3.5 Exit codes</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-6-the-editing-loop-end-to-end">3.6 The editing loop, end to end</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-acceptance-criteria">4. Acceptance criteria</a>
+                <a href="#4-implementation-notes">4. Implementation notes</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#5-non-goals-deferred">5. Non-goals (deferred)</a>
+                <a href="#5-out-of-scope-follow-ups">5. Out of scope &#x2f; follow-ups</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-1-schema-validation-sized-follow-up-own-spec-builds-on-f012">5.1 Schema validation — sized follow-up (own spec, builds on f012)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-2-not-planned">5.2 Not planned</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#6-notes-deviations">6. Notes &#x2f; deviations</a>
-            </li>
-        
-            <li class="toc-level-2">
-                <a href="#7-adversarial-review-outcomes">7. Adversarial review outcomes</a>
+                <a href="#6-acceptance-criteria">6. Acceptance criteria</a>
             </li>
         
         </ul>
