@@ -186,9 +186,57 @@ the `<<<<<<<` line in the source window, named by file, line, and column.
 
 ## 5. Out of scope / follow-ups
 
-- **Schema validation** (JSON Schema, Kubernetes). noyalib ships schema
-  machinery upstream (`validate-schema` / `noyavalidate` features) — a
-  natural separate feature when demand appears.
+### 5.1 Schema validation — sized follow-up (own spec, builds on f012)
+
+Out of f012's scope, but surveyed and sized so it can be picked up as the
+next feature (a separate spec, next free `yqr-fNNN`), landing as a
+`--schema <FILE>` flag on this subcommand — not a new command.
+
+**What upstream provides.** noyalib's `validate-schema` cargo feature wraps
+the standard `jsonschema` crate: JSON Schema **2020-12** validation of a
+parsed `Value` tree via `validate_against_schema`, with the schema document
+itself authorable in YAML. Violations carry RFC 6901 JSON-pointer instance
+paths (`/items/0/name`) but **no source line/column** — validation runs on
+the value tree, not the source.
+
+**Design shape.**
+
+- `yqr validate --schema schema.yaml [FILES]...` — default checks (§3.2)
+  run first; each document in each stream is then validated against the
+  schema. New codes in the registry: `Y201` schema violation, `Y202` the
+  schema file itself is not a valid JSON Schema. Findings exit 1 like every
+  other validation failure.
+- Call `jsonschema`'s `iter_errors` directly for structured violations (one
+  diagnostic per violation) rather than parsing noyalib's aggregated
+  error string.
+- **The differentiator — span mapping.** A violation's JSON pointer
+  translates mechanically into a fidelity `Path` (`/spec/containers/0/image`
+  becomes `Key/Key/Index/Key`; RFC 6901 `~0`/`~1` unescaping), and
+  `FidelityEngine::resolve` already maps that to a byte span in the
+  original source. Schema violations therefore render as the same
+  rustc-style diagnostics as Y001 — `--> deploy.yaml:14:9`, offending line,
+  caret — on the original bytes, which no kubeconform-class tool offers.
+  Missing-required-property violations point at the parent mapping's span.
+
+**Costs and decisions to make in that spec.**
+
+- Dependency weight: the feature pulls `schemars`, `serde_json`, and
+  `jsonschema` (plus tree) into a deliberately minimal-deps project —
+  decide between a yqr cargo feature and an accepted binary-size bump.
+- Remote `$ref` resolution stays off — a validator must not touch the
+  network.
+- Dialect expectations: 2020-12 covers SchemaStore-style schemas (GitHub
+  Actions, docker-compose) well; Kubernetes CRD/OpenAPI schemas are an
+  older dialect with partial compatibility and remain kubeconform's job.
+
+**Effort estimate** (on top of an implemented f012, whose renderer and exit
+contract it reuses wholesale): flag + per-violation diagnostics with
+pointer paths, roughly one day; pointer-to-span mapping through the
+fidelity engine, one to two more; dependency audit, docs, and corpus
+cases, half a day to a day — **about 2 to 4 days total**, splittable into
+two PRs (paths first, spans second).
+
+### 5.2 Not planned
 - **Style linting** (indentation width, line length, quoting preferences) —
   yamllint exists.
 - **`--format json`** — rustc-style text is the machine interface for v1;
