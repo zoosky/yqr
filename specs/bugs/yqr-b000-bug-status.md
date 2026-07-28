@@ -16,6 +16,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b007](yqr-b007-site-links-broken-under-accent-0-23-1.md) | Website: demo-script media link and 404-page `/docs` link break under accent v0.23.1 | Low | Resolved — demo script now linked on GitHub (accent refuses `.sh` as media), 404 page links `/specs/`; CI pins accent v0.23.1 and builds with `--strict-links` so missing link targets fail the build | `yqr-f010` |
 | [b001](yqr-b001-roundtrip-discards-whitespace-and-formatting.md) | Round-trip through the default pipeline discards whitespace, comments, and formatting | High | Resolved for the default read — byte fidelity is now the **default** (`yqr-f009`); `yqr '.' f` is byte-for-byte identical to `f` via the fidelity engine (`yqr-f002`). The lossy semantic round trip is now opt-in via `--normalize` (by design) | `yqr-a001`, `yqr-r001`, `yqr.f001`, `yqr-f002`, `yqr-f009`, `yqr-m005` |
 | [b006](yqr-b006-structural-delete-trivia-and-fidelity.md) | Structural delete mishandles comments, blank lines, and same-column sequences | High | Resolved — `owned_line_span` now derives its range from noyalib's value span, commits via byte-preserving `replace_span`, and folds a same-indent head comment into the delete; regression tests cover each case | `yqr-f007`, `yqr-b004`, `yqr-a001` |
 | [b005](yqr-b005-crossbeam-epoch-advisory-via-criterion.md) | `cargo audit` fails on `crossbeam-epoch` advisory (RUSTSEC-2026-0204) via `criterion` dev-dep | Low | Resolved — `cargo update -p crossbeam-epoch` bumped the transitive pin `0.9.18 -> 0.9.20`; `cargo audit` exits 0, lockfile-only change | `yqr-m001` |
@@ -24,9 +25,11 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 6
+- Total bugs: 7
 - Open: 1 (1 Medium — b004)
-- Resolved: 5 (b001 — byte fidelity is now the default read (`yqr-f009`), closing
+- Resolved: 6 (b007 — website links fixed for the accent v0.23.1 media
+  policy and link checker, CI now builds with `--strict-links`;
+  b001 — byte fidelity is now the default read (`yqr-f009`), closing
   the lossy-default round trip; the classic pipeline is now opt-in via
   `--normalize`;
   b006 — structural-delete trivia/fidelity defects fixed via a

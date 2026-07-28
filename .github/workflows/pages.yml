@@ -15,9 +15,10 @@ name: Website
 # preserves that directory.
 #
 # The accent binary is fetched from the upstream GitHub release and verified
-# against the published checksums. Requires accent >= v0.23.0 (base-path
-# support); keep ACCENT_VERSION in sync with the version used for local
-# development (accent --version).
+# against the published checksums. Requires accent >= v0.23.1 (base-path
+# support plus --strict-links, which fails the build if any internal link
+# target is missing from the output); keep ACCENT_VERSION in sync with the
+# version used for local development (accent --version).
 on:
   push:
     branches: [main]
@@ -42,7 +43,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  ACCENT_VERSION: v0.23.0
+  ACCENT_VERSION: v0.23.1
   SITE_URL: https://zoosky.github.io/yqr
 
 jobs:
@@ -67,7 +68,7 @@ jobs:
 
       - name: Build site
         working-directory: docs
-        run: accent build --clean --base-url "${SITE_URL}"
+        run: accent build --clean --strict-links --base-url "${SITE_URL}"
 
       - name: Deploy to gh-pages
         if: github.event_name != 'pull_request'
