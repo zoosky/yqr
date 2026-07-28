@@ -106,11 +106,8 @@ spec:
       <pre><span class="prompt">$</span> yqr '.' pod.yaml</pre>
       Pass <code>--normalize</code> (<code>-N</code>) to opt into the classic,
       re-serializing pipeline (comments dropped, scalars canonicalized).
-      <code>--engine &lt;name&gt;</code> selects which backend parser performs the
-      byte-preserving read (default <code>noyalib</code>); an unknown engine name
-      is rejected up front:
-      <pre><span class="prompt">$</span> yqr --engine bogus '.' pod.yaml
-yqr: io error: unknown engine "bogus" (available: noyalib, skald)</pre>
+      Byte-preserving reads are powered by noyalib's lossless CST &mdash;
+      yqr's one and only YAML engine.
       See the <a href="https://github.com/zoosky/yqr/tree/main/docs/content/demo">runnable demo</a>
       for a seven-step walkthrough of navigation, iteration, pipes, raw output,
       and fidelity mode.

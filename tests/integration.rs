@@ -98,14 +98,12 @@ fn invalid_yaml_is_an_error() {
 // -- Feature f006: write tier via the public API ------------------------------
 
 use yqr::ast::Program;
-use yqr::fidelity::{BackendId, write};
+use yqr::fidelity::write;
 
 /// Parse a mutating filter and apply it, returning the emitted stream.
 fn mutate(filter: &str, input: &str) -> String {
     match yqr::parser::parse_program(filter).expect("filter parses") {
-        Program::Mutate(m) => {
-            write::apply(BackendId::NoyalibCst, &m, input).expect("mutation applies")
-        }
+        Program::Mutate(m) => write::apply(&m, input).expect("mutation applies"),
         Program::Query(_) => panic!("expected a mutation filter"),
     }
 }
@@ -149,7 +147,7 @@ fn structural_delete_removes_a_nested_entry() {
         Program::Mutate(m) => m,
         Program::Query(_) => unreachable!(),
     };
-    let out = write::apply(BackendId::NoyalibCst, &m, "outer:\n  inner: 1\nx: 2\n").unwrap();
+    let out = write::apply(&m, "outer:\n  inner: 1\nx: 2\n").unwrap();
     assert_eq!(out, "x: 2\n");
 }
 
@@ -161,6 +159,6 @@ fn sole_entry_delete_is_still_refused() {
         Program::Mutate(m) => m,
         Program::Query(_) => unreachable!(),
     };
-    let refused = write::apply(BackendId::NoyalibCst, &m, "only:\n  a: 1\n  b: 2\n");
+    let refused = write::apply(&m, "only:\n  a: 1\n  b: 2\n");
     assert!(refused.is_err(), "sole-entry delete must be refused");
 }

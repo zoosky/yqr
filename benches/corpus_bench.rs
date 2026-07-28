@@ -40,28 +40,17 @@ fn bench_classic(c: &mut Criterion) {
     });
 }
 
-/// Map a corpus engine to its backend id.
-fn backend(engine: corpus::Engine) -> yqr::fidelity::BackendId {
-    match engine {
-        corpus::Engine::Noyalib => yqr::fidelity::BackendId::NoyalibCst,
-    }
-}
-
-/// Run every fidelity-engine case on each backend.
+/// Run every fidelity-engine case.
 fn bench_engine(c: &mut Criterion) {
     let cases = corpus::engine_cases();
     c.bench_function("corpus/engine_all", |b| {
         b.iter(|| {
             for case in &cases {
-                for &engine in case.engines {
-                    let backend = backend(engine);
-                    let _ = black_box(yqr::fidelity::run(
-                        backend,
-                        black_box(case.filter),
-                        black_box(case.doc),
-                        case.raw,
-                    ));
-                }
+                let _ = black_box(yqr::fidelity::run(
+                    black_box(case.filter),
+                    black_box(case.doc),
+                    case.raw,
+                ));
             }
         });
     });
@@ -84,20 +73,12 @@ fn bench_scale_classic(c: &mut Criterion) {
 /// Byte-for-byte identity over an inventory of growing size — the engine
 /// path's throughput on realistic input.
 fn bench_scale_engine(c: &mut Criterion) {
-    let backend = backend(corpus::Engine::Noyalib);
     let mut group = c.benchmark_group("corpus/scale_engine_identity");
     for &n in &[100usize, 1000] {
         let doc = docs::inventory(n);
         group.throughput(Throughput::Elements(n as u64));
         group.bench_with_input(BenchmarkId::from_parameter(n), &doc, |b, doc| {
-            b.iter(|| {
-                black_box(yqr::fidelity::run(
-                    backend,
-                    black_box("."),
-                    black_box(doc),
-                    false,
-                ))
-            });
+            b.iter(|| black_box(yqr::fidelity::run(black_box("."), black_box(doc), false)));
         });
     }
     group.finish();

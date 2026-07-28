@@ -346,12 +346,10 @@ mod tests {
     use super::super::apply;
     use crate::ast::Mutation;
     use crate::error::YqrError;
-    use crate::fidelity::BackendId;
 
     /// Run `del(<path>)` over `input` on the default backend.
     fn del(path: &str, input: &str) -> Result<String, YqrError> {
         apply(
-            BackendId::NoyalibCst,
             &Mutation::Delete {
                 path: crate::parser::parse(path).expect("valid path"),
             },

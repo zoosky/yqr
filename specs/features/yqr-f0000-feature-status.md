@@ -22,6 +22,7 @@ Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 | [f004](yqr-f004-engine-parity-runtime-switch.md) | Engine parity: both backends default-on and runtime-switchable, from the zoosky forks | Superseded (`yqr-m005`) |
 | [f005](yqr-f005-preserve-flag-decouple.md) | Decouple byte/comment preservation from backend selection (`--preserve`) | Superseded (`yqr-f009`) |
 | [f009](yqr-f009-fidelity-default-normalize.md) | Byte fidelity by default; classic pipeline behind `--normalize` | Done |
+| [f011](yqr-f011-remove-engine-flag.md) | Remove `--engine`: noyalib is the only engine | Done |
 
 Progress: the `FidelityEngine` seam + the noyalib CST backend shipped (f002).
 The rust-yaml fork backend (f003) and the two-engine parity/runtime-switch story
@@ -32,6 +33,9 @@ byte-preserving read first shipped as an opt-in `--preserve` flag, with
 `--engine` reduced to backend selection (f005, `v0.3.0`); it then became the
 **default** read — the classic pipeline moved behind `--normalize` and
 `--preserve` was removed (f009), closing the lossy-default bug `b001`.
+Finally the `--engine` flag and the `BackendId` runtime seam were removed
+outright (f011): noyalib is yqr's one and only engine, and the skald
+placeholder is retired.
 
 ## Epic: Fidelity write tier (f006–f008)
 
@@ -76,10 +80,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 10
+- Total features: 11
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 4 (f002, f006, f009, f010)
+- Done: 5 (f002, f006, f009, f010, f011)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

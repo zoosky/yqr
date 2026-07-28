@@ -6,8 +6,8 @@
 //! - [`parser`] turns tokens into an [`ast::Ast`],
 //! - [`eval`] applies an `Ast` to a [`Value`], producing a stream of
 //!   output values,
-//! - [`fidelity`] provides byte-preserving execution over pluggable engine
-//!   backends (untouched nodes are emitted as their original source bytes).
+//! - [`fidelity`] provides byte-preserving execution over noyalib's lossless
+//!   CST (untouched nodes are emitted as their original source bytes).
 //!
 //! The two convenience entry points most callers want are [`eval_str`] (parse a
 //! filter and run it over a YAML string, returning values) and

@@ -119,17 +119,6 @@ fn long_version_includes_build_info() {
     assert!(out.stdout.contains("target: "), "stdout: {}", out.stdout);
 }
 
-#[test]
-fn unknown_engine_is_an_io_error() {
-    let out = run(&["--engine", "bogus", "."], "a: 1\n");
-    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains("unknown engine"),
-        "stderr: {}",
-        out.stderr
-    );
-}
-
 // -- Feature f009: byte fidelity is the default read; --normalize opts out -----
 
 #[test]
@@ -146,15 +135,6 @@ fn projection_keeps_original_spelling_by_default() {
     let out = run(&[".zip"], "zip: 007\n");
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "007\n", "leading zero must survive by default");
-}
-
-#[test]
-fn engine_selects_backend_for_the_default_read() {
-    // `--engine` names the backend for the default byte-preserving read.
-    let input = "s: 'hi'  # quoted\n";
-    let out = run(&["--engine", "noyalib", "."], input);
-    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-    assert_eq!(out.stdout, input, "explicit noyalib backend must preserve");
 }
 
 #[test]
@@ -177,17 +157,6 @@ fn normalize_canonicalizes_scalars() {
 }
 
 #[test]
-fn normalize_is_backend_independent() {
-    // `--engine` is inert under `--normalize` beyond up-front name validation.
-    let out = run(
-        &["--engine", "noyalib", "--normalize", "."],
-        "name: web  # x\n",
-    );
-    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-    assert_eq!(out.stdout, "name: web\n");
-}
-
-#[test]
 fn preserve_flag_is_rejected() {
     // `--preserve`/`-p` were removed when fidelity became the default; clap must
     // reject them rather than silently accept.
@@ -198,16 +167,11 @@ fn preserve_flag_is_rejected() {
 }
 
 #[test]
-fn unknown_engine_is_diagnosed_before_reading_input() {
-    // A bad --engine must fail even when the input file does not exist:
-    // engine validation happens before input is consumed.
-    let out = run(&["--engine", "bogus", ".", "/nonexistent/input.yaml"], "");
-    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains("unknown engine"),
-        "stderr: {}",
-        out.stderr
-    );
+fn engine_flag_is_rejected() {
+    // Feature f011: `--engine` was removed when yqr settled on noyalib as its
+    // only engine; the binary must reject it rather than silently accept.
+    let out = run(&["--engine", "noyalib", "."], "a: 1\n");
+    assert_ne!(out.status, 0, "--engine must no longer be accepted");
 }
 
 // -- Feature f006: write tier (assignment, +=, del, -i) -----------------------

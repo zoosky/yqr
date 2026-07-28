@@ -1,12 +1,12 @@
-//! End-to-end tests of the fidelity engine read path: with an engine
-//! selected, the identity filter must reproduce the input byte-for-byte, and
-//! path projections must emit the selected node's original bytes.
+//! End-to-end tests of the fidelity engine read path: the identity filter
+//! must reproduce the input byte-for-byte, and path projections must emit the
+//! selected node's original bytes.
 
-use yqr::fidelity::{BackendId, run};
+use yqr::fidelity::run;
 
-/// Shorthand: run `filter` over `input` through the noyalib engine.
+/// Shorthand: run `filter` over `input` through the fidelity engine.
 fn fid(filter: &str, input: &str, raw: bool) -> String {
-    run(BackendId::NoyalibCst, filter, input, raw).expect("fidelity run succeeds")
+    run(filter, input, raw).expect("fidelity run succeeds")
 }
 
 /// The identity/`cat` property over every formatting dimension the default
@@ -173,8 +173,7 @@ fn projected_block_mapping_reparses_standalone() {
 fn colliding_stringified_keys_error_instead_of_dropping_entries() {
     // `1` and `"1"` are distinct YAML keys; the engine's string-only key
     // model would silently collapse them, so it must refuse instead.
-    let err = run(BackendId::NoyalibCst, ".[]", "1: a\n\"1\": b\n", false)
-        .expect_err("collision must be an error");
+    let err = run(".[]", "1: a\n\"1\": b\n", false).expect_err("collision must be an error");
     assert!(err.to_string().contains("collide"), "got: {err}");
 }
 
@@ -187,5 +186,5 @@ fn non_string_keys_match_by_spelling() {
 
 #[test]
 fn invalid_input_is_an_error() {
-    assert!(run(BackendId::NoyalibCst, ".", "items: [1, 2", false).is_err());
+    assert!(run(".", "items: [1, 2", false).is_err());
 }

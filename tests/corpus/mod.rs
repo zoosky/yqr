@@ -53,17 +53,6 @@ pub struct Case {
     pub expect: Expect,
 }
 
-/// A fidelity backend, selectable at runtime.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Engine {
-    /// `--engine noyalib`.
-    Noyalib,
-}
-
-/// Every fidelity engine — the common case for byte-identity, which every
-/// backend must honor identically.
-pub const ALL: &[Engine] = &[Engine::Noyalib];
-
 /// One fidelity-engine case: a filter whose output is checked byte-for-byte
 /// against the original source.
 #[derive(Debug, Clone, Copy)]
@@ -78,8 +67,6 @@ pub struct EngineCase {
     pub raw: bool,
     /// The exact bytes the engine must emit.
     pub expect: &'static str,
-    /// The engines this expectation holds for.
-    pub engines: &'static [Engine],
 }
 
 use docs::{
@@ -290,7 +277,6 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: ".",
             raw: false,
             expect: K8S_DEPLOYMENT,
-            engines: ALL,
         },
         EngineCase {
             id: "engine/identity/compose",
@@ -298,7 +284,6 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: ".",
             raw: false,
             expect: DOCKER_COMPOSE,
-            engines: ALL,
         },
         EngineCase {
             id: "engine/identity/rich-formatting",
@@ -306,7 +291,6 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: ".",
             raw: false,
             expect: FIDELITY_RICH,
-            engines: ALL,
         },
         EngineCase {
             id: "engine/identity/multidoc",
@@ -314,7 +298,6 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: ".",
             raw: false,
             expect: MULTI_DOC,
-            engines: ALL,
         },
         // -- projections emit the node's original bytes -----------------------
         EngineCase {
@@ -323,7 +306,6 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: ".zip",
             raw: false,
             expect: "\"007\"\n",
-            engines: ALL,
         },
         EngineCase {
             id: "engine/projection/plain-scalar",
@@ -331,7 +313,6 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: ".image.repository",
             raw: false,
             expect: "registry.example.com/api\n",
-            engines: ALL,
         },
         // -- raw output on the engine path ------------------------------------
         EngineCase {
@@ -340,7 +321,6 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: ".logging.level",
             raw: true,
             expect: "warn\n",
-            engines: ALL,
         },
     ]
 }

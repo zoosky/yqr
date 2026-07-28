@@ -3,9 +3,9 @@
 //! Where the read seam ([`super::FidelityEngine`]) slices original bytes to
 //! *emit* an untouched node, this module *mutates* the source in place and
 //! leaves every other byte identical — or refuses. It is the write-side
-//! analogue of the read seam: a small `FidelityWriter` trait keeps the YAML
-//! backend pluggable, and the concrete `NoyalibWriter` routes each edit
-//! through noyalib 0.0.14's first-class, re-parse-guarded mutators
+//! analogue of the read seam: a small `FidelityWriter` trait bounds the
+//! engine's edit surface, and the concrete `NoyalibWriter` routes each edit
+//! through noyalib's first-class, re-parse-guarded mutators
 //! (`set_value` / `insert_entry` / `push_back` / `remove`).
 //!
 //! The write path is the read path with the terminal call swapped: the
@@ -22,7 +22,7 @@ use crate::Value;
 use crate::ast::Mutation;
 use crate::error::{Result, YqrError};
 use crate::eval::{AssignTarget, resolve_assign_target, resolve_rhs, resolve_target};
-use crate::fidelity::{BackendId, Path, PathSeg};
+use crate::fidelity::{Path, PathSeg};
 
 // The structural-delete fallback (multi-line / nested block entries) lives in a
 // sub-module so the byte-arithmetic concern stays separate from the value-write
@@ -38,8 +38,8 @@ mod delete;
 /// it returns an error and leaves the stream unchanged, so a failed edit can
 /// never corrupt the output.
 ///
-/// The trait is object-safe; yqr selects a backend at startup and drives it
-/// through `Box<dyn FidelityWriter>`, mirroring the read seam.
+/// The trait is object-safe and drivable as `&mut dyn FidelityWriter`,
+/// mirroring the read seam.
 pub(crate) trait FidelityWriter {
     /// Number of logical YAML documents in the stream.
     fn doc_count(&self) -> usize;
@@ -109,14 +109,13 @@ pub(crate) trait FidelityWriter {
 ///
 /// # Errors
 ///
-/// Returns an error when the backend is unavailable, the input is not valid
-/// YAML, the target is ambiguous/unaddressable, or an edit is refused by the
-/// re-parse guard.
-pub fn apply(backend: BackendId, mutation: &Mutation, input: &str) -> Result<String> {
-    let mut writer = open_writer(backend, input)?;
+/// Returns an error when the input is not valid YAML, the target is
+/// ambiguous/unaddressable, or an edit is refused by the re-parse guard.
+pub fn apply(mutation: &Mutation, input: &str) -> Result<String> {
+    let mut writer = NoyalibWriter::open(input)?;
     for doc in 0..writer.doc_count() {
         let value = writer.value(doc)?;
-        apply_to_doc(writer.as_mut(), doc, mutation, &value)?;
+        apply_to_doc(&mut writer, doc, mutation, &value)?;
     }
     Ok(writer.emit())
 }
@@ -160,22 +159,6 @@ fn apply_to_doc(
             Some(target) => writer.delete(doc, &target),
             None => Ok(()),
         },
-    }
-}
-
-/// Open a fidelity writer for `input` on the chosen backend.
-///
-/// Mirrors [`super::open`]: experimental backends may be feature-gated and
-/// requesting one that is not compiled in is an error naming the missing
-/// feature.
-fn open_writer(backend: BackendId, input: &str) -> Result<Box<dyn FidelityWriter>> {
-    match backend {
-        BackendId::NoyalibCst => Ok(Box::new(NoyalibWriter::open(input)?)),
-        BackendId::Skald => Err(YqrError::io(
-            "engine 'skald' is not available on this branch \
-             (build the feat/skald-engine branch with --features backend-skald)"
-                .to_string(),
-        )),
     }
 }
 
@@ -330,7 +313,6 @@ mod tests {
     #[test]
     fn set_value_replaces_only_the_target_scalar() {
         let out = apply(
-            BackendId::NoyalibCst,
             &assign(".spec.replicas", Rhs::Literal(Value::Int(5))),
             "spec:\n  replicas: 3  # keep me\n  image: web\n",
         )
@@ -342,7 +324,6 @@ mod tests {
     fn set_value_matches_neighbouring_quote_style() {
         // `name` is single-quoted; the replacement keeps that style.
         let out = apply(
-            BackendId::NoyalibCst,
             &assign(".name", Rhs::Literal(Value::String("web2".into()))),
             "name: 'web'\n",
         )
@@ -353,7 +334,6 @@ mod tests {
     #[test]
     fn new_key_is_inserted_under_existing_mapping() {
         let out = apply(
-            BackendId::NoyalibCst,
             &assign(".metadata.env", Rhs::Literal(Value::String("prod".into()))),
             "metadata:\n  name: app\n",
         )
@@ -364,7 +344,6 @@ mod tests {
     #[test]
     fn append_pushes_a_block_sequence_item() {
         let out = apply(
-            BackendId::NoyalibCst,
             &Mutation::Append {
                 path: crate::parser::parse(".spec.ports").expect("valid"),
                 rhs: Rhs::Literal(Value::Int(9090)),
@@ -378,7 +357,6 @@ mod tests {
     #[test]
     fn delete_removes_a_single_line_entry() {
         let out = apply(
-            BackendId::NoyalibCst,
             &Mutation::Delete {
                 path: crate::parser::parse(".metadata.labels").expect("valid"),
             },
@@ -391,7 +369,6 @@ mod tests {
     #[test]
     fn path_rhs_copies_another_value() {
         let out = apply(
-            BackendId::NoyalibCst,
             &assign(
                 ".dst",
                 Rhs::Path(crate::parser::parse(".src").expect("valid")),
@@ -405,12 +382,7 @@ mod tests {
     #[test]
     fn idempotent_assignment_is_a_byte_level_no_op() {
         let input = "a: 1\n";
-        let out = apply(
-            BackendId::NoyalibCst,
-            &assign(".a", Rhs::Literal(Value::Int(1))),
-            input,
-        )
-        .unwrap();
+        let out = apply(&assign(".a", Rhs::Literal(Value::Int(1))), input).unwrap();
         assert_eq!(out, input);
     }
 
@@ -419,12 +391,7 @@ mod tests {
         // `.a.b` cannot resolve (a is absent) and cannot be created, so the
         // input is returned unchanged (jq/yq no-op semantics), not an error.
         let input = "z: 1\n";
-        let out = apply(
-            BackendId::NoyalibCst,
-            &assign(".a.b", Rhs::Literal(Value::Int(1))),
-            input,
-        )
-        .unwrap();
+        let out = apply(&assign(".a.b", Rhs::Literal(Value::Int(1))), input).unwrap();
         assert_eq!(out, input);
     }
 
@@ -435,7 +402,6 @@ mod tests {
         // that never had the field.
         let input = "kept: 1\n";
         let out = apply(
-            BackendId::NoyalibCst,
             &Mutation::Delete {
                 path: crate::parser::parse(".deprecated").expect("valid"),
             },
@@ -450,7 +416,6 @@ mod tests {
         // Appending a collection has no single-line fragment form; it must be
         // refused with a clear message rather than splicing mis-shaped YAML.
         let err = apply(
-            BackendId::NoyalibCst,
             &Mutation::Append {
                 path: crate::parser::parse(".list").expect("valid"),
                 rhs: Rhs::Path(crate::parser::parse(".src").expect("valid")),
@@ -468,7 +433,6 @@ mod tests {
         // multi-manifest case: a Deployment has `.spec.replicas`, a Service
         // does not).
         let out = apply(
-            BackendId::NoyalibCst,
             &assign(".spec.replicas", Rhs::Literal(Value::Int(9))),
             "spec:\n  replicas: 1\n---\nkind: Service\n",
         )
@@ -483,7 +447,6 @@ mod tests {
         // must not be evaluated — an absent path RHS in a skipped document must
         // not turn a skip into a hard error.
         let out = apply(
-            BackendId::NoyalibCst,
             &assign(
                 ".spec.replicas",
                 Rhs::Path(crate::parser::parse(".src").expect("valid")),
@@ -500,7 +463,6 @@ mod tests {
         // filtered independently, matching jq/yq). Nested edits do not fan out
         // because the absent parent gates them (see the test above).
         let out = apply(
-            BackendId::NoyalibCst,
             &assign(".added", Rhs::Literal(Value::Int(1))),
             "a: 1\n---\nb: 2\n",
         )
@@ -513,7 +475,6 @@ mod tests {
         // A nested/multi-line entry is deleted by the structural fallback,
         // closing up its owned lines and leaving the sibling byte-identical.
         let out = apply(
-            BackendId::NoyalibCst,
             &Mutation::Delete {
                 path: crate::parser::parse(".outer").expect("valid"),
             },
@@ -528,7 +489,6 @@ mod tests {
         // Removing the only entry of a block would leave an empty collection
         // (a structural change); it is refused, not silently emptied.
         let err = apply(
-            BackendId::NoyalibCst,
             &Mutation::Delete {
                 path: crate::parser::parse(".only").expect("valid"),
             },
@@ -542,7 +502,6 @@ mod tests {
     fn unaddressable_key_is_reported() {
         // A dotted key cannot be expressed in the string-path grammar.
         let err = apply(
-            BackendId::NoyalibCst,
             &Mutation::Assign {
                 path: crate::parser::parse(r#".["a.b"]"#).expect("valid"),
                 rhs: Rhs::Literal(Value::Int(1)),
