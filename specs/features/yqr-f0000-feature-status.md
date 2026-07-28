@@ -62,6 +62,20 @@ each need new grammar and stay deferred. f008 (`|=` computed updates) is gated o
 `f001` M2 (arithmetic/builtins). Priority order: f006 (done) → f007 (delete done,
 rest deferred) → M2 → f008.
 
+## Epic: Editing-loop tooling (f012)
+
+| Feature | Title | Status |
+|---------|-------|--------|
+| [f012](yqr-f012-validate-command.md) | `yqr validate`: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, `--strict`) | Draft |
+
+Progress: spec drafted. Closes the editing loop (edit, then verify): a
+dedicated subcommand that parses every document, re-asserts the a001
+byte-tiling invariant, and reports rustc-style diagnostics
+(`error[Ynnn]`, `--> file:line:col`, source window, help) that humans and
+agents can act on. `--strict` adds duplicate-key and stringified-key
+collision findings. Rendering is hand-rolled over noyalib's core
+`Location`/`CroppedRegion` API — no new dependencies.
+
 ## Epic: Project website (f010)
 
 | Feature | Title | Status |
@@ -80,8 +94,9 @@ dashboard.
 
 ## Summary
 
-- Total features: 11
-- Draft: 1 (f008 — computed updates, gated on `f001` M2)
+- Total features: 12
+- Draft: 2 (f008 — computed updates, gated on `f001` M2; f012 — validate
+  command)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
 - Done: 5 (f002, f006, f009, f010, f011)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
