@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784872628490,
+  "lastUpdate": 1785266928087,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -671,6 +671,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 252480,
             "range": "± 1250",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4763f48ba57cb079f3129e3300f0705cd40c7246",
+          "message": "chore(deps): upgrade noyalib 0.0.14 -> 0.0.17 (#40)\n\nRelease content (crates.io / upstream GitHub releases):\n- 0.0.15: loader-parity fixes (DoS-budget parity, key-collision guard\n  re-landed) plus test-coverage hardening\n- 0.0.16: build fix, MSRV 1.86 (yqr pins Rust 1.97.1), dependency refresh\n- 0.0.17: lockstep republish, no core change\n\nThe v0.0.14...v0.0.17 diff touches no cst/ source file, so the CST edit\nAPI is unchanged: the b004 mutation-API gaps remain open; its spec and\nthe bug tracker now reference 0.0.17 as the verified-current upstream.\n\nLockfile delta is noyalib alone (no transitive churn). Full local CI\nmirror passes (fmt, clippy all-features -D warnings, build, test\n--all-features --locked, bench compile, doc, audit); the fidelity\nharness and corpus validation pass, preserving the byte round-trip\nproperty.",
+          "timestamp": "2026-07-28T21:27:15+02:00",
+          "tree_id": "bcfe0b3aa7565d8611a4deea71bfa281df0558a4",
+          "url": "https://github.com/zoosky/yqr/commit/4763f48ba57cb079f3129e3300f0705cd40c7246"
+        },
+        "date": 1785266926993,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 499,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5107,
+            "range": "± 131",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 255709,
+            "range": "± 905",
             "unit": "ns/iter"
           }
         ]
