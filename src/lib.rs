@@ -7,7 +7,9 @@
 //! - [`eval`] applies an `Ast` to a [`Value`], producing a stream of
 //!   output values,
 //! - [`fidelity`] provides byte-preserving execution over noyalib's lossless
-//!   CST (untouched nodes are emitted as their original source bytes).
+//!   CST (untouched nodes are emitted as their original source bytes),
+//! - [`validate`] checks inputs for YAML correctness and renders
+//!   compiler-style diagnostics.
 //!
 //! The two convenience entry points most callers want are [`eval_str`] (parse a
 //! filter and run it over a YAML string, returning values) and
@@ -20,6 +22,7 @@ pub mod eval;
 pub mod fidelity;
 pub mod lexer;
 pub mod parser;
+pub mod validate;
 pub mod value;
 
 pub use error::{Result, YqrError};

@@ -15,7 +15,27 @@ use yqr::{YqrError, render};
 
 fn main() -> ExitCode {
     let args = Cli::parse_args();
-    match run(&args) {
+
+    // Feature f012: the validate subcommand has its own output contract
+    // (diagnostics on stderr, exit 0/1/5) and never evaluates a filter.
+    if let Some(cli::Command::Validate(validate_args)) = &args.command {
+        return run_validate(validate_args);
+    }
+
+    // In the filter form clap cannot declare the filter required (that
+    // would break the subcommand form), so its absence is diagnosed here
+    // with a regular usage error.
+    let Some(filter) = args.filter.clone() else {
+        use clap::CommandFactory;
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::MissingRequiredArgument,
+                "the <FILTER> argument is required",
+            )
+            .exit();
+    };
+
+    match run(&args, &filter) {
         Ok(output) => {
             if let Err(e) = io::stdout().write_all(output.as_bytes()) {
                 eprintln!("yqr: io error: {e}");
@@ -30,7 +50,7 @@ fn main() -> ExitCode {
     }
 }
 
-fn run(args: &Cli) -> Result<String, YqrError> {
+fn run(args: &Cli, filter: &str) -> Result<String, YqrError> {
     // Feature f009: byte-preserving reads are the default; `--normalize` opts
     // back into the classic re-serializing pipeline.
     // Feature f011: noyalib is yqr's only engine — the former `--engine`
@@ -39,7 +59,7 @@ fn run(args: &Cli) -> Result<String, YqrError> {
     // Feature f006: decide read vs write before consuming input, so a filter
     // error (or a misused `-i`) is diagnosed up front. A mutating filter always
     // goes through the fidelity write path, regardless of `--normalize`.
-    match yqr::parser::parse_program(&args.filter)? {
+    match yqr::parser::parse_program(filter)? {
         Program::Mutate(mutation) => {
             // Validate the `-i` target before consuming stdin or applying the
             // mutation, so a misused `-i` (stdin, no file) fails immediately
@@ -80,6 +100,57 @@ fn run(args: &Cli) -> Result<String, YqrError> {
             fidelity::run_ast(&ast, &input, args.raw_output)
         }
     }
+}
+
+/// Run the `validate` subcommand over every requested input.
+///
+/// Each input gets a verdict in one run — validation never stops at the
+/// first bad file. Diagnostics go to stderr; stdout stays silent. The exit
+/// code is the worst outcome across all inputs: 0 when everything is valid,
+/// 1 when any input fails validation, 5 when any input cannot be read.
+// Feature f012.
+fn run_validate(args: &cli::ValidateArgs) -> ExitCode {
+    let inputs: Vec<&str> = if args.files.is_empty() {
+        vec!["-"]
+    } else {
+        args.files.iter().map(String::as_str).collect()
+    };
+
+    let mut worst: u8 = 0;
+    for path in inputs {
+        let display = if path == "-" { "<stdin>" } else { path };
+        match read_validate_input(path) {
+            Err(message) => {
+                eprintln!("error: {message}");
+                worst = worst.max(5);
+            }
+            Ok(source) => {
+                let findings = yqr::validate::check_str(&source, args.strict);
+                for diagnostic in &findings {
+                    eprint!("{}", yqr::validate::render(diagnostic, display, &source));
+                }
+                if !findings.is_empty() {
+                    worst = worst.max(1);
+                }
+            }
+        }
+    }
+    ExitCode::from(worst)
+}
+
+/// Read one validate input (`-` means stdin), with an uncoded plain-text
+/// error message on failure — read failures are environment problems, not
+/// validation findings, so they bypass the diagnostic renderer.
+// Feature f012.
+fn read_validate_input(path: &str) -> Result<String, String> {
+    if path == "-" {
+        let mut buf = String::new();
+        io::stdin()
+            .read_to_string(&mut buf)
+            .map_err(|e| format!("failed to read stdin: {e}"))?;
+        return Ok(buf);
+    }
+    std::fs::read_to_string(path).map_err(|e| format!("failed to read {path:?}: {e}"))
 }
 
 /// Resolve the file path to rewrite for `-i`, rejecting stdin.

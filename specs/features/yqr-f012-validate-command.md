@@ -1,6 +1,6 @@
 # Feature f012 — `yqr validate`: actionable YAML correctness checking
 
-**Status:** Draft
+**Status:** Done
 **Epic:** Editing-loop tooling (f012)
 **Owner:** yqr maintainers
 **Related:** `yqr-a001` (the fidelity invariant validate re-uses), `yqr-f006`/`yqr-f007`
@@ -87,18 +87,27 @@ default validate answers "is this YAML?", not "is this the YAML you meant?".
 
 ### 3.3 `--strict`: findings an edited file almost never wants
 
-Two additional checks, both aimed at damage that editing sessions introduce
-and parsers hide:
+One additional check, aimed at damage that editing sessions introduce and
+parsers hide:
 
-1. **Duplicate mapping keys** (`a: 1` twice in one mapping). The YAML spec
-   requires key uniqueness; parsers resolve last-wins silently, which after
-   a bad edit means silently dropped data. Diagnostic spans both
-   occurrences: primary label on the second key, secondary note on the
-   first.
-2. **Stringified-key collisions** (`1:` and `"1":` in one mapping) — valid
-   YAML that yqr's engine refuses at query time (`yqr-b004`, string-only key
-   model). An agent should hear about this at validate time, not on the
-   next read.
+1. **Duplicate mapping keys** (`a: 1` twice in one mapping, `Y101`). The
+   YAML spec requires key uniqueness; parsers resolve last-wins silently,
+   which after a bad edit means silently dropped data. Detection runs the
+   value layer per document with noyalib's `DuplicateKeyPolicy::Error`; the
+   diagnostic names the offending key and, in a multi-document stream, the
+   affected document.
+
+> **Amended during implementation.** The draft listed stringified-key
+> collisions (`1:` vs `"1":`) as a second strict check. Empirically,
+> noyalib's CST parser refuses collisions outright — no yqr read can
+> process such a file at all — so the finding belongs to the **default**
+> checks and is reported there as `Y102`, with its precise code instead of
+> a generic syntax error. The draft also promised primary and secondary
+> key spans for strict findings; noyalib computes key spans internally but
+> does not expose them (the read-side sibling of the `yqr-b004` §2.2 gap),
+> so `Y101`/`Y102` name the key and document rather than a source
+> position. When upstream exposes key spans, the diagnostics upgrade
+> without a contract change (the position line is already optional).
 
 The strict list is closed for v1; candidates like tab indentation belong to a
 future lint tier, if ever (yamllint's territory — see §5).
@@ -246,27 +255,35 @@ two PRs (paths first, spans second).
 
 ## 6. Acceptance criteria
 
-- [ ] `yqr validate f.yaml` on a valid file prints nothing and exits 0;
+- [x] `yqr validate f.yaml` on a valid file prints nothing and exits 0;
       stdin works both bare (`yqr validate`) and explicit (`yqr validate -`).
-- [ ] Invalid YAML exits 1 with a rustc-style diagnostic: `error[Y001]`,
-      `--> file:line:col` (1-based), numbered source window with caret span,
-      and `= help:` where a suggestion exists.
-- [ ] A stream-integrity failure reports `error[Y002]` and exits 1.
-- [ ] Multiple files: every input is validated in one run, each diagnostic
+- [x] Invalid YAML exits 1 with a rustc-style diagnostic: `error[Y001]`,
+      `--> file:line:col` (1-based, when the parser reports a location),
+      numbered source window with caret, and `= help:` where a suggestion
+      exists (unresolved merge-conflict markers get a dedicated hint).
+- [x] A stream-integrity failure reports `error[Y002]` and exits 1
+      (unreachable through the real parser; pinned by a unit test on the
+      check itself).
+- [x] Multiple files: every input is validated in one run, each diagnostic
       names its file, and the exit code is the highest applicable (5 over 1
       over 0).
-- [ ] An unreadable input exits 5 with an uncoded error; remaining files are
+- [x] An unreadable input exits 5 with an uncoded error; remaining files are
       still validated.
-- [ ] `--strict` reports duplicate keys (`Y101`) and stringified-key
-      collisions (`Y102`) with primary and secondary spans, exit 1; without
-      `--strict` both pass.
-- [ ] The filter form is behaviorally untouched (flags, exit codes 0/3/5,
+- [x] `--strict` reports duplicate keys (`Y101`) with the offending key and
+      document named, exit 1; without `--strict` duplicates pass.
+      Stringified-key collisions (`Y102`) are reported by the **default**
+      checks — the parser refuses them outright (see the §3.3 amendment;
+      key spans are not exposed upstream, so both findings name the key
+      rather than a position).
+- [x] The filter form is behaviorally untouched (flags, exit codes 0/3/5,
       byte-identical output); `yqr validate <word>` was a filter parse error
-      before f012, so no valid invocation changes meaning.
-- [ ] Diagnostic codes Y001/Y002/Y101/Y102 are documented in the site docs
+      before f012, so no valid invocation changes meaning. Bare `yqr`
+      remains a usage error (exit 2).
+- [x] Diagnostic codes Y001/Y002/Y101/Y102 are documented in the site docs
       and README alongside the validate usage (rule: content documentation),
       with no feature IDs in CLI output or doc comments.
-- [ ] Corpus and CLI tests cover every diagnostic code and exit path;
-      rendering is pinned by golden tests.
-- [ ] No new dependencies (noyalib's `miette` feature stays off; the
+- [x] Corpus and CLI tests cover every diagnostic code and exit path;
+      rendering is pinned by golden tests, and every corpus document must
+      validate cleanly in both modes (the no-false-positives guard).
+- [x] No new dependencies (noyalib's `miette` feature stays off; the
       renderer is hand-rolled).

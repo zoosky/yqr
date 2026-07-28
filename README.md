@@ -39,6 +39,7 @@ cargo build --release
 
 ```sh
 yqr [OPTIONS] <FILTER> [FILE]
+yqr validate [--strict] [FILES]...
 
 Arguments:
   <FILTER>  The jq-style filter to apply (e.g. '.foo.bar', '.items[]')
@@ -195,6 +196,47 @@ Guarantees and limits:
   message.
 - **Unsupported operations.** Computed updates (`|=`), key rename, and sequence
   reorder / comment edits each fail with a clear message.
+
+## Validating files (`yqr validate`)
+
+<!-- Feature f012 -->
+
+After an edit — surgical, hand-made, or agent-made — one command answers
+whether a file is still correct YAML:
+
+```sh
+yqr validate deploy.yaml config.yaml   # silent, exit 0 when every file is valid
+yqr validate --strict deploy.yaml      # also flag duplicate mapping keys
+yqr validate < input.yaml              # stdin works too ('-' is equivalent)
+```
+
+Failures are compiler-style diagnostics on stderr, with a stable code, a
+clickable `file:line:column` location, the offending source line, and a
+suggested fix where one exists:
+
+```text
+error[Y001]: expected a node but found StreamEnd
+  --> deploy.yaml:3:1
+  |
+3 | b: [1,
+  | ^
+```
+
+A pass certifies more than "parses": the parsed documents must reproduce the
+input byte-for-byte — the same integrity invariant behind yqr's fidelity
+reads.
+
+| Code   | Finding                                                        | Mode       |
+|--------|----------------------------------------------------------------|------------|
+| `Y001` | The input is not well-formed YAML                              | default    |
+| `Y002` | Parsed documents do not reproduce the input byte-for-byte      | default    |
+| `Y101` | Duplicate mapping key (silently last-wins on ordinary reads)   | `--strict` |
+| `Y102` | Distinct keys collide after string conversion (`1:` vs `"1":`) | default    |
+
+Exit codes are scriptable: `0` when every input is valid, `1` when any input
+has validation findings, `5` when an input cannot be read — the highest
+applicable code wins, and every input is checked in one run. An unresolved
+merge-conflict marker (`<<<<<<<`) gets a dedicated hint.
 
 ## Query filters
 

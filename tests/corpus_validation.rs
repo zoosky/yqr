@@ -79,6 +79,24 @@ fn engine_corpus_is_byte_exact() {
     }
 }
 
+// Feature f012: every corpus document is real-world YAML the validate
+// command must accept, in both default and strict mode — the corpus is the
+// no-false-positives guard for the validator.
+#[test]
+fn corpus_documents_validate_cleanly() {
+    let mut docs: Vec<&str> = corpus::classic_cases().iter().map(|c| c.doc).collect();
+    docs.extend(corpus::engine_cases().iter().map(|c| c.doc));
+    docs.sort_unstable();
+    docs.dedup();
+    for doc in docs {
+        let findings = yqr::validate::check_str(doc, true);
+        assert!(
+            findings.is_empty(),
+            "corpus document must validate cleanly, got {findings:?}\ndoc:\n{doc}"
+        );
+    }
+}
+
 #[test]
 fn corpus_ids_are_unique() {
     // A duplicate id would make benchmark groups collide silently.

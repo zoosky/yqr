@@ -66,15 +66,18 @@ rest deferred) → M2 → f008.
 
 | Feature | Title | Status |
 |---------|-------|--------|
-| [f012](yqr-f012-validate-command.md) | `yqr validate`: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, `--strict`) | Draft |
+| [f012](yqr-f012-validate-command.md) | `yqr validate`: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, `--strict`) | Done |
 
-Progress: spec drafted. Closes the editing loop (edit, then verify): a
-dedicated subcommand that parses every document, re-asserts the a001
-byte-tiling invariant, and reports rustc-style diagnostics
-(`error[Ynnn]`, `--> file:line:col`, source window, help) that humans and
-agents can act on. `--strict` adds duplicate-key and stringified-key
-collision findings. Rendering is hand-rolled over noyalib's core
-`Location`/`CroppedRegion` API — no new dependencies.
+Progress: shipped. Closes the editing loop (edit, then verify): yqr's
+first subcommand parses every document, re-asserts the a001 byte-tiling
+invariant, and reports rustc-style diagnostics (`error[Ynnn]`,
+`--> file:line:col`, source window, help) that humans and agents can act
+on; exit codes 0/1/5, highest wins across inputs. `--strict` adds
+duplicate-key findings (`Y101`); stringified-key collisions turned out to
+be refused by the parser itself and report as `Y102` in the default
+checks (see the spec's §3.3 amendment). Rendering is hand-rolled over
+noyalib's core error API — no new dependencies. The sized schema
+follow-up (`--schema`) stays open in the spec's §5.1.
 
 ## Epic: Project website (f010)
 
@@ -95,10 +98,9 @@ dashboard.
 ## Summary
 
 - Total features: 12
-- Draft: 2 (f008 — computed updates, gated on `f001` M2; f012 — validate
-  command)
+- Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 5 (f002, f006, f009, f010, f011)
+- Done: 6 (f002, f006, f009, f010, f011, f012)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

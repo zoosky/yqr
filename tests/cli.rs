@@ -174,6 +174,125 @@ fn engine_flag_is_rejected() {
     assert_ne!(out.status, 0, "--engine must no longer be accepted");
 }
 
+// -- Feature f012: the validate subcommand ------------------------------------
+
+#[test]
+fn validate_valid_stdin_is_silent_and_exits_zero() {
+    for args in [vec!["validate"], vec!["validate", "-"]] {
+        let out = run(&args, "a: 1\nb:\n  - x\n");
+        assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+        assert!(out.stdout.is_empty(), "stdout: {}", out.stdout);
+        assert!(out.stderr.is_empty(), "stderr: {}", out.stderr);
+    }
+}
+
+#[test]
+fn validate_invalid_yaml_exits_one_with_located_diagnostic() {
+    let path = temp_yaml("a: 1\n---\nb: [1,\n");
+    let out = run(&["validate", path.to_str().unwrap()], "");
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stdout.is_empty(), "stdout: {}", out.stdout);
+    assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
+    let location = format!("--> {}:3:1", path.display());
+    assert!(out.stderr.contains(&location), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("3 | b: [1,"), "stderr: {}", out.stderr);
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn validate_unreadable_file_exits_five_and_checks_the_rest() {
+    let good = temp_yaml("a: 1\n");
+    let bad = temp_yaml("b: [1,\n");
+    let out = run(
+        &[
+            "validate",
+            "/nonexistent/f012.yaml",
+            good.to_str().unwrap(),
+            bad.to_str().unwrap(),
+        ],
+        "",
+    );
+    // The unreadable input dominates the exit code, but the broken file is
+    // still diagnosed in the same run.
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("failed to read"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
+    let _ = std::fs::remove_file(&good);
+    let _ = std::fs::remove_file(&bad);
+}
+
+#[test]
+fn validate_duplicate_key_needs_strict() {
+    let dup = "a: 1\nb: 2\na: 3\n";
+    let default = run(&["validate"], dup);
+    assert_eq!(default.status, 0, "stderr: {}", default.stderr);
+
+    let strict = run(&["validate", "--strict"], dup);
+    assert_eq!(strict.status, 1, "stderr: {}", strict.stderr);
+    assert!(
+        strict.stderr.contains("error[Y101]") && strict.stderr.contains("\"a\""),
+        "stderr: {}",
+        strict.stderr
+    );
+    assert!(
+        strict.stderr.contains("= help:"),
+        "stderr: {}",
+        strict.stderr
+    );
+}
+
+#[test]
+fn validate_key_collision_is_reported_by_default() {
+    // The parser refuses stringified-key collisions outright, so the finding
+    // does not need --strict.
+    let out = run(&["validate"], "1: a\n\"1\": b\n");
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y102]"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_reports_every_file_in_one_run() {
+    let first = temp_yaml("x: [1,\n");
+    let second = temp_yaml("a: 1\na: 2\n");
+    let out = run(
+        &[
+            "validate",
+            "--strict",
+            first.to_str().unwrap(),
+            second.to_str().unwrap(),
+        ],
+        "",
+    );
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y101]"), "stderr: {}", out.stderr);
+    let _ = std::fs::remove_file(&first);
+    let _ = std::fs::remove_file(&second);
+}
+
+#[test]
+fn validate_merge_conflict_marker_gets_help() {
+    let out = run(&["validate"], "a: 1\n<<<<<<< HEAD\nb: 2\n");
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("merge-conflict"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn missing_filter_is_a_usage_error() {
+    // With subcommands in play the filter positional is enforced by the
+    // binary; bare `yqr` must stay a usage error (exit 2), not a crash.
+    let out = run(&[], "");
+    assert_eq!(out.status, 2, "stderr: {}", out.stderr);
+}
+
 // -- Feature f006: write tier (assignment, +=, del, -i) -----------------------
 
 /// Create a uniquely-named temp file seeded with `contents`, for `-i` tests.

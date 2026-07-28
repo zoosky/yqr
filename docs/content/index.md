@@ -136,6 +136,29 @@ spec:
       <pre><span class="prompt">$</span> yqr -i <span class="filter">'.spec.replicas = 5'</span> deploy.yaml
 <span class="prompt">$</span> git diff deploy.yaml   <span class="filter"># one line</span></pre>
     </div>
+
+    <!-- Feature f012: the validate subcommand -->
+    <div class="callout" id="validate">
+      <strong class="callout-title">Validate after every edit.</strong>
+      One command answers whether a file is still correct YAML &mdash; and a
+      pass certifies more than "parses": the parsed documents must reproduce
+      the input byte-for-byte, the same invariant behind yqr's fidelity
+      reads. Failures are compiler-style diagnostics with a stable code, a
+      clickable location, and a suggested fix, so humans and agents can act
+      on them:
+      <pre><span class="prompt">$</span> yqr validate deploy.yaml   <span class="filter"># silent, exit 0 when valid</span>
+error[Y001]: expected a node but found StreamEnd
+  --> deploy.yaml:3:1
+  |
+3 | b: [1,
+  | ^</pre>
+      <code>--strict</code> also flags duplicate mapping keys
+      (<code>Y101</code>) &mdash; accepted last-wins by ordinary reads, so a
+      bad edit silently drops data. Keys that collide after string
+      conversion are refused outright (<code>Y102</code>), and an unresolved
+      merge-conflict marker gets a dedicated hint. Exit codes are scriptable:
+      0 all valid, 1 validation findings, 5 an input could not be read.
+    </div>
   </section>
 
   <section id="recipes">
