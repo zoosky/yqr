@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785266928087,
+  "lastUpdate": 1785266953735,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -713,6 +713,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 255709,
             "range": "± 905",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "32c13431c6062eae7b06bea96254e72c1edd6b85",
+          "message": "feat(f011): remove --engine; noyalib is the only engine (#41)\n\nyqr has settled on noyalib -- alternate engine approaches are retired.\nThe --engine flag had exactly one valid value, so its only observable\nbehaviors were a no-op and an error; it is now rejected by clap like any\nunknown flag, mirroring the retired --preserve.\n\nRemoved end to end:\n\n- CLI: the --engine <ENGINE> flag and its up-front name validation.\n- Library API (breaking): fidelity::BackendId is deleted; fidelity::open,\n  run, run_ast, and write::apply lose their backend parameter, and the\n  FidelityEngine trait drops backend_id(). The object-safe\n  FidelityEngine/FidelityWriter traits remain as the internal boundary\n  (yqr-m002), no longer a runtime choice point.\n- skald: the placeholder BackendId arm, its branch-pointer error message,\n  and the Cargo.toml note are gone; the name is no longer recognized.\n- Corpus/benches: EngineCase loses the per-backend engines field; the\n  corpus Engine enum and backend-mapping helpers are removed. Benchmark\n  ids are unchanged so the gh-pages baseline history stays comparable.\n- Docs: README, the site fidelity callout, and the demo (README +\n  yqr-demo.sh section 6) no longer mention --engine; CHANGELOG records\n  the removal under Unreleased.\n\nSpecs: new yqr-f011 (Done), f004 status notes the flag removal, m005 §6\nrecords the seam collapse, tracker totals updated.\n\nLocal CI mirror passes (fmt, clippy all-features -D warnings, build,\ntest all-features --locked, bench compile, doc, audit); the demo script\nruns clean against the rebuilt binary.",
+          "timestamp": "2026-07-28T21:27:55+02:00",
+          "tree_id": "e54703a4e146200704a89ed92a433dce1efd142f",
+          "url": "https://github.com/zoosky/yqr/commit/32c13431c6062eae7b06bea96254e72c1edd6b85"
+        },
+        "date": 1785266952757,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 369,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3772,
+            "range": "± 387",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 207262,
+            "range": "± 10601",
             "unit": "ns/iter"
           }
         ]
