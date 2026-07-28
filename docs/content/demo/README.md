@@ -19,7 +19,7 @@ works from any working directory and reads the sample files in place.
 
 | File                                                | Role                                                              |
 |-----------------------------------------------------|-------------------------------------------------------------------|
-| [`yqr-demo.sh`](/content-media/demo/yqr-demo.sh)    | The narrated walkthrough (seven sections, each a real query).     |
+| [`yqr-demo.sh`](https://github.com/zoosky/yqr/blob/main/docs/content/demo/yqr-demo.sh) | The narrated walkthrough (seven sections, each a real query). Linked on GitHub -- accent does not serve script files as page media. |
 | [`deploy.yaml`](/content-media/demo/deploy.yaml)    | A Kubernetes Deployment -- the input for navigation & iteration.  |
 | [`config.yaml`](/content-media/demo/config.yaml)    | A hand-commented config -- the input for the fidelity engine.     |
 

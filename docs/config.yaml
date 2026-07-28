@@ -13,14 +13,16 @@
 # theme provides the header menu and the footer; the rest of the site uses
 # the standard theme, restyled with the home page's ink/brass/teal tokens.
 #
-# Requires accent >= v0.23.0. The site is served under the /yqr/ sub-path
+# Requires accent >= v0.23.1. The site is served under the /yqr/ sub-path
 # on GitHub Pages; accent derives the deployment path prefix from the
 # site.url path component below, emits every internal URL prefixed, and
 # fails the build if an unprefixed root-absolute link slips through.
+# Since v0.23.1 the dev server applies the same prefix (serve/build
+# parity): `accent serve` redirects / to /yqr/ and mounts the site there.
 # Moving to a custom domain later just means changing site.url -- the
 # prefix disappears with it.
 #
-# Local development:  cd docs && accent serve
+# Local development:  cd docs && accent serve   (site served under /yqr/)
 # Static build:       cd docs && accent build --clean
 # Sub-path preview:   accent serve-static --dir output   (mounts under /yqr)
 # (accent build takes the base URL from site.url below; CI passes
