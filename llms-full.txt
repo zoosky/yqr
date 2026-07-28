@@ -30,7 +30,7 @@ works from any working directory and reads the sample files in place.
 3. Compose with pipes -- `|` feeds one filter into the next.
 4. Raw output -- `-r` drops YAML quoting for shell scripting.
 5. Reads from stdin -- pipe YAML straight in.
-6. Fidelity by default -- `yqr '.'` reproduces the input byte-for-byte, comments and all, with no flag. `--normalize` opts into the classic re-serializing pipeline; `--engine` picks the backend parser for the default read (default `noyalib`).
+6. Fidelity by default -- `yqr '.'` reproduces the input byte-for-byte, comments and all, with no flag. `--normalize` opts into the classic re-serializing pipeline.
 7. jq-style exit codes -- `3` for parse errors, `5` for runtime errors, for scriptable error handling.
 
 ---
@@ -1515,6 +1515,7 @@ Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 | [f004](yqr-f004-engine-parity-runtime-switch.md) | Engine parity: both backends default-on and runtime-switchable, from the zoosky forks | Superseded (`yqr-m005`) |
 | [f005](yqr-f005-preserve-flag-decouple.md) | Decouple byte/comment preservation from backend selection (`--preserve`) | Superseded (`yqr-f009`) |
 | [f009](yqr-f009-fidelity-default-normalize.md) | Byte fidelity by default; classic pipeline behind `--normalize` | Done |
+| [f011](yqr-f011-remove-engine-flag.md) | Remove `--engine`: noyalib is the only engine | Done |
 
 Progress: the `FidelityEngine` seam + the noyalib CST backend shipped (f002).
 The rust-yaml fork backend (f003) and the two-engine parity/runtime-switch story
@@ -1525,6 +1526,9 @@ byte-preserving read first shipped as an opt-in `--preserve` flag, with
 `--engine` reduced to backend selection (f005, `v0.3.0`); it then became the
 **default** read — the classic pipeline moved behind `--normalize` and
 `--preserve` was removed (f009), closing the lossy-default bug `b001`.
+Finally the `--engine` flag and the `BackendId` runtime seam were removed
+outright (f011): noyalib is yqr's one and only engine, and the skald
+placeholder is retired.
 
 ## Epic: Fidelity write tier (f006–f008)
 
@@ -1569,10 +1573,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 10
+- Total features: 11
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 4 (f002, f006, f009, f010)
+- Done: 5 (f002, f006, f009, f010, f011)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
@@ -2067,7 +2071,7 @@ URL: /yqr/specs/features/yqr-f004-engine-parity-runtime-switch
 
 # Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks
 
-**Status:** Superseded by `yqr-m005` (2026-07-10) — yqr consolidated on a single engine (noyalib); the two-backend, runtime-switchable engine-parity story no longer holds. `--engine noyalib` still selects the byte-preserving path. (Was: Done.)
+**Status:** Superseded by `yqr-m005` (2026-07-10) — yqr consolidated on a single engine (noyalib); the two-backend, runtime-switchable engine-parity story no longer holds. The `--engine` flag itself was removed in `yqr-f011` (2026-07-28). (Was: Done.)
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-08
 **Implements:** `yqr-a001` §4 (fidelity engine seam), consumes `yqr-b002` 2.2-2.7
@@ -2997,6 +3001,77 @@ prefix).
 
 ---
 
+# Feature f011 — Remove `--engine`: noyalib is the only engine
+
+URL: /yqr/specs/features/yqr-f011-remove-engine-flag
+
+# Feature f011 — Remove `--engine`: noyalib is the only engine
+
+**Status:** Done
+**Epic:** Fidelity-first architecture (a001)
+**Owner:** yqr maintainers
+**Related:** `yqr-m005` (single-engine consolidation — this closes its §6
+"engine plurality" provision), `yqr-f004` (engine parity — superseded; the
+flag itself is removed here), `yqr-f009` (which had repurposed `--engine`
+for the default read), `yqr-m002` (the internal engine seam, which stays)
+
+## 1. Problem
+
+`yqr-m005` consolidated on noyalib as the sole YAML engine but deliberately
+kept the `--engine` seam pluggable: `BackendId` listed `NoyalibCst` plus a
+`Skald` placeholder that resolved by name and then reported it was only
+built on the `feat/skald-engine` branch. That hedge is no longer wanted —
+alternate engines are not needed. What remained was pure surface area:
+
+- a CLI flag with exactly one valid value, whose only observable behaviors
+  were a no-op (`--engine noyalib`) and an error (anything else);
+- a `BackendId` enum, name parser, and two dispatch `match`es whose skald
+  arms were unreachable-by-design error returns;
+- per-backend plumbing in the corpus (`Engine`, `engines:` per case), the
+  benches, and the tests.
+
+## 2. Change
+
+Remove the runtime engine selection end to end; noyalib is wired directly.
+
+- **CLI:** the `--engine <ENGINE>` flag is removed. clap now rejects it like
+  any unknown flag (usage error), mirroring the retired `--preserve`.
+- **Library API (breaking):** `fidelity::BackendId` is deleted;
+  `fidelity::open(input)`, `fidelity::run(filter, input, raw)`,
+  `fidelity::run_ast(ast, input, raw)`, and
+  `fidelity::write::apply(mutation, input)` lose their backend parameter.
+  The `FidelityEngine` trait drops `backend_id()`.
+- **Seam kept, choice point gone:** the object-safe `FidelityEngine` /
+  `FidelityWriter` traits remain as the boundary between the driver and the
+  engine's API surface (`yqr-m002`); what is gone is the runtime choice.
+- **skald retired on `main`:** the placeholder arm, its error message, and
+  the manifest note pointing at `feat/skald-engine` are removed. The name is
+  no longer recognized anywhere.
+- **Corpus/benches:** `EngineCase` loses its per-backend `engines` field;
+  the corpus `Engine` enum and the backend-mapping helpers in
+  `tests/corpus_validation.rs` and `benches/corpus_bench.rs` are gone.
+  Benchmark names (`corpus/engine_all`, `corpus/scale_engine_identity`) are
+  unchanged, so the `gh-pages` baseline history stays comparable.
+- **Docs:** README usage/options, the site's fidelity callout, and the demo
+  (README + `yqr-demo.sh` section 6) no longer mention `--engine`;
+  CHANGELOG records the removal under Unreleased.
+
+## 3. Acceptance criteria
+
+- [x] `yqr --engine noyalib '.'` fails argument parsing (no silent no-op);
+      covered black-box (`tests/cli.rs`) and at the clap layer
+      (`src/cli.rs`), mirroring the `--preserve` removal tests.
+- [x] No `BackendId` or `--engine` reference remains in `src/`, `tests/`,
+      `benches/`, `README.md`, or `docs/content/` (traceability comments and
+      the removal tests themselves excepted).
+- [x] Default read, `--normalize`, and the write tier behave identically to
+      before (no behavioral change without the flag): full test suite green.
+- [x] Benchmark ids are unchanged so the continuous-benchmark baseline
+      remains comparable.
+- [x] `yqr-m005` §6 and the feature tracker reflect the collapse.
+
+---
+
 # Implementation Specs
 
 URL: /yqr/specs/implementation
@@ -3733,9 +3808,16 @@ maturity/process risk (contained by pinning), not a capability ceiling.
 - The fidelity **write/edit tier** (`yqr-m002` §4/§6.2) now targets noyalib
   only; `yqr-b004` (noyalib CST mutation-API gaps) is its driver.
 
-## 6. Engine plurality (resolved)
+## 6. Engine plurality (resolved; seam collapsed in f011)
 
-The `--engine` seam is **kept pluggable** rather than collapsed: `BackendId`
+> **Update (2026-07-28, `yqr-f011`):** the pluggable seam described below was
+> collapsed. `--engine` and `BackendId` are removed, the skald placeholder arm
+> with them — alternate engines are no longer wanted; noyalib is wired
+> directly. The `FidelityEngine`/`FidelityWriter` traits remain as the
+> internal boundary (`yqr-m002`), not as a runtime choice point. The
+> paragraphs below are the historical record of the interim posture.
+
+The `--engine` seam was **kept pluggable** rather than collapsed: `BackendId`
 lists `NoyalibCst` (built-in, the default) and `Skald` (recognized by name).
 "Don't put all eggs in one basket" — **skald** (elioetibr's from-scratch YAML
 1.2.2 library, the rust-yaml successor) is the second candidate engine, wired as

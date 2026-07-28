@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug Status Tracker - yqr</title>
+    <title>Feature f011 — Remove `--engine`: noyalib is the only engine - yqr</title>
     
     
 
@@ -15,7 +15,7 @@
 <meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f011-remove-engine-flag">
 
 
 
@@ -27,10 +27,10 @@
 
 
 
-<meta property="og:title" content="Bug Status Tracker">
+<meta property="og:title" content="Feature f011 — Remove `--engine`: noyalib is the only engine">
 <meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f011-remove-engine-flag">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -40,7 +40,7 @@
 
 
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Bug Status Tracker">
+<meta name="twitter:title" content="Feature f011 — Remove `--engine`: noyalib is the only engine">
 <meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
@@ -87,9 +87,9 @@
   "dateModified": "2026-07-28",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
-  "name": "Bug Status Tracker",
-  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 526
+  "name": "Feature f011 — Remove `--engine`: noyalib is the only engine",
+  "url": "https://zoosky.github.io/yqr/specs/features/yqr-f011-remove-engine-flag",
+  "wordCount": 455
 }
 </script>
 <script type="application/ld+json">
@@ -111,14 +111,14 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/bugs",
-      "name": "Bug Specs",
+      "item": "https://zoosky.github.io/yqr/specs/features",
+      "name": "Feature Specs",
       "position": 3
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-      "name": "Bug Status Tracker",
+      "item": "https://zoosky.github.io/yqr/specs/features/yqr-f011-remove-engine-flag",
+      "name": "Feature f011 — Remove `--engine`: noyalib is the only engine",
       "position": 4
     }
   ]
@@ -494,7 +494,7 @@
       
       
         <details class="sidebar-section"
-          >
+          open>
           <summary class="sidebar-section-title">Feature Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
@@ -596,7 +596,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f011-remove-engine-flag"
-                   class="sidebar-link">Feature f011 — Remove `--engine`: noyalib is the only engine</a>
+                   class="sidebar-link active">Feature f011 — Remove `--engine`: noyalib is the only engine</a>
               
             
               
@@ -777,7 +777,7 @@
       
       
         <details class="sidebar-section"
-          open>
+          >
           <summary class="sidebar-section-title">Bug Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
@@ -789,7 +789,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status"
-                   class="sidebar-link active">Bug Status Tracker</a>
+                   class="sidebar-link">Bug Status Tracker</a>
               
             
               
@@ -1652,49 +1652,81 @@
         <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
         <span aria-hidden="true">/</span>
     
-        <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;features">Feature Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Bug Status Tracker</span>
+    <span aria-current="page">Feature f011 — Remove `--engine`: noyalib is the only engine</span>
 </nav>
 
 
-        <h1>Bug Status Tracker</h1>
+        <h1>Feature f011 — Remove `--engine`: noyalib is the only engine</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p>Single source of truth for the state of every <code>yqr-bNNN</code> bug. Update this file
-in the same change that opens, advances, or resolves a bug (mirrors the feature
-status tracker convention).</p>
-<p><strong>Status legend:</strong> Open · In Progress · Fixed · Resolved · Won’t Fix · Duplicate</p>
-<h2 id="open">Open<a class="heading-anchor" href="#open" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps">b004</a></td><td>noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete</td><td>Medium</td><td>Open (upstream noyalib 0.0.17 — CST edit API unchanged since 0.0.14; the write tier’s structural edits <code>yqr-f007</code>; the value-write tier <code>yqr-f006</code> avoids these gaps)</td><td><code>yqr-b002</code>, <code>yqr-r002</code>, <code>yqr-m002</code>, <code>yqr-m005</code>, <code>yqr-f006</code>, <code>yqr-f007</code></td></tr>
-</tbody></table>
-<h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/bugs/yqr-b007-site-links-broken-under-accent-0-23-1">b007</a></td><td>Website: demo-script media link and 404-page <code>/docs</code> link break under accent v0.23.1</td><td>Low</td><td>Resolved — demo script now linked on GitHub (accent refuses <code>.sh</code> as media), 404 page links <code>/specs/</code>; CI pins accent v0.23.1 and builds with <code>--strict-links</code> so missing link targets fail the build</td><td><code>yqr-f010</code></td></tr>
-<tr><td><a href="/yqr/specs/bugs/yqr-b001-roundtrip-discards-whitespace-and-formatting">b001</a></td><td>Round-trip through the default pipeline discards whitespace, comments, and formatting</td><td>High</td><td>Resolved for the default read — byte fidelity is now the <strong>default</strong> (<code>yqr-f009</code>); <code>yqr '.' f</code> is byte-for-byte identical to <code>f</code> via the fidelity engine (<code>yqr-f002</code>). The lossy semantic round trip is now opt-in via <code>--normalize</code> (by design)</td><td><code>yqr-a001</code>, <code>yqr-r001</code>, <code>yqr.f001</code>, <code>yqr-f002</code>, <code>yqr-f009</code>, <code>yqr-m005</code></td></tr>
-<tr><td><a href="/yqr/specs/bugs/yqr-b006-structural-delete-trivia-and-fidelity">b006</a></td><td>Structural delete mishandles comments, blank lines, and same-column sequences</td><td>High</td><td>Resolved — <code>owned_line_span</code> now derives its range from noyalib’s value span, commits via byte-preserving <code>replace_span</code>, and folds a same-indent head comment into the delete; regression tests cover each case</td><td><code>yqr-f007</code>, <code>yqr-b004</code>, <code>yqr-a001</code></td></tr>
-<tr><td><a href="/yqr/specs/bugs/yqr-b005-crossbeam-epoch-advisory-via-criterion">b005</a></td><td><code>cargo audit</code> fails on <code>crossbeam-epoch</code> advisory (RUSTSEC-2026-0204) via <code>criterion</code> dev-dep</td><td>Low</td><td>Resolved — <code>cargo update -p crossbeam-epoch</code> bumped the transitive pin <code>0.9.18 -&gt; 0.9.20</code>; <code>cargo audit</code> exits 0, lockfile-only change</td><td><code>yqr-m001</code></td></tr>
-<tr><td><a href="/yqr/specs/bugs/yqr-b002-noyalib-cst-span-and-key-model-deficiencies">b002</a></td><td>noyalib CST deficiencies: span boundaries, duplicate-key policy, string-only key model</td><td>Medium</td><td>Resolved — all 7 fixes released upstream in noyalib 0.0.14 (2.1 in 0.0.13; 2.2-2.7 in the v0.0.14 release #160); yqr pins crates.io <code>noyalib = "0.0.14"</code>, git-dep dropped — <code>yqr-m004</code>, <code>yqr-f004</code></td><td><code>yqr-f002</code>, <code>yqr-f004</code>, <code>yqr-r002</code>, <code>yqr-m002</code></td></tr>
-<tr><td><a href="/yqr/specs/bugs/yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">b003</a></td><td>rust-yaml fork <code>RoundTripDocument::parse_all</code> errors on a trailing <code>...</code> after a block collection</td><td>Medium</td><td>Resolved (moot) — the rust-yaml fork backend was removed when yqr consolidated on noyalib (<code>yqr-m005</code>); no longer affects yqr</td><td><code>yqr-m005</code>, <code>yqr-b001</code>, <code>yqr-m002</code></td></tr>
-</tbody></table>
-<h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
+            <p><strong>Status:</strong> Done
+<strong>Epic:</strong> Fidelity-first architecture (a001)
+<strong>Owner:</strong> yqr maintainers
+<strong>Related:</strong> <code>yqr-m005</code> (single-engine consolidation — this closes its §6
+“engine plurality” provision), <code>yqr-f004</code> (engine parity — superseded; the
+flag itself is removed here), <code>yqr-f009</code> (which had repurposed <code>--engine</code>
+for the default read), <code>yqr-m002</code> (the internal engine seam, which stays)</p>
+<h2 id="1-problem">1. Problem<a class="heading-anchor" href="#1-problem" aria-label="Link to this section"></a></h2>
+<p><code>yqr-m005</code> consolidated on noyalib as the sole YAML engine but deliberately
+kept the <code>--engine</code> seam pluggable: <code>BackendId</code> listed <code>NoyalibCst</code> plus a
+<code>Skald</code> placeholder that resolved by name and then reported it was only
+built on the <code>feat/skald-engine</code> branch. That hedge is no longer wanted —
+alternate engines are not needed. What remained was pure surface area:</p>
 <ul>
-<li>Total bugs: 7</li>
-<li>Open: 1 (1 Medium — b004)</li>
-<li>Resolved: 6 (b007 — website links fixed for the accent v0.23.1 media
-policy and link checker, CI now builds with <code>--strict-links</code>;
-b001 — byte fidelity is now the default read (<code>yqr-f009</code>), closing
-the lossy-default round trip; the classic pipeline is now opt-in via
-<code>--normalize</code>;
-b006 — structural-delete trivia/fidelity defects fixed via a
-span-derived range + byte-preserving <code>replace_span</code>, <code>yqr-f007</code>;
-b005 — <code>crossbeam-epoch</code> advisory cleared by <code>cargo update</code>;
-b002 — 2.2-2.7 fixes released in noyalib 0.0.14, git-dep dropped;
-b003 — moot after the single-engine consolidation removed the rust-yaml
-backend, <code>yqr-m005</code>)</li>
+<li>a CLI flag with exactly one valid value, whose only observable behaviors
+were a no-op (<code>--engine noyalib</code>) and an error (anything else);</li>
+<li>a <code>BackendId</code> enum, name parser, and two dispatch <code>match</code>es whose skald
+arms were unreachable-by-design error returns;</li>
+<li>per-backend plumbing in the corpus (<code>Engine</code>, <code>engines:</code> per case), the
+benches, and the tests.</li>
+</ul>
+<h2 id="2-change">2. Change<a class="heading-anchor" href="#2-change" aria-label="Link to this section"></a></h2>
+<p>Remove the runtime engine selection end to end; noyalib is wired directly.</p>
+<ul>
+<li><strong>CLI:</strong> the <code>--engine &lt;ENGINE&gt;</code> flag is removed. clap now rejects it like
+any unknown flag (usage error), mirroring the retired <code>--preserve</code>.</li>
+<li><strong>Library API (breaking):</strong> <code>fidelity::BackendId</code> is deleted;
+<code>fidelity::open(input)</code>, <code>fidelity::run(filter, input, raw)</code>,
+<code>fidelity::run_ast(ast, input, raw)</code>, and
+<code>fidelity::write::apply(mutation, input)</code> lose their backend parameter.
+The <code>FidelityEngine</code> trait drops <code>backend_id()</code>.</li>
+<li><strong>Seam kept, choice point gone:</strong> the object-safe <code>FidelityEngine</code> /
+<code>FidelityWriter</code> traits remain as the boundary between the driver and the
+engine’s API surface (<code>yqr-m002</code>); what is gone is the runtime choice.</li>
+<li><strong>skald retired on <code>main</code>:</strong> the placeholder arm, its error message, and
+the manifest note pointing at <code>feat/skald-engine</code> are removed. The name is
+no longer recognized anywhere.</li>
+<li><strong>Corpus/benches:</strong> <code>EngineCase</code> loses its per-backend <code>engines</code> field;
+the corpus <code>Engine</code> enum and the backend-mapping helpers in
+<code>tests/corpus_validation.rs</code> and <code>benches/corpus_bench.rs</code> are gone.
+Benchmark names (<code>corpus/engine_all</code>, <code>corpus/scale_engine_identity</code>) are
+unchanged, so the <code>gh-pages</code> baseline history stays comparable.</li>
+<li><strong>Docs:</strong> README usage/options, the site’s fidelity callout, and the demo
+(README + <code>yqr-demo.sh</code> section 6) no longer mention <code>--engine</code>;
+CHANGELOG records the removal under Unreleased.</li>
+</ul>
+<h2 id="3-acceptance-criteria">3. Acceptance criteria<a class="heading-anchor" href="#3-acceptance-criteria" aria-label="Link to this section"></a></h2>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>yqr --engine noyalib '.'</code> fails argument parsing (no silent no-op);
+covered black-box (<code>tests/cli.rs</code>) and at the clap layer
+(<code>src/cli.rs</code>), mirroring the <code>--preserve</code> removal tests.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+No <code>BackendId</code> or <code>--engine</code> reference remains in <code>src/</code>, <code>tests/</code>,
+<code>benches/</code>, <code>README.md</code>, or <code>docs/content/</code> (traceability comments and
+the removal tests themselves excepted).</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Default read, <code>--normalize</code>, and the write tier behave identically to
+before (no behavioral change without the flag): full test suite green.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Benchmark ids are unchanged so the continuous-benchmark baseline
+remains comparable.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>yqr-m005</code> §6 and the feature tracker reflect the collapse.</li>
 </ul>
 
         </div>
@@ -1707,11 +1739,11 @@ backend, <code>yqr-m005</code>)</li>
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</span>
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f010-accent-website" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Feature f010 — Project website: Accent CMS site over docs&#x2f; and specs&#x2f;, on GitHub Pages</span>
     </a>
+    
     
 </nav>
 
@@ -1723,15 +1755,15 @@ backend, <code>yqr-m005</code>)</li>
         <ul>
         
             <li class="toc-level-2">
-                <a href="#open">Open</a>
+                <a href="#1-problem">1. Problem</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#resolved">Resolved</a>
+                <a href="#2-change">2. Change</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#summary">Summary</a>
+                <a href="#3-acceptance-criteria">3. Acceptance criteria</a>
             </li>
         
         </ul>

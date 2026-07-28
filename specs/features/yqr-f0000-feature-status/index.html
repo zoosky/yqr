@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 684
+  "wordCount": 724
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -354,6 +357,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -382,6 +388,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -584,6 +595,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f011-remove-engine-flag"
+                   class="sidebar-link">Feature f011 — Remove `--engine`: noyalib is the only engine</a>
+              
+            
+              
+              
             
               
               
@@ -678,6 +695,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -889,6 +909,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -905,6 +928,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1119,6 +1145,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1128,6 +1157,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1246,6 +1278,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1445,6 +1480,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -1484,6 +1522,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1637,6 +1678,7 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).</p>
 <tr><td><a href="/yqr/specs/features/yqr-f004-engine-parity-runtime-switch">f004</a></td><td>Engine parity: both backends default-on and runtime-switchable, from the zoosky forks</td><td>Superseded (<code>yqr-m005</code>)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f005-preserve-flag-decouple">f005</a></td><td>Decouple byte/comment preservation from backend selection (<code>--preserve</code>)</td><td>Superseded (<code>yqr-f009</code>)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f009-fidelity-default-normalize">f009</a></td><td>Byte fidelity by default; classic pipeline behind <code>--normalize</code></td><td>Done</td></tr>
+<tr><td><a href="/yqr/specs/features/yqr-f011-remove-engine-flag">f011</a></td><td>Remove <code>--engine</code>: noyalib is the only engine</td><td>Done</td></tr>
 </tbody></table>
 <p>Progress: the <code>FidelityEngine</code> seam + the noyalib CST backend shipped (f002).
 The rust-yaml fork backend (f003) and the two-engine parity/runtime-switch story
@@ -1646,7 +1688,10 @@ crates.io publish. noyalib round-trips the b001 corpus byte-for-byte. The
 byte-preserving read first shipped as an opt-in <code>--preserve</code> flag, with
 <code>--engine</code> reduced to backend selection (f005, <code>v0.3.0</code>); it then became the
 <strong>default</strong> read — the classic pipeline moved behind <code>--normalize</code> and
-<code>--preserve</code> was removed (f009), closing the lossy-default bug <code>b001</code>.</p>
+<code>--preserve</code> was removed (f009), closing the lossy-default bug <code>b001</code>.
+Finally the <code>--engine</code> flag and the <code>BackendId</code> runtime seam were removed
+outright (f011): noyalib is yqr’s one and only engine, and the skald
+placeholder is retired.</p>
 <h2 id="epic-fidelity-write-tier-f006-f008">Epic: Fidelity write tier (f006–f008)<a class="heading-anchor" href="#epic-fidelity-write-tier-f006-f008" aria-label="Link to this section"></a></h2>
 <p>Surgical, provably-lossless edits — change only the bytes the filter targets,
 leave every other byte untouched, or refuse. yqr’s differentiating niche (jq is
@@ -1683,10 +1728,10 @@ base URL, and deploys to <code>gh-pages</code> while preserving the benchmark
 dashboard.</p>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total features: 10</li>
+<li>Total features: 11</li>
 <li>Draft: 1 (f008 — computed updates, gated on <code>f001</code> M2)</li>
 <li>In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)</li>
-<li>Done: 4 (f002, f006, f009, f010)</li>
+<li>Done: 5 (f002, f006, f009, f010, f011)</li>
 <li>Superseded: 3 (f003, f004 — single-engine consolidation, <code>yqr-m005</code>; f005 —
 fidelity-by-default flip, <code>yqr-f009</code>)</li>
 <li>Released in <code>v0.3.0</code>: f002 (fidelity engine) and f005 (<code>--preserve</code>, later

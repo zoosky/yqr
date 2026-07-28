@@ -90,7 +90,7 @@
   "inLanguage": "en",
   "name": "yqr Demo",
   "url": "https://zoosky.github.io/yqr/demo",
-  "wordCount": 222
+  "wordCount": 211
 }
 </script>
 <script type="application/ld+json">
@@ -130,6 +130,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -327,7 +330,7 @@ works from any working directory and reads the sample files in place.</p>
 <li>Compose with pipes – <code>|</code> feeds one filter into the next.</li>
 <li>Raw output – <code>-r</code> drops YAML quoting for shell scripting.</li>
 <li>Reads from stdin – pipe YAML straight in.</li>
-<li>Fidelity by default – <code>yqr '.'</code> reproduces the input byte-for-byte, comments and all, with no flag. <code>--normalize</code> opts into the classic re-serializing pipeline; <code>--engine</code> picks the backend parser for the default read (default <code>noyalib</code>).</li>
+<li>Fidelity by default – <code>yqr '.'</code> reproduces the input byte-for-byte, comments and all, with no flag. <code>--normalize</code> opts into the classic re-serializing pipeline.</li>
 <li>jq-style exit codes – <code>3</code> for parse errors, <code>5</code> for runtime errors, for scriptable error handling.</li>
 </ol>
 
