@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps",
-  "wordCount": 1153
+  "wordCount": 1199
 }
 </script>
 <script type="application/ld+json">
@@ -1622,12 +1622,16 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open — upstream gaps in <strong>noyalib 0.0.14</strong>’s edit API. yqr’s fidelity write/edit tier is not yet built (<code>yqr-m002</code> §4/§6.2, <code>yqr-f002</code> §5), so these do not block current code, but they constrain the automatic-editing roadmap. Every gap has the same fallback: raw <code>Document::replace_span(start, end, repl)</code> byte splicing.
+            <p><strong>Status:</strong> Open — upstream gaps in <strong>noyalib 0.0.14</strong>’s edit API, still
+present as of <strong>0.0.17</strong> (yqr’s current pin): the v0.0.14…v0.0.17 diff
+touches no <code>cst/</code> source file, so the mutation surface is unchanged
+(0.0.15 was loader-parity + coverage hardening, 0.0.16 a build fix / MSRV
+1.86 / dependency refresh, 0.0.17 a no-change lockstep republish). yqr’s fidelity write/edit tier is not yet built (<code>yqr-m002</code> §4/§6.2, <code>yqr-f002</code> §5), so these do not block current code, but they constrain the automatic-editing roadmap. Every gap has the same fallback: raw <code>Document::replace_span(start, end, repl)</code> byte splicing.
 <strong>Severity:</strong> Medium — roadmap-gating for yqr’s core goal (surgical editing of YAML: values, keys, structures, comments). No current code path depends on these (the fidelity engines are read-only today, <code>yqr-m002</code> §9), and each has a raw-<code>replace_span</code> workaround — but that workaround forfeits the indent/quote synthesis and the “reject if the result re-parses differently” guard that the first-class mutators provide.
 <strong>Owner:</strong> yqr maintainers
 <strong>Last updated:</strong> 2026-07-11
 <strong>Affects:</strong> the planned fidelity write/edit tier (<code>yqr-m002</code> §4/§6.2, <code>yqr-f002</code> §5). Irrelevant to the read path and the default pipeline.
-<strong>Component:</strong> noyalib 0.0.14 — <code>cst::Document</code> (<code>document.rs</code>), <code>cst::Entry</code> (<code>entry.rs</code>), <code>cst::annotated</code> (<code>annotated.rs</code>)
+<strong>Component:</strong> noyalib 0.0.14 (unchanged through 0.0.17) — <code>cst::Document</code> (<code>document.rs</code>), <code>cst::Entry</code> (<code>entry.rs</code>), <code>cst::annotated</code> (<code>annotated.rs</code>)
 <strong>Related:</strong> <code>yqr-b002</code> (noyalib CST span/key-model deficiencies — resolved in 0.0.14), <code>yqr-r002</code> (noyalib fidelity evaluation), <code>yqr-m002</code> §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix — issues are disabled upstream).</p>
 <h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
 <p>noyalib 0.0.14 already provides first-class, re-parse-guarded mutators for the
