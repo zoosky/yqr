@@ -823,6 +823,34 @@ spec:
       <pre><span class="prompt">$</span> yqr -i <span class="filter">'.spec.replicas = 5'</span> deploy.yaml
 <span class="prompt">$</span> git diff deploy.yaml   <span class="filter"># one line</span></pre>
     </div>
+
+    <!-- Feature f012: the validate subcommand -->
+    <div class="callout" id="validate">
+      <strong class="callout-title">Validate after every edit.</strong>
+      One command answers whether a file is still correct YAML &mdash; and a
+      pass certifies more than "parses": the parsed documents must reproduce
+      the input byte-for-byte, the same invariant behind yqr's fidelity
+      reads. Failures are compiler-style diagnostics with a stable code, a
+      clickable location whenever a position is known, and a suggested fix,
+      so humans and agents can act on them:
+      <pre><span class="prompt">$</span> yqr validate deploy.yaml   <span class="filter"># silent, exit 0 when valid</span>
+error[Y001]: expected a node but found StreamEnd
+  --> deploy.yaml:3:3
+  |
+3 | b: [1,
+  |   ^</pre>
+      <code>--strict</code> also flags duplicate mapping keys
+      (<code>Y101</code>) &mdash; accepted last-wins by ordinary reads, so a
+      bad edit silently drops data &mdash; reporting every duplicate,
+      <code>&lt;&lt;</code> merge keys included, with the positions of both
+      occurrences. Keys that collide after string conversion are refused
+      outright (<code>Y102</code>), non-UTF-8 input is a coded finding
+      (<code>Y003</code>), and a file containing unresolved merge-conflict
+      markers gets a dedicated hint anchored at the first marker. Exit codes
+      are scriptable: 0 all valid, 1 validation findings, 5 an input could
+      not be read. Stdin is explicit (<code>yqr validate -</code>); an empty
+      file list is a usage error, never a silent "all valid".
+    </div>
   </section>
 
   <section id="recipes">
