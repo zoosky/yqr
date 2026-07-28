@@ -1,6 +1,6 @@
 # Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks
 
-**Status:** Superseded by `yqr-m005` (2026-07-10) — yqr consolidated on a single engine (noyalib); the two-backend, runtime-switchable engine-parity story no longer holds. `--engine noyalib` still selects the byte-preserving path. (Was: Done.)
+**Status:** Superseded by `yqr-m005` (2026-07-10) — yqr consolidated on a single engine (noyalib); the two-backend, runtime-switchable engine-parity story no longer holds. The `--engine` flag itself was removed in `yqr-f011` (2026-07-28). (Was: Done.)
 **Owner:** yqr maintainers
 **Last updated:** 2026-07-08
 **Implements:** `yqr-a001` §4 (fidelity engine seam), consumes `yqr-b002` 2.2-2.7

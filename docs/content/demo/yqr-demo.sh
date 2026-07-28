@@ -67,11 +67,6 @@ fi
 printf '%s# Opt into the classic pipeline with --normalize (drops comments, re-serializes):%s\n' "$dim" "$reset"
 printf '%s$ yqr %s%s\n' "$green" "--normalize '.' config.yaml" "$reset"
 yqr --normalize '.' "$CONFIG"; echo
-printf '%s# --engine picks the backend parser for the default read (default noyalib):%s\n' "$dim" "$reset"
-printf '%s$ yqr %s | diff - config.yaml%s\n' "$green" "--engine noyalib '.' config.yaml" "$reset"
-if yqr --engine noyalib '.' "$CONFIG" | diff - "$CONFIG"; then
-  printf '%s(same byte-exact result via the explicit backend)%s\n' "$dim" "$reset"
-fi
 
 section "7. jq-style exit codes -- scriptable error handling"
 printf '%s# Parse errors exit 3; runtime errors exit 5 -- so you can branch in scripts:%s\n' "$dim" "$reset"

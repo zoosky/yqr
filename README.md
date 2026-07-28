@@ -48,7 +48,6 @@ Options:
   -r, --raw-output    Emit string results without YAML quoting
   -N, --normalize     Re-serialize output (drop comments, canonicalize scalars)
   -i, --in-place      Edit the input file in place (mutating filters only)
-      --engine <ENGINE>  Backend parser for byte-preserving reads (default: noyalib)
   -h, --help          Print help
   -V, --version       Print version
 ```
@@ -93,10 +92,8 @@ comments, quoting, indentation, and line endings all survive. Pass
 **`--normalize`** (`-N`) to re-serialize the output instead, which canonicalizes
 scalars and drops comments.
 
-`--engine <name>` selects *which* backend parser performs the byte-preserving
-read (default `noyalib`, the always-available lossless CST). Under `--normalize`
-the re-serializing pipeline runs and the engine choice has no observable effect
-(an unknown name is still rejected up front).
+Byte-preserving reads are powered by [`noyalib`](https://crates.io/crates/noyalib)'s
+lossless CST — yqr's one and only YAML engine.
 
 ```bash
 # Identity reproduces the file byte-for-byte -- comments, blank lines,

@@ -10,7 +10,7 @@ use std::process::ExitCode;
 
 use cli::Cli;
 use yqr::ast::Program;
-use yqr::fidelity::{self, BackendId};
+use yqr::fidelity;
 use yqr::{YqrError, render};
 
 fn main() -> ExitCode {
@@ -31,21 +31,11 @@ fn main() -> ExitCode {
 }
 
 fn run(args: &Cli) -> Result<String, YqrError> {
-    // Feature f009: `--engine` selects the backend for the default byte-preserving
-    // read; `--normalize` opts back into the classic re-serializing pipeline.
-    // Resolve the backend name (defaulting to the always-available noyalib)
-    // before consuming stdin/the file, so a typo in --engine is diagnosed
-    // immediately instead of after reading input.
-    let backend = match args.engine.as_deref() {
-        Some(engine) => BackendId::parse(engine).ok_or_else(|| {
-            YqrError::io(format!(
-                "unknown engine {engine:?} (available: {})",
-                BackendId::known_names()
-            ))
-        })?,
-        None => BackendId::NoyalibCst,
-    };
-
+    // Feature f009: byte-preserving reads are the default; `--normalize` opts
+    // back into the classic re-serializing pipeline.
+    // Feature f011: noyalib is yqr's only engine — the former `--engine`
+    // runtime selection is gone.
+    //
     // Feature f006: decide read vs write before consuming input, so a filter
     // error (or a misused `-i`) is diagnosed up front. A mutating filter always
     // goes through the fidelity write path, regardless of `--normalize`.
@@ -60,7 +50,7 @@ fn run(args: &Cli) -> Result<String, YqrError> {
                 None
             };
             let input = read_input(args.file.as_deref())?;
-            let output = fidelity::write::apply(backend, &mutation, &input)?;
+            let output = fidelity::write::apply(&mutation, &input)?;
             match in_place_target {
                 Some(path) => {
                     write_in_place(path, &output)?;
@@ -80,15 +70,14 @@ fn run(args: &Cli) -> Result<String, YqrError> {
             if args.normalize {
                 // Opt-in classic pipeline: re-serialize from the typed value,
                 // normalizing formatting (comments dropped, scalars
-                // canonicalized). It is backend-independent, so `--engine` is
-                // inert here beyond the up-front name validation.
+                // canonicalized).
                 let values = yqr::eval_ast_str(&ast, &input)?;
                 return render(&values, args.raw_output);
             }
             // Default: byte-preserving fidelity read. Untouched nodes are emitted
             // as their original source bytes; computed, absent, and unaddressable
             // nodes fall back to typed rendering per node.
-            fidelity::run_ast(backend, &ast, &input, args.raw_output)
+            fidelity::run_ast(&ast, &input, args.raw_output)
         }
     }
 }

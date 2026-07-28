@@ -15,7 +15,7 @@ use std::fmt::Write as _;
 use crate::Value;
 
 use crate::error::{Result, YqrError};
-use crate::fidelity::{BackendId, FidelityEngine, Path, PathSeg, Resolved, Span, Unaddressable};
+use crate::fidelity::{FidelityEngine, Path, PathSeg, Resolved, Span, Unaddressable};
 
 /// [`FidelityEngine`] implementation backed by `noyalib::cst`.
 pub(crate) struct NoyalibEngine {
@@ -73,10 +73,6 @@ impl NoyalibEngine {
 }
 
 impl FidelityEngine for NoyalibEngine {
-    fn backend_id(&self) -> BackendId {
-        BackendId::NoyalibCst
-    }
-
     fn source(&self) -> &str {
         &self.source
     }

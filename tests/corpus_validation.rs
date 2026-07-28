@@ -1,5 +1,5 @@
 //! Validation half of the shared corpus: every case in `tests/corpus` is run
-//! through the classic pipeline and (where applicable) each fidelity engine,
+//! through the classic pipeline and (where applicable) the fidelity engine,
 //! and its output is asserted against the recorded expectation.
 //!
 //! The same corpus drives `benches/corpus_bench.rs`, so a case added here is
@@ -8,7 +8,7 @@
 #[path = "corpus/mod.rs"]
 mod corpus;
 
-use corpus::{Case, Engine, EngineCase, Expect};
+use corpus::{Case, EngineCase, Expect};
 use yqr::{eval_str, render};
 
 /// Run one classic-pipeline case and assert its expectation.
@@ -58,25 +58,11 @@ fn check_classic(case: &Case) {
     }
 }
 
-/// Map a corpus [`Engine`] to its [`yqr::fidelity::BackendId`].
-fn backend(engine: Engine) -> yqr::fidelity::BackendId {
-    match engine {
-        Engine::Noyalib => yqr::fidelity::BackendId::NoyalibCst,
-    }
-}
-
-/// Run one engine case against every applicable backend.
+/// Run one engine case through the fidelity engine.
 fn check_engine(case: &EngineCase) {
-    for &engine in case.engines {
-        let backend = backend(engine);
-        let got = yqr::fidelity::run(backend, case.filter, case.doc, case.raw)
-            .unwrap_or_else(|e| panic!("[{}/{engine:?}] engine run failed: {e}", case.id));
-        assert_eq!(
-            got, case.expect,
-            "[{}/{engine:?}] byte output mismatch",
-            case.id
-        );
-    }
+    let got = yqr::fidelity::run(case.filter, case.doc, case.raw)
+        .unwrap_or_else(|e| panic!("[{}] engine run failed: {e}", case.id));
+    assert_eq!(got, case.expect, "[{}] byte output mismatch", case.id);
 }
 
 #[test]

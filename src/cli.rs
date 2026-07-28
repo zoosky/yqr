@@ -65,15 +65,6 @@ pub struct Cli {
     /// and drops comments and other formatting.
     #[arg(short = 'N', long = "normalize")]
     pub normalize: bool,
-
-    /// Backend YAML parser for byte-preserving reads (default: 'noyalib').
-    ///
-    /// This selects the parsing library for the default (fidelity) read path.
-    /// Under `--normalize` the classic pipeline runs and the backend choice does
-    /// not affect the output, though an unknown engine name is still rejected up
-    /// front.
-    #[arg(long = "engine", value_name = "ENGINE")]
-    pub engine: Option<String>,
 }
 
 impl Cli {
@@ -110,7 +101,6 @@ mod tests {
         assert!(!cli.raw_output);
         assert!(!cli.normalize);
         assert!(!cli.in_place);
-        assert_eq!(cli.engine, None);
     }
 
     #[test]
@@ -122,26 +112,12 @@ mod tests {
     }
 
     #[test]
-    fn parses_engine_flag() {
-        let cli = Cli::try_parse_from(["yqr", "--engine", "noyalib", "."]).unwrap();
-        assert_eq!(cli.engine.as_deref(), Some("noyalib"));
-    }
-
-    #[test]
     fn parses_normalize_flag() {
-        // `--normalize` opts into the classic pipeline and is independent of
-        // `--engine`.
         let long = Cli::try_parse_from(["yqr", "--normalize", "."]).unwrap();
         assert!(long.normalize);
-        assert_eq!(long.engine, None);
 
         let short = Cli::try_parse_from(["yqr", "-N", "."]).unwrap();
         assert!(short.normalize);
-
-        let with_engine =
-            Cli::try_parse_from(["yqr", "--normalize", "--engine", "noyalib", "."]).unwrap();
-        assert!(with_engine.normalize);
-        assert_eq!(with_engine.engine.as_deref(), Some("noyalib"));
     }
 
     #[test]
@@ -150,5 +126,12 @@ mod tests {
         // behaviour; clap must reject them rather than silently accept.
         assert!(Cli::try_parse_from(["yqr", "--preserve", "."]).is_err());
         assert!(Cli::try_parse_from(["yqr", "-p", "."]).is_err());
+    }
+
+    #[test]
+    fn engine_flag_is_removed() {
+        // Feature f011: `--engine` was removed when yqr settled on noyalib as
+        // its only engine; clap must reject it rather than silently accept.
+        assert!(Cli::try_parse_from(["yqr", "--engine", "noyalib", "."]).is_err());
     }
 }

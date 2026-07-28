@@ -17,9 +17,9 @@
 //!   document, and identity output concatenates the original document slices
 //!   byte-for-byte.
 //!
-//! Backends implement the engine over different YAML libraries; they are
-//! selected at runtime via [`BackendId`] and [`open`]. Backends may be
-//! feature-gated so the default build stays dependency-minimal.
+//! noyalib's lossless CST is yqr's one and only engine. The [`FidelityEngine`]
+//! trait remains as the boundary between the driver and the engine's API
+//! surface, not as a runtime choice point.
 
 // Feature f002 (see specs/features/): fidelity read floor — seam + driver.
 
@@ -172,50 +172,6 @@ pub enum Resolved<'a> {
     Unaddressable(Unaddressable),
 }
 
-/// Stable identifier of a fidelity backend, used by [`open`] and in
-/// diagnostics.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum BackendId {
-    /// noyalib's lossless CST — the default, always-available engine.
-    NoyalibCst,
-    /// skald (elioetibr's YAML 1.2.2 library) — experimental, available only
-    /// when compiled with the `backend-skald` feature.
-    Skald,
-}
-
-impl BackendId {
-    /// Every backend yqr knows about, whether or not it is compiled in.
-    pub const ALL: &'static [BackendId] = &[BackendId::NoyalibCst, BackendId::Skald];
-
-    /// The name used on the command line and in messages.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            BackendId::NoyalibCst => "noyalib",
-            BackendId::Skald => "skald",
-        }
-    }
-
-    /// Look up a backend by its command-line name. This is the single place
-    /// engine names are interpreted, so the CLI, error messages, and the
-    /// [`open`] dispatch cannot drift apart.
-    #[must_use]
-    pub fn parse(name: &str) -> Option<Self> {
-        Self::ALL.iter().copied().find(|b| b.as_str() == name)
-    }
-
-    /// Comma-separated list of all engine names, for error messages.
-    #[must_use]
-    pub fn known_names() -> String {
-        Self::ALL
-            .iter()
-            .map(|b| b.as_str())
-            .collect::<Vec<_>>()
-            .join(", ")
-    }
-}
-
 /// A source-preserving view over one parsed YAML input (read path).
 ///
 /// Implementations pair the verbatim input bytes with a structural span
@@ -223,12 +179,9 @@ impl BackendId {
 /// valid against [`value`](Self::value) never resolves to the wrong bytes —
 /// at worst it resolves to no bytes and the caller falls back visibly.
 ///
-/// The trait is object-safe; yqr selects a backend at startup and drives it
+/// The trait is object-safe; yqr opens the engine at startup and drives it
 /// through `Box<dyn FidelityEngine>`.
 pub trait FidelityEngine {
-    /// Which backend this is.
-    fn backend_id(&self) -> BackendId;
-
     /// The entire original input, byte-for-byte (BOM, CRLF, comments,
     /// `---`/`...` markers, trailing whitespace and all).
     fn source(&self) -> &str;
@@ -263,29 +216,16 @@ pub trait FidelityEngine {
     fn resolve(&self, doc: usize, path: &Path) -> Result<Resolved<'_>>;
 }
 
-/// Parse `input` with the chosen backend, keeping its bytes verbatim.
-///
-/// Experimental backends may be feature-gated; requesting one that is not
-/// compiled into this build is an error that names the missing feature.
+/// Parse `input` with the noyalib engine, keeping its bytes verbatim.
 ///
 /// # Errors
 ///
-/// Returns an error when the backend is unavailable in this build or the input
-/// is not valid YAML for that backend.
-pub fn open(backend: BackendId, input: &str) -> Result<Box<dyn FidelityEngine>> {
-    match backend {
-        BackendId::NoyalibCst => Ok(Box::new(noyalib::NoyalibEngine::open(input)?)),
-        BackendId::Skald => {
-            let _ = input;
-            Err(crate::error::YqrError::io(
-                "engine 'skald' is not available on this branch \
-                 (build the feat/skald-engine branch with --features backend-skald)",
-            ))
-        }
-    }
+/// Returns an error when the input is not valid YAML.
+pub fn open(input: &str) -> Result<Box<dyn FidelityEngine>> {
+    Ok(Box::new(noyalib::NoyalibEngine::open(input)?))
 }
 
-/// Evaluate `filter` over `input` with a fidelity backend and render the
+/// Evaluate `filter` over `input` with the fidelity engine and render the
 /// results, slicing original bytes wherever the result is an untouched node.
 ///
 /// Semantics per result:
@@ -301,11 +241,11 @@ pub fn open(backend: BackendId, input: &str) -> Result<Box<dyn FidelityEngine>> 
 ///
 /// # Errors
 ///
-/// Returns an error when the filter does not parse, the backend rejects the
+/// Returns an error when the filter does not parse, the engine rejects the
 /// input, or evaluation fails.
-pub fn run(backend: BackendId, filter: &str, input: &str, raw: bool) -> Result<String> {
+pub fn run(filter: &str, input: &str, raw: bool) -> Result<String> {
     let ast = crate::parser::parse(filter)?;
-    run_ast(backend, &ast, input, raw)
+    run_ast(&ast, input, raw)
 }
 
 /// Like [`run`], but over an already-compiled read-only [`Ast`], so a caller
@@ -314,9 +254,9 @@ pub fn run(backend: BackendId, filter: &str, input: &str, raw: bool) -> Result<S
 ///
 /// # Errors
 ///
-/// Returns an error when the backend rejects the input or evaluation fails.
-pub fn run_ast(backend: BackendId, ast: &Ast, input: &str, raw: bool) -> Result<String> {
-    let engine = open(backend, input)?;
+/// Returns an error when the engine rejects the input or evaluation fails.
+pub fn run_ast(ast: &Ast, input: &str, raw: bool) -> Result<String> {
+    let engine = open(input)?;
     let mut out = String::new();
 
     for doc in 0..engine.doc_count() {
@@ -385,18 +325,12 @@ mod tests {
     }
 
     #[test]
-    fn noyalib_is_always_available() {
-        assert!(open(BackendId::NoyalibCst, "a: 1\n").is_ok());
+    fn open_accepts_valid_yaml() {
+        assert!(open("a: 1\n").is_ok());
     }
 
     #[test]
-    fn skald_is_recognized_but_unavailable_on_this_branch() {
-        // The engine name resolves (the seam is pluggable), but the backend is
-        // not built on `main` — it lives on `feat/skald-engine`.
-        assert_eq!(BackendId::parse("skald"), Some(BackendId::Skald));
-        match open(BackendId::Skald, "a: 1\n") {
-            Err(err) => assert!(err.to_string().contains("skald")),
-            Ok(_) => panic!("expected skald to be unavailable"),
-        }
+    fn open_rejects_invalid_yaml() {
+        assert!(open("items: [1, 2").is_err());
     }
 }

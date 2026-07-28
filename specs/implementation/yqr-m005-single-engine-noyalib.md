@@ -104,9 +104,16 @@ maturity/process risk (contained by pinning), not a capability ceiling.
 - The fidelity **write/edit tier** (`yqr-m002` §4/§6.2) now targets noyalib
   only; `yqr-b004` (noyalib CST mutation-API gaps) is its driver.
 
-## 6. Engine plurality (resolved)
+## 6. Engine plurality (resolved; seam collapsed in f011)
 
-The `--engine` seam is **kept pluggable** rather than collapsed: `BackendId`
+> **Update (2026-07-28, `yqr-f011`):** the pluggable seam described below was
+> collapsed. `--engine` and `BackendId` are removed, the skald placeholder arm
+> with them — alternate engines are no longer wanted; noyalib is wired
+> directly. The `FidelityEngine`/`FidelityWriter` traits remain as the
+> internal boundary (`yqr-m002`), not as a runtime choice point. The
+> paragraphs below are the historical record of the interim posture.
+
+The `--engine` seam was **kept pluggable** rather than collapsed: `BackendId`
 lists `NoyalibCst` (built-in, the default) and `Skald` (recognized by name).
 "Don't put all eggs in one basket" — **skald** (elioetibr's from-scratch YAML
 1.2.2 library, the rust-yaml successor) is the second candidate engine, wired as

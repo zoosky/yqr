@@ -6,6 +6,19 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Removed
+
+- **The `--engine` flag is gone.** yqr has settled on noyalib as its one and
+  only YAML engine, so there is no backend to select: byte-preserving reads
+  and surgical edits always run on noyalib's lossless CST. `--engine noyalib`
+  now fails argument parsing instead of being accepted as a no-op; drop the
+  flag from any invocation that used it (the behavior is unchanged without
+  it). The experimental `skald` backend is retired with the seam: its name is
+  no longer recognized anywhere.
+- The library API lost `fidelity::BackendId`; `fidelity::open`,
+  `fidelity::run`, `fidelity::run_ast`, and `fidelity::write::apply` no
+  longer take a backend argument.
+
 ### Changed
 
 - The pinned Rust toolchain was updated from 1.97 to 1.97.1 (point release;
