@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785266953735,
+  "lastUpdate": 1785273537910,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -755,6 +755,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 207262,
             "range": "± 10601",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c7d1b225fa07a83d965e4f9ac82350f851f8f643",
+          "message": "feat(f012): yqr validate — YAML correctness checking with compiler-style diagnostics (#43)\n\n* feat(f012): yqr validate — YAML correctness checking with compiler-style diagnostics\n\nyqr's first subcommand closes the editing loop: after a surgical,\nhand-made, or agent-made edit, 'yqr validate [--strict] [FILES]...'\nanswers whether a file is still correct YAML, with diagnostics humans\nand agents can act on.\n\nChecks: every document parses on the noyalib CST, and the parsed\ndocuments must reproduce the input byte-for-byte (the a001 fidelity\ninvariant), so a pass certifies parses AND round-trips losslessly.\n--strict adds duplicate mapping keys via DuplicateKeyPolicy::Error.\n\nDiagnostics are rustc-style on stderr: stable codes (Y001 syntax, Y002\nstream integrity, Y101 duplicate key, Y102 stringified-key collision),\n'--> file:line:col' when the parser reports a location, the offending\nsource line with a caret, and '= help:' suggestions -- unresolved\nmerge-conflict markers get a dedicated hint. Exit codes: 0 all valid,\n1 findings, 5 unreadable input; highest wins, every input checked in\none run. Success is silent. The renderer is hand-rolled over noyalib's\ncore error API; no new dependencies.\n\nTwo spec amendments discovered during implementation (recorded in the\nspec's §3.3): the parser refuses stringified-key collisions outright,\nso Y102 is a default finding, not strict-only; and noyalib exposes no\nkey spans, so Y101/Y102 name the key and document instead of a source\nposition (upgradeable when upstream exposes spans).\n\nCLI: the filter form stays the default via\nargs_conflicts_with_subcommands; the filter positional becomes\nOption-typed with the binary enforcing presence (bare 'yqr' remains a\nusage error, exit 2). 'yqr validate <word>' was a filter parse error\nbefore, so no valid invocation changes meaning.\n\nTests: unit tests with golden renderings, black-box CLI tests for every\ncode and exit path, and a corpus guard requiring every corpus document\nto validate cleanly in both modes. Docs: README section, site callout,\nCHANGELOG. Spec f012 set to Done; tracker updated (6 features Done).\n\n* fix(f012): resolve all 15 code-review findings on the validate command\n\nFalse-valid verdicts eliminated:\n- An empty file list is now a usage error (exit 2), not a silent stdin\n  fallback -- a gate whose glob expands to nothing fails loudly.\n- Stdin ('-') is accepted at most once; a second '-' no longer re-reads\n  an exhausted stream as a vacuously valid empty input.\n- Strict mode now walks noyalib's lossless green tree instead of the\n  value layer's duplicate-key policy: every duplicate mapping key is\n  reported in one run -- nested, flow, quoted respellings, and duplicate\n  '<<' merge keys included (the policy exempted merge keys and stopped\n  at the first offence) -- each with the positions of both occurrences.\n\nContract fixes:\n- Non-UTF-8 input is a coded finding (new Y003, exit 1) pointing one\n  past the valid prefix, instead of an exit-5 environment error.\n- clap's auto 'help' subcommand is disabled: 'yqr help' stays an invalid\n  filter (exit 3) instead of becoming an exit-0 success.\n- A flag typed before 'validate' now gets a usage hint naming the\n  subcommand instead of a baffling filter parse error.\n- The filter positional renders as required <FILTER> again\n  (subcommand_negates_reqs + required), matching the error text.\n\nDiagnostics hardened:\n- Merge-conflict markers are detected anywhere in the file on any syntax\n  error; the diagnostic names the first marker and anchors there when\n  the parser reports no location -- full three-marker conflict blocks\n  now hit the advertised hint, not just a marker on the error line.\n- Every position is derived from the error's byte index through a\n  CR-aware line model (\\r\\n, \\n, lone \\r), fixing wrong line numbers\n  and garbled windows for CR-only files.\n- End-of-input errors clamp their source window to the last line, so a\n  truncated file shows context instead of pointing past the file.\n- Located error variants no longer repeat 'at line L, column C' inside\n  the message; unknown anchors surface noyalib's did-you-mean suggestion\n  as help.\n- Tabs in the offending line are expanded before the caret column is\n  computed, keeping the caret aligned; parse-level Y102 collisions name\n  the affected document of a multi-document stream when unambiguous.\n\nvalidate splits into a directory module (mod/render/scan) under the\n500-line rule. Docs (README, site callout, CHANGELOG) now promise\npositions only where they exist and document Y003, explicit stdin, and\nthe strict guarantees; the spec's §3.1/§3.3/§3.4 record the amendments\nand all acceptance criteria are re-checked against the fixed behavior.\n\nFull local CI mirror passes; every review scenario re-verified against\nthe built binary.",
+          "timestamp": "2026-07-28T23:17:33+02:00",
+          "tree_id": "00e4026e6f8e82dd44c5eb625fb6628f5b8b62cd",
+          "url": "https://github.com/zoosky/yqr/commit/c7d1b225fa07a83d965e4f9ac82350f851f8f643"
+        },
+        "date": 1785273537203,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 505,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5115,
+            "range": "± 41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 257749,
+            "range": "± 1636",
             "unit": "ns/iter"
           }
         ]
