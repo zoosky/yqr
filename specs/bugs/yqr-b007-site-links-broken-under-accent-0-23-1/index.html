@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection - yqr</title>
+    <title>Bug b007 — Website: two internal links break under accent v0.23.1 - yqr</title>
     
     
 
@@ -15,7 +15,7 @@
 <meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b007-site-links-broken-under-accent-0-23-1">
 
 
 
@@ -27,10 +27,10 @@
 
 
 
-<meta property="og:title" content="Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection">
+<meta property="og:title" content="Bug b007 — Website: two internal links break under accent v0.23.1">
 <meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b007-site-links-broken-under-accent-0-23-1">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -40,7 +40,7 @@
 
 
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection">
+<meta name="twitter:title" content="Bug b007 — Website: two internal links break under accent v0.23.1">
 <meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
@@ -87,9 +87,9 @@
   "dateModified": "2026-07-28",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
-  "name": "Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection",
-  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker",
-  "wordCount": 673
+  "name": "Bug b007 — Website: two internal links break under accent v0.23.1",
+  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b007-site-links-broken-under-accent-0-23-1",
+  "wordCount": 369
 }
 </script>
 <script type="application/ld+json">
@@ -117,8 +117,8 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker",
-      "name": "Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection",
+      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b007-site-links-broken-under-accent-0-23-1",
+      "name": "Bug b007 — Website: two internal links break under accent v0.23.1",
       "position": 4
     }
   ]
@@ -787,7 +787,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker"
-                   class="sidebar-link active">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+                   class="sidebar-link">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
               
             
               
@@ -811,7 +811,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b007-site-links-broken-under-accent-0-23-1"
-                   class="sidebar-link">Bug b007 — Website: two internal links break under accent v0.23.1</a>
+                   class="sidebar-link active">Bug b007 — Website: two internal links break under accent v0.23.1</a>
               
             
               
@@ -1614,85 +1614,64 @@
         <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</span>
+    <span aria-current="page">Bug b007 — Website: two internal links break under accent v0.23.1</span>
 </nav>
 
 
-        <h1>Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</h1>
+        <h1>Bug b007 — Website: two internal links break under accent v0.23.1</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Resolved — moot (2026-07-10). The rust-yaml fork <code>RoundTripDocument</code> backend was removed when yqr consolidated on noyalib (<code>yqr-m005</code>), so this fork bug no longer affects yqr. (The upstream fork issue itself is unchanged.)
-<strong>Severity:</strong> Medium — breaks the a001 byte-for-byte identity of <code>--engine rust-yaml</code> for any stream ending in a <code>...</code> document-end marker after a top-level block collection; the default pipeline and other engine inputs are unaffected
-<strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-07-04
-<strong>Affects:</strong> the <code>--engine rust-yaml</code> fidelity read path (<code>yqr-f003</code>); irrelevant to the default pipeline and to <code>--engine noyalib</code>
-<strong>Component:</strong> the rust-yaml fork’s <code>roundtrip::document_boundaries</code> / <code>RoundTripDocument::parse_all</code> (<a href="https://github.com/zoosky/rust-yaml">zoosky/rust-yaml</a> branch <code>feat/roundtrip-document</code>; the rust-yaml#73 substrate)
-<strong>Related:</strong> <code>yqr-f003</code> (backend A), <code>yqr-b001</code> §8 (#73), <code>yqr-m002</code> §6.1 (document-boundary policy)</p>
-<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
-<p>Adversarially reviewing backend A surfaced a document-segmentation bug in the
-fork’s <code>RoundTripDocument::parse_all</code>: a stream that <strong>ends with a <code>...</code>
-document-end marker after a top-level block collection</strong> is rejected with a
-leaked internal error instead of parsing. Because it fails in <code>parse_all</code>, the
-whole stream is rejected before evaluation, so <strong>every</strong> filter (identity and
-projections) aborts — the a001 north-star (<code>yqr --engine rust-yaml '.' f</code> ==
-<code>cat f</code>) is impossible for such a file.</p>
-<pre><code class="language-text">$ printf 'a: 1\n...\n' | yqr --engine rust-yaml '.'
-yqr: io error: failed to parse YAML input: Error at line 1, column 1: \
-internal document accounting mismatch: 2 byte ranges, 1 span trees, 1 values
-$ printf 'a: 1\n...\n' | yqr '.'      # default pipeline: fine
-a: 1
+            <p><strong>Status:</strong> Resolved
+<strong>Severity:</strong> Low
+<strong>Related:</strong> <code>yqr-f010</code> (the Accent CMS website), <code>.github/workflows/pages.yml</code></p>
+<h2 id="1-symptom">1. Symptom<a class="heading-anchor" href="#1-symptom" aria-label="Link to this section"></a></h2>
+<p>Accent CMS v0.23.1 (the serve/build-parity bugfix release,
+<a href="https://github.com/AccentCMS/accent/releases/tag/v0.23.1">https://github.com/AccentCMS/accent/releases/tag/v0.23.1</a>) tightened the
+build-time link checker and aligned static-build media output with serve-time
+behavior. Building the yqr site with it surfaces two broken internal links
+that v0.23.0 let through silently:</p>
+<pre><code>WARN broken link: 404.html -&gt; /docs
+WARN broken link: demo/index.html -&gt; /content-media/demo/yqr-demo.sh
 </code></pre>
-<p>The input is textbook-valid YAML (one block mapping terminated by an explicit
-<code>...</code> marker), which the default pipeline handles.</p>
-<h2 id="2-root-cause">2. Root cause<a class="heading-anchor" href="#2-root-cause" aria-label="Link to this section"></a></h2>
-<p><code>parse_all</code> cross-checks three per-document counts and refuses on any mismatch:</p>
-<pre style="background-color:#2b303b;">
-<span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> boundaries.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() != trees.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() || trees.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() != values.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() {
-</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">return </span><span style="color:#c0c5ce;">Err(Error::parse(</span><span style="color:#65737e;">/* &quot;internal document accounting mismatch: N byte
-</span><span style="color:#65737e;">                                ranges, M span trees, K values&quot; */</span><span style="color:#c0c5ce;">));
-</span><span style="color:#c0c5ce;">}
-</span></pre>
-<p>For <code>a: 1\n...\n</code> the composer yields <strong>1</strong> span tree and <strong>1</strong> value, but
-<code>document_boundaries</code> returns <strong>2</strong> byte ranges: <code>[0, input_len]</code>. The trailing
-<code>...</code> after block content leaves a phantom boundary at EOF (an empty
-<code>[input_len, input_len]</code> range) with no matching tree or value, tripping the
-guard.</p>
-<p>Confirmed specificity (from the review):</p>
+<ol>
+<li><strong>Demo script link.</strong> <code>docs/content/demo/README.md</code> linked
+<code>yqr-demo.sh</code> via the page-local media route
+(<code>/content-media/demo/yqr-demo.sh</code>). Accent refuses to serve script
+extensions (<code>.sh</code>) as media on every route — page-local, bare page-URL
+alias, and the shared media directory alike (verified against <code>accent serve</code> 0.23.1: the sibling <code>.yaml</code> files return 200, the <code>.sh</code> returns
+404). v0.23.1 makes the static build match, so the file is no longer
+emitted into the output and the deployed link would 404.</li>
+<li><strong>404 page navigation.</strong> The vendored theme’s error template
+(<code>docs/themes/default/templates/error/404.html.jinja</code>) linked
+<code>url('/docs')</code> — an upstream-theme leftover; this site has never had a
+<code>/docs</code> section. Live today: the deployed 404 page’s “Documentation”
+link itself 404s.</li>
+</ol>
+<h2 id="2-fix">2. Fix<a class="heading-anchor" href="#2-fix" aria-label="Link to this section"></a></h2>
 <ul>
-<li><strong>Fails</strong> (exit 5): <code>a: 1\n...\n</code> (block map), <code>- a\n- b\n...\n</code> (block seq),
-<code>a: {b: 1}\n...\n</code> (block map with nested value).</li>
-<li><strong>Works</strong> (exit 0): <code>42\n...\n</code>, <code>"hi"\n...\n</code> (scalars); <code>{}\n...\n</code>,
-<code>{a: 1}\n...\n</code> (flow collections); <code>a: 1\n...\n---\nb: 2\n</code> (content follows
-the marker); <code>a: 1\n</code> (no marker).</li>
+<li><code>docs/content/demo/README.md</code>: the <code>yqr-demo.sh</code> table entry links to the
+file on GitHub (<code>blob/main/docs/content/demo/yqr-demo.sh</code>) instead of the
+media route. The two <code>.yaml</code> sample links stay page-local (allowed and
+byte-identical to the repo files).</li>
+<li><code>404.html.jinja</code>: the dead <code>/docs</code> link becomes <code>url('/specs/')</code>,
+labeled “Specs” — the site’s actual documentation tree.</li>
+<li><code>.github/workflows/pages.yml</code>: <code>ACCENT_VERSION</code> bumped <code>v0.23.0 -&gt; v0.23.1</code>, matching the local development binary, and the build step gains
+the new <code>--strict-links</code> flag so any internal link whose target is missing
+from the output fails the build instead of warning. This class of defect
+(works in <code>accent serve</code>, 404 on the deployed site) is now caught in CI on
+every PR touching <code>docs/</code> or <code>specs/</code>.</li>
 </ul>
-<p>The block-vs-flow/scalar asymmetry points at how the block-collection close
-tokens interact with the boundary counter around the <code>...</code> <code>DocumentEnd</code>.</p>
-<h2 id="3-upstream-ask-fork">3. Upstream ask (fork)<a class="heading-anchor" href="#3-upstream-ask-fork" aria-label="Link to this section"></a></h2>
-<p>In <code>roundtrip::document_boundaries</code> (or the reconciliation in <code>parse_all</code>): do
-not emit a boundary for an empty trailing region after a <code>...</code> marker — an
-explicit <code>---</code> starts a new (possibly null) document, but a trailing <code>...</code> only
-closes the current one. The boundary count must agree with the composer’s
-document count for a stream ending in <code>...</code> after a block collection. Add
-<code>a: 1\n...\n</code> and <code>- a\n- b\n...\n</code> to <code>parse_all</code>’s round-trip cases.</p>
-<p>Per <code>yqr-m002</code> §6.1, the last document extends to EOF including trailing trivia,
-so <code>a: 1\n...\n</code> is a single document whose slice is the whole input.</p>
-<h2 id="4-yqr-side-handling-shipped-in-f003">4. yqr-side handling (shipped in f003)<a class="heading-anchor" href="#4-yqr-side-handling-shipped-in-f003" aria-label="Link to this section"></a></h2>
-<ul>
-<li><strong>Documented limitation.</strong> <code>yqr-f003</code> and the README <code>--engine</code> notes record
-that backend A currently rejects a trailing <code>...</code> after a block collection.</li>
-<li><strong>Pinned as a test.</strong> <code>tests/fidelity_engine_rustyaml.rs</code>
-(<code>document_end_marker_after_block_is_a_known_limitation</code>) asserts the current
-error, so a future fork bump that fixes this flips the test and prompts
-turning it into a byte-for-byte identity assertion.</li>
-<li>No adapter work-around is attempted: <code>parse_all</code> fails wholesale, so there is
-no faithful span to recover; consistent with how <code>--engine noyalib</code> errors on
-inputs its parser rejects (<code>yqr-f002</code> §4a).</li>
-</ul>
-<h2 id="5-acceptance-criteria">5. Acceptance criteria<a class="heading-anchor" href="#5-acceptance-criteria" aria-label="Link to this section"></a></h2>
-<p>Resolved when the fork’s <code>parse_all</code> accepts a trailing <code>...</code> after a block
-collection (byte-for-byte), the yqr git dependency is bumped to include the fix,
-and the pinning test is converted to assert <code>yqr --engine rust-yaml '.' f == cat f</code> for <code>a: 1\n...\n</code> and <code>- a\n- b\n...\n</code>.</p>
+<p>Also of note: v0.23.1 ships the upstream fix for the copy-button label
+leaking into copied clipboard text — the vendored theme already carries the
+equivalent local fix in
+<code>docs/themes/default/assets/js/islands/copy-code.js</code>, so no theme change is
+needed.</p>
+<h2 id="3-verification">3. Verification<a class="heading-anchor" href="#3-verification" aria-label="Link to this section"></a></h2>
+<p><code>cd docs &amp;&amp; accent build --clean --strict-links --base-url https://zoosky.github.io/yqr</code> (accent 0.23.1) completes with zero link-check
+warnings; the base_path conformance check passes; <code>output/404.html</code> links to
+the prefixed <code>/yqr/specs/</code>; <code>output/content-media/demo/</code> contains the two
+<code>.yaml</code> samples.</p>
 
         </div>
         </accent-island>
@@ -1704,16 +1683,11 @@ and the pinning test is converted to assert <code>yqr --engine rust-yaml '.' f =
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies" class="nav-prev">
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity" class="nav-prev">
         <span class="nav-label">&larr; Previous</span>
-        <span class="nav-title">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</span>
+        <span class="nav-title">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</span>
     </a>
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</span>
-    </a>
     
 </nav>
 
@@ -1725,23 +1699,15 @@ and the pinning test is converted to assert <code>yqr --engine rust-yaml '.' f =
         <ul>
         
             <li class="toc-level-2">
-                <a href="#1-summary">1. Summary</a>
+                <a href="#1-symptom">1. Symptom</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#2-root-cause">2. Root cause</a>
+                <a href="#2-fix">2. Fix</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#3-upstream-ask-fork">3. Upstream ask (fork)</a>
-            </li>
-        
-            <li class="toc-level-2">
-                <a href="#4-yqr-side-handling-shipped-in-f003">4. yqr-side handling (shipped in f003)</a>
-            </li>
-        
-            <li class="toc-level-2">
-                <a href="#5-acceptance-criteria">5. Acceptance criteria</a>
+                <a href="#3-verification">3. Verification</a>
             </li>
         
         </ul>

@@ -77,19 +77,19 @@
     
     
     
-    <meta name="build-hash" content="4b3bef6403">
+    <meta name="build-hash" content="2a961d40ef">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-07-25",
+  "dateModified": "2026-07-28",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Bug Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 447
+  "wordCount": 519
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -348,8 +351,14 @@
   
     
     
+  
+    
+    
       
       
+      
+        
+        
       
         
         
@@ -479,6 +488,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -665,6 +677,11 @@
       
         
         
+          
+        
+      
+        
+        
       
         
         
@@ -793,6 +810,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b007-site-links-broken-under-accent-0-23-1"
+                   class="sidebar-link">Bug b007 — Website: two internal links break under accent v0.23.1</a>
+              
+            
+              
+              
             
               
               
@@ -882,6 +905,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1090,6 +1116,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1099,6 +1128,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1214,6 +1246,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1407,6 +1442,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -1446,6 +1484,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1591,6 +1632,7 @@ status tracker convention).</p>
 </tbody></table>
 <h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
+<tr><td><a href="/yqr/specs/bugs/yqr-b007-site-links-broken-under-accent-0-23-1">b007</a></td><td>Website: demo-script media link and 404-page <code>/docs</code> link break under accent v0.23.1</td><td>Low</td><td>Resolved — demo script now linked on GitHub (accent refuses <code>.sh</code> as media), 404 page links <code>/specs/</code>; CI pins accent v0.23.1 and builds with <code>--strict-links</code> so missing link targets fail the build</td><td><code>yqr-f010</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b001-roundtrip-discards-whitespace-and-formatting">b001</a></td><td>Round-trip through the default pipeline discards whitespace, comments, and formatting</td><td>High</td><td>Resolved for the default read — byte fidelity is now the <strong>default</strong> (<code>yqr-f009</code>); <code>yqr '.' f</code> is byte-for-byte identical to <code>f</code> via the fidelity engine (<code>yqr-f002</code>). The lossy semantic round trip is now opt-in via <code>--normalize</code> (by design)</td><td><code>yqr-a001</code>, <code>yqr-r001</code>, <code>yqr.f001</code>, <code>yqr-f002</code>, <code>yqr-f009</code>, <code>yqr-m005</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b006-structural-delete-trivia-and-fidelity">b006</a></td><td>Structural delete mishandles comments, blank lines, and same-column sequences</td><td>High</td><td>Resolved — <code>owned_line_span</code> now derives its range from noyalib’s value span, commits via byte-preserving <code>replace_span</code>, and folds a same-indent head comment into the delete; regression tests cover each case</td><td><code>yqr-f007</code>, <code>yqr-b004</code>, <code>yqr-a001</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b005-crossbeam-epoch-advisory-via-criterion">b005</a></td><td><code>cargo audit</code> fails on <code>crossbeam-epoch</code> advisory (RUSTSEC-2026-0204) via <code>criterion</code> dev-dep</td><td>Low</td><td>Resolved — <code>cargo update -p crossbeam-epoch</code> bumped the transitive pin <code>0.9.18 -&gt; 0.9.20</code>; <code>cargo audit</code> exits 0, lockfile-only change</td><td><code>yqr-m001</code></td></tr>
@@ -1599,9 +1641,11 @@ status tracker convention).</p>
 </tbody></table>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total bugs: 6</li>
+<li>Total bugs: 7</li>
 <li>Open: 1 (1 Medium — b004)</li>
-<li>Resolved: 5 (b001 — byte fidelity is now the default read (<code>yqr-f009</code>), closing
+<li>Resolved: 6 (b007 — website links fixed for the accent v0.23.1 media
+policy and link checker, CI now builds with <code>--strict-links</code>;
+b001 — byte fidelity is now the default read (<code>yqr-f009</code>), closing
 the lossy-default round trip; the classic pipeline is now opt-in via
 <code>--normalize</code>;
 b006 — structural-delete trivia/fidelity defects fixed via a
@@ -1661,31 +1705,31 @@ backend, <code>yqr-m005</code>)</li>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-07-25">2026-07-25</time>
+      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
     </li>
     
   </ul>
@@ -1713,10 +1757,10 @@ backend, <code>yqr-m005</code>)</li>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.0 (8d32978)</span>
+        <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-07-25</span>
+        <span>Site last updated: 2026-07-28</span>
         
     </footer>
 
