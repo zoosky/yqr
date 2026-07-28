@@ -57,10 +57,17 @@ express multi-file validation.
 ### 3.1 CLI surface
 
 ```
-yqr validate [FILES]...
+yqr validate [--strict] FILES...
 ```
 
-- No `FILES`, or `-`, reads stdin (rendered as `<stdin>` in diagnostics).
+- Stdin is explicit: `-` (rendered as `<stdin>` in diagnostics), accepted
+  at most once — a second `-` would re-read an exhausted stream as an
+  empty, vacuously valid input. **No files at all is a usage error (exit
+  2), never a silent stdin fallback**: a validation gate whose argument
+  expansion came up empty (`yqr validate $CHANGED_YAML` with nothing
+  changed) must fail loudly, not report "all valid" having checked
+  nothing. (Amended from the draft, which read stdin when files were
+  omitted — the review found the false-green CI hazard.)
 - Multiple files are validated in argument order; validation never
   fail-fasts across files — every input gets a verdict in one run.
 - Success is silent (Unix convention; composable in CI).
@@ -68,10 +75,17 @@ yqr validate [FILES]...
 
 This is yqr's first subcommand. The filter form stays the default: clap gains
 an optional subcommand with `subcommand_negates_reqs` so `yqr validate a.yaml
-b.yaml` parses as the subcommand while `yqr '.a' f.yaml` is untouched. There
-is no ambiguity to inherit: a bare word is not a valid filter (`yqr validate
-x` today is a filter parse error, exit 3), so no currently-working invocation
-changes meaning.
+b.yaml` parses as the subcommand while `yqr '.a' f.yaml` is untouched (and
+the filter still renders as required `<FILTER>` in usage). There is no
+ambiguity to inherit: a bare word is not a valid filter (`yqr validate x`
+today is a filter parse error, exit 3), so no currently-working invocation
+changes meaning. Two guard rails keep that promise honest: clap's
+auto-generated `help` subcommand is **disabled**, so `yqr help` keeps
+failing as an invalid filter instead of becoming an exit-0 success a
+wrapper script would mistake for output; and a flag before the word
+(`yqr -r validate f.yaml`, which commits clap to the filter form) is
+answered with a usage hint naming the subcommand instead of a baffling
+filter parse error.
 
 ### 3.2 What is checked (default mode)
 
@@ -92,22 +106,29 @@ parsers hide:
 
 1. **Duplicate mapping keys** (`a: 1` twice in one mapping, `Y101`). The
    YAML spec requires key uniqueness; parsers resolve last-wins silently,
-   which after a bad edit means silently dropped data. Detection runs the
-   value layer per document with noyalib's `DuplicateKeyPolicy::Error`; the
-   diagnostic names the offending key and, in a multi-document stream, the
-   affected document.
+   which after a bad edit means silently dropped data. Detection walks
+   noyalib's lossless green tree (`Document::syntax()`) directly, so it
+   reports **every** duplicate in one run — nested mappings, flow
+   mappings, quoted respellings of the same key (`a` vs `"a"`), and
+   duplicate `<<` merge keys included — each with the source positions of
+   both occurrences (primary on the repeat, a note on the first). The
+   value layer cannot do any of this: its `DuplicateKeyPolicy::Error`
+   stops at the first offence and exempts merge keys, and by the time a
+   `Value` exists the duplicates are already resolved away.
 
 > **Amended during implementation.** The draft listed stringified-key
 > collisions (`1:` vs `"1":`) as a second strict check. Empirically,
 > noyalib's CST parser refuses collisions outright — no yqr read can
 > process such a file at all — so the finding belongs to the **default**
 > checks and is reported there as `Y102`, with its precise code instead of
-> a generic syntax error. The draft also promised primary and secondary
-> key spans for strict findings; noyalib computes key spans internally but
-> does not expose them (the read-side sibling of the `yqr-b004` §2.2 gap),
-> so `Y101`/`Y102` name the key and document rather than a source
-> position. When upstream exposes key spans, the diagnostics upgrade
-> without a contract change (the position line is already optional).
+> a generic syntax error (in a multi-document stream the affected document
+> is named when it can be identified unambiguously). A first
+> implementation of `Y101` on the value layer's duplicate-key policy was
+> replaced after review: it reported only the first duplicate per document
+> and missed `<<` merge keys entirely. The green-tree walk above has
+> neither limitation and provides the key spans the draft originally
+> promised — hand-rolled, since noyalib computes but does not expose them
+> (the read-side sibling of the `yqr-b004` §2.2 gap).
 
 The strict list is closed for v1; candidates like tab indentation belong to a
 future lint tier, if ever (yamllint's territory — see §5).
@@ -129,38 +150,55 @@ error[Y001]: mapping values are not allowed in this context
 Components and rules:
 
 - **Severity + stable code.** `error[Ynnn]` with a small closed registry:
-  `Y001` syntax error, `Y002` stream-integrity failure, `Y101` duplicate
-  key, `Y102` stringified-key collision. Codes are documented on the site
-  and never renumbered, so scripts may match on them. I/O failures are not
-  coded (plain `error: failed to read "f.yaml": ...`).
+  `Y001` syntax error, `Y002` stream-integrity failure, `Y003` non-UTF-8
+  input, `Y101` duplicate key, `Y102` stringified-key collision. Codes are
+  documented on the site and never renumbered, so scripts may match on
+  them. I/O failures are not coded (plain `error: failed to read "f.yaml":
+  ...`).
 - **Location line** `--> file:line:col`, 1-based — the clickable rustc/cargo
-  convention editors and terminals already linkify.
-- **Source window**: gutter with line numbers, the offending line, and a
-  caret span under the offending bytes. noyalib's core error API provides
-  everything needed — `Error::ParseWithLocation`, `Location` (line, column,
-  byte index), and `CroppedRegion::extract` (a windowed slice of source
-  lines around a location) — with **no new dependency**: the renderer is
-  hand-rolled (matching the `error.rs` posture), and noyalib's optional
+  convention editors and terminals already linkify — whenever a position is
+  known; a handful of parser errors carry none and render a bare
+  `--> file`. Every position is derived from a **byte offset** through
+  yqr's own line model (which counts `\r\n`, `\n`, and lone `\r`, like
+  YAML), so CR-only files get correct line numbers; the parser's own
+  line/column, which ignores lone CR, is never trusted directly.
+- **Source window**: gutter with line numbers, the offending line (tabs
+  expanded so the caret stays aligned), and a caret. End-of-input errors —
+  the parser points one past the last line — clamp to the end of the last
+  line so a truncated file still shows its context. Hand-rolled with **no
+  new dependency** (matching the `error.rs` posture); noyalib's optional
   `miette` feature stays off.
-- **`= help:`** line whenever a concrete fix can be suggested (from
-  noyalib's message or yqr's own mapping for Y101/Y102).
+- **`= help:`** line whenever a concrete fix can be suggested. When a
+  syntax error strikes a file containing merge-conflict markers anywhere
+  (`<<<<<<<`, `=======`, `>>>>>>>` at line start), the help names the
+  first marker and the diagnostic anchors there if the parser gave no
+  location — the parser usually reports a conflict block as an unlocated
+  indentation error, so scanning only the error line would miss the case
+  the feature exists for. An unknown anchor with a close candidate gets a
+  "a similar anchor is declared at line N" help.
 - Per file, syntax reports the first parse error only (YAML error recovery
   is not reliable enough to trust follow-on errors); strict findings may be
   multiple.
+- **Non-UTF-8 input is a finding, not an I/O error** (`Y003`, exit 1):
+  inputs are read as bytes and decoded by the validator, the diagnostic
+  pointing one past the longest valid prefix. A wrongly-encoded file is a
+  content defect its owner must fix — exit 5 stays reserved for
+  environment problems (missing file, permissions).
 
 ### 3.5 Exit codes
 
 | Code | Meaning | Agent action |
 |------|---------|--------------|
 | 0 | every input valid | proceed |
-| 1 | at least one input failed validation (Y001/Y002, or strict findings) | fix the content at the diagnostic's span |
+| 1 | at least one input failed validation (any `Ynnn` finding) | fix the content at the diagnostic's span |
 | 5 | an input could not be read | fix the path/permissions |
 
 Mixed outcomes take the highest applicable code (5 beats 1 beats 0); all
-diagnostics are still printed. Usage errors remain clap's exit 2. The filter
-pipeline's jq-style 3/5 taxonomy is untouched — exit 1 exists only in
-validate mode, following the linter/grep convention that "findings" are
-distinct from "the tool failed".
+diagnostics are still printed. Usage errors are clap's exit 2 — including
+an empty file list and a repeated `-` (§3.1). The filter pipeline's
+jq-style 3/5 taxonomy is untouched — exit 1 exists only in validate mode,
+following the linter/grep convention that "findings" are distinct from
+"the tool failed".
 
 ### 3.6 The editing loop, end to end
 
@@ -171,7 +209,9 @@ yqr validate --strict deploy.yaml         # verdict + actionable diagnostics
 ```
 
 A merge conflict left in a file — the classic agent trap — fails Y001 with
-the `<<<<<<<` line in the source window, named by file, line, and column.
+a help line naming the first `<<<<<<<` marker, anchored at that line even
+when the parser itself reports the breakage as an unlocated indentation
+error elsewhere.
 
 ## 4. Implementation notes
 
@@ -256,34 +296,49 @@ two PRs (paths first, spans second).
 ## 6. Acceptance criteria
 
 - [x] `yqr validate f.yaml` on a valid file prints nothing and exits 0;
-      stdin works both bare (`yqr validate`) and explicit (`yqr validate -`).
+      stdin is explicit (`yqr validate -`), accepted at most once. No
+      inputs at all, or a repeated `-`, is a usage error (exit 2) — never
+      a silent stdin fallback (§3.1 amendment).
 - [x] Invalid YAML exits 1 with a rustc-style diagnostic: `error[Y001]`,
-      `--> file:line:col` (1-based, when the parser reports a location),
-      numbered source window with caret, and `= help:` where a suggestion
-      exists (unresolved merge-conflict markers get a dedicated hint).
+      `--> file:line:col` (1-based, whenever a position is known), numbered
+      source window with caret, and `= help:` where a suggestion exists.
+      End-of-input errors clamp their window to the last line; CR-only
+      files render correct line numbers; tabs keep the caret aligned;
+      located variants never repeat the location inside the message.
+- [x] A file containing merge-conflict markers anywhere fails with a help
+      line naming the first marker, anchored there when the parser reports
+      no location — covering full three-marker conflict blocks, not just a
+      marker on the error line.
 - [x] A stream-integrity failure reports `error[Y002]` and exits 1
       (unreachable through the real parser; pinned by a unit test on the
       check itself).
+- [x] Non-UTF-8 input is a coded finding (`Y003`, exit 1) pointing one past
+      the valid prefix — not an exit-5 environment error.
 - [x] Multiple files: every input is validated in one run, each diagnostic
       names its file, and the exit code is the highest applicable (5 over 1
       over 0).
 - [x] An unreadable input exits 5 with an uncoded error; remaining files are
       still validated.
-- [x] `--strict` reports duplicate keys (`Y101`) with the offending key and
-      document named, exit 1; without `--strict` duplicates pass.
-      Stringified-key collisions (`Y102`) are reported by the **default**
-      checks — the parser refuses them outright (see the §3.3 amendment;
-      key spans are not exposed upstream, so both findings name the key
-      rather than a position).
+- [x] `--strict` reports **every** duplicate key (`Y101`) — nested, flow,
+      quoted respellings, and duplicate `<<` merge keys included — each
+      with the positions of both occurrences, exit 1; without `--strict`
+      duplicates pass. Stringified-key collisions (`Y102`) are reported by
+      the **default** checks — the parser refuses them outright (§3.3
+      amendment) — naming the affected document of a stream when
+      unambiguous.
 - [x] The filter form is behaviorally untouched (flags, exit codes 0/3/5,
-      byte-identical output); `yqr validate <word>` was a filter parse error
-      before f012, so no valid invocation changes meaning. Bare `yqr`
-      remains a usage error (exit 2).
-- [x] Diagnostic codes Y001/Y002/Y101/Y102 are documented in the site docs
-      and README alongside the validate usage (rule: content documentation),
-      with no feature IDs in CLI output or doc comments.
+      byte-identical output, `<FILTER>` still rendered as required in
+      usage); `yqr validate <word>` was a filter parse error before f012,
+      so no valid invocation changes meaning. clap's auto `help`
+      subcommand is disabled (`yqr help` stays an invalid filter, exit 3),
+      bare `yqr` remains a usage error (exit 2), and a flag typed before
+      `validate` gets a usage hint naming the subcommand.
+- [x] Diagnostic codes Y001/Y002/Y003/Y101/Y102 are documented in the site
+      docs and README alongside the validate usage (rule: content
+      documentation), with no feature IDs in CLI output or doc comments,
+      and the docs promise positions only where they exist.
 - [x] Corpus and CLI tests cover every diagnostic code and exit path;
       rendering is pinned by golden tests, and every corpus document must
       validate cleanly in both modes (the no-false-positives guard).
 - [x] No new dependencies (noyalib's `miette` feature stays off; the
-      renderer is hand-rolled).
+      renderer and the duplicate-key green-tree scan are hand-rolled).

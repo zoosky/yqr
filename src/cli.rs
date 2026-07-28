@@ -36,17 +36,25 @@ const LONG_VERSION: &str = concat!(
     about = "A fidelity-first, jq-style CLI for YAML (query and surgically edit, byte-for-byte)",
     long_about = None,
     args_conflicts_with_subcommands = true,
+    subcommand_negates_reqs = true,
+    disable_help_subcommand = true,
 )]
 pub struct Cli {
     /// Subcommand, when the invocation is not the default filter form.
+    ///
+    /// clap's auto-generated `help` subcommand is disabled so the word
+    /// `help` keeps failing as an invalid filter (exit 3) instead of
+    /// silently becoming a success — `validate` is the only word the
+    /// subcommand namespace claims.
     #[command(subcommand)]
     pub command: Option<Command>,
 
     /// The filter to apply, e.g. '.foo.bar', '.items[]', '.[-1]'.
     ///
-    /// Required in the filter form; absent when a subcommand runs. The
-    /// binary enforces presence with a usage error, since clap cannot
-    /// express "required unless a subcommand was given" declaratively.
+    /// Required in the filter form (`subcommand_negates_reqs` lifts the
+    /// requirement when a subcommand runs), so usage renders it as
+    /// `<FILTER>`; the `Option` only models the subcommand case.
+    #[arg(required = true)]
     pub filter: Option<String>,
 
     /// Input YAML file. Reads from stdin when omitted or set to '-'.
@@ -171,11 +179,29 @@ mod tests {
     #[test]
     fn filter_flags_force_the_filter_form() {
         // A filter-form flag before the word `validate` commits to the
-        // filter form: the word parses as the (invalid) filter, not the
-        // subcommand, and fails later at the lexer with exit 3.
+        // filter form: the word parses as the filter, and the binary then
+        // rejects it with a usage hint pointing at the subcommand.
         let cli = Cli::try_parse_from(["yqr", "-r", "validate", "a.yaml"]).unwrap();
         assert!(cli.command.is_none());
         assert_eq!(cli.filter.as_deref(), Some("validate"));
+    }
+
+    #[test]
+    fn help_word_stays_a_filter() {
+        // clap's auto `help` subcommand is disabled: the word parses as a
+        // filter (and fails later at the lexer), preserving the pre-f012
+        // contract that only `validate` is claimed by subcommands.
+        let cli = Cli::try_parse_from(["yqr", "help"]).unwrap();
+        assert!(cli.command.is_none());
+        assert_eq!(cli.filter.as_deref(), Some("help"));
+    }
+
+    #[test]
+    fn bare_invocation_is_a_clap_usage_error() {
+        // With subcommand_negates_reqs the filter stays required in the
+        // filter form, so usage renders `<FILTER>` and clap itself rejects
+        // a bare invocation.
+        assert!(Cli::try_parse_from(["yqr"]).is_err());
     }
 
     #[test]

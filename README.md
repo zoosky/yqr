@@ -207,12 +207,17 @@ whether a file is still correct YAML:
 ```sh
 yqr validate deploy.yaml config.yaml   # silent, exit 0 when every file is valid
 yqr validate --strict deploy.yaml      # also flag duplicate mapping keys
-yqr validate < input.yaml              # stdin works too ('-' is equivalent)
+yqr validate - < input.yaml            # stdin is explicit: '-', at most once
 ```
 
+An empty file list is a usage error (exit 2), never a silent stdin
+fallback — a CI gate whose glob came up empty must fail loudly, not report
+"all valid" over nothing.
+
 Failures are compiler-style diagnostics on stderr, with a stable code, a
-clickable `file:line:column` location, the offending source line, and a
-suggested fix where one exists:
+clickable `file:line:column` location whenever a position is known (most
+failures; a few parser errors carry none), the offending source line, and
+a suggested fix where one exists:
 
 ```text
 error[Y001]: expected a node but found StreamEnd
@@ -230,13 +235,20 @@ reads.
 |--------|----------------------------------------------------------------|------------|
 | `Y001` | The input is not well-formed YAML                              | default    |
 | `Y002` | Parsed documents do not reproduce the input byte-for-byte      | default    |
+| `Y003` | The input bytes are not valid UTF-8                            | default    |
 | `Y101` | Duplicate mapping key (silently last-wins on ordinary reads)   | `--strict` |
 | `Y102` | Distinct keys collide after string conversion (`1:` vs `"1":`) | default    |
 
+`--strict` finds **every** duplicate in one run — nested mappings, flow
+mappings, quoted respellings of the same key, and duplicate `<<` merge keys
+included — each with the positions of both occurrences.
+
 Exit codes are scriptable: `0` when every input is valid, `1` when any input
 has validation findings, `5` when an input cannot be read — the highest
-applicable code wins, and every input is checked in one run. An unresolved
-merge-conflict marker (`<<<<<<<`) gets a dedicated hint.
+applicable code wins, and every input is checked in one run (usage mistakes
+such as no inputs or a repeated `-` exit 2). A file containing unresolved
+merge-conflict markers (`<<<<<<<`) gets a dedicated hint anchored at the
+first marker.
 
 ## Query filters
 

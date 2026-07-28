@@ -22,9 +22,9 @@ fn main() -> ExitCode {
         return run_validate(validate_args);
     }
 
-    // In the filter form clap cannot declare the filter required (that
-    // would break the subcommand form), so its absence is diagnosed here
-    // with a regular usage error.
+    // clap enforces the filter positional in the filter form
+    // (subcommand_negates_reqs lifts it only when a subcommand runs); this
+    // fallback is defensive.
     let Some(filter) = args.filter.clone() else {
         use clap::CommandFactory;
         cli::Cli::command()
@@ -34,6 +34,20 @@ fn main() -> ExitCode {
             )
             .exit();
     };
+
+    // A flag before the word `validate` commits clap to the filter form,
+    // where `validate` is never a valid filter — diagnose the likely
+    // intent instead of surfacing a baffling filter parse error.
+    if filter == "validate" {
+        use clap::CommandFactory;
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::InvalidValue,
+                "'validate' is a subcommand and must come first: \
+                 yqr validate [--strict] [FILES]... (its flags go after it)",
+            )
+            .exit();
+    }
 
     match run(&args, &filter) {
         Ok(output) => {
@@ -108,24 +122,60 @@ fn run(args: &Cli, filter: &str) -> Result<String, YqrError> {
 /// first bad file. Diagnostics go to stderr; stdout stays silent. The exit
 /// code is the worst outcome across all inputs: 0 when everything is valid,
 /// 1 when any input fails validation, 5 when any input cannot be read.
+///
+/// An empty file list is a usage error, not a silent stdin fallback: a
+/// validation gate whose argument expansion came up empty must fail
+/// loudly, never report "all valid" having checked nothing. Stdin is
+/// explicit (`-`) and accepted at most once — a second `-` would re-read
+/// an exhausted stream as an empty (vacuously valid) input.
 // Feature f012.
 fn run_validate(args: &cli::ValidateArgs) -> ExitCode {
-    let inputs: Vec<&str> = if args.files.is_empty() {
-        vec!["-"]
-    } else {
-        args.files.iter().map(String::as_str).collect()
-    };
+    use clap::CommandFactory;
+
+    if args.files.is_empty() {
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::MissingRequiredArgument,
+                "no input files; pass one or more YAML files, or '-' to read stdin",
+            )
+            .exit();
+    }
+    if args.files.iter().filter(|f| *f == "-").count() > 1 {
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::ValueValidation,
+                "stdin ('-') may be given at most once",
+            )
+            .exit();
+    }
 
     let mut worst: u8 = 0;
-    for path in inputs {
+    for path in &args.files {
         let display = if path == "-" { "<stdin>" } else { path };
-        match read_validate_input(path) {
+        match read_validate_bytes(path) {
             Err(message) => {
                 eprintln!("error: {message}");
                 worst = worst.max(5);
             }
-            Ok(source) => {
-                let findings = yqr::validate::check_str(&source, args.strict);
+            Ok(bytes) => {
+                let (source, findings) = match String::from_utf8(bytes) {
+                    Ok(source) => {
+                        let findings = yqr::validate::check_str(&source, args.strict);
+                        (source, findings)
+                    }
+                    // Wrong encoding is a content defect (exit 1 with a
+                    // coded finding), not an unreadable input: the window
+                    // renders from the valid prefix.
+                    Err(err) => {
+                        let valid_up_to = err.utf8_error().valid_up_to();
+                        let mut bytes = err.into_bytes();
+                        bytes.truncate(valid_up_to);
+                        let prefix = String::from_utf8(bytes)
+                            .expect("prefix up to valid_up_to is valid UTF-8");
+                        let findings = vec![yqr::validate::encoding_diagnostic(&prefix)];
+                        (prefix, findings)
+                    }
+                };
                 for diagnostic in &findings {
                     eprint!("{}", yqr::validate::render(diagnostic, display, &source));
                 }
@@ -138,19 +188,21 @@ fn run_validate(args: &cli::ValidateArgs) -> ExitCode {
     ExitCode::from(worst)
 }
 
-/// Read one validate input (`-` means stdin), with an uncoded plain-text
-/// error message on failure — read failures are environment problems, not
-/// validation findings, so they bypass the diagnostic renderer.
+/// Read one validate input's raw bytes (`-` means stdin), with an uncoded
+/// plain-text error message on failure — read failures are environment
+/// problems, not validation findings, so they bypass the diagnostic
+/// renderer. Bytes, not text: encoding problems must reach the validator
+/// as findings instead of failing the read.
 // Feature f012.
-fn read_validate_input(path: &str) -> Result<String, String> {
+fn read_validate_bytes(path: &str) -> Result<Vec<u8>, String> {
     if path == "-" {
-        let mut buf = String::new();
+        let mut buf = Vec::new();
         io::stdin()
-            .read_to_string(&mut buf)
+            .read_to_end(&mut buf)
             .map_err(|e| format!("failed to read stdin: {e}"))?;
         return Ok(buf);
     }
-    std::fs::read_to_string(path).map_err(|e| format!("failed to read {path:?}: {e}"))
+    std::fs::read(path).map_err(|e| format!("failed to read {path:?}: {e}"))
 }
 
 /// Resolve the file path to rewrite for `-i`, rejecting stdin.

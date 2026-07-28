@@ -144,20 +144,25 @@ spec:
       pass certifies more than "parses": the parsed documents must reproduce
       the input byte-for-byte, the same invariant behind yqr's fidelity
       reads. Failures are compiler-style diagnostics with a stable code, a
-      clickable location, and a suggested fix, so humans and agents can act
-      on them:
+      clickable location whenever a position is known, and a suggested fix,
+      so humans and agents can act on them:
       <pre><span class="prompt">$</span> yqr validate deploy.yaml   <span class="filter"># silent, exit 0 when valid</span>
 error[Y001]: expected a node but found StreamEnd
-  --> deploy.yaml:3:1
+  --> deploy.yaml:3:3
   |
 3 | b: [1,
-  | ^</pre>
+  |   ^</pre>
       <code>--strict</code> also flags duplicate mapping keys
       (<code>Y101</code>) &mdash; accepted last-wins by ordinary reads, so a
-      bad edit silently drops data. Keys that collide after string
-      conversion are refused outright (<code>Y102</code>), and an unresolved
-      merge-conflict marker gets a dedicated hint. Exit codes are scriptable:
-      0 all valid, 1 validation findings, 5 an input could not be read.
+      bad edit silently drops data &mdash; reporting every duplicate,
+      <code>&lt;&lt;</code> merge keys included, with the positions of both
+      occurrences. Keys that collide after string conversion are refused
+      outright (<code>Y102</code>), non-UTF-8 input is a coded finding
+      (<code>Y003</code>), and a file containing unresolved merge-conflict
+      markers gets a dedicated hint anchored at the first marker. Exit codes
+      are scriptable: 0 all valid, 1 validation findings, 5 an input could
+      not be read. Stdin is explicit (<code>yqr validate -</code>); an empty
+      file list is a usage error, never a silent "all valid".
     </div>
   </section>
 

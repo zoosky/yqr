@@ -68,16 +68,18 @@ rest deferred) → M2 → f008.
 |---------|-------|--------|
 | [f012](yqr-f012-validate-command.md) | `yqr validate`: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, `--strict`) | Done |
 
-Progress: shipped. Closes the editing loop (edit, then verify): yqr's
-first subcommand parses every document, re-asserts the a001 byte-tiling
-invariant, and reports rustc-style diagnostics (`error[Ynnn]`,
-`--> file:line:col`, source window, help) that humans and agents can act
-on; exit codes 0/1/5, highest wins across inputs. `--strict` adds
-duplicate-key findings (`Y101`); stringified-key collisions turned out to
-be refused by the parser itself and report as `Y102` in the default
-checks (see the spec's §3.3 amendment). Rendering is hand-rolled over
-noyalib's core error API — no new dependencies. The sized schema
-follow-up (`--schema`) stays open in the spec's §5.1.
+Progress: shipped, then hardened by a full-branch code review (15
+confirmed findings, all fixed). yqr's first subcommand parses every
+document, re-asserts the a001 byte-tiling invariant, and reports
+rustc-style diagnostics (`error[Ynnn]`, `--> file:line:col`, source
+window, help) that humans and agents can act on; exit codes 0/1/5,
+highest wins across inputs; stdin explicit (`-`), empty file lists a loud
+usage error. `--strict` walks the lossless green tree and reports every
+duplicate key — merge keys included — with both occurrences' positions;
+collisions report as `Y102` in the default checks, non-UTF-8 input as
+`Y003`. Conflict-marker files are recognized whole-file and anchored at
+the first marker. Rendering is hand-rolled — no new dependencies. The
+sized schema follow-up (`--schema`) stays open in the spec's §5.1.
 
 ## Epic: Project website (f010)
 

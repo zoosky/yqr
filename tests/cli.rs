@@ -178,12 +178,106 @@ fn engine_flag_is_rejected() {
 
 #[test]
 fn validate_valid_stdin_is_silent_and_exits_zero() {
-    for args in [vec!["validate"], vec!["validate", "-"]] {
-        let out = run(&args, "a: 1\nb:\n  - x\n");
-        assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-        assert!(out.stdout.is_empty(), "stdout: {}", out.stdout);
-        assert!(out.stderr.is_empty(), "stderr: {}", out.stderr);
-    }
+    let out = run(&["validate", "-"], "a: 1\nb:\n  - x\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert!(out.stdout.is_empty(), "stdout: {}", out.stdout);
+    assert!(out.stderr.is_empty(), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_without_inputs_is_a_usage_error() {
+    // No silent stdin fallback: a validation gate whose file list came up
+    // empty must fail loudly instead of reporting "all valid" over
+    // nothing (and instead of hanging on an interactive terminal).
+    let out = run(&["validate"], "a: 1\n");
+    assert_eq!(out.status, 2, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("'-'"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_rejects_stdin_twice() {
+    // A second '-' would re-read an exhausted stream as an empty,
+    // vacuously valid input.
+    let out = run(&["validate", "-", "-"], "a: 1\n");
+    assert_eq!(out.status, 2, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("at most once"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_non_utf8_input_is_a_coded_finding() {
+    // Wrong encoding is a content defect (exit 1, Y003), not an
+    // unreadable-input environment error (exit 5).
+    let path = temp_yaml("placeholder");
+    std::fs::write(&path, b"a: 1\nb: \xff\xfe\n").expect("write bytes");
+    let out = run(&["validate", path.to_str().unwrap()], "");
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y003]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("UTF-8"), "stderr: {}", out.stderr);
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn validate_full_conflict_block_is_located_with_help() {
+    // A complete three-marker git conflict parses to an unlocated error;
+    // the diagnostic must still name the marker and anchor at it.
+    let out = run(
+        &["validate", "-"],
+        "a: 1\n<<<<<<< HEAD\nb: 2\n=======\nb: 3\n>>>>>>> feature\n",
+    );
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("merge-conflict"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(out.stderr.contains("<stdin>:"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_strict_reports_every_duplicate_with_positions() {
+    let out = run(&["validate", "--strict", "-"], "a: 1\nb: 2\na: 9\nb: 9\n");
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("\"a\""), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("\"b\""), "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("first occurrence at line 1"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_strict_reports_duplicate_merge_keys() {
+    let out = run(
+        &["validate", "--strict", "-"],
+        "x: &a\n  k: 1\ny: &b\n  k: 2\nz:\n  <<: *a\n  <<: *b\n",
+    );
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("merge key"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn help_word_is_still_a_filter_error() {
+    // clap's auto `help` subcommand is disabled: the word `help` keeps its
+    // pre-f012 meaning (an invalid filter, exit 3) so wrapper scripts
+    // never mistake help text for filter output.
+    let out = run(&["help"], "a: 1\n");
+    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
+    assert!(out.stdout.is_empty(), "stdout: {}", out.stdout);
+}
+
+#[test]
+fn flag_before_validate_gets_a_usage_hint() {
+    // `-r` commits clap to the filter form; the binary recognizes the
+    // stranded subcommand word and explains, instead of a bare filter
+    // parse error.
+    let out = run(&["-r", "validate", "a.yaml"], "");
+    assert_eq!(out.status, 2, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("subcommand"), "stderr: {}", out.stderr);
 }
 
 #[test]
@@ -193,7 +287,7 @@ fn validate_invalid_yaml_exits_one_with_located_diagnostic() {
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
     assert!(out.stdout.is_empty(), "stdout: {}", out.stdout);
     assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
-    let location = format!("--> {}:3:1", path.display());
+    let location = format!("--> {}:3:3", path.display());
     assert!(out.stderr.contains(&location), "stderr: {}", out.stderr);
     assert!(out.stderr.contains("3 | b: [1,"), "stderr: {}", out.stderr);
     let _ = std::fs::remove_file(&path);
@@ -228,10 +322,10 @@ fn validate_unreadable_file_exits_five_and_checks_the_rest() {
 #[test]
 fn validate_duplicate_key_needs_strict() {
     let dup = "a: 1\nb: 2\na: 3\n";
-    let default = run(&["validate"], dup);
+    let default = run(&["validate", "-"], dup);
     assert_eq!(default.status, 0, "stderr: {}", default.stderr);
 
-    let strict = run(&["validate", "--strict"], dup);
+    let strict = run(&["validate", "--strict", "-"], dup);
     assert_eq!(strict.status, 1, "stderr: {}", strict.stderr);
     assert!(
         strict.stderr.contains("error[Y101]") && strict.stderr.contains("\"a\""),
@@ -249,7 +343,7 @@ fn validate_duplicate_key_needs_strict() {
 fn validate_key_collision_is_reported_by_default() {
     // The parser refuses stringified-key collisions outright, so the finding
     // does not need --strict.
-    let out = run(&["validate"], "1: a\n\"1\": b\n");
+    let out = run(&["validate", "-"], "1: a\n\"1\": b\n");
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
     assert!(out.stderr.contains("error[Y102]"), "stderr: {}", out.stderr);
 }
@@ -276,7 +370,7 @@ fn validate_reports_every_file_in_one_run() {
 
 #[test]
 fn validate_merge_conflict_marker_gets_help() {
-    let out = run(&["validate"], "a: 1\n<<<<<<< HEAD\nb: 2\n");
+    let out = run(&["validate", "-"], "a: 1\n<<<<<<< HEAD\nb: 2\n");
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
     assert!(
         out.stderr.contains("merge-conflict"),
