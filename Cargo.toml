@@ -36,8 +36,8 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.14 release. See research r002 and bug b002.
-noyalib = "0.0.14"
+# crates.io 0.0.17 release. See research r002 and bug b002.
+noyalib = "0.0.17"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
