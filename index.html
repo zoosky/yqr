@@ -796,8 +796,8 @@ spec:
       Byte-preserving reads are powered by noyalib's lossless CST &mdash;
       yqr's one and only YAML engine.
       See the <a href="https://github.com/zoosky/yqr/tree/main/docs/content/demo">runnable demo</a>
-      for a seven-step walkthrough of navigation, iteration, pipes, raw output,
-      and fidelity mode.
+      for an eight-step walkthrough of navigation, iteration, pipes, raw output,
+      fidelity mode, and validation.
     </div>
 
     <!-- Feature f006: write tier v1 (value assignment + in-place edits) -->
@@ -832,8 +832,13 @@ spec:
       the input byte-for-byte, the same invariant behind yqr's fidelity
       reads. Failures are compiler-style diagnostics with a stable code, a
       clickable location whenever a position is known, and a suggested fix,
-      so humans and agents can act on them:
-      <pre><span class="prompt">$</span> yqr validate deploy.yaml   <span class="filter"># silent, exit 0 when valid</span>
+      so humans and agents can act on them. Edit, then verify:
+      <pre><span class="prompt">$</span> yqr -i <span class="filter">'.spec.replicas = 5'</span> deploy.yaml   <span class="filter"># edit</span>
+<span class="prompt">$</span> yqr validate --strict deploy.yaml        <span class="filter"># verify -- silent, exit 0</span></pre>
+      When the file is not correct YAML &mdash; a hand edit gone wrong, a
+      half-resolved merge, a truncated write &mdash; the verdict names the
+      spot:
+      <pre><span class="prompt">$</span> yqr validate deploy.yaml
 error[Y001]: expected a node but found StreamEnd
   --> deploy.yaml:3:3
   |
@@ -880,6 +885,15 @@ error[Y001]: expected a node but found StreamEnd
           <p class="note">Init container images when the pod has any &mdash;
             the trailing <code class="mono">?</code> keeps pods with none
             from erroring the pipeline.</p>
+        </div>
+
+        <div class="recipe">
+          <pre class="cmd"><span class="prompt">$</span> yqr validate --strict manifests/*.yaml</pre>
+          <p class="note">A gate before <code class="mono">kubectl apply</code>:
+            every manifest must parse, round-trip byte-for-byte, and carry no
+            duplicate keys. Exit 1 with a located diagnostic if not &mdash; and
+            an empty file list is a loud usage error, so a glob that matches
+            nothing never passes as &ldquo;all valid&rdquo;.</p>
         </div>
       </div>
 

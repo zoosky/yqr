@@ -90,7 +90,7 @@
   "inLanguage": "en",
   "name": "yqr Demo",
   "url": "https://zoosky.github.io/yqr/demo",
-  "wordCount": 211
+  "wordCount": 264
 }
 </script>
 <script type="application/ld+json">
@@ -322,7 +322,7 @@
 works from any working directory and reads the sample files in place.</p>
 <h2 id="what-s-in-here">What’s in here<a class="heading-anchor" href="#what-s-in-here" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>File</th><th>Role</th></tr></thead><tbody>
-<tr><td><a href="https://github.com/zoosky/yqr/blob/main/docs/content/demo/yqr-demo.sh"><code>yqr-demo.sh</code></a></td><td>The narrated walkthrough (seven sections, each a real query). Linked on GitHub – accent does not serve script files as page media.</td></tr>
+<tr><td><a href="https://github.com/zoosky/yqr/blob/main/docs/content/demo/yqr-demo.sh"><code>yqr-demo.sh</code></a></td><td>The narrated walkthrough (eight sections, each a real command). Linked on GitHub – accent does not serve script files as page media.</td></tr>
 <tr><td><a href="/yqr/content-media/demo/deploy.yaml"><code>deploy.yaml</code></a></td><td>A Kubernetes Deployment – the input for navigation &amp; iteration.</td></tr>
 <tr><td><a href="/yqr/content-media/demo/config.yaml"><code>config.yaml</code></a></td><td>A hand-commented config – the input for the fidelity engine.</td></tr>
 </tbody></table>
@@ -335,6 +335,7 @@ works from any working directory and reads the sample files in place.</p>
 <li>Reads from stdin – pipe YAML straight in.</li>
 <li>Fidelity by default – <code>yqr '.'</code> reproduces the input byte-for-byte, comments and all, with no flag. <code>--normalize</code> opts into the classic re-serializing pipeline.</li>
 <li>jq-style exit codes – <code>3</code> for parse errors, <code>5</code> for runtime errors, for scriptable error handling.</li>
+<li>Validate after editing – <code>yqr validate</code> edits a copy in place, then confirms the file is still correct YAML (silent, exit 0). Break it and the verdict is a compiler-style diagnostic with a stable code, the offending line, and a caret; <code>--strict</code> additionally catches a duplicate key, which ordinary reads accept silently.</li>
 </ol>
 
                 </div>
