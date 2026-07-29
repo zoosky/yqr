@@ -10,7 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Open (upstream noyalib 0.0.17 — CST edit API unchanged since 0.0.14; the write tier's structural edits `yqr-f007`; the value-write tier `yqr-f006` avoids these gaps) | `yqr-b002`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007` |
+| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Open — reported upstream as umbrella issue noyalib#221 (2026-07-29), key-rename fix contributed as noyalib#222 (upstream noyalib 0.0.17 — CST edit API unchanged since 0.0.14; the write tier's structural edits `yqr-f007`; the value-write tier `yqr-f006` avoids these gaps) | `yqr-b002`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007` |
 
 ## Resolved
 
