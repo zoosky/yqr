@@ -74,4 +74,33 @@ printf '%s$ echo '\''x: 1'\'' | yqr '\''.x.y'\''  %s# index a number -> runtime 
 if echo 'x: 1' | yqr '.x.y'; then :; else printf '%s-> exit %s%s\n' "$dim" "$?" "$reset"; fi
 echo
 
-printf '%sThat is yqr: jq ergonomics, YAML-native, with a byte-exact fidelity mode.%s\n' "$bold" "$reset"
+section "8. Validate after editing -- a verdict humans and agents can act on"
+# Work on a copy in a scratch directory, never the sample file itself, so
+# re-running the demo is idempotent and leaves nothing behind. Running from
+# that directory keeps the paths in the diagnostics identical to the
+# commands printed above them.
+WORKDIR="$(mktemp -d -t yqr-demo.XXXXXX)"
+trap 'rm -rf "$WORKDIR"' EXIT
+cp "$CONFIG" "$WORKDIR/config.yaml"
+cd "$WORKDIR"
+printf '%s# Edit in place, then ask whether the file is still correct YAML:%s\n' "$dim" "$reset"
+printf '%s$ yqr -i %s config.yaml%s\n' "$green" "'.replicas = 5'" "$reset"
+yqr -i '.replicas = 5' config.yaml
+printf '%s$ yqr validate --strict config.yaml%s\n' "$green" "$reset"
+if yqr validate --strict config.yaml; then
+  printf '%sVALID -- exit 0, silent. A pass also proves the file still\n' "$green$bold"
+  printf 'round-trips byte-for-byte, not merely that it parses.%s\n\n' "$reset"
+fi
+printf '%s# Now break it the way a careless edit does:%s\n' "$dim" "$reset"
+printf 'ports: [8080,\n' >> config.yaml
+printf '%s$ yqr validate config.yaml%s\n' "$green" "$reset"
+if yqr validate config.yaml; then :; else printf '%s-> exit %s -- coded, located, with the offending line.%s\n' "$dim" "$?" "$reset"; fi
+echo
+printf '%s# --strict also catches a duplicate key, which ordinary reads accept\n' "$dim"
+printf '# silently (last one wins -- a bad edit quietly drops data):%s\n' "$reset"
+cp "$CONFIG" config.yaml; printf 'replicas: 9\n' >> config.yaml
+printf '%s$ yqr validate --strict config.yaml%s\n' "$green" "$reset"
+if yqr validate --strict config.yaml; then :; else printf '%s-> exit %s%s\n' "$dim" "$?" "$reset"; fi
+echo
+
+printf '%sThat is yqr: jq ergonomics, YAML-native, with a byte-exact fidelity mode\nand a validate pass that tells you when an edit went wrong.%s\n' "$bold" "$reset"
