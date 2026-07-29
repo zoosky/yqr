@@ -273,7 +273,8 @@ playbooks, OpenAPI specs, alerting rules, app config), plus the full
 browsable spec tree — lives at
 **[zoosky.github.io/yqr](https://zoosky.github.io/yqr/)**.
 
-It is an [Accent CMS](https://github.com/AccentCMS/accent) site built from
+It is an [Accent CMS](https://accentcms.dev) site — a single-binary markdown
+CMS ([source](https://github.com/AccentCMS/accent)) — built from
 [`docs/`](docs/) with [`specs/`](specs/) mounted at `/specs`, deployed by the
 `Website` workflow on every push to `main`. Local preview:
 `cd docs && accent serve`.
