@@ -84,12 +84,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-07-28",
+  "dateModified": "2026-07-29",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps",
-  "wordCount": 1199
+  "wordCount": 1314
 }
 </script>
 <script type="application/ld+json">
@@ -1709,12 +1709,19 @@ present as of <strong>0.0.17</strong> (yqr’s current pin): the v0.0.14…v0.0.
 touches no <code>cst/</code> source file, so the mutation surface is unchanged
 (0.0.15 was loader-parity + coverage hardening, 0.0.16 a build fix / MSRV
 1.86 / dependency refresh, 0.0.17 a no-change lockstep republish). yqr’s fidelity write/edit tier is not yet built (<code>yqr-m002</code> §4/§6.2, <code>yqr-f002</code> §5), so these do not block current code, but they constrain the automatic-editing roadmap. Every gap has the same fallback: raw <code>Document::replace_span(start, end, repl)</code> byte splicing.
+<strong>Reported upstream (2026-07-29):</strong> umbrella issue
+<a href="https://github.com/sebastienrousseau/noyalib/issues/221">noyalib#221</a>
+covers all five gaps; the §2.2 key-rename fix is contributed as
+<a href="https://github.com/sebastienrousseau/noyalib/pull/222">noyalib#222</a>
+(<code>Document::rename_key</code>, style-matched quoting, sibling-duplicate refusal,
+re-parse + typed-value oracle guard with rollback, 22 tests). The earlier
+note here that issues are disabled upstream is stale — they are enabled.
 <strong>Severity:</strong> Medium — roadmap-gating for yqr’s core goal (surgical editing of YAML: values, keys, structures, comments). No current code path depends on these (the fidelity engines are read-only today, <code>yqr-m002</code> §9), and each has a raw-<code>replace_span</code> workaround — but that workaround forfeits the indent/quote synthesis and the “reject if the result re-parses differently” guard that the first-class mutators provide.
 <strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-07-11
+<strong>Last updated:</strong> 2026-07-29
 <strong>Affects:</strong> the planned fidelity write/edit tier (<code>yqr-m002</code> §4/§6.2, <code>yqr-f002</code> §5). Irrelevant to the read path and the default pipeline.
 <strong>Component:</strong> noyalib 0.0.14 (unchanged through 0.0.17) — <code>cst::Document</code> (<code>document.rs</code>), <code>cst::Entry</code> (<code>entry.rs</code>), <code>cst::annotated</code> (<code>annotated.rs</code>)
-<strong>Related:</strong> <code>yqr-b002</code> (noyalib CST span/key-model deficiencies — resolved in 0.0.14), <code>yqr-r002</code> (noyalib fidelity evaluation), <code>yqr-m002</code> §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix — issues are disabled upstream).</p>
+<strong>Related:</strong> <code>yqr-b002</code> (noyalib CST span/key-model deficiencies — resolved in 0.0.14), <code>yqr-r002</code> (noyalib fidelity evaluation), <code>yqr-m002</code> §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue), noyalib#222 (rename_key PR).</p>
 <h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
 <p>noyalib 0.0.14 already provides first-class, re-parse-guarded mutators for the
 <strong>common</strong> surgical edits, and preserves unedited bytes via <code>Arc</code> structural
@@ -1759,6 +1766,13 @@ API, yqr re-derives key byte ranges and owns the quoting/escaping the mutators
 would otherwise handle.</p>
 <p><strong>Upstream ask:</strong> <code>Document::rename_key(path, new_key)</code> that resolves the key
 token, applies quoting as needed, and preserves the <code>:</code> and the value.</p>
+<p><strong>Upstream status:</strong> contributed as
+<a href="https://github.com/sebastienrousseau/noyalib/pull/222">noyalib#222</a> —
+implements exactly this ask (style-matched quoting via the <code>set_value</code>
+helpers, sibling-duplicate refusal, eager re-parse + typed-value oracle
+guard with snapshot rollback; explicit <code>? key</code> supported, flow mappings a
+follow-up), reusing the key spans the <code>remove</code> resolver already computes.
+This gap closes when the PR merges and yqr’s pin picks it up.</p>
 <h3 id="2-3-no-sequence-reorder-move-swap">2.3 No sequence reorder / move / swap<a class="heading-anchor" href="#2-3-no-sequence-reorder-move-swap" aria-label="Link to this section"></a></h3>
 <p><code>Document</code> can append/insert items (<code>push_back</code>, <code>insert_after</code>) but cannot
 reorder them — there is no reorder / move / swap method (confirmed absent across
@@ -1907,31 +1921,31 @@ automatic-editing goal.</p>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
+      <time class="recent-docs-date" datetime="2026-07-29">2026-07-29</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
+      <time class="recent-docs-date" datetime="2026-07-29">2026-07-29</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
+      <time class="recent-docs-date" datetime="2026-07-29">2026-07-29</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
+      <time class="recent-docs-date" datetime="2026-07-29">2026-07-29</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-07-28">2026-07-28</time>
+      <time class="recent-docs-date" datetime="2026-07-29">2026-07-29</time>
     </li>
     
   </ul>
@@ -1962,7 +1976,7 @@ automatic-editing goal.</p>
         <span>Powered by <a href="https://github.com/AccentCMS/accent">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-07-28</span>
+        <span>Site last updated: 2026-07-29</span>
         
     </footer>
 

@@ -234,7 +234,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Open (upstream noyalib 0.0.17 — CST edit API unchanged since 0.0.14; the write tier's structural edits `yqr-f007`; the value-write tier `yqr-f006` avoids these gaps) | `yqr-b002`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007` |
+| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Open — reported upstream as umbrella issue noyalib#221 (2026-07-29), key-rename fix contributed as noyalib#222 (upstream noyalib 0.0.17 — CST edit API unchanged since 0.0.14; the write tier's structural edits `yqr-f007`; the value-write tier `yqr-f006` avoids these gaps) | `yqr-b002`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007` |
 
 ## Resolved
 
@@ -1095,12 +1095,19 @@ present as of **0.0.17** (yqr's current pin): the v0.0.14...v0.0.17 diff
 touches no `cst/` source file, so the mutation surface is unchanged
 (0.0.15 was loader-parity + coverage hardening, 0.0.16 a build fix / MSRV
 1.86 / dependency refresh, 0.0.17 a no-change lockstep republish). yqr's fidelity write/edit tier is not yet built (`yqr-m002` §4/§6.2, `yqr-f002` §5), so these do not block current code, but they constrain the automatic-editing roadmap. Every gap has the same fallback: raw `Document::replace_span(start, end, repl)` byte splicing.
+**Reported upstream (2026-07-29):** umbrella issue
+[noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221)
+covers all five gaps; the §2.2 key-rename fix is contributed as
+[noyalib#222](https://github.com/sebastienrousseau/noyalib/pull/222)
+(`Document::rename_key`, style-matched quoting, sibling-duplicate refusal,
+re-parse + typed-value oracle guard with rollback, 22 tests). The earlier
+note here that issues are disabled upstream is stale — they are enabled.
 **Severity:** Medium — roadmap-gating for yqr's core goal (surgical editing of YAML: values, keys, structures, comments). No current code path depends on these (the fidelity engines are read-only today, `yqr-m002` §9), and each has a raw-`replace_span` workaround — but that workaround forfeits the indent/quote synthesis and the "reject if the result re-parses differently" guard that the first-class mutators provide.
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-11
+**Last updated:** 2026-07-29
 **Affects:** the planned fidelity write/edit tier (`yqr-m002` §4/§6.2, `yqr-f002` §5). Irrelevant to the read path and the default pipeline.
 **Component:** noyalib 0.0.14 (unchanged through 0.0.17) — `cst::Document` (`document.rs`), `cst::Entry` (`entry.rs`), `cst::annotated` (`annotated.rs`)
-**Related:** `yqr-b002` (noyalib CST span/key-model deficiencies — resolved in 0.0.14), `yqr-r002` (noyalib fidelity evaluation), `yqr-m002` §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix — issues are disabled upstream).
+**Related:** `yqr-b002` (noyalib CST span/key-model deficiencies — resolved in 0.0.14), `yqr-r002` (noyalib fidelity evaluation), `yqr-m002` §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue), noyalib#222 (rename_key PR).
 
 ## 1. Summary
 
@@ -1157,6 +1164,14 @@ would otherwise handle.
 
 **Upstream ask:** `Document::rename_key(path, new_key)` that resolves the key
 token, applies quoting as needed, and preserves the `:` and the value.
+
+**Upstream status:** contributed as
+[noyalib#222](https://github.com/sebastienrousseau/noyalib/pull/222) —
+implements exactly this ask (style-matched quoting via the `set_value`
+helpers, sibling-duplicate refusal, eager re-parse + typed-value oracle
+guard with snapshot rollback; explicit `? key` supported, flow mappings a
+follow-up), reusing the key spans the `remove` resolver already computes.
+This gap closes when the PR merges and yqr's pin picks it up.
 
 ### 2.3 No sequence reorder / move / swap
 
