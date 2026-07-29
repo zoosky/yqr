@@ -6,6 +6,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-29
+
+Verification joins the editing loop: `yqr validate` answers whether a file is
+still correct YAML after an edit -- surgical, hand-made, or agent-made -- with
+compiler-style diagnostics a human or an agent can act on. In the same release
+yqr settles on noyalib as its one and only YAML engine, so the `--engine` flag
+and the runtime backend seam behind it are gone.
+
 ### Added
 
 - **`yqr validate [--strict] FILES...` -- YAML correctness checking with
@@ -49,6 +57,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- The YAML engine was upgraded from noyalib 0.0.14 to **0.0.17** (loader-parity
+  fixes and a key-collision guard in 0.0.15, a build fix and MSRV 1.86 in
+  0.0.16, a lockstep republish in 0.0.17). The CST edit API is unchanged, so
+  the mutation-surface gaps yqr tracks upstream still stand.
+- `clap` was upgraded from 4.6.1 to 4.6.4, and the remaining 29 transitive
+  dependencies were refreshed (serde 1.0.229, serde_json 1.0.151, regex
+  1.13.1, libc 0.2.189, zerocopy 0.8.55, and friends). `cargo audit` reports
+  no advisories across the resulting 94-crate graph.
 - The pinned Rust toolchain was updated from 1.97 to 1.97.1 (point release;
   no MSRV change -- `rust-version` stays 1.97).
 
