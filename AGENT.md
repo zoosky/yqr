@@ -362,37 +362,35 @@ cargo +nightly install cargo-doc-md
 
 The following should pass in CI:
 
-```yaml
-bash .github/scripts/local-ci.sh   # fmt, clippy, build, test, bench compile, doc
+```bash
+bash .github/scripts/local-ci.sh   # fmt, clippy, build, test (x2), bench compile, doc, audit
 ```
 
 ## GitHub Actions Workflows
 
 This project uses automated CI/CD pipelines to maintain code quality, especially important for multi-agent development where multiple AGENT instances may be working concurrently.
 
+There are exactly three workflows: `ci.yml`, `benchmark.yml`, and
+`pages.yml`. `specs/implementation/yqr-m001-ci-release-process.md` is the
+source of truth for all of them and for the release process; the summary
+below must stay in sync with it.
+
 ### CI Pipeline (`.github/workflows/ci.yml`)
 
-**Triggers**: All pull requests and pushes to `main`
+**Triggers**: pushes to any branch and pull requests, both filtered to
+Rust-relevant paths (`**/*.rs`, `**/Cargo.toml`, `Cargo.lock`,
+`rust-toolchain.toml`, and `ci.yml` itself) via GitHub's native
+`on.<event>.paths`. Markdown/spec-only changes skip CI entirely — such PRs
+show **no** `build · test · lint` check rather than a green one.
 
-**Job sequence** — security runs first and gates all other jobs:
+**Runner**: `ubuntu-latest`. There is no self-hosted runner.
 
-```
-security ──┐
-           ├── check (if Rust files changed)
-changes  ──┘
-           └── editions (if Rust files changed)
-```
-
-**Runner policy**:
-
-| Event | `security` + `changes` | `check`  |
-|-------|------------------------|----------------------|
-| Pull request | `[self-hosted, linux, x64, rust]` | `[self-hosted, linux, x64, rust]` |
-| Push to main | `ubuntu-latest` | `[self-hosted, linux, x64, rust]` |
-
-All jobs on PRs run on the self-hosted LAN runner to avoid GitHub-hosted costs.
-
-See `/specs/implementation/yqr-m001-ci-release-process.md` for full details.
+**Job**: one job, `build · test · lint`, on the pinned 1.97.1 toolchain:
+`cargo fmt --all -- --check`, `cargo clippy --all-targets --all-features -D
+warnings`, `cargo build --all-targets --locked`, `cargo test --all-targets
+--locked`, then the same test run with `--all-features`. (The two test
+passes are equivalent today — yqr has no `[features]` section since
+`yqr-m005`/`yqr-f011` — and are kept as a guard for the day one returns.)
 
 ### Continuous Benchmarking (`.github/workflows/benchmark.yml`)
 
@@ -400,81 +398,71 @@ See `/specs/implementation/yqr-m001-ci-release-process.md` for full details.
 
 **What it does**:
 
-- Runs the 8 regression-gated Criterion benchmark suites (admin, cache, content, diagrams, e2e, markdown, media, template) with `--output-format bencher` on the self-hosted runner
-- Stores results in `gh-pages` branch as baseline via `benchmark-action/github-action-benchmark@v1`
-- Alerts on >30% regressions against the stored baseline
+- Runs `cargo bench --bench eval --locked -- --output-format bencher` on
+  `ubuntu-latest`. Only the `eval` target is tracked over time; the
+  `corpus_bench` target is not.
+- Stores results on the `gh-pages` branch (served at `/dev/bench`) via
+  `benchmark-action/github-action-benchmark@v1`
+- Comments on a commit when a benchmark regresses more than 30%
+  (`alert-threshold: 130%`)
+
+### Website (`.github/workflows/pages.yml`)
+
+Builds the Accent CMS site from `docs/` with `specs/` mounted at `/specs`
+and deploys it to `gh-pages`, preserving the benchmark dashboard under
+`dev/`. Pull requests build and verify without deploying. See `yqr-f010`.
 
 ### Release Process
 
-Releases are triggered by pushing a semver tag. The full checklist:
+Releases are **manual**: no workflow reacts to tags, so pushing a tag builds
+nothing and attaches no binaries. Full checklist and rationale in
+`yqr-m001` §3; the short form:
 
 ```bash
-# 1. Update CHANGELOG.md — add [X.Y.Z] - YYYY-MM-DD section
+# 1. CHANGELOG.md: [Unreleased] becomes [X.Y.Z] - YYYY-MM-DD
 # 2. Bump version in Cargo.toml
 # 3. cargo check  (updates Cargo.lock)
+# 4. bash .github/scripts/local-ci.sh
 git add CHANGELOG.md Cargo.toml Cargo.lock
 git commit -m "chore: release vX.Y.Z"
+# Ground rule 1 applies — this reaches main through a PR.
+
+# After the PR merges, from an up-to-date main:
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push && git push origin vX.Y.Z
-gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
+git push origin vX.Y.Z
+gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <changelog-section>
+cargo publish   # see yqr-m004
 ```
 
-### AGENT PR Review
-
-**Triggers**: When PRs are opened, updated, or reopened
-
-**What it does**:
-
-- Automatically reviews pull requests using agent Sonnet 4.5
-- Reads this agent.md file to understand project guidelines
-- Analyzes the PR diff for:
-  - Summary of changes
-  - Code quality assessment
-  - Potential bugs, performance issues, or security concerns
-  - Suggestions for improvement
-  - Recommendation (approve/request changes/reject)
-- Posts detailed review as a PR comment
-- Handles large PRs (>100KB) gracefully with a warning
-
-**Setup Required**:
-The agent PR review workflow requires an Anthropic API key configured as a GitHub secret:
-
-1. Go to repository **Settings → Secrets and variables → Actions**
-2. Add a new secret:
-   - Name: `ANTHROPIC_API_KEY`
-   - Value: Your Anthropic API key from <https://console.anthropic.com/>
-
-**For Multi-Agent Development**:
-
-- Each PR gets automatically reviewed by the agent, ensuring consistency across agents
-- CI must pass before merging - all agents' code must meet the same quality standards
-- The automated review catches issues early, reducing back-and-forth
-- PR reviews provide learning feedback for future the agent instances
+Pre-1.0, a breaking change to **either** the CLI or the library API bumps
+the minor. `cargo publish` is irreversible (yank yes, unpublish never), so
+it is a separately authorized step — never inferred from an instruction to
+"cut the release".
 
 ### Working with the Pipelines
 
 **Before creating a PR**:
 
-- Run the full local CI mirror to catch all edition-specific failures before pushing:
+- Run the full local CI mirror before pushing:
 
   ```bash
   bash .github/scripts/local-ci.sh
   ```
 
-- **CRITICAL**: `cargo clippy -- -D warnings` alone is not sufficient. It only runs with the default (all-features) profile. Unused imports inside `#[cfg(feature = "...")]` blocks only show up when that feature is disabled. Always run all three profiles.
-- **Docs/specs-only PRs**: CI and benchmarks auto-skip when only `.md` or spec files change (path filtering via `dorny/paths-filter`). No need to run `cargo` checks for markdown-only changes
+- It is a superset of `ci.yml`: it adds `cargo bench --no-run`, `cargo doc
+  --no-deps`, and `cargo audit`. The bench compile matters — `cargo test`
+  never builds bench targets, so a bench broken by a refactor surfaces only
+  here or on `main`.
+- **Docs/specs-only PRs**: CI and benchmarks skip when no Rust-relevant path
+  changes, so those PRs show no CI check at all. No `cargo` run is needed
+  for markdown-only changes; do rebuild the site (`cd docs && accent build
+  --clean --strict-links`) when touching `docs/`.
 
 **When CI fails**:
 
 - Click on the failed job in GitHub Actions to see detailed logs
 - Fix the issues locally and push again
 - CI will automatically re-run on new commits
-
-**Reviewing the agent's feedback**:
-
-- The automated the agent review is advisory - use your judgment
-- It's based on the guidelines in this file, so keeping the agent.md updated improves reviews
-- the agent may miss context that you have - that's okay
 
 **Updating workflows**:
 
@@ -484,11 +472,20 @@ The agent PR review workflow requires an Anthropic API key configured as a GitHu
 
 ## CLI Quick Reference (cargo run)
 
-# Generate agent documentation
+```bash
+# Query: filter over a file, or over stdin when the path is omitted
+cargo run -- '.spec.containers[0].image' deploy.yaml
+cargo run -- -r '.items[] | .metadata.name' < pods.yaml
 
-cargo run -- docs agent-readme
-cargo run -- docs agent-md
+# Edit: mutating filters, byte-exact except at the edit site (-i writes back)
+cargo run -- '.spec.replicas = 5' deploy.yaml
+cargo run -- -i 'del(.metadata.labels)' deploy.yaml
 
+# Validate: correctness check with compiler-style diagnostics
+cargo run -- validate --strict deploy.yaml config.yaml
+
+# Opt into the classic re-serializing pipeline
+cargo run -- --normalize '.' config.yaml
 ```
 
 
