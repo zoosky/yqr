@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785273537910,
+  "lastUpdate": 1785327055124,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -797,6 +797,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 257749,
             "range": "± 1636",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "zoosky@gmail.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "distinct": true,
+          "id": "6dc124c033cc5fa2619d5d9d003c01d5927ba173",
+          "message": "chore: release v0.5.0\n\nMinor bump rather than patch: the --engine removal is breaking for both\nthe CLI and the library API (fidelity::BackendId is gone and the\nfidelity entry points lost their backend argument), which under 0.x\nsemver moves the minor.\n\nCHANGELOG gains the 0.5.0 section -- the validate subcommand, the\n--engine removal, the noyalib 0.0.14 -> 0.0.17 engine upgrade, the clap\nand transitive dependency refresh, and the toolchain point release.",
+          "timestamp": "2026-07-29T14:09:14+02:00",
+          "tree_id": "7ef5261393b772d860b4410a7b022e45f8579b46",
+          "url": "https://github.com/zoosky/yqr/commit/6dc124c033cc5fa2619d5d9d003c01d5927ba173"
+        },
+        "date": 1785327054589,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 534,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5150,
+            "range": "± 72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 257082,
+            "range": "± 4759",
             "unit": "ns/iter"
           }
         ]
