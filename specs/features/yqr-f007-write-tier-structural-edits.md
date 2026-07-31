@@ -25,10 +25,13 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 
 ## 2. Dependencies & approach
 
-- **Preferred:** upstream noyalib mutators (`set_comment`, `rename_key`,
-  `swap_items`/`move_item`, `remove_subtree`) — each a PR-with-fix to noyalib
-  (issues disabled upstream; #118/#123 precedent, `b004` §5). yqr then calls the
-  guarded API directly.
+- **Preferred:** upstream noyalib mutators — reported as umbrella issue
+  noyalib#221 and contributed as PRs-with-fix on the #118/#123 precedent
+  (`b004` §5). All five now exist on noyalib's unreleased `feat/v0.0.18`
+  as `set_inline_comment`/`set_leading_comment`, `rename_key`,
+  `swap_items`/`move_item`, a `remove` that handles multi-line and nested
+  values, and the `Emit` insertion tier. yqr calls the guarded API
+  directly once 0.0.18 ships (`b004` §6).
 - **Interim:** where an upstream API is not yet available, yqr performs the edit
   via raw `Document::replace_span`, owning the indent/quote/line arithmetic
   itself, behind an **integrity guard yqr enforces** (§3). `replace_span`
