@@ -49,6 +49,7 @@ dependency/release timing.
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename/reorder deferred) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
+| [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Draft |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -58,9 +59,16 @@ structural **delete** of multi-line / nested block entries via the interim
 `replace_span` fallback (`src/fidelity/write/delete.rs`) behind a re-parse
 integrity guard yqr enforces itself (`b004` 2.4/2.5), sole-entry and flow deletes
 refused. The remaining f007 gaps (comment editing, key rename, sequence reorder)
-each need new grammar and stay deferred. f008 (`|=` computed updates) is gated on
-`f001` M2 (arithmetic/builtins). Priority order: f006 (done) → f007 (delete done,
-rest deferred) → M2 → f008.
+each need new grammar and stay deferred — the upstream APIs for all three now
+exist, released in noyalib 0.0.18, so what is missing is yqr's grammar, not the
+backend. f013 adopts that release: the pin bump from 0.0.17, plus the two
+reconciliations `b004` §6 turned up when measured against the published crate —
+upstream `remove` does **not** fold head comments or keep-chomped trailing
+blanks (so f007's delete fallback cannot simply shrink without regressing
+`b006`), and `key_span` does **not** replace `validate`'s green-tree walk. f008
+(`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
+order: f006 (done) → f007 delete (done) → f013 (pin bump) → f007 remainder →
+M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -99,8 +107,9 @@ dashboard.
 
 ## Summary
 
-- Total features: 12
-- Draft: 1 (f008 — computed updates, gated on `f001` M2)
+- Total features: 13
+- Draft: 2 (f008 — computed updates, gated on `f001` M2; f013 — noyalib 0.0.18
+  adoption, unblocked by the 2026-07-31 release)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
 - Done: 6 (f002, f006, f009, f010, f011, f012)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
