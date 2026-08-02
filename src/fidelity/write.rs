@@ -24,10 +24,10 @@ use crate::error::{Result, YqrError};
 use crate::eval::{AssignTarget, resolve_assign_target, resolve_rhs, resolve_target};
 use crate::fidelity::{Path, PathSeg};
 
-// The structural-delete fallback (multi-line / nested block entries) lives in a
-// sub-module so the byte-arithmetic concern stays separate from the value-write
-// trait. It extends `NoyalibWriter` with `delete_structural`, addressing the
-// same private state through Rust's ancestor-module privacy.
+// Structural delete lives in a sub-module so the byte-arithmetic concern stays
+// separate from the value-write trait. It extends `NoyalibWriter` with
+// `delete_entry`, addressing the same private state through Rust's
+// ancestor-module privacy.
 mod delete;
 
 /// A source-preserving *writer* over one parsed YAML input.
@@ -248,17 +248,14 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()> {
-        let path_str = noyalib_path(path)?;
-        // noyalib 0.0.14's first-class `remove` handles only single-line block
-        // entries; a multi-line / nested value makes it refuse (b004 2.4). On
-        // refusal, fall through to the interim `replace_span` fallback, which
-        // owns the byte arithmetic behind the same structural-integrity guard.
-        // The refusal reason is carried into the fallback so a genuine noyalib
-        // failure is surfaced rather than masked by a generic message.
-        match self.doc_mut(doc)?.remove(&path_str) {
-            Ok(()) => Ok(()),
-            Err(remove_err) => self.delete_structural(doc, path, &remove_err.to_string()),
-        }
+        // Deliberately not noyalib's `remove`. Since 0.0.18 it accepts the same
+        // shapes as this path, but it treats an entry as its key/value lines
+        // only: a head comment above the entry survives and is re-attributed to
+        // the next sibling, a keep-chomped scalar's kept trailing blanks are
+        // left stranded, and a following sibling's own comment is swallowed
+        // (b004 6.1). All three are silent successes — the failure class b006
+        // was filed for — so the entry-owns-its-trivia rules stay yqr's.
+        self.delete_entry(doc, path)
     }
 
     fn emit(&self) -> String {

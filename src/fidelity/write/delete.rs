@@ -1,14 +1,21 @@
-//! Structural delete: removing multi-line and nested block entries.
+//! Structural delete: removing a block entry with everything it owns.
 //!
-//! noyalib 0.0.14's first-class [`remove`](noyalib::cst::Document::remove)
-//! deletes only *single-line* block entries; a multi-line value, a nested
-//! collection, the sole entry of a block, and flow collections are all refused
-//! upstream. This module is the interim fallback for the first two: it derives
-//! the source range the entry owns, splices it out with the raw byte-preserving
+//! This module *is* yqr's delete. It derives the source range the entry owns,
+//! splices it out with the raw byte-preserving
 //! [`replace_span`](noyalib::cst::Document::replace_span) escape hatch, and
 //! **commits only when the result re-parses to exactly the original document
-//! minus the target** — the structural-integrity guard. Sole-entry and flow
-//! deletes stay refused, with a clear message.
+//! minus the target** — the structural-integrity guard. Deleting the sole entry
+//! of a block, or an item of a flow collection, stays refused with a clear
+//! message.
+//!
+//! noyalib's first-class [`remove`](noyalib::cst::Document::remove) is not used,
+//! and the reason is a deliberate difference in what an entry *is* rather than a
+//! missing API. Upstream maps the same shapes this module does, but scopes a
+//! delete to the key/value lines: a head comment above the entry survives (and
+//! silently documents the next sibling instead), a keep-chomped scalar's kept
+//! trailing blank lines are stranded, and a comment that follows the value but
+//! belongs to the next sibling is swallowed. Here an entry owns its trivia, so
+//! each of those three cases is handled instead of quietly getting it wrong.
 //!
 //! The owned range is derived from the value's authoritative source span
 //! ([`span_at`](noyalib::cst::Document::span_at)), not an indentation heuristic,
@@ -37,10 +44,8 @@ use crate::fidelity::noyalib::walk_value;
 use crate::fidelity::{Path, PathSeg};
 
 impl NoyalibWriter {
-    /// Delete the block entry at `path` when noyalib's first-class `remove`
-    /// refused it (a multi-line or nested value). `remove_err` is that refusal,
-    /// surfaced in the fallback's most-generic message so a genuine noyalib
-    /// failure is not masked.
+    /// Delete the block entry at `path`, together with the trivia it owns: its
+    /// head comment, and the trailing blank lines a keep-chomped scalar keeps.
     ///
     /// The edit is validated against a private re-parse and committed only if it
     /// removes exactly the target node and leaves every surviving node
@@ -50,14 +55,9 @@ impl NoyalibWriter {
     /// # Errors
     ///
     /// Errors when the path is unaddressable, is the sole entry of its block,
-    /// is an item of a flow collection, uses a layout the fallback cannot map,
-    /// or the edit would restructure the document.
-    pub(super) fn delete_structural(
-        &mut self,
-        doc: usize,
-        path: &Path,
-        remove_err: &str,
-    ) -> Result<()> {
+    /// is an item of a flow collection, uses a source layout this path cannot
+    /// map, or the edit would restructure the document.
+    pub(super) fn delete_entry(&mut self, doc: usize, path: &Path) -> Result<()> {
         // Fail early on a key the string-path grammar cannot express (the same
         // honest gap the assign path declares); this also names the target in
         // every message below.
@@ -139,11 +139,12 @@ impl NoyalibWriter {
                 None => value_end,
             };
 
-            let (start, end) = owned_line_span(src, value_start, value_end, last).ok_or_else(|| {
-                YqrError::eval(format!(
-                    "cannot delete {path_str}: its source layout is not supported by the delete fallback ({remove_err})"
-                ))
-            })?;
+            let (start, end) =
+                owned_line_span(src, value_start, value_end, last).ok_or_else(|| {
+                    YqrError::eval(format!(
+                        "cannot delete {path_str}: its source layout is not supported"
+                    ))
+                })?;
 
             let mut out = String::with_capacity(src.len() - (end - start));
             out.push_str(&src[..start]);
