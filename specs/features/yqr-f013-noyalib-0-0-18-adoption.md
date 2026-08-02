@@ -200,12 +200,17 @@ into a CRLF document inserts `\n`.
 - Not a release. `yqr-m001` governs when a version ships; `cargo publish` stays
   separately authorized (`yqr-m004`).
 
-## 6. Follow-up: upstream ask
+## 6. Follow-up: upstream ask — filed as noyalib#225
 
-§3.2's divergences — now three kinds, not two — are worth reporting upstream on the
-#221 / #222 / #223 precedent. `remove` should fold an entry's contiguous
-same-indent head comment and a keep-chomped scalar's kept trailing blank lines
-into the deletion, and should *not* swallow a following comment that lies
-outside the entry's value span. If all of that lands, §3.2 option (b) becomes
-clearly correct and `delete.rs` can genuinely shrink to a trivia pre-pass. Full
-case list in `yqr-b004` §6.4. Not filed yet.
+§3.2's divergences — three kinds, not the two this spec scoped — were filed
+2026-08-02 as
+[noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225), a
+follow-up to #221 §4 on the #222 / #223 precedent. `remove` should fold an
+entry's contiguous same-indent head comment and a keep-chomped scalar's kept
+trailing blank lines into the deletion, and should *not* swallow a following
+comment that lies outside the entry's value span. The issue carries a runnable
+repro per case plus the two controls 0.0.18 already gets right, argues the fix
+is a span-boundary refinement rather than new machinery, and offers a PR.
+
+If it lands, §3.2 option (b) becomes clearly correct and `delete.rs` can
+genuinely shrink to a trivia pre-pass. Full case list in `yqr-b004` §6.4.

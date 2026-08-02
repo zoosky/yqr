@@ -21,7 +21,10 @@ necessity (§6.1).
 [noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221)
 covers all five gaps and is **still open** even though the release
 shipped. The earlier note here that issues are disabled upstream is
-stale — they are enabled.
+stale — they are enabled. A follow-up to #221 §4,
+[noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225),
+was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
+the released `remove` (§6.4).
 **Contributed upstream:** the §2.2 key rename as
 [noyalib#222](https://github.com/sebastienrousseau/noyalib/pull/222)
 (**merged** 2026-07-31 06:15 UTC) and the §2.5 auto-formatting tier as
@@ -299,7 +302,7 @@ It does **not** reproduce the trivia handling `yqr-b006` added:
 |------|-----------|-------------------------|
 | Head comment above the entry (`# doc for b` / `b: 2` / `c: 3`, delete `b`) | comment removed with its entry | comment **survives**, silently re-attributed to `c` |
 | Same, indented (`top:` / `# doc` / `b: 2` / `c: 3`, delete `top.b`) | removed with the entry | survives above `c` |
-| Keep-chomped scalar (`a: \|+` with kept trailing blanks, delete `a`) | kept blanks removed with the entry | **two stray blank lines** left behind |
+| Keep-chomped scalar (`a: \|+` with kept trailing blanks, delete `a`) | kept blanks removed with the entry | the kept blanks are **left behind as stray blank lines** |
 | Following comment belonging to the next sibling (`outer:` / `  a: 1` / `  # note for next` / `next: 2`, delete `outer`) | comment left in place | comment **swallowed** |
 
 **Correction (2026-08-02):** the last row was originally listed above as a
@@ -343,10 +346,12 @@ for sequence reorder, the four comment setters for comment edits, and the
 unblocks a deferred `yqr-f007` §6 gap, and each still needs the user-facing
 grammar that spec calls out as unsettled — the API landing does not settle it.
 
-### 6.4 Follow-up upstream ask (not yet filed)
+### 6.4 Follow-up upstream ask (filed as noyalib#225)
 
-§6.1's three divergences are worth reporting on the #221 precedent, since
-each is a silent wrong result rather than a refusal:
+Filed 2026-08-02 as
+[noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225), a
+follow-up to #221 §4 against the released 0.0.18. Each of §6.1's three
+divergences is a silent wrong result rather than a refusal:
 
 - `remove` should fold an entry's contiguous same-indent **head comment**
   into the deletion, instead of leaving it to silently document the next
@@ -356,6 +361,16 @@ each is a silent wrong result rather than a refusal:
 - It should **not** swallow a following comment that lies outside the
   entry's value span and belongs to the next sibling — the one case where
   upstream deletes something it should keep.
+
+The issue carries a runnable repro per case, plus **two controls that
+0.0.18 already gets right** and must stay right: a head comment detached by
+a blank line is *not* folded, and a comment interleaved inside the value
+*is* removed. It also argues the fix is a boundary refinement inside
+`remove` rather than new machinery — the whole rule falls out of `span_at`'s
+value span — and offers a PR on the #222 / #223 pattern. A wording nit rides
+along: the flow-item refusal reads `remove: could not locate '-' indicator
+preceding sequence item`, which describes the internal scan rather than the
+situation.
 
 If all three land, `yqr-f013` §3.2's option (b) becomes clearly correct and
 `src/fidelity/write/delete.rs` can shrink to a trivia pre-pass. Until then
