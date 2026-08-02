@@ -84,12 +84,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-07-31",
+  "dateModified": "2026-08-02",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 1283
+  "wordCount": 1375
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -372,6 +375,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -400,6 +406,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -627,6 +638,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f013-noyalib-0-0-18-adoption"
+                   class="sidebar-link">Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API</a>
+              
+            
+              
+              
             
               
               
@@ -724,6 +741,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -953,6 +973,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -969,6 +992,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1201,6 +1227,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1210,6 +1239,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1339,6 +1371,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1559,6 +1594,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -1598,6 +1636,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1770,11 +1811,16 @@ excluded from <code>f006</code>. Each is cataloged in <code>yqr-b004</code> §2:
 <ul>
 <li><strong>Preferred:</strong> upstream noyalib mutators — reported as umbrella issue
 noyalib#221 and contributed as PRs-with-fix on the #118/#123 precedent
-(<code>b004</code> §5). All five now exist on noyalib’s unreleased <code>feat/v0.0.18</code>
-as <code>set_inline_comment</code>/<code>set_leading_comment</code>, <code>rename_key</code>,
+(<code>b004</code> §5). All five are <strong>released in noyalib 0.0.18</strong> (2026-07-31) as
+<code>set_inline_comment</code>/<code>set_leading_comment</code>, <code>rename_key</code>,
 <code>swap_items</code>/<code>move_item</code>, a <code>remove</code> that handles multi-line and nested
-values, and the <code>Emit</code> insertion tier. yqr calls the guarded API
-directly once 0.0.18 ships (<code>b004</code> §6).</li>
+values, and the <code>Emit</code> insertion tier. yqr adopts them via <code>yqr-f013</code>
+(the pin is still 0.0.17); what remains deferred here is therefore the
+<strong>grammar</strong> in §6, not the backend. One caveat carried over from
+<code>b004</code> §6.1: upstream <code>remove</code> handles the same shapes as §5’s fallback
+but does not fold head comments or keep-chomped trailing blank lines,
+so the fallback cannot simply be replaced by it without regressing
+<code>b006</code>.</li>
 <li><strong>Interim:</strong> where an upstream API is not yet available, yqr performs the edit
 via raw <code>Document::replace_span</code>, owning the indent/quote/line arithmetic
 itself, behind an <strong>integrity guard yqr enforces</strong> (§3). <code>replace_span</code>
@@ -1883,19 +1929,24 @@ alias-breaking delete). <code>-i</code> writes the closed-up document back atomi
 refused delete leaves the file unchanged.</p>
 <h2 id="6-deferred-gaps-roadmap">6. Deferred gaps (roadmap)<a class="heading-anchor" href="#6-deferred-gaps-roadmap" aria-label="Link to this section"></a></h2>
 <p>The remaining three gaps each need <strong>new user-facing grammar</strong> the epic has not
-settled, plus harder byte arithmetic; they stay deferred and continue to error
-with a clear “not yet supported” message:</p>
+settled; they stay deferred and continue to error with a clear “not yet
+supported” message. The byte arithmetic, however, is no longer yqr’s problem —
+noyalib 0.0.18 ships a guarded API for each, so once the grammar is settled
+these become a call, not a splice (adoption: <code>yqr-f013</code> §3.4):</p>
 <ul>
-<li><strong>Comment editing</strong> (<code>b004</code> 2.1) — needs a comment-addressing syntax and
-<code>#</code>-prefix / whitespace fixup over <code>comments_at</code> + <code>replace_span</code>.</li>
-<li><strong>Key rename</strong> (<code>b004</code> 2.2) — needs a rename syntax and the key-token span
-(<code>span_at</code> resolves the <em>value</em> span, not the key), then <code>replace_span</code>
-preserving the <code>:</code>, value, and trailing comment.</li>
-<li><strong>Sequence reorder</strong> (<code>b004</code> 2.3) — needs a reorder syntax and a multi-splice
-that re-bases offsets after each move.</li>
+<li><strong>Comment editing</strong> (<code>b004</code> 2.1) — needs a comment-addressing syntax.
+Upstream: <code>set_inline_comment</code> / <code>remove_inline_comment</code>,
+<code>set_leading_comment</code> / <code>remove_leading_comment</code>, single-line nodes only.</li>
+<li><strong>Key rename</strong> (<code>b004</code> 2.2) — needs a rename syntax. Upstream: <code>rename_key</code>
+with style-matched quoting and sibling-duplicate refusal, plus <code>key_span</code>
+for the key-token range <code>span_at</code> never exposed.</li>
+<li><strong>Sequence reorder</strong> (<code>b004</code> 2.3) — needs a reorder syntax. Upstream:
+<code>swap_items</code> and <code>move_item</code>, the latter a guarded run of adjacent swaps, so
+no offset re-basing in yqr.</li>
 </ul>
-<p>Each is a <code>PR-with-fix</code> candidate upstream first (the preferred path, §2); the
-interim <code>replace_span</code> approach applies if the upstream API does not land.</p>
+<p>The upstream <code>PR-with-fix</code> path (§2) already ran its course for all three; the
+interim <code>replace_span</code> approach is now the fallback of last resort rather than
+the expected route.</p>
 <p><em>(These criteria firm up once the grammar and the upstream API surface are
 known.)</em></p>
 
@@ -1981,31 +2032,31 @@ known.)</em></p>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-07-31">2026-07-31</time>
+      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-07-31">2026-07-31</time>
+      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-07-31">2026-07-31</time>
+      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-07-31">2026-07-31</time>
+      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-07-31">2026-07-31</time>
+      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
     </li>
     
   </ul>
@@ -2036,7 +2087,7 @@ known.)</em></p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-07-31</span>
+        <span>Site last updated: 2026-08-02</span>
         
     </footer>
 
