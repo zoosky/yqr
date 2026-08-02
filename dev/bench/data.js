@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785327055124,
+  "lastUpdate": 1785670107639,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -839,6 +839,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 257082,
             "range": "± 4759",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "zoosky@gmail.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "distinct": true,
+          "id": "64db2cedb5e7ed1219cdcb5e77dda5837ea96243",
+          "message": "docs(b004,f013): record noyalib#226, the PR fixing the remove()-trivia ask\n\nnoyalib#225 is answered by a PR the same day: remove() now derives its\nentry range from the same value-span boundary span_at reports, so the\nhead comment, the keep-chomped blanks, and the following sibling's\ncomment all land on the right side of the deletion. Nine tests cover the\nthree fixes and the preserved behaviours; the decisive check is that\nyqr's own suite passes with del routed back through upstream remove\nagainst the patched crate — the four tests that found the divergence\nincluded.\n\nAdopting it is deliberately not part of f013: option (b) becomes correct\nonly once the fix ships in a release yqr can pin.",
+          "timestamp": "2026-08-02T13:27:07+02:00",
+          "tree_id": "0b1405072ed0cc576698d72b6ac51e2560835bb3",
+          "url": "https://github.com/zoosky/yqr/commit/64db2cedb5e7ed1219cdcb5e77dda5837ea96243"
+        },
+        "date": 1785670107037,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 509,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5045,
+            "range": "± 43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 258731,
+            "range": "± 3046",
             "unit": "ns/iter"
           }
         ]
