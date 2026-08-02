@@ -10,7 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Fixed upstream and **released in noyalib 0.0.18** (crates.io 2026-07-31) — all five gaps of umbrella issue noyalib#221: our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer; verified present in the published crate. Still Open for yqr because the pin is `noyalib = "0.0.17"`, whose edit API is unchanged since 0.0.14. Closes on the pin bump, specced as `yqr-f013`. Note b004 §6.1: upstream `remove` does **not** fold head comments or keep-chomped trailing blanks, so `yqr-f007`'s delete fallback cannot simply shrink without regressing `yqr-b006`; and §6.2: `key_span` does not replace `validate`'s green-tree walk | `yqr-b002`, `yqr-b006`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013` |
+| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Resolved — all five gaps of umbrella issue noyalib#221 released in **noyalib 0.0.18** (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer. yqr pins `noyalib = "0.0.18"` as of `yqr-f013`. Two adoption findings stand (b004 §6): upstream `remove` diverges on delete trivia in **three** measured ways — it strands head comments and keep-chomped trailing blanks, and *swallows* a following sibling's comment — so delete stays yqr's own code by decision rather than necessity (`yqr-f007` §5.1, would otherwise regress `yqr-b006`); and `key_span` does **not** replace `validate`'s green-tree walk. §6.4's upstream ask is not yet filed | `yqr-b002`, `yqr-b006`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013` |
 
 ## Resolved
 
@@ -26,9 +26,12 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 7
-- Open: 1 (1 Medium — b004, fixed upstream and released in noyalib
-  0.0.18; now waiting only on yqr's pin bump, specced as `yqr-f013`)
-- Resolved: 6 (b007 — website links fixed for the accent v0.23.1 media
+- Open: 0
+- Resolved: 7 (b004 — all five mutation-API gaps released in noyalib
+  0.0.18 and adopted by `yqr-f013`'s pin bump; delete deliberately keeps
+  yqr's own path, since upstream `remove` diverges on entry trivia in
+  four measured cases;
+  b007 — website links fixed for the accent v0.23.1 media
   policy and link checker, CI now builds with `--strict-links`;
   b001 — byte fidelity is now the default read (`yqr-f009`), closing
   the lossy-default round trip; the classic pipeline is now opt-in via

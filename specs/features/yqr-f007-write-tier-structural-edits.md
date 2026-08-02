@@ -1,8 +1,8 @@
 # Feature f007 — Write tier: structural edits (the `b004` gaps)
 
-**Status:** In Progress (structural **delete** shipped on the interim
-`replace_span` fallback; comment editing, key rename, and sequence reorder
-remain deferred)
+**Status:** In Progress (structural **delete** shipped, and since `yqr-f013`
+it is yqr's whole delete path rather than a fallback; comment editing, key
+rename, and sequence reorder remain deferred)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
@@ -30,26 +30,27 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
   (`b004` §5). All five are **released in noyalib 0.0.18** (2026-07-31) as
   `set_inline_comment`/`set_leading_comment`, `rename_key`,
   `swap_items`/`move_item`, a `remove` that handles multi-line and nested
-  values, and the `Emit` insertion tier. yqr adopts them via `yqr-f013`
-  (the pin is still 0.0.17); what remains deferred here is therefore the
-  **grammar** in §6, not the backend. One caveat carried over from
-  `b004` §6.1: upstream `remove` handles the same shapes as §5's fallback
-  but does not fold head comments or keep-chomped trailing blank lines,
-  so the fallback cannot simply be replaced by it without regressing
-  `b006`.
-- **Interim:** where an upstream API is not yet available, yqr performs the edit
-  via raw `Document::replace_span`, owning the indent/quote/line arithmetic
-  itself, behind an **integrity guard yqr enforces** (§3). `replace_span`
-  guarantees only that the result is *valid YAML*, not that it preserves
-  structure (`b004` 2.5), so the guard is yqr's, not the backend's. Each such
-  fallback is called out in code and tests as a temporary path.
+  values, and the `Emit` insertion tier. yqr is **pinned to 0.0.18** since
+  `yqr-f013`; what remains deferred here is therefore the **grammar** in §6,
+  not the backend. One exception, settled by `yqr-f013` §3.2: upstream
+  `remove` is *not* adopted, because it scopes a delete to the entry's
+  key/value lines and so diverges on trivia in three ways that `b006`
+  classifies as silent wrongness (§5.1).
+- **Own the arithmetic:** where no upstream API fits — either because one does
+  not exist, or because the one that exists has different semantics — yqr
+  performs the edit via raw `Document::replace_span`, owning the
+  indent/quote/line arithmetic itself, behind an **integrity guard yqr
+  enforces** (§3). `replace_span` guarantees only that the result is *valid
+  YAML*, not that it preserves structure (`b004` 2.5), so the guard is yqr's,
+  not the backend's. Delete is the settled instance of this and is no longer
+  framed as temporary (§5.1); anything else on this route is.
 
 ## 3. Structural-integrity contract
 
 Identical to `f006` §7: an accepted edit changes only the targeted node's bytes;
 an edit that would restructure the document is refused (exit 5); `-i` leaves the
-file untouched on refusal. Because `replace_span` does not enforce this, each
-interim fallback must **prove** the property before committing: apply the edit to
+file untouched on refusal. Because `replace_span` does not enforce this, every
+edit routed through it must **prove** the property before committing: apply it to
 a private copy, re-parse it, and commit only if the re-parsed document equals the
 original value with exactly the target change applied — otherwise refuse, leaving
 the document untouched.
@@ -58,8 +59,7 @@ the document untouched.
 
 - [x] Delete of a multi-line / nested node, byte-exact elsewhere; a clear error
       where still unsupported (sole-entry, flow).
-- [x] Every interim `replace_span` fallback is guarded and covered by a
-      byte-exact test.
+- [x] Every `replace_span` edit is guarded and covered by a byte-exact test.
 - [ ] Comment set/insert/remove at a resolved path, byte-exact elsewhere.
 - [ ] `.old |= key-rename` (final syntax TBD) renames a key, preserving value +
       trailing comment.
@@ -70,18 +70,38 @@ the document untouched.
 ### 5.1 Surface
 
 No new grammar: `del(<path>)` already parses (`f006`). f006 routed every delete
-through noyalib's `Document::remove`, which handles only single-line block
-entries and refuses everything else. f007 keeps `remove` as the first choice and
-adds a **fallback** for the entries it refuses:
+through noyalib's `Document::remove`, which in 0.0.14 handled only single-line
+block entries and refused everything else; f007 added a fallback for the
+refusals. Since `yqr-f013` there is no fallback and no upstream call:
 
 ```
-del(path) -> Document::remove(path)              # single-line block entry
-          └─ on refusal -> delete_structural()   # multi-line / nested (interim)
+del(path) -> delete_entry()   # every delete, single-line or not
 ```
 
-`delete_structural` lives in `src/fidelity/write/delete.rs`, extending
+`delete_entry` lives in `src/fidelity/write/delete.rs`, extending
 `NoyalibWriter` (the value-write trait stays in `write.rs`; the byte-arithmetic
 concern is a sibling sub-module).
+
+**Why not upstream `remove`.** 0.0.18's `remove` accepts every shape this
+module maps, so the obvious move on the pin bump was to call it and delete this
+module. Measured, it is wrong: upstream treats an entry as its key/value lines,
+where yqr treats an entry as owning its trivia. Three cases diverge, all of them
+silent successes rather than refusals — the `b006` failure class:
+
+| Case | `delete_entry` | 0.0.18 `Document::remove` |
+|------|----------------|---------------------------|
+| Head comment above the entry | removed with the entry | survives, silently re-attributed to the next sibling |
+| Keep-chomped (`\|+`) scalar's kept trailing blanks | removed with the entry | left behind as stray blank lines |
+| A following comment belonging to the *next* sibling | left in place | swallowed |
+
+The first two under-delete, the third over-deletes and loses a comment
+outright. §5.4's tests pin all three; each one fails against upstream `remove`,
+which is how the divergence was measured rather than assumed. `yqr-f013` §6
+carries the upstream ask that would close the gap.
+
+Independently worth keeping: yqr's flow pre-check reports `removing an item
+from a flow collection is not supported`, where upstream surfaces `remove:
+could not locate '-' indicator preceding sequence item`.
 
 ### 5.2 Algorithm
 
@@ -148,6 +168,12 @@ trailing blanks removed with the entry; a block sequence at its key's own column
 alias-breaking delete). `-i` writes the closed-up document back atomically; a
 refused delete leaves the file unchanged.
 
+Four of those unit tests double as the §5.1 divergence net: the head-comment
+pair, the keep-chomped scalar, and the following-sibling's comment all fail if
+`del` is routed through upstream `remove`. They run through the public `apply`
+entry point, not `delete_entry` directly, so a future re-adoption of `remove`
+cannot slip past them.
+
 ## 6. Deferred gaps (roadmap)
 
 The remaining three gaps each need **new user-facing grammar** the epic has not
@@ -166,9 +192,11 @@ these become a call, not a splice (adoption: `yqr-f013` §3.4):
   `swap_items` and `move_item`, the latter a guarded run of adjacent swaps, so
   no offset re-basing in yqr.
 
-The upstream `PR-with-fix` path (§2) already ran its course for all three; the
-interim `replace_span` approach is now the fallback of last resort rather than
-the expected route.
+The upstream `PR-with-fix` path (§2) already ran its course for all three, and
+0.0.18 is pinned, so each of these is now a grammar decision over a live API.
+Raw `replace_span` is the route of last resort rather than the expected one —
+though §5.1 is the standing reminder that "upstream has the call" and "upstream
+has yqr's semantics" are different questions.
 
 _(These criteria firm up once the grammar and the upstream API surface are
 known.)_

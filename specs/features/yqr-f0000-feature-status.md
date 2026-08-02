@@ -49,26 +49,28 @@ dependency/release timing.
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename/reorder deferred) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
-| [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Draft |
+| [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
 `del`, scalar-literal / path RHS, and atomic `-i`, all through the fidelity write
 seam (`src/fidelity/write.rs`), zero upstream work. f007 landed its first slice:
-structural **delete** of multi-line / nested block entries via the interim
-`replace_span` fallback (`src/fidelity/write/delete.rs`) behind a re-parse
-integrity guard yqr enforces itself (`b004` 2.4/2.5), sole-entry and flow deletes
-refused. The remaining f007 gaps (comment editing, key rename, sequence reorder)
-each need new grammar and stay deferred — the upstream APIs for all three now
-exist, released in noyalib 0.0.18, so what is missing is yqr's grammar, not the
-backend. f013 adopts that release: the pin bump from 0.0.17, plus the two
-reconciliations `b004` §6 turned up when measured against the published crate —
-upstream `remove` does **not** fold head comments or keep-chomped trailing
-blanks (so f007's delete fallback cannot simply shrink without regressing
-`b006`), and `key_span` does **not** replace `validate`'s green-tree walk. f008
-(`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
-order: f006 (done) → f007 delete (done) → f013 (pin bump) → f007 remainder →
-M2 → f008.
+structural **delete** of multi-line / nested block entries via `replace_span`
+(`src/fidelity/write/delete.rs`) behind a re-parse integrity guard yqr enforces
+itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
+gaps (comment editing, key rename, sequence reorder) each need new grammar and
+stay deferred — the upstream APIs for all three exist, released in noyalib
+0.0.18, so what is missing is yqr's grammar, not the backend. f013 **done**: the
+pin is 0.0.18, the lockfile moved that one crate and nothing else, `cargo audit`
+is clean, and both fidelity harnesses passed untouched. Its one code change was
+to stop calling upstream `remove` — on the bump it started accepting the shapes
+it used to refuse and promptly failed four delete tests, including one
+divergence `b004` §6.1 had missed (it *swallows* a following sibling's comment).
+So delete stays yqr's own path by decision, renamed `delete_entry` and no longer
+framed as a fallback (`f007` §5.1). Also settled: `key_span` does **not** replace
+`validate`'s green-tree walk. f008 (`|=` computed updates) is gated on `f001` M2
+(arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
+(done) → f007 remainder → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -108,10 +110,9 @@ dashboard.
 ## Summary
 
 - Total features: 13
-- Draft: 2 (f008 — computed updates, gated on `f001` M2; f013 — noyalib 0.0.18
-  adoption, unblocked by the 2026-07-31 release)
+- Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 6 (f002, f006, f009, f010, f011, f012)
+- Done: 7 (f002, f006, f009, f010, f011, f012, f013)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
