@@ -235,7 +235,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Fixed upstream and **released in noyalib 0.0.18** (crates.io 2026-07-31) — all five gaps of umbrella issue noyalib#221: our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer; verified present in the published crate. Still Open for yqr because the pin is `noyalib = "0.0.17"`, whose edit API is unchanged since 0.0.14. Closes on the pin bump, specced as `yqr-f013`. Note b004 §6.1: upstream `remove` does **not** fold head comments or keep-chomped trailing blanks, so `yqr-f007`'s delete fallback cannot simply shrink without regressing `yqr-b006`; and §6.2: `key_span` does not replace `validate`'s green-tree walk | `yqr-b002`, `yqr-b006`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013` |
+| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Resolved — all five gaps of umbrella issue noyalib#221 released in **noyalib 0.0.18** (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer. yqr pins `noyalib = "0.0.18"` as of `yqr-f013`. Two adoption findings stand (b004 §6): upstream `remove` diverges on delete trivia in **three** measured ways — it strands head comments and keep-chomped trailing blanks, and *swallows* a following sibling's comment — so delete stays yqr's own code by decision rather than necessity (`yqr-f007` §5.1, would otherwise regress `yqr-b006`); and `key_span` does **not** replace `validate`'s green-tree walk. Those divergences are filed upstream as noyalib#225 and fixed by yqr's noyalib#226 (open) (§6.4) | `yqr-b002`, `yqr-b006`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013` |
 
 ## Resolved
 
@@ -251,9 +251,12 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 7
-- Open: 1 (1 Medium — b004, fixed upstream and released in noyalib
-  0.0.18; now waiting only on yqr's pin bump, specced as `yqr-f013`)
-- Resolved: 6 (b007 — website links fixed for the accent v0.23.1 media
+- Open: 0
+- Resolved: 7 (b004 — all five mutation-API gaps released in noyalib
+  0.0.18 and adopted by `yqr-f013`'s pin bump; delete deliberately keeps
+  yqr's own path, since upstream `remove` diverges on entry trivia in
+  four measured cases;
+  b007 — website links fixed for the accent v0.23.1 media
   policy and link checker, CI now builds with `--strict-links`;
   b001 — byte fidelity is now the default read (`yqr-f009`), closing
   the lossy-default round trip; the classic pipeline is now opt-in via
@@ -1092,29 +1095,34 @@ URL: /yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps
 
 # Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete
 
-**Status:** Fixed upstream and **released** — every gap below ships in
-**noyalib 0.0.18** (crates.io 2026-07-31, GitHub release `v0.0.18` the
-same day). Verified against the published `.crate`, not just the branch:
-`src/cst/emit.rs` is present, `cst/mod.rs` re-exports `pub use
-emit::{Emit, EmitCtx}`, and `rename_key`, `key_span`, `swap_items`,
-`move_item`, `set_inline_comment` / `remove_inline_comment`,
+**Status:** Resolved (2026-08-02) — every gap below ships in **noyalib
+0.0.18** (crates.io 2026-07-31, GitHub release `v0.0.18` the same day),
+and yqr is pinned to it as of `yqr-f013`. Verified against the published
+`.crate`, not just the branch: `src/cst/emit.rs` is present, `cst/mod.rs`
+re-exports `pub use emit::{Emit, EmitCtx}`, and `rename_key`, `key_span`,
+`swap_items`, `move_item`, `set_inline_comment` / `remove_inline_comment`,
 `set_leading_comment` / `remove_leading_comment`,
 `insert_entry_value` / `push_back_value` / `insert_after_value` are all
-in the shipped source. **Still Open for yqr:** the pin is unchanged at
-`noyalib = "0.0.17"` (`Cargo.toml:40`), whose edit API is unchanged
-since 0.0.14 (the v0.0.14...v0.0.17 diff touches no `cst/` source file —
-0.0.15 was loader-parity + coverage hardening, 0.0.16 a build fix / MSRV
-1.86 / dependency refresh, 0.0.17 a no-change lockstep republish), so
-the gaps remain real for shipped code and each still falls back to raw
-`Document::replace_span(start, end, repl)` byte splicing. This bug
-closes when the pin bump lands — tracked as `yqr-f013`, whose scope §6
-now sizes against measured 0.0.18 behaviour.
+in the shipped source. The pin was `noyalib = "0.0.17"`, whose edit API
+was unchanged since 0.0.14 (the v0.0.14...v0.0.17 diff touches no `cst/`
+source file — 0.0.15 was loader-parity + coverage hardening, 0.0.16 a
+build fix / MSRV 1.86 / dependency refresh, 0.0.17 a no-change lockstep
+republish), which is why the gaps stayed real for shipped code long
+after the fixes existed. §6 records what adoption actually consumed:
+2.1 / 2.2 / 2.3 / 2.5 are now available APIs awaiting `yqr-f007`
+grammar, and 2.4 stays yqr's own code by decision rather than by
+necessity (§6.1).
 **Reported upstream (2026-07-29):** umbrella issue
 [noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221)
 covers all five gaps and is **still open** even though the release
 shipped. The earlier note here that issues are disabled upstream is
-stale — they are enabled.
-**Contributed upstream:** the §2.2 key rename as
+stale — they are enabled. A follow-up to #221 §4,
+[noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225),
+was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
+the released `remove` (§6.4).
+**Contributed upstream:** the §6.4 delete-trivia fix as
+[noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)
+(**open**, filed 2026-08-02 against `main`); the §2.2 key rename as
 [noyalib#222](https://github.com/sebastienrousseau/noyalib/pull/222)
 (**merged** 2026-07-31 06:15 UTC) and the §2.5 auto-formatting tier as
 [noyalib#223](https://github.com/sebastienrousseau/noyalib/pull/223)
@@ -1370,12 +1378,11 @@ Umbrella issue #221 is **still open** upstream despite every gap shipping
 — it is the maintainer's to close, and yqr should not read its open state
 as unfinished work.
 
-## 6. Adoption in yqr (unblocked; specced as `yqr-f013`)
+## 6. Adoption in yqr (done — `yqr-f013`)
 
-0.0.18 is on crates.io, so the pin bump from `= "0.0.17"` is now the only
-gate. `yqr-f013` owns the work; this section records what was **measured**
-against the released crate, because two of the three handoff notes written
-before the release turned out to be wrong.
+The pin bump from `= "0.0.17"` to `= "0.0.18"` landed with `yqr-f013`; this
+section records what was **measured** against the released crate, because
+most of the handoff notes written before the release turned out to be wrong.
 
 ### 6.1 Upstream `remove` does not subsume yqr's delete fallback
 
@@ -1383,9 +1390,8 @@ Probed by driving noyalib 0.0.18's `Document::remove` directly over the
 cases `src/fidelity/write/delete.rs` covers (`yqr-f007` §5.4). Upstream
 handles the **shapes** — nested block mapping, multi-line sequence item
 (`list[0]`), a block sequence at its key's own column, a comment on the
-key line, a following sibling's comment, blank lines between entries — and
-refuses the same two cases yqr refuses (sole entry of a mapping *and* of a
-sequence; flow items).
+key line, blank lines between entries — and refuses the same two cases yqr
+refuses (sole entry of a mapping *and* of a sequence; flow items).
 
 It does **not** reproduce the trivia handling `yqr-b006` added:
 
@@ -1393,15 +1399,23 @@ It does **not** reproduce the trivia handling `yqr-b006` added:
 |------|-----------|-------------------------|
 | Head comment above the entry (`# doc for b` / `b: 2` / `c: 3`, delete `b`) | comment removed with its entry | comment **survives**, silently re-attributed to `c` |
 | Same, indented (`top:` / `# doc` / `b: 2` / `c: 3`, delete `top.b`) | removed with the entry | survives above `c` |
-| Keep-chomped scalar (`a: \|+` with kept trailing blanks, delete `a`) | kept blanks removed with the entry | **two stray blank lines** left behind |
+| Keep-chomped scalar (`a: \|+` with kept trailing blanks, delete `a`) | kept blanks removed with the entry | the kept blanks are **left behind as stray blank lines** |
+| Following comment belonging to the next sibling (`outer:` / `  a: 1` / `  # note for next` / `next: 2`, delete `outer`) | comment left in place | comment **swallowed** |
 
-Both divergences are silent successes, not refusals — exactly the failure
-class `yqr-b006` was filed for. So the fallback's **trivia** logic
-(`absorb_head_comments`, the keep-chomped end-of-span rule) must stay; what
-becomes redundant is only its span arithmetic for shapes upstream now maps.
-`yqr-f013` decides whether to keep yqr's path wholesale or call upstream and
-re-apply the trivia rules, and either way the `yqr-f007` §5.4 tests are the
-regression net.
+**Correction (2026-08-02):** the last row was originally listed above as a
+handled shape. It is not. Under the pin bump the whole test suite was run
+against upstream `remove`, and this case failed alongside the other three:
+upstream over-deletes here, losing a comment outright, where the first three
+rows under-delete. The earlier note was measured on refuse-or-not, not on
+output bytes.
+
+Every row above is a silent success, not a refusal — exactly the failure
+class `yqr-b006` was filed for. Three kinds of divergence across the four
+probes: two strand trivia the entry owns, one deletes trivia it does not.
+`yqr-f013` §3.2 settled it: yqr keeps
+its own delete path in full and does not call upstream `remove` at all, so
+the trivia rules and the span arithmetic stay together where their tests
+are. The `yqr-f007` §5.4 tests are the standing regression net.
 
 Also worth keeping: yqr's flow pre-check produces `removing an item from a
 flow collection is not supported`, where upstream surfaces `remove: could
@@ -1419,7 +1433,7 @@ cannot address by path (the duplicates share one). `key_span` may still be
 useful for `yqr-f007`'s deferred key-rename slice; it does nothing for the
 duplicate-key scan, which stays as it is.
 
-### 6.3 Genuinely new capability to wire up
+### 6.3 Genuinely new capability to wire up (available, not yet used)
 
 The remaining mutators have no yqr equivalent today and are the real
 payload of the bump: `rename_key` for key edits, `swap_items` / `move_item`
@@ -1429,12 +1443,49 @@ for sequence reorder, the four comment setters for comment edits, and the
 unblocks a deferred `yqr-f007` §6 gap, and each still needs the user-facing
 grammar that spec calls out as unsettled — the API landing does not settle it.
 
-### 6.4 Follow-up upstream ask (not yet filed)
+### 6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)
 
-§6.1's two divergences are worth reporting on the #221 precedent: `remove`
-should fold an entry's contiguous same-indent head comment and a
-keep-chomped scalar's kept trailing blank lines into the deletion, as yqr
-does. Until then yqr keeps owning that arithmetic.
+Filed 2026-08-02 as
+[noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225), a
+follow-up to #221 §4 against the released 0.0.18, and **fixed the same day
+by yqr's [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)**
+(open). Each of §6.1's three divergences is a silent wrong result rather
+than a refusal:
+
+- `remove` should fold an entry's contiguous same-indent **head comment**
+  into the deletion, instead of leaving it to silently document the next
+  sibling (two of §6.1's four probes).
+- It should fold a **keep-chomped** (`|+` / `>+`) scalar's kept trailing
+  blank lines in, instead of stranding them.
+- It should **not** swallow a following comment that lies outside the
+  entry's value span and belongs to the next sibling — the one case where
+  upstream deletes something it should keep.
+
+The issue carries a runnable repro per case, plus **two controls that
+0.0.18 already gets right** and must stay right: a head comment detached by
+a blank line is *not* folded, and a comment interleaved inside the value
+*is* removed. It also argues the fix is a boundary refinement inside
+`remove` rather than new machinery — the whole rule falls out of `span_at`'s
+value span — and offers a PR on the #222 / #223 pattern. A wording nit rides
+along: the flow-item refusal reads `remove: could not locate '-' indicator
+preceding sequence item`, which describes the internal scan rather than the
+situation.
+
+**noyalib#226** implements all three. The fix turned out to be a boundary
+alignment rather than new machinery: `span_at` already excluded a trailing
+comment and kept a keep-chomped scalar's blanks (via `trim_value_span`),
+while `remove` reached past both by taking the span tree's raw end and
+trimming with `trim_trailing_blank`. `entry_line_span` now derives its range
+through one helper shared by the mapping and sequence arms, so the two agree.
+Nine tests cover the three fixes plus the preserved behaviours; the decisive
+check is that **yqr's own suite passes with `del` routed back through
+upstream `remove`** against the patched crate — the four tests that found the
+divergence included.
+
+When it lands and is released, `yqr-f013` §3.2's option (b) becomes clearly
+correct and `src/fidelity/write/delete.rs` can shrink to a trivia pre-pass —
+re-evaluate then. Until then yqr owns the whole delete path by decision
+(§6.1).
 
 ---
 
@@ -1738,26 +1789,28 @@ dependency/release timing.
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename/reorder deferred) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
-| [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Draft |
+| [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
 `del`, scalar-literal / path RHS, and atomic `-i`, all through the fidelity write
 seam (`src/fidelity/write.rs`), zero upstream work. f007 landed its first slice:
-structural **delete** of multi-line / nested block entries via the interim
-`replace_span` fallback (`src/fidelity/write/delete.rs`) behind a re-parse
-integrity guard yqr enforces itself (`b004` 2.4/2.5), sole-entry and flow deletes
-refused. The remaining f007 gaps (comment editing, key rename, sequence reorder)
-each need new grammar and stay deferred — the upstream APIs for all three now
-exist, released in noyalib 0.0.18, so what is missing is yqr's grammar, not the
-backend. f013 adopts that release: the pin bump from 0.0.17, plus the two
-reconciliations `b004` §6 turned up when measured against the published crate —
-upstream `remove` does **not** fold head comments or keep-chomped trailing
-blanks (so f007's delete fallback cannot simply shrink without regressing
-`b006`), and `key_span` does **not** replace `validate`'s green-tree walk. f008
-(`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
-order: f006 (done) → f007 delete (done) → f013 (pin bump) → f007 remainder →
-M2 → f008.
+structural **delete** of multi-line / nested block entries via `replace_span`
+(`src/fidelity/write/delete.rs`) behind a re-parse integrity guard yqr enforces
+itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
+gaps (comment editing, key rename, sequence reorder) each need new grammar and
+stay deferred — the upstream APIs for all three exist, released in noyalib
+0.0.18, so what is missing is yqr's grammar, not the backend. f013 **done**: the
+pin is 0.0.18, the lockfile moved that one crate and nothing else, `cargo audit`
+is clean, and both fidelity harnesses passed untouched. Its one code change was
+to stop calling upstream `remove` — on the bump it started accepting the shapes
+it used to refuse and promptly failed four delete tests, including one
+divergence `b004` §6.1 had missed (it *swallows* a following sibling's comment).
+So delete stays yqr's own path by decision, renamed `delete_entry` and no longer
+framed as a fallback (`f007` §5.1). Also settled: `key_span` does **not** replace
+`validate`'s green-tree walk. f008 (`|=` computed updates) is gated on `f001` M2
+(arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
+(done) → f007 remainder → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -1797,10 +1850,9 @@ dashboard.
 ## Summary
 
 - Total features: 13
-- Draft: 2 (f008 — computed updates, gated on `f001` M2; f013 — noyalib 0.0.18
-  adoption, unblocked by the 2026-07-31 release)
+- Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 6 (f002, f006, f009, f010, f011, f012)
+- Done: 7 (f002, f006, f009, f010, f011, f012, f013)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
@@ -2778,9 +2830,9 @@ URL: /yqr/specs/features/yqr-f007-write-tier-structural-edits
 
 # Feature f007 — Write tier: structural edits (the `b004` gaps)
 
-**Status:** In Progress (structural **delete** shipped on the interim
-`replace_span` fallback; comment editing, key rename, and sequence reorder
-remain deferred)
+**Status:** In Progress (structural **delete** shipped, and since `yqr-f013`
+it is yqr's whole delete path rather than a fallback; comment editing, key
+rename, and sequence reorder remain deferred)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
@@ -2808,26 +2860,27 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
   (`b004` §5). All five are **released in noyalib 0.0.18** (2026-07-31) as
   `set_inline_comment`/`set_leading_comment`, `rename_key`,
   `swap_items`/`move_item`, a `remove` that handles multi-line and nested
-  values, and the `Emit` insertion tier. yqr adopts them via `yqr-f013`
-  (the pin is still 0.0.17); what remains deferred here is therefore the
-  **grammar** in §6, not the backend. One caveat carried over from
-  `b004` §6.1: upstream `remove` handles the same shapes as §5's fallback
-  but does not fold head comments or keep-chomped trailing blank lines,
-  so the fallback cannot simply be replaced by it without regressing
-  `b006`.
-- **Interim:** where an upstream API is not yet available, yqr performs the edit
-  via raw `Document::replace_span`, owning the indent/quote/line arithmetic
-  itself, behind an **integrity guard yqr enforces** (§3). `replace_span`
-  guarantees only that the result is *valid YAML*, not that it preserves
-  structure (`b004` 2.5), so the guard is yqr's, not the backend's. Each such
-  fallback is called out in code and tests as a temporary path.
+  values, and the `Emit` insertion tier. yqr is **pinned to 0.0.18** since
+  `yqr-f013`; what remains deferred here is therefore the **grammar** in §6,
+  not the backend. One exception, settled by `yqr-f013` §3.2: upstream
+  `remove` is *not* adopted, because it scopes a delete to the entry's
+  key/value lines and so diverges on trivia in three ways that `b006`
+  classifies as silent wrongness (§5.1).
+- **Own the arithmetic:** where no upstream API fits — either because one does
+  not exist, or because the one that exists has different semantics — yqr
+  performs the edit via raw `Document::replace_span`, owning the
+  indent/quote/line arithmetic itself, behind an **integrity guard yqr
+  enforces** (§3). `replace_span` guarantees only that the result is *valid
+  YAML*, not that it preserves structure (`b004` 2.5), so the guard is yqr's,
+  not the backend's. Delete is the settled instance of this and is no longer
+  framed as temporary (§5.1); anything else on this route is.
 
 ## 3. Structural-integrity contract
 
 Identical to `f006` §7: an accepted edit changes only the targeted node's bytes;
 an edit that would restructure the document is refused (exit 5); `-i` leaves the
-file untouched on refusal. Because `replace_span` does not enforce this, each
-interim fallback must **prove** the property before committing: apply the edit to
+file untouched on refusal. Because `replace_span` does not enforce this, every
+edit routed through it must **prove** the property before committing: apply it to
 a private copy, re-parse it, and commit only if the re-parsed document equals the
 original value with exactly the target change applied — otherwise refuse, leaving
 the document untouched.
@@ -2836,8 +2889,7 @@ the document untouched.
 
 - [x] Delete of a multi-line / nested node, byte-exact elsewhere; a clear error
       where still unsupported (sole-entry, flow).
-- [x] Every interim `replace_span` fallback is guarded and covered by a
-      byte-exact test.
+- [x] Every `replace_span` edit is guarded and covered by a byte-exact test.
 - [ ] Comment set/insert/remove at a resolved path, byte-exact elsewhere.
 - [ ] `.old |= key-rename` (final syntax TBD) renames a key, preserving value +
       trailing comment.
@@ -2848,18 +2900,38 @@ the document untouched.
 ### 5.1 Surface
 
 No new grammar: `del(<path>)` already parses (`f006`). f006 routed every delete
-through noyalib's `Document::remove`, which handles only single-line block
-entries and refuses everything else. f007 keeps `remove` as the first choice and
-adds a **fallback** for the entries it refuses:
+through noyalib's `Document::remove`, which in 0.0.14 handled only single-line
+block entries and refused everything else; f007 added a fallback for the
+refusals. Since `yqr-f013` there is no fallback and no upstream call:
 
 ```
-del(path) -> Document::remove(path)              # single-line block entry
-          └─ on refusal -> delete_structural()   # multi-line / nested (interim)
+del(path) -> delete_entry()   # every delete, single-line or not
 ```
 
-`delete_structural` lives in `src/fidelity/write/delete.rs`, extending
+`delete_entry` lives in `src/fidelity/write/delete.rs`, extending
 `NoyalibWriter` (the value-write trait stays in `write.rs`; the byte-arithmetic
 concern is a sibling sub-module).
+
+**Why not upstream `remove`.** 0.0.18's `remove` accepts every shape this
+module maps, so the obvious move on the pin bump was to call it and delete this
+module. Measured, it is wrong: upstream treats an entry as its key/value lines,
+where yqr treats an entry as owning its trivia. Three cases diverge, all of them
+silent successes rather than refusals — the `b006` failure class:
+
+| Case | `delete_entry` | 0.0.18 `Document::remove` |
+|------|----------------|---------------------------|
+| Head comment above the entry | removed with the entry | survives, silently re-attributed to the next sibling |
+| Keep-chomped (`\|+`) scalar's kept trailing blanks | removed with the entry | left behind as stray blank lines |
+| A following comment belonging to the *next* sibling | left in place | swallowed |
+
+The first two under-delete, the third over-deletes and loses a comment
+outright. §5.4's tests pin all three; each one fails against upstream `remove`,
+which is how the divergence was measured rather than assumed. `yqr-f013` §6
+carries the upstream ask that would close the gap.
+
+Independently worth keeping: yqr's flow pre-check reports `removing an item
+from a flow collection is not supported`, where upstream surfaces `remove:
+could not locate '-' indicator preceding sequence item`.
 
 ### 5.2 Algorithm
 
@@ -2926,6 +2998,12 @@ trailing blanks removed with the entry; a block sequence at its key's own column
 alias-breaking delete). `-i` writes the closed-up document back atomically; a
 refused delete leaves the file unchanged.
 
+Four of those unit tests double as the §5.1 divergence net: the head-comment
+pair, the keep-chomped scalar, and the following-sibling's comment all fail if
+`del` is routed through upstream `remove`. They run through the public `apply`
+entry point, not `delete_entry` directly, so a future re-adoption of `remove`
+cannot slip past them.
+
 ## 6. Deferred gaps (roadmap)
 
 The remaining three gaps each need **new user-facing grammar** the epic has not
@@ -2944,9 +3022,11 @@ these become a call, not a splice (adoption: `yqr-f013` §3.4):
   `swap_items` and `move_item`, the latter a guarded run of adjacent swaps, so
   no offset re-basing in yqr.
 
-The upstream `PR-with-fix` path (§2) already ran its course for all three; the
-interim `replace_span` approach is now the fallback of last resort rather than
-the expected route.
+The upstream `PR-with-fix` path (§2) already ran its course for all three, and
+0.0.18 is pinned, so each of these is now a grammar decision over a live API.
+Raw `replace_span` is the route of last resort rather than the expected one —
+though §5.1 is the standing reminder that "upstream has the call" and "upstream
+has yqr's semantics" are different questions.
 
 _(These criteria firm up once the grammar and the upstream API surface are
 known.)_
@@ -3666,7 +3746,7 @@ URL: /yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption
 
 # Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API
 
-**Status:** Draft
+**Status:** Done
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-b004` (the mutation-API gap catalog this closes; §6 is the
@@ -3730,6 +3810,14 @@ touches every read, every write, and the corpus byte-fidelity assertions.
   `tests/corpus_validation.rs` are the guards; run both before assuming the
   bump is mechanical.
 
+**Done.** `Cargo.lock` moved noyalib 0.0.17 → 0.0.18 and nothing else — no new
+or changed transitive dependency, and `cargo audit` is clean over 94 crates.
+The read path needed no change: `tests/fidelity.rs` and
+`tests/corpus_validation.rs` both pass untouched, so the byte-fidelity property
+is unaffected by the `cst/` rewrite. The write path did need one change, in
+§3.2 — and it surfaced as four failing tests on the bump, not as a judgement
+call.
+
 ### 3.2 Reconcile the structural-delete fallback
 
 `src/fidelity/write/delete.rs` exists because 0.0.14's `remove` refused
@@ -3768,6 +3856,33 @@ Independently, keep yqr's flow-collection pre-check regardless of the choice:
 it reports `removing an item from a flow collection is not supported`, where
 upstream surfaces `remove: could not locate '-' indicator preceding sequence
 item`. The clearer diagnostic is worth the extra check.
+
+**Decided: (a), and more decisively than the scoping expected.**
+
+The bump made this concrete rather than theoretical. `delete` tried `remove`
+first and fell back only on refusal, so the moment 0.0.18's `remove` stopped
+refusing, it took over every case — and **four** delete tests failed on the
+bump alone, before any code was touched:
+
+- `removes_a_head_comment_with_its_entry` and
+  `removes_multiple_contiguous_head_comment_lines` — the head comment survived;
+- `keeps_trailing_blank_lines_of_a_keep_chomped_scalar` — a stray blank left
+  behind;
+- `does_not_eat_a_following_siblings_comment` — **a divergence `yqr-b004` §6.1
+  had not catalogued.** Upstream *swallowed* a comment that belongs to the next
+  sibling. The first three under-delete; this one over-deletes and loses a
+  comment outright. §6.1 listed "a following sibling's comment" among the
+  handled shapes because the probe measured refuse-or-not, not output bytes;
+  `yqr-b004` §6.1 now carries the correction.
+
+So option (b) is not merely a small saving — it is a bad trade at three
+divergences, one of them data-losing. Implemented as (a) in full: `delete` no
+longer calls `remove` at all, `delete_structural` is renamed `delete_entry`
+(nothing about it is a fallback any more), its `remove_err` parameter and the
+"delete fallback" phrasing in the layout-refusal message are gone, and the
+module doc states the semantic difference — an entry owns its trivia — as the
+reason rather than a missing API. All 152 lib tests and the full local CI
+mirror pass. `yqr-f007` §5.1 carries the divergence table and the rationale.
 
 ### 3.3 `validate` is unaffected — record it and move on
 
@@ -3809,19 +3924,19 @@ into a CRLF document inserts `\n`.
 
 ## 4. Acceptance criteria
 
-- [ ] `Cargo.toml` pins `noyalib = "0.0.18"`, the adjacent comment names 0.0.18,
+- [x] `Cargo.toml` pins `noyalib = "0.0.18"`, the adjacent comment names 0.0.18,
       and `Cargo.lock` is refreshed.
-- [ ] `bash .github/scripts/local-ci.sh` passes, including `cargo audit`.
-- [ ] `tests/fidelity.rs` and `tests/corpus_validation.rs` pass unchanged — the
+- [x] `bash .github/scripts/local-ci.sh` passes, including `cargo audit`.
+- [x] `tests/fidelity.rs` and `tests/corpus_validation.rs` pass unchanged — the
       bump alters no byte-fidelity behaviour.
-- [ ] The §3.2 decision is made, implemented, and recorded in `yqr-f007` §5;
+- [x] The §3.2 decision is made, implemented, and recorded in `yqr-f007` §5;
       every `yqr-f007` §5.4 delete test still passes, head-comment and
       keep-chomped cases included.
-- [ ] `yqr-f007` §2's "unreleased `feat/v0.0.18`" framing is updated to the
+- [x] `yqr-f007` §2's "unreleased `feat/v0.0.18`" framing is updated to the
       released API.
-- [ ] `yqr-b004` moves to Resolved in `yqr-b000-bug-status.md`, and `yqr-b004`
+- [x] `yqr-b004` moves to Resolved in `yqr-b000-bug-status.md`, and `yqr-b004`
       §6's adoption notes are marked done.
-- [ ] `CHANGELOG.md` records the dependency bump.
+- [x] `CHANGELOG.md` records the dependency bump.
 
 ## 5. Non-goals
 
@@ -3831,13 +3946,31 @@ into a CRLF document inserts `\n`.
 - Not a release. `yqr-m001` governs when a version ships; `cargo publish` stays
   separately authorized (`yqr-m004`).
 
-## 6. Follow-up: upstream ask
+## 6. Follow-up: upstream ask — noyalib#225, fixed by noyalib#226
 
-§3.2's two divergences are worth reporting upstream on the #221 / #222 / #223
-precedent: `remove` should fold an entry's contiguous same-indent head comment
-and a keep-chomped scalar's kept trailing blank lines into the deletion, as yqr
-does. If that lands, §3.2 option (b) becomes clearly correct and `delete.rs`
-can genuinely shrink. Not filed yet.
+§3.2's divergences — three kinds, not the two this spec scoped — were filed
+2026-08-02 as
+[noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225), a
+follow-up to #221 §4 on the #222 / #223 precedent. `remove` should fold an
+entry's contiguous same-indent head comment and a keep-chomped scalar's kept
+trailing blank lines into the deletion, and should *not* swallow a following
+comment that lies outside the entry's value span. The issue carries a runnable
+repro per case plus the two controls 0.0.18 already gets right, argues the fix
+is a span-boundary refinement rather than new machinery, and offers a PR.
+
+That PR is
+[noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226), opened
+the same day and **awaiting review**. It implements all three: `remove` now
+derives its range from the same value-span boundary `span_at` reports, which
+is what the refinement amounts to. The cross-check that matters here is that
+yqr's suite passes with `del` routed back through upstream `remove` against
+the patched crate — the four tests §3.2 records as failing on the bump
+included.
+
+When it lands **and ships in a release yqr can pin**, §3.2 option (b) becomes
+clearly correct and `delete.rs` can genuinely shrink to a trivia pre-pass;
+that re-evaluation is the natural successor to this feature, not part of it.
+Full case list in `yqr-b004` §6.4.
 
 ---
 

@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 983
+  "wordCount": 1011
 }
 </script>
 <script type="application/ld+json">
@@ -1824,26 +1824,28 @@ dependency/release timing.</p>
 <tr><td><a href="/yqr/specs/features/yqr-f006-fidelity-write-tier">f006</a></td><td>Write tier v1: value assignment and in-place edits (<code>--in-place</code>)</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f007-write-tier-structural-edits">f007</a></td><td>Write tier: structural edits (the <code>b004</code> gaps)</td><td>In Progress (structural delete shipped; comment/rename/reorder deferred)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f008-write-tier-computed-updates">f008</a></td><td>Write tier: computed updates (<code>|=</code>)</td><td>Draft (stub — gated on <code>f001</code> M2)</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption">f013</a></td><td>Adopt noyalib 0.0.18: pin bump and the released CST mutation API</td><td>Draft</td></tr>
+<tr><td><a href="/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption">f013</a></td><td>Adopt noyalib 0.0.18: pin bump and the released CST mutation API</td><td>Done</td></tr>
 </tbody></table>
 <p>Progress: f006 shipped on noyalib 0.0.14’s first-class, re-parse-guarded mutators
 (<code>set_value</code>/<code>insert_entry</code>/<code>push_back</code>/<code>remove</code>) — <code>=</code>, <code>+=</code>, new-key assign,
 <code>del</code>, scalar-literal / path RHS, and atomic <code>-i</code>, all through the fidelity write
 seam (<code>src/fidelity/write.rs</code>), zero upstream work. f007 landed its first slice:
-structural <strong>delete</strong> of multi-line / nested block entries via the interim
-<code>replace_span</code> fallback (<code>src/fidelity/write/delete.rs</code>) behind a re-parse
-integrity guard yqr enforces itself (<code>b004</code> 2.4/2.5), sole-entry and flow deletes
-refused. The remaining f007 gaps (comment editing, key rename, sequence reorder)
-each need new grammar and stay deferred — the upstream APIs for all three now
-exist, released in noyalib 0.0.18, so what is missing is yqr’s grammar, not the
-backend. f013 adopts that release: the pin bump from 0.0.17, plus the two
-reconciliations <code>b004</code> §6 turned up when measured against the published crate —
-upstream <code>remove</code> does <strong>not</strong> fold head comments or keep-chomped trailing
-blanks (so f007’s delete fallback cannot simply shrink without regressing
-<code>b006</code>), and <code>key_span</code> does <strong>not</strong> replace <code>validate</code>’s green-tree walk. f008
-(<code>|=</code> computed updates) is gated on <code>f001</code> M2 (arithmetic/builtins). Priority
-order: f006 (done) → f007 delete (done) → f013 (pin bump) → f007 remainder →
-M2 → f008.</p>
+structural <strong>delete</strong> of multi-line / nested block entries via <code>replace_span</code>
+(<code>src/fidelity/write/delete.rs</code>) behind a re-parse integrity guard yqr enforces
+itself (<code>b004</code> 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
+gaps (comment editing, key rename, sequence reorder) each need new grammar and
+stay deferred — the upstream APIs for all three exist, released in noyalib
+0.0.18, so what is missing is yqr’s grammar, not the backend. f013 <strong>done</strong>: the
+pin is 0.0.18, the lockfile moved that one crate and nothing else, <code>cargo audit</code>
+is clean, and both fidelity harnesses passed untouched. Its one code change was
+to stop calling upstream <code>remove</code> — on the bump it started accepting the shapes
+it used to refuse and promptly failed four delete tests, including one
+divergence <code>b004</code> §6.1 had missed (it <em>swallows</em> a following sibling’s comment).
+So delete stays yqr’s own path by decision, renamed <code>delete_entry</code> and no longer
+framed as a fallback (<code>f007</code> §5.1). Also settled: <code>key_span</code> does <strong>not</strong> replace
+<code>validate</code>’s green-tree walk. f008 (<code>|=</code> computed updates) is gated on <code>f001</code> M2
+(arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
+(done) → f007 remainder → M2 → f008.</p>
 <h2 id="epic-editing-loop-tooling-f012">Epic: Editing-loop tooling (f012)<a class="heading-anchor" href="#epic-editing-loop-tooling-f012" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
 <tr><td><a href="/yqr/specs/features/yqr-f012-validate-command">f012</a></td><td><code>yqr validate</code>: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, <code>--strict</code>)</td><td>Done</td></tr>
@@ -1876,10 +1878,9 @@ dashboard.</p>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
 <li>Total features: 13</li>
-<li>Draft: 2 (f008 — computed updates, gated on <code>f001</code> M2; f013 — noyalib 0.0.18
-adoption, unblocked by the 2026-07-31 release)</li>
+<li>Draft: 1 (f008 — computed updates, gated on <code>f001</code> M2)</li>
 <li>In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)</li>
-<li>Done: 6 (f002, f006, f009, f010, f011, f012)</li>
+<li>Done: 7 (f002, f006, f009, f010, f011, f012, f013)</li>
 <li>Superseded: 3 (f003, f004 — single-engine consolidation, <code>yqr-m005</code>; f005 —
 fidelity-by-default flip, <code>yqr-f009</code>)</li>
 <li>Released in <code>v0.3.0</code>: f002 (fidelity engine) and f005 (<code>--preserve</code>, later

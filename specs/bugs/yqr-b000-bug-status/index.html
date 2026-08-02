@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Bug Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 620
+  "wordCount": 644
 }
 </script>
 <script type="application/ld+json">
@@ -1792,7 +1792,7 @@ status tracker convention).</p>
 <p><strong>Status legend:</strong> Open · In Progress · Fixed · Resolved · Won’t Fix · Duplicate</p>
 <h2 id="open">Open<a class="heading-anchor" href="#open" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps">b004</a></td><td>noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete</td><td>Medium</td><td>Fixed upstream and <strong>released in noyalib 0.0.18</strong> (crates.io 2026-07-31) — all five gaps of umbrella issue noyalib#221: our noyalib#222 (key rename) and noyalib#223 (<code>Emit</code> auto-formatting tier), both merged, the other three by the maintainer; verified present in the published crate. Still Open for yqr because the pin is <code>noyalib = "0.0.17"</code>, whose edit API is unchanged since 0.0.14. Closes on the pin bump, specced as <code>yqr-f013</code>. Note b004 §6.1: upstream <code>remove</code> does <strong>not</strong> fold head comments or keep-chomped trailing blanks, so <code>yqr-f007</code>’s delete fallback cannot simply shrink without regressing <code>yqr-b006</code>; and §6.2: <code>key_span</code> does not replace <code>validate</code>’s green-tree walk</td><td><code>yqr-b002</code>, <code>yqr-b006</code>, <code>yqr-r002</code>, <code>yqr-m002</code>, <code>yqr-m005</code>, <code>yqr-f006</code>, <code>yqr-f007</code>, <code>yqr-f013</code></td></tr>
+<tr><td><a href="/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps">b004</a></td><td>noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete</td><td>Medium</td><td>Resolved — all five gaps of umbrella issue noyalib#221 released in <strong>noyalib 0.0.18</strong> (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (<code>Emit</code> auto-formatting tier), both merged, the other three by the maintainer. yqr pins <code>noyalib = "0.0.18"</code> as of <code>yqr-f013</code>. Two adoption findings stand (b004 §6): upstream <code>remove</code> diverges on delete trivia in <strong>three</strong> measured ways — it strands head comments and keep-chomped trailing blanks, and <em>swallows</em> a following sibling’s comment — so delete stays yqr’s own code by decision rather than necessity (<code>yqr-f007</code> §5.1, would otherwise regress <code>yqr-b006</code>); and <code>key_span</code> does <strong>not</strong> replace <code>validate</code>’s green-tree walk. Those divergences are filed upstream as noyalib#225 and fixed by yqr’s noyalib#226 (open) (§6.4)</td><td><code>yqr-b002</code>, <code>yqr-b006</code>, <code>yqr-r002</code>, <code>yqr-m002</code>, <code>yqr-m005</code>, <code>yqr-f006</code>, <code>yqr-f007</code>, <code>yqr-f013</code></td></tr>
 </tbody></table>
 <h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
@@ -1806,9 +1806,12 @@ status tracker convention).</p>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
 <li>Total bugs: 7</li>
-<li>Open: 1 (1 Medium — b004, fixed upstream and released in noyalib
-0.0.18; now waiting only on yqr’s pin bump, specced as <code>yqr-f013</code>)</li>
-<li>Resolved: 6 (b007 — website links fixed for the accent v0.23.1 media
+<li>Open: 0</li>
+<li>Resolved: 7 (b004 — all five mutation-API gaps released in noyalib
+0.0.18 and adopted by <code>yqr-f013</code>’s pin bump; delete deliberately keeps
+yqr’s own path, since upstream <code>remove</code> diverges on entry trivia in
+four measured cases;
+b007 — website links fixed for the accent v0.23.1 media
 policy and link checker, CI now builds with <code>--strict-links</code>;
 b001 — byte fidelity is now the default read (<code>yqr-f009</code>), closing
 the lossy-default round trip; the classic pipeline is now opt-in via

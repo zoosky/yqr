@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps",
-  "wordCount": 2918
+  "wordCount": 3377
 }
 </script>
 <script type="application/ld+json">
@@ -1786,28 +1786,34 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Fixed upstream and <strong>released</strong> — every gap below ships in
-<strong>noyalib 0.0.18</strong> (crates.io 2026-07-31, GitHub release <code>v0.0.18</code> the
-same day). Verified against the published <code>.crate</code>, not just the branch:
-<code>src/cst/emit.rs</code> is present, <code>cst/mod.rs</code> re-exports <code>pub use emit::{Emit, EmitCtx}</code>, and <code>rename_key</code>, <code>key_span</code>, <code>swap_items</code>,
-<code>move_item</code>, <code>set_inline_comment</code> / <code>remove_inline_comment</code>,
+            <p><strong>Status:</strong> Resolved (2026-08-02) — every gap below ships in <strong>noyalib
+0.0.18</strong> (crates.io 2026-07-31, GitHub release <code>v0.0.18</code> the same day),
+and yqr is pinned to it as of <code>yqr-f013</code>. Verified against the published
+<code>.crate</code>, not just the branch: <code>src/cst/emit.rs</code> is present, <code>cst/mod.rs</code>
+re-exports <code>pub use emit::{Emit, EmitCtx}</code>, and <code>rename_key</code>, <code>key_span</code>,
+<code>swap_items</code>, <code>move_item</code>, <code>set_inline_comment</code> / <code>remove_inline_comment</code>,
 <code>set_leading_comment</code> / <code>remove_leading_comment</code>,
 <code>insert_entry_value</code> / <code>push_back_value</code> / <code>insert_after_value</code> are all
-in the shipped source. <strong>Still Open for yqr:</strong> the pin is unchanged at
-<code>noyalib = "0.0.17"</code> (<code>Cargo.toml:40</code>), whose edit API is unchanged
-since 0.0.14 (the v0.0.14…v0.0.17 diff touches no <code>cst/</code> source file —
-0.0.15 was loader-parity + coverage hardening, 0.0.16 a build fix / MSRV
-1.86 / dependency refresh, 0.0.17 a no-change lockstep republish), so
-the gaps remain real for shipped code and each still falls back to raw
-<code>Document::replace_span(start, end, repl)</code> byte splicing. This bug
-closes when the pin bump lands — tracked as <code>yqr-f013</code>, whose scope §6
-now sizes against measured 0.0.18 behaviour.
+in the shipped source. The pin was <code>noyalib = "0.0.17"</code>, whose edit API
+was unchanged since 0.0.14 (the v0.0.14…v0.0.17 diff touches no <code>cst/</code>
+source file — 0.0.15 was loader-parity + coverage hardening, 0.0.16 a
+build fix / MSRV 1.86 / dependency refresh, 0.0.17 a no-change lockstep
+republish), which is why the gaps stayed real for shipped code long
+after the fixes existed. §6 records what adoption actually consumed:
+2.1 / 2.2 / 2.3 / 2.5 are now available APIs awaiting <code>yqr-f007</code>
+grammar, and 2.4 stays yqr’s own code by decision rather than by
+necessity (§6.1).
 <strong>Reported upstream (2026-07-29):</strong> umbrella issue
 <a href="https://github.com/sebastienrousseau/noyalib/issues/221">noyalib#221</a>
 covers all five gaps and is <strong>still open</strong> even though the release
 shipped. The earlier note here that issues are disabled upstream is
-stale — they are enabled.
-<strong>Contributed upstream:</strong> the §2.2 key rename as
+stale — they are enabled. A follow-up to #221 §4,
+<a href="https://github.com/sebastienrousseau/noyalib/issues/225">noyalib#225</a>,
+was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
+the released <code>remove</code> (§6.4).
+<strong>Contributed upstream:</strong> the §6.4 delete-trivia fix as
+<a href="https://github.com/sebastienrousseau/noyalib/pull/226">noyalib#226</a>
+(<strong>open</strong>, filed 2026-08-02 against <code>main</code>); the §2.2 key rename as
 <a href="https://github.com/sebastienrousseau/noyalib/pull/222">noyalib#222</a>
 (<strong>merged</strong> 2026-07-31 06:15 UTC) and the §2.5 auto-formatting tier as
 <a href="https://github.com/sebastienrousseau/noyalib/pull/223">noyalib#223</a>
@@ -2020,32 +2026,37 @@ five gaps went up as one umbrella issue,
 <p>Umbrella issue #221 is <strong>still open</strong> upstream despite every gap shipping
 — it is the maintainer’s to close, and yqr should not read its open state
 as unfinished work.</p>
-<h2 id="6-adoption-in-yqr-unblocked-specced-as-yqr-f013">6. Adoption in yqr (unblocked; specced as <code>yqr-f013</code>)<a class="heading-anchor" href="#6-adoption-in-yqr-unblocked-specced-as-yqr-f013" aria-label="Link to this section"></a></h2>
-<p>0.0.18 is on crates.io, so the pin bump from <code>= "0.0.17"</code> is now the only
-gate. <code>yqr-f013</code> owns the work; this section records what was <strong>measured</strong>
-against the released crate, because two of the three handoff notes written
-before the release turned out to be wrong.</p>
+<h2 id="6-adoption-in-yqr-done-yqr-f013">6. Adoption in yqr (done — <code>yqr-f013</code>)<a class="heading-anchor" href="#6-adoption-in-yqr-done-yqr-f013" aria-label="Link to this section"></a></h2>
+<p>The pin bump from <code>= "0.0.17"</code> to <code>= "0.0.18"</code> landed with <code>yqr-f013</code>; this
+section records what was <strong>measured</strong> against the released crate, because
+most of the handoff notes written before the release turned out to be wrong.</p>
 <h3 id="6-1-upstream-remove-does-not-subsume-yqr-s-delete-fallback">6.1 Upstream <code>remove</code> does not subsume yqr’s delete fallback<a class="heading-anchor" href="#6-1-upstream-remove-does-not-subsume-yqr-s-delete-fallback" aria-label="Link to this section"></a></h3>
 <p>Probed by driving noyalib 0.0.18’s <code>Document::remove</code> directly over the
 cases <code>src/fidelity/write/delete.rs</code> covers (<code>yqr-f007</code> §5.4). Upstream
 handles the <strong>shapes</strong> — nested block mapping, multi-line sequence item
 (<code>list[0]</code>), a block sequence at its key’s own column, a comment on the
-key line, a following sibling’s comment, blank lines between entries — and
-refuses the same two cases yqr refuses (sole entry of a mapping <em>and</em> of a
-sequence; flow items).</p>
+key line, blank lines between entries — and refuses the same two cases yqr
+refuses (sole entry of a mapping <em>and</em> of a sequence; flow items).</p>
 <p>It does <strong>not</strong> reproduce the trivia handling <code>yqr-b006</code> added:</p>
 <table><thead><tr><th>Case</th><th>yqr today</th><th>noyalib 0.0.18 <code>remove</code></th></tr></thead><tbody>
 <tr><td>Head comment above the entry (<code># doc for b</code> / <code>b: 2</code> / <code>c: 3</code>, delete <code>b</code>)</td><td>comment removed with its entry</td><td>comment <strong>survives</strong>, silently re-attributed to <code>c</code></td></tr>
 <tr><td>Same, indented (<code>top:</code> / <code># doc</code> / <code>b: 2</code> / <code>c: 3</code>, delete <code>top.b</code>)</td><td>removed with the entry</td><td>survives above <code>c</code></td></tr>
-<tr><td>Keep-chomped scalar (<code>a: |+</code> with kept trailing blanks, delete <code>a</code>)</td><td>kept blanks removed with the entry</td><td><strong>two stray blank lines</strong> left behind</td></tr>
+<tr><td>Keep-chomped scalar (<code>a: |+</code> with kept trailing blanks, delete <code>a</code>)</td><td>kept blanks removed with the entry</td><td>the kept blanks are <strong>left behind as stray blank lines</strong></td></tr>
+<tr><td>Following comment belonging to the next sibling (<code>outer:</code> / <code>  a: 1</code> / <code>  # note for next</code> / <code>next: 2</code>, delete <code>outer</code>)</td><td>comment left in place</td><td>comment <strong>swallowed</strong></td></tr>
 </tbody></table>
-<p>Both divergences are silent successes, not refusals — exactly the failure
-class <code>yqr-b006</code> was filed for. So the fallback’s <strong>trivia</strong> logic
-(<code>absorb_head_comments</code>, the keep-chomped end-of-span rule) must stay; what
-becomes redundant is only its span arithmetic for shapes upstream now maps.
-<code>yqr-f013</code> decides whether to keep yqr’s path wholesale or call upstream and
-re-apply the trivia rules, and either way the <code>yqr-f007</code> §5.4 tests are the
-regression net.</p>
+<p><strong>Correction (2026-08-02):</strong> the last row was originally listed above as a
+handled shape. It is not. Under the pin bump the whole test suite was run
+against upstream <code>remove</code>, and this case failed alongside the other three:
+upstream over-deletes here, losing a comment outright, where the first three
+rows under-delete. The earlier note was measured on refuse-or-not, not on
+output bytes.</p>
+<p>Every row above is a silent success, not a refusal — exactly the failure
+class <code>yqr-b006</code> was filed for. Three kinds of divergence across the four
+probes: two strand trivia the entry owns, one deletes trivia it does not.
+<code>yqr-f013</code> §3.2 settled it: yqr keeps
+its own delete path in full and does not call upstream <code>remove</code> at all, so
+the trivia rules and the span arithmetic stay together where their tests
+are. The <code>yqr-f007</code> §5.4 tests are the standing regression net.</p>
 <p>Also worth keeping: yqr’s flow pre-check produces <code>removing an item from a flow collection is not supported</code>, where upstream surfaces <code>remove: could not locate '-' indicator preceding sequence item</code>. yqr’s message is the
 better diagnostic and should not be traded away for the shorter call path.</p>
 <h3 id="6-2-key-span-does-not-remove-validate-s-green-tree-walk">6.2 <code>key_span</code> does not remove <code>validate</code>’s green-tree walk<a class="heading-anchor" href="#6-2-key-span-does-not-remove-validate-s-green-tree-walk" aria-label="Link to this section"></a></h3>
@@ -2057,7 +2068,7 @@ block and flow mapping’s keys to find duplicates, which by definition it
 cannot address by path (the duplicates share one). <code>key_span</code> may still be
 useful for <code>yqr-f007</code>’s deferred key-rename slice; it does nothing for the
 duplicate-key scan, which stays as it is.</p>
-<h3 id="6-3-genuinely-new-capability-to-wire-up">6.3 Genuinely new capability to wire up<a class="heading-anchor" href="#6-3-genuinely-new-capability-to-wire-up" aria-label="Link to this section"></a></h3>
+<h3 id="6-3-genuinely-new-capability-to-wire-up-available-not-yet-used">6.3 Genuinely new capability to wire up (available, not yet used)<a class="heading-anchor" href="#6-3-genuinely-new-capability-to-wire-up-available-not-yet-used" aria-label="Link to this section"></a></h3>
 <p>The remaining mutators have no yqr equivalent today and are the real
 payload of the bump: <code>rename_key</code> for key edits, <code>swap_items</code> / <code>move_item</code>
 for sequence reorder, the four comment setters for comment edits, and the
@@ -2065,11 +2076,45 @@ for sequence reorder, the four comment setters for comment edits, and the
 <code>insert_after_value</code>) for anything yqr would otherwise quote itself. Each
 unblocks a deferred <code>yqr-f007</code> §6 gap, and each still needs the user-facing
 grammar that spec calls out as unsettled — the API landing does not settle it.</p>
-<h3 id="6-4-follow-up-upstream-ask-not-yet-filed">6.4 Follow-up upstream ask (not yet filed)<a class="heading-anchor" href="#6-4-follow-up-upstream-ask-not-yet-filed" aria-label="Link to this section"></a></h3>
-<p>§6.1’s two divergences are worth reporting on the #221 precedent: <code>remove</code>
-should fold an entry’s contiguous same-indent head comment and a
-keep-chomped scalar’s kept trailing blank lines into the deletion, as yqr
-does. Until then yqr keeps owning that arithmetic.</p>
+<h3 id="6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226">6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)<a class="heading-anchor" href="#6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226" aria-label="Link to this section"></a></h3>
+<p>Filed 2026-08-02 as
+<a href="https://github.com/sebastienrousseau/noyalib/issues/225">noyalib#225</a>, a
+follow-up to #221 §4 against the released 0.0.18, and <strong>fixed the same day
+by yqr’s <a href="https://github.com/sebastienrousseau/noyalib/pull/226">noyalib#226</a></strong>
+(open). Each of §6.1’s three divergences is a silent wrong result rather
+than a refusal:</p>
+<ul>
+<li><code>remove</code> should fold an entry’s contiguous same-indent <strong>head comment</strong>
+into the deletion, instead of leaving it to silently document the next
+sibling (two of §6.1’s four probes).</li>
+<li>It should fold a <strong>keep-chomped</strong> (<code>|+</code> / <code>&gt;+</code>) scalar’s kept trailing
+blank lines in, instead of stranding them.</li>
+<li>It should <strong>not</strong> swallow a following comment that lies outside the
+entry’s value span and belongs to the next sibling — the one case where
+upstream deletes something it should keep.</li>
+</ul>
+<p>The issue carries a runnable repro per case, plus <strong>two controls that
+0.0.18 already gets right</strong> and must stay right: a head comment detached by
+a blank line is <em>not</em> folded, and a comment interleaved inside the value
+<em>is</em> removed. It also argues the fix is a boundary refinement inside
+<code>remove</code> rather than new machinery — the whole rule falls out of <code>span_at</code>’s
+value span — and offers a PR on the #222 / #223 pattern. A wording nit rides
+along: the flow-item refusal reads <code>remove: could not locate '-' indicator preceding sequence item</code>, which describes the internal scan rather than the
+situation.</p>
+<p><strong>noyalib#226</strong> implements all three. The fix turned out to be a boundary
+alignment rather than new machinery: <code>span_at</code> already excluded a trailing
+comment and kept a keep-chomped scalar’s blanks (via <code>trim_value_span</code>),
+while <code>remove</code> reached past both by taking the span tree’s raw end and
+trimming with <code>trim_trailing_blank</code>. <code>entry_line_span</code> now derives its range
+through one helper shared by the mapping and sequence arms, so the two agree.
+Nine tests cover the three fixes plus the preserved behaviours; the decisive
+check is that <strong>yqr’s own suite passes with <code>del</code> routed back through
+upstream <code>remove</code></strong> against the patched crate — the four tests that found the
+divergence included.</p>
+<p>When it lands and is released, <code>yqr-f013</code> §3.2’s option (b) becomes clearly
+correct and <code>src/fidelity/write/delete.rs</code> can shrink to a trivia pre-pass —
+re-evaluate then. Until then yqr owns the whole delete path by decision
+(§6.1).</p>
 
         </div>
         </accent-island>
@@ -2142,7 +2187,7 @@ does. Until then yqr keeps owning that arithmetic.</p>
             </li>
         
             <li class="toc-level-2">
-                <a href="#6-adoption-in-yqr-unblocked-specced-as-yqr-f013">6. Adoption in yqr (unblocked; specced as yqr-f013)</a>
+                <a href="#6-adoption-in-yqr-done-yqr-f013">6. Adoption in yqr (done — yqr-f013)</a>
             </li>
         
             <li class="toc-level-3">
@@ -2154,11 +2199,11 @@ does. Until then yqr keeps owning that arithmetic.</p>
             </li>
         
             <li class="toc-level-3">
-                <a href="#6-3-genuinely-new-capability-to-wire-up">6.3 Genuinely new capability to wire up</a>
+                <a href="#6-3-genuinely-new-capability-to-wire-up-available-not-yet-used">6.3 Genuinely new capability to wire up (available, not yet used)</a>
             </li>
         
             <li class="toc-level-3">
-                <a href="#6-4-follow-up-upstream-ask-not-yet-filed">6.4 Follow-up upstream ask (not yet filed)</a>
+                <a href="#6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226">6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)</a>
             </li>
         
         </ul>
