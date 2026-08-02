@@ -10,7 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Fixed upstream, unreleased — all five gaps of umbrella issue noyalib#221 are implemented on noyalib's `feat/v0.0.18`: our noyalib#222 (key rename, merged) and noyalib#223 (`Emit` auto-formatting tier, open), the other three by the maintainer. Still Open for yqr because 0.0.18 is unpublished and the pin is `noyalib = "0.0.17"`, whose edit API is unchanged since 0.0.14. Closes on the pin bump; adoption steps in b004 §6 (shrink `yqr-f007`'s delete fallback, revisit `validate`'s key-span walk) | `yqr-b002`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007` |
+| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Fixed upstream and **released in noyalib 0.0.18** (crates.io 2026-07-31) — all five gaps of umbrella issue noyalib#221: our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer; verified present in the published crate. Still Open for yqr because the pin is `noyalib = "0.0.17"`, whose edit API is unchanged since 0.0.14. Closes on the pin bump, specced as `yqr-f013`. Note b004 §6.1: upstream `remove` does **not** fold head comments or keep-chomped trailing blanks, so `yqr-f007`'s delete fallback cannot simply shrink without regressing `yqr-b006`; and §6.2: `key_span` does not replace `validate`'s green-tree walk | `yqr-b002`, `yqr-b006`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013` |
 
 ## Resolved
 
@@ -26,8 +26,8 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 7
-- Open: 1 (1 Medium — b004, fixed upstream on noyalib's unreleased
-  `feat/v0.0.18` branch; waiting on the 0.0.18 release and the pin bump)
+- Open: 1 (1 Medium — b004, fixed upstream and released in noyalib
+  0.0.18; now waiting only on yqr's pin bump, specced as `yqr-f013`)
 - Resolved: 6 (b007 — website links fixed for the accent v0.23.1 media
   policy and link checker, CI now builds with `--strict-links`;
   b001 — byte fidelity is now the default read (`yqr-f009`), closing

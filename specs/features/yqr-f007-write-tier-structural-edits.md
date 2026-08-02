@@ -27,11 +27,16 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 
 - **Preferred:** upstream noyalib mutators — reported as umbrella issue
   noyalib#221 and contributed as PRs-with-fix on the #118/#123 precedent
-  (`b004` §5). All five now exist on noyalib's unreleased `feat/v0.0.18`
-  as `set_inline_comment`/`set_leading_comment`, `rename_key`,
+  (`b004` §5). All five are **released in noyalib 0.0.18** (2026-07-31) as
+  `set_inline_comment`/`set_leading_comment`, `rename_key`,
   `swap_items`/`move_item`, a `remove` that handles multi-line and nested
-  values, and the `Emit` insertion tier. yqr calls the guarded API
-  directly once 0.0.18 ships (`b004` §6).
+  values, and the `Emit` insertion tier. yqr adopts them via `yqr-f013`
+  (the pin is still 0.0.17); what remains deferred here is therefore the
+  **grammar** in §6, not the backend. One caveat carried over from
+  `b004` §6.1: upstream `remove` handles the same shapes as §5's fallback
+  but does not fold head comments or keep-chomped trailing blank lines,
+  so the fallback cannot simply be replaced by it without regressing
+  `b006`.
 - **Interim:** where an upstream API is not yet available, yqr performs the edit
   via raw `Document::replace_span`, owning the indent/quote/line arithmetic
   itself, behind an **integrity guard yqr enforces** (§3). `replace_span`
@@ -146,19 +151,24 @@ refused delete leaves the file unchanged.
 ## 6. Deferred gaps (roadmap)
 
 The remaining three gaps each need **new user-facing grammar** the epic has not
-settled, plus harder byte arithmetic; they stay deferred and continue to error
-with a clear "not yet supported" message:
+settled; they stay deferred and continue to error with a clear "not yet
+supported" message. The byte arithmetic, however, is no longer yqr's problem —
+noyalib 0.0.18 ships a guarded API for each, so once the grammar is settled
+these become a call, not a splice (adoption: `yqr-f013` §3.4):
 
-- **Comment editing** (`b004` 2.1) — needs a comment-addressing syntax and
-  `#`-prefix / whitespace fixup over `comments_at` + `replace_span`.
-- **Key rename** (`b004` 2.2) — needs a rename syntax and the key-token span
-  (`span_at` resolves the *value* span, not the key), then `replace_span`
-  preserving the `:`, value, and trailing comment.
-- **Sequence reorder** (`b004` 2.3) — needs a reorder syntax and a multi-splice
-  that re-bases offsets after each move.
+- **Comment editing** (`b004` 2.1) — needs a comment-addressing syntax.
+  Upstream: `set_inline_comment` / `remove_inline_comment`,
+  `set_leading_comment` / `remove_leading_comment`, single-line nodes only.
+- **Key rename** (`b004` 2.2) — needs a rename syntax. Upstream: `rename_key`
+  with style-matched quoting and sibling-duplicate refusal, plus `key_span`
+  for the key-token range `span_at` never exposed.
+- **Sequence reorder** (`b004` 2.3) — needs a reorder syntax. Upstream:
+  `swap_items` and `move_item`, the latter a guarded run of adjacent swaps, so
+  no offset re-basing in yqr.
 
-Each is a `PR-with-fix` candidate upstream first (the preferred path, §2); the
-interim `replace_span` approach applies if the upstream API does not land.
+The upstream `PR-with-fix` path (§2) already ran its course for all three; the
+interim `replace_span` approach is now the fallback of last resort rather than
+the expected route.
 
 _(These criteria firm up once the grammar and the upstream API surface are
 known.)_
