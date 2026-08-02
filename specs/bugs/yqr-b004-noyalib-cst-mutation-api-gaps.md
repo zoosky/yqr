@@ -25,7 +25,9 @@ stale — they are enabled. A follow-up to #221 §4,
 [noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225),
 was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
 the released `remove` (§6.4).
-**Contributed upstream:** the §2.2 key rename as
+**Contributed upstream:** the §6.4 delete-trivia fix as
+[noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)
+(**open**, filed 2026-08-02 against `main`); the §2.2 key rename as
 [noyalib#222](https://github.com/sebastienrousseau/noyalib/pull/222)
 (**merged** 2026-07-31 06:15 UTC) and the §2.5 auto-formatting tier as
 [noyalib#223](https://github.com/sebastienrousseau/noyalib/pull/223)
@@ -346,12 +348,14 @@ for sequence reorder, the four comment setters for comment edits, and the
 unblocks a deferred `yqr-f007` §6 gap, and each still needs the user-facing
 grammar that spec calls out as unsettled — the API landing does not settle it.
 
-### 6.4 Follow-up upstream ask (filed as noyalib#225)
+### 6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)
 
 Filed 2026-08-02 as
 [noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225), a
-follow-up to #221 §4 against the released 0.0.18. Each of §6.1's three
-divergences is a silent wrong result rather than a refusal:
+follow-up to #221 §4 against the released 0.0.18, and **fixed the same day
+by yqr's [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)**
+(open). Each of §6.1's three divergences is a silent wrong result rather
+than a refusal:
 
 - `remove` should fold an entry's contiguous same-indent **head comment**
   into the deletion, instead of leaving it to silently document the next
@@ -372,6 +376,18 @@ along: the flow-item refusal reads `remove: could not locate '-' indicator
 preceding sequence item`, which describes the internal scan rather than the
 situation.
 
-If all three land, `yqr-f013` §3.2's option (b) becomes clearly correct and
-`src/fidelity/write/delete.rs` can shrink to a trivia pre-pass. Until then
-yqr owns the whole delete path by decision (§6.1).
+**noyalib#226** implements all three. The fix turned out to be a boundary
+alignment rather than new machinery: `span_at` already excluded a trailing
+comment and kept a keep-chomped scalar's blanks (via `trim_value_span`),
+while `remove` reached past both by taking the span tree's raw end and
+trimming with `trim_trailing_blank`. `entry_line_span` now derives its range
+through one helper shared by the mapping and sequence arms, so the two agree.
+Nine tests cover the three fixes plus the preserved behaviours; the decisive
+check is that **yqr's own suite passes with `del` routed back through
+upstream `remove`** against the patched crate — the four tests that found the
+divergence included.
+
+When it lands and is released, `yqr-f013` §3.2's option (b) becomes clearly
+correct and `src/fidelity/write/delete.rs` can shrink to a trivia pre-pass —
+re-evaluate then. Until then yqr owns the whole delete path by decision
+(§6.1).

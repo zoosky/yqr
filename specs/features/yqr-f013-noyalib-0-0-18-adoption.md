@@ -200,7 +200,7 @@ into a CRLF document inserts `\n`.
 - Not a release. `yqr-m001` governs when a version ships; `cargo publish` stays
   separately authorized (`yqr-m004`).
 
-## 6. Follow-up: upstream ask — filed as noyalib#225
+## 6. Follow-up: upstream ask — noyalib#225, fixed by noyalib#226
 
 §3.2's divergences — three kinds, not the two this spec scoped — were filed
 2026-08-02 as
@@ -212,5 +212,16 @@ comment that lies outside the entry's value span. The issue carries a runnable
 repro per case plus the two controls 0.0.18 already gets right, argues the fix
 is a span-boundary refinement rather than new machinery, and offers a PR.
 
-If it lands, §3.2 option (b) becomes clearly correct and `delete.rs` can
-genuinely shrink to a trivia pre-pass. Full case list in `yqr-b004` §6.4.
+That PR is
+[noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226), opened
+the same day and **awaiting review**. It implements all three: `remove` now
+derives its range from the same value-span boundary `span_at` reports, which
+is what the refinement amounts to. The cross-check that matters here is that
+yqr's suite passes with `del` routed back through upstream `remove` against
+the patched crate — the four tests §3.2 records as failing on the bump
+included.
+
+When it lands **and ships in a release yqr can pin**, §3.2 option (b) becomes
+clearly correct and `delete.rs` can genuinely shrink to a trivia pre-pass;
+that re-evaluation is the natural successor to this feature, not part of it.
+Full case list in `yqr-b004` §6.4.
