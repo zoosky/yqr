@@ -84,12 +84,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-02",
+  "dateModified": "2026-08-13",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps",
-  "wordCount": 3377
+  "wordCount": 3604
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,15 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -378,6 +387,15 @@
   
     
     
+  
+    
+    
+  
+    
+    
+  
+    
+    
       
       
       
@@ -406,6 +424,17 @@
         
       
         
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
         
       
         
@@ -560,6 +589,12 @@
             
               
               
+            
+              
+              
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link">Feature Status Tracker</a>
               
@@ -640,6 +675,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f013-noyalib-0-0-18-adoption"
                    class="sidebar-link">Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f014-noyalib-0-0-21-adoption"
+                   class="sidebar-link">Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</a>
               
             
               
@@ -741,6 +782,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -891,6 +945,21 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b008-fragment-splice-corrupts-multiline-inserts"
+                   class="sidebar-link">Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents"
+                   class="sidebar-link">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -992,6 +1061,15 @@
         
         
           
+        
+      
+        
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1230,6 +1308,15 @@
               
               
             
+              
+              
+            
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1239,6 +1326,15 @@
     
       
       
+      
+        
+        
+      
+        
+        
+      
+        
+        
       
         
         
@@ -1371,6 +1467,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1597,6 +1702,15 @@
       
         
         
+      
+        
+        
+      
+        
+        
+      
+        
+        
           
         
       
@@ -1636,6 +1750,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1810,10 +1933,23 @@ shipped. The earlier note here that issues are disabled upstream is
 stale — they are enabled. A follow-up to #221 §4,
 <a href="https://github.com/sebastienrousseau/noyalib/issues/225">noyalib#225</a>,
 was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
-the released <code>remove</code> (§6.4).
+the released <code>remove</code> (§6.4); it was <strong>closed 2026-08-05</strong> by the merge of
+noyalib#226.
+<strong>Upstream status update, and why this spec does not follow it (2026-08-11):</strong>
+the maintainer posted a status on #221 keeping it open as the umbrella for
+gaps 2.1, 2.4 and 2.5, described as still open. Verified against the
+published <code>.crate</code> files for 0.0.18 and 0.0.21, that is <strong>not accurate</strong> —
+all three shipped in 0.0.18, and this spec’s §5 table (which was checked
+against the crate, not the branch) stands. The evidence table is in
+<code>yqr-f014</code> §4; the short form is that 2.1’s comment setters and 2.5’s
+<code>Emit</code> tier are both greppable in the 0.0.18 source, and 2.4’s extended
+<code>remove</code> is proven behaviourally by the four yqr delete tests that failed
+on the 0.0.18 bump precisely <em>because</em> <code>remove</code> stopped refusing. Do not
+downgrade this spec’s findings to match the update.
 <strong>Contributed upstream:</strong> the §6.4 delete-trivia fix as
 <a href="https://github.com/sebastienrousseau/noyalib/pull/226">noyalib#226</a>
-(<strong>open</strong>, filed 2026-08-02 against <code>main</code>); the §2.2 key rename as
+(<strong>merged</strong> 2026-08-05, <strong>released in noyalib 0.0.19</strong> on 2026-08-11); the
+§2.2 key rename as
 <a href="https://github.com/sebastienrousseau/noyalib/pull/222">noyalib#222</a>
 (<strong>merged</strong> 2026-07-31 06:15 UTC) and the §2.5 auto-formatting tier as
 <a href="https://github.com/sebastienrousseau/noyalib/pull/223">noyalib#223</a>
@@ -2076,13 +2212,14 @@ for sequence reorder, the four comment setters for comment edits, and the
 <code>insert_after_value</code>) for anything yqr would otherwise quote itself. Each
 unblocks a deferred <code>yqr-f007</code> §6 gap, and each still needs the user-facing
 grammar that spec calls out as unsettled — the API landing does not settle it.</p>
-<h3 id="6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226">6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)<a class="heading-anchor" href="#6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226" aria-label="Link to this section"></a></h3>
+<h3 id="6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226-released">6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226 — released)<a class="heading-anchor" href="#6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226-released" aria-label="Link to this section"></a></h3>
 <p>Filed 2026-08-02 as
 <a href="https://github.com/sebastienrousseau/noyalib/issues/225">noyalib#225</a>, a
 follow-up to #221 §4 against the released 0.0.18, and <strong>fixed the same day
-by yqr’s <a href="https://github.com/sebastienrousseau/noyalib/pull/226">noyalib#226</a></strong>
-(open). Each of §6.1’s three divergences is a silent wrong result rather
-than a refusal:</p>
+by yqr’s <a href="https://github.com/sebastienrousseau/noyalib/pull/226">noyalib#226</a></strong>,
+which was <strong>merged 2026-08-05 and released in noyalib 0.0.19</strong> (2026-08-11);
+#225 closed on the merge. Each of §6.1’s three divergences is a silent wrong
+result rather than a refusal:</p>
 <ul>
 <li><code>remove</code> should fold an entry’s contiguous same-indent <strong>head comment</strong>
 into the deletion, instead of leaving it to silently document the next
@@ -2111,10 +2248,14 @@ Nine tests cover the three fixes plus the preserved behaviours; the decisive
 check is that <strong>yqr’s own suite passes with <code>del</code> routed back through
 upstream <code>remove</code></strong> against the patched crate — the four tests that found the
 divergence included.</p>
-<p>When it lands and is released, <code>yqr-f013</code> §3.2’s option (b) becomes clearly
-correct and <code>src/fidelity/write/delete.rs</code> can shrink to a trivia pre-pass —
-re-evaluate then. Until then yqr owns the whole delete path by decision
-(§6.1).</p>
+<p>It has now landed and shipped, so the re-evaluation this section deferred is
+live: <code>yqr-f013</code> §3.2’s option (b) — call upstream <code>remove</code>, keep a trivia
+pre-pass — is no longer blocked by a known divergence. <code>yqr-f014</code> §3.3
+<strong>did not take it</strong>, for a new reason rather than the old one: noyalib 0.0.21
+fixed a case where <code>remove</code> deleted an entire flow collection while returning
+<code>Ok</code>, which makes delete the mutator with the most upstream churn, and yqr’s
+own path has no open defect and a standing test net (<code>yqr-f007</code> §5.4). The
+option stays open and cheap to revisit; it is tracked in <code>yqr-f007</code> §6.</p>
 
         </div>
         </accent-island>
@@ -2203,7 +2344,7 @@ re-evaluate then. Until then yqr owns the whole delete path by decision
             </li>
         
             <li class="toc-level-3">
-                <a href="#6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226">6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)</a>
+                <a href="#6-4-follow-up-upstream-ask-noyalib-225-fixed-by-noyalib-226-released">6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226 — released)</a>
             </li>
         
         </ul>
@@ -2218,31 +2359,31 @@ re-evaluate then. Until then yqr owns the whole delete path by decision
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
   </ul>
@@ -2273,7 +2414,7 @@ re-evaluate then. Until then yqr owns the whole delete path by decision
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-02</span>
+        <span>Site last updated: 2026-08-13</span>
         
     </footer>
 

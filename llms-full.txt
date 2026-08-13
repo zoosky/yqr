@@ -233,14 +233,15 @@ status tracker convention).
 
 ## Open
 
-| Bug | Title | Severity | Status | Related |
-|-----|-------|----------|--------|---------|
-| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Resolved — all five gaps of umbrella issue noyalib#221 released in **noyalib 0.0.18** (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer. yqr pins `noyalib = "0.0.18"` as of `yqr-f013`. Two adoption findings stand (b004 §6): upstream `remove` diverges on delete trivia in **three** measured ways — it strands head comments and keep-chomped trailing blanks, and *swallows* a following sibling's comment — so delete stays yqr's own code by decision rather than necessity (`yqr-f007` §5.1, would otherwise regress `yqr-b006`); and `key_span` does **not** replace `validate`'s green-tree walk. Those divergences are filed upstream as noyalib#225 and fixed by yqr's noyalib#226 (open) (§6.4) | `yqr-b002`, `yqr-b006`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013` |
+_None._
 
 ## Resolved
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Resolved — all five gaps of umbrella issue noyalib#221 released in **noyalib 0.0.18** (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer. Two adoption findings stand (b004 §6): upstream `remove` diverges on delete trivia in **three** measured ways, so delete stays yqr's own code by decision rather than necessity (`yqr-f007` §5.1, would otherwise regress `yqr-b006`); and `key_span` does **not** replace `validate`'s green-tree walk. Those divergences were filed as noyalib#225 and fixed by yqr's noyalib#226 — **merged 2026-08-05, released in noyalib 0.0.19** (§6.4). yqr pins `noyalib = "0.0.21"` as of `yqr-f014`. Note that the maintainer's 2026-08-11 status update on #221 lists three of these gaps as still open; verified against the published crates, that is inaccurate and this spec's findings stand (`yqr-f014` §4) | `yqr-b002`, `yqr-b006`, `yqr-b008`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013`, `yqr-f014` |
+| [b009](yqr-b009-inserted-lines-break-crlf-documents.md) | An inserted line ends with `\n`, giving a CRLF document mixed line endings | Medium | Fixed — noyalib's insertion mutators hard-code `\n`, so new-key assignment and `+=` gave a CRLF file one bare LF per added line, at **exit 0**. Known upstream behaviour recorded in `b004` §2.5 but never filed, so nothing tracked or tested it. `emit` now restores the convention for documents that were *wholly* CRLF at open time — exact rather than heuristic, since such a document has no bare `\n` of its own; mixed-ending documents are deliberately left alone. Read, `set_value` and `del` were never affected. Five byte-exact tests | `yqr-b001`, `yqr-b004`, `yqr-b008`, `yqr-f014`, `yqr-a001` |
+| [b008](yqr-b008-fragment-splice-corrupts-multiline-inserts.md) | Hand-built fragments corrupt `+=` and new-key inserts of a multi-line string | High | Fixed — `+=` produced unparseable output and new-key assignment a wrong value whenever the RHS string contained a newline, both at **exit 0**, so `-i` wrote the damage to the user's file and reported success. `value_fragment` rendered the value to text, and the fragment-taking mutators splice a fragment verbatim — synthesising indentation for its first line only — so a block scalar's continuation lines kept the rendering's indentation instead of the insertion site's. Both paths now use noyalib's typed tier (`insert_entry_value` / `push_back_value`), which owns the indentation and holds the splice to a load-back oracle. Three regression tests assert emitted bytes **and** loaded-back value. Ships with the 0.0.21 pin (`yqr-f014`) | `yqr-f006`, `yqr-f014`, `yqr-b004`, `yqr-f013`, `yqr-f007` |
 | [b007](yqr-b007-site-links-broken-under-accent-0-23-1.md) | Website: demo-script media link and 404-page `/docs` link break under accent v0.23.1 | Low | Resolved — demo script now linked on GitHub (accent refuses `.sh` as media), 404 page links `/specs/`; CI pins accent v0.23.1 and builds with `--strict-links` so missing link targets fail the build | `yqr-f010` |
 | [b001](yqr-b001-roundtrip-discards-whitespace-and-formatting.md) | Round-trip through the default pipeline discards whitespace, comments, and formatting | High | Resolved for the default read — byte fidelity is now the **default** (`yqr-f009`); `yqr '.' f` is byte-for-byte identical to `f` via the fidelity engine (`yqr-f002`). The lossy semantic round trip is now opt-in via `--normalize` (by design) | `yqr-a001`, `yqr-r001`, `yqr.f001`, `yqr-f002`, `yqr-f009`, `yqr-m005` |
 | [b006](yqr-b006-structural-delete-trivia-and-fidelity.md) | Structural delete mishandles comments, blank lines, and same-column sequences | High | Resolved — `owned_line_span` now derives its range from noyalib's value span, commits via byte-preserving `replace_span`, and folds a same-indent head comment into the delete; regression tests cover each case | `yqr-f007`, `yqr-b004`, `yqr-a001` |
@@ -250,12 +251,19 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 7
+- Total bugs: 9
 - Open: 0
-- Resolved: 7 (b004 — all five mutation-API gaps released in noyalib
+- Resolved: 9 (b009 — an inserted line ended with `\n` regardless of the
+  document's convention, silently giving CRLF files mixed endings; `emit`
+  now restores it, `yqr-f014`;
+  b008 — `+=` and new-key assignment of a multi-line string
+  corrupted the document at exit 0; both insert paths now route through
+  noyalib's typed insertion tier, `yqr-f014`;
+  b004 — all five mutation-API gaps released in noyalib
   0.0.18 and adopted by `yqr-f013`'s pin bump; delete deliberately keeps
   yqr's own path, since upstream `remove` diverges on entry trivia in
-  four measured cases;
+  four measured cases — those divergences are now fixed upstream by yqr's
+  noyalib#226, released in 0.0.19 and pinned by `yqr-f014`;
   b007 — website links fixed for the accent v0.23.1 media
   policy and link checker, CI now builds with `--strict-links`;
   b001 — byte fidelity is now the default read (`yqr-f009`), closing
@@ -1119,10 +1127,23 @@ shipped. The earlier note here that issues are disabled upstream is
 stale — they are enabled. A follow-up to #221 §4,
 [noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225),
 was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
-the released `remove` (§6.4).
+the released `remove` (§6.4); it was **closed 2026-08-05** by the merge of
+noyalib#226.
+**Upstream status update, and why this spec does not follow it (2026-08-11):**
+the maintainer posted a status on #221 keeping it open as the umbrella for
+gaps 2.1, 2.4 and 2.5, described as still open. Verified against the
+published `.crate` files for 0.0.18 and 0.0.21, that is **not accurate** —
+all three shipped in 0.0.18, and this spec's §5 table (which was checked
+against the crate, not the branch) stands. The evidence table is in
+`yqr-f014` §4; the short form is that 2.1's comment setters and 2.5's
+`Emit` tier are both greppable in the 0.0.18 source, and 2.4's extended
+`remove` is proven behaviourally by the four yqr delete tests that failed
+on the 0.0.18 bump precisely *because* `remove` stopped refusing. Do not
+downgrade this spec's findings to match the update.
 **Contributed upstream:** the §6.4 delete-trivia fix as
 [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)
-(**open**, filed 2026-08-02 against `main`); the §2.2 key rename as
+(**merged** 2026-08-05, **released in noyalib 0.0.19** on 2026-08-11); the
+§2.2 key rename as
 [noyalib#222](https://github.com/sebastienrousseau/noyalib/pull/222)
 (**merged** 2026-07-31 06:15 UTC) and the §2.5 auto-formatting tier as
 [noyalib#223](https://github.com/sebastienrousseau/noyalib/pull/223)
@@ -1443,14 +1464,15 @@ for sequence reorder, the four comment setters for comment edits, and the
 unblocks a deferred `yqr-f007` §6 gap, and each still needs the user-facing
 grammar that spec calls out as unsettled — the API landing does not settle it.
 
-### 6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)
+### 6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226 — released)
 
 Filed 2026-08-02 as
 [noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225), a
 follow-up to #221 §4 against the released 0.0.18, and **fixed the same day
-by yqr's [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)**
-(open). Each of §6.1's three divergences is a silent wrong result rather
-than a refusal:
+by yqr's [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)**,
+which was **merged 2026-08-05 and released in noyalib 0.0.19** (2026-08-11);
+#225 closed on the merge. Each of §6.1's three divergences is a silent wrong
+result rather than a refusal:
 
 - `remove` should fold an entry's contiguous same-indent **head comment**
   into the deletion, instead of leaving it to silently document the next
@@ -1482,10 +1504,14 @@ check is that **yqr's own suite passes with `del` routed back through
 upstream `remove`** against the patched crate — the four tests that found the
 divergence included.
 
-When it lands and is released, `yqr-f013` §3.2's option (b) becomes clearly
-correct and `src/fidelity/write/delete.rs` can shrink to a trivia pre-pass —
-re-evaluate then. Until then yqr owns the whole delete path by decision
-(§6.1).
+It has now landed and shipped, so the re-evaluation this section deferred is
+live: `yqr-f013` §3.2's option (b) — call upstream `remove`, keep a trivia
+pre-pass — is no longer blocked by a known divergence. `yqr-f014` §3.3
+**did not take it**, for a new reason rather than the old one: noyalib 0.0.21
+fixed a case where `remove` deleted an entire flow collection while returning
+`Ok`, which makes delete the mutator with the most upstream churn, and yqr's
+own path has no open defect and a standing test net (`yqr-f007` §5.4). The
+option stays open and cheap to revisit; it is tracked in `yqr-f007` §6.
 
 ---
 
@@ -1723,6 +1749,308 @@ the prefixed `/yqr/specs/`; `output/content-media/demo/` contains the two
 
 ---
 
+# Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string
+
+URL: /yqr/specs/bugs/yqr-b008-fragment-splice-corrupts-multiline-inserts
+
+# Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string
+
+**Status:** Fixed (2026-08-13) — both insert paths now route through noyalib's
+typed insertion tier (`insert_entry_value` / `push_back_value`), which owns the
+indentation and holds the splice to a load-back oracle. Shipped with the
+`noyalib 0.0.21` pin (`yqr-f014`).
+**Severity:** High — silent data corruption on a shipped code path. One case
+produced output yqr itself cannot re-parse; the other produced a wrong value.
+Both exited **0**, so `-i` wrote the damage to the user's file and reported
+success.
+**Owner:** yqr maintainers
+**Last updated:** 2026-08-13
+**Affects:** `src/fidelity/write.rs` — `insert_key` (new-key assignment) and
+`append` (`+=`), i.e. `.a.b = <string>` where `b` is new, and `.s += <string>`.
+Existing-key assignment (`set_value`) was never affected. Present since the
+write tier shipped (`yqr-f006`, v0.4.0) and through the 0.0.18 pin.
+**Component:** yqr's own fragment construction, not the engine.
+**Related:** `yqr-f006` (the write tier that introduced `value_fragment`),
+`yqr-b004` §2.5 (the fragment-quoting gap this is the concrete instance of),
+`yqr-f013` §3.4 (which flagged the typed tier as having "a latent correctness
+argument" — this bug is that argument, no longer latent), `yqr-f014` (the
+0.0.21 pin the fix ships with), `yqr-f007` (structural edits)
+
+## 1. Summary
+
+`value_fragment` rendered the right-hand side to a YAML string and handed it to
+noyalib's **fragment-taking** mutators, `insert_entry(parent, key, &fragment)`
+and `push_back(path, &fragment)`. Those splice the fragment verbatim: they
+synthesise indentation for the *first* line only.
+
+A string containing a newline has no single-line spelling, so `crate::render`
+produced a **block scalar** — several lines, whose continuation lines carry the
+indentation of the rendering, not of the insertion site. Spliced verbatim, the
+result was a differently-shaped document.
+
+The `Ok` return was not a guard against this. The fragment mutators' re-parse
+guard rejects *invalid* YAML; it does not reject YAML that is valid but means
+something else, which is exactly `yqr-b004` §2.5. In the sequence case here the
+result was not even valid, and it still committed.
+
+## 2. Reproduction
+
+Measured against the 0.0.18 pin, before the fix. Both exit **0**.
+
+### 2.1 `+=` into a block sequence — output does not re-parse
+
+```console
+$ cat t.yaml
+keep: 0
+s:
+  - one
+
+$ yqr '.s += "v\nqq: 7"' t.yaml
+keep: 0
+s:
+  - one
+  - |-
+  v
+  qq: 7
+$ echo $?
+0
+```
+
+The block scalar's content is at the same column as its `- |-` indicator, so it
+has no content at all and the following lines are read as siblings. Feeding the
+result back:
+
+```console
+$ yqr '.' out.yaml
+yqr: io error: failed to parse YAML input: YAML parse error at line 5,
+column 3: expected block sequence entry or end
+```
+
+With `-i`, that unparseable text is what lands in the file.
+
+### 2.2 New-key assignment — wrong value, silently
+
+```console
+$ yqr '.m.b = "v\nqq: 7"' t2.yaml
+keep: 0
+m:
+  a: 1
+  b:
+    |-
+      v
+      qq: 7
+```
+
+This parses, which is worse. The block-scalar *header* was pushed onto its own
+line, so it is no longer a header — `.m.b` reads back as the literal string
+`"|-\n      v\n      qq: 7"` instead of `"v\nqq: 7"`.
+
+### 2.3 Control — the typed path was always correct
+
+```console
+$ yqr '.m.a = "v\nqq: 7"' t.yaml    # `a` already exists -> set_value
+keep: 0
+m:
+  a: |-
+    v
+    qq: 7
+```
+
+`set_value` takes a typed `&Value` and lets the engine spell it. That is the
+whole difference, and it is what the fix generalises to the other two paths.
+
+## 3. Root cause
+
+`src/fidelity/write.rs` had two layers, each individually defensible:
+
+1. `value_fragment` refused collections, on the reasoning that "splicing its
+   multi-line rendering would silently mis-shape the document". Correct — but
+   the property that matters is **multi-line**, not **collection**. A scalar
+   string with a newline renders multi-line too, and slipped through.
+2. The fragment mutators' `Result` was treated as the structural-integrity
+   guard (the module doc said so). It is not a sufficient one for a fragment
+   the caller built; `yqr-b004` §2.5 had already recorded this and the write
+   tier did not act on it.
+
+## 4. Fix
+
+`value_fragment` is replaced by `insertable`, which lowers the value to
+`::noyalib::Value` instead of to a string, and the two call sites move to the
+typed tier:
+
+| Path | Before | After |
+|------|--------|-------|
+| new-key assignment | `insert_entry(parent, key, &fragment)` | `insert_entry_value(parent, key, &ny)` |
+| `+=` | `push_back(path, &fragment)` | `push_back_value(path, &ny)` |
+
+The typed mutators come from `Emit` (noyalib#223 — yqr's own upstream
+contribution, released in 0.0.18 and hardened in 0.0.21). They compute the
+insertion site's indentation, choose the spelling, and hold the result to a
+**load-back oracle**: after the splice the document must load as the pre-edit
+value with exactly that one insertion applied, or the edit is rolled back. That
+is the guard §3.2 was missing.
+
+The collection refusal is kept verbatim. The typed tier *can* express a
+collection, so it is now a deliberate scope limit on `+=` / new-key assignment
+rather than a backend constraint — lifting it is `yqr-f007` / `yqr-f008` work,
+not a bug fix, and it is called out as such in the code.
+
+## 5. Verification
+
+Three regression tests in `src/fidelity/write.rs`, each asserting the emitted
+bytes **and** the loaded-back value, so a future regression to a
+plausible-but-wrong spelling — valid YAML that means something else — fails
+too:
+
+- `appended_multiline_string_is_indented_for_its_insertion_site` — §2.1;
+- `inserted_multiline_string_is_indented_for_its_insertion_site` — §2.2;
+- `inserted_string_is_quoted_when_its_plain_spelling_would_change_type` — the
+  neighbouring property the typed tier brings (`"8080"` stays a string).
+
+Post-fix output for §2.1 and §2.2:
+
+```yaml
+keep: 0          keep: 0
+s:               m:
+  - one            a: 1
+  - |-             b: |-
+      v                v
+      qq: 7            qq: 7
+```
+
+Both load back as `"v\nqq: 7"`; `keep` is byte-identical.
+
+## 6. Why the existing suite missed it
+
+Every insert/append test used a single-line scalar — `Value::Int(9090)`,
+`Value::String("prod")`. The shape was untested rather than tested-and-wrong,
+and §5 closes that gap **at the unit level, for both mutators**.
+
+It is not closed at the corpus level. `yqr-m003`'s case table has no
+multi-line-string insert, and its `EngineCase` tier is the byte-exact,
+per-backend one — so an engine bump or backend swap that reintroduced this
+would still pass `tests/corpus_validation.rs`. Adding a case there is tracked
+in `yqr-f007` §6 rather than done here, because the corpus is a shared table
+whose cases are also benchmarked, and a corruption fix should not be the change
+that reshapes it.
+
+The `-i` exposure is worth stating plainly: a guard that returns `Ok` on a
+corrupt result is worse than no guard, because the write-back path trusts it.
+</content>
+</invoke>
+
+---
+
+# Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings
+
+URL: /yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents
+
+# Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings
+
+**Status:** Fixed (2026-08-13) — `emit` restores the document's own convention
+for the lines an edit added. Ships with `yqr-f014`.
+**Severity:** Medium — silent fidelity loss on a shipped write path, at exit 0,
+so `-i` wrote the mixed-ending file to disk and reported success. Lower than
+`yqr-b008` only because the result still parses and holds the right values.
+**Owner:** yqr maintainers
+**Last updated:** 2026-08-13
+**Affects:** `src/fidelity/write.rs` — the two line-*adding* operations,
+`insert_key` (new-key assignment) and `append` (`+=`). Present since the write
+tier shipped (`yqr-f006`, v0.4.0).
+**Component:** noyalib's insertion mutators, worked around in yqr.
+**Related:** `yqr-b001` (whose acceptance criterion "CRLF line endings and
+trailing whitespace are preserved" this violated), `yqr-b004` §2.5 (which
+recorded the upstream behaviour without filing it), `yqr-b008` (the same two
+call sites, same silent-at-exit-0 class), `yqr-f014` (the release this fix
+ships with), `yqr-a001` (byte-fidelity property)
+
+## 1. Summary
+
+noyalib's insertion mutators build a line with a hard-coded `\n` terminator —
+`format!("{lead}{indent}{key}: {inline}\n")` — and their
+`leading_break_for_splice` helper only ever looks for `b'\n'`. A document that
+uses CRLF therefore gains one bare LF per inserted line.
+
+`yqr-b004` §2.5 already recorded this ("a splice into a CRLF document inserts
+`\n`") as a known upstream behaviour to be aware of before adopting the typed
+tier. It was never filed as a yqr bug, so nothing tracked it and nothing tested
+it — which is how `yqr-f014` came within one review of closing the bug tracker
+to "Open: none" while shipping it.
+
+## 2. Reproduction
+
+Before the fix, exit **0** in both cases:
+
+```console
+$ printf 'm:\r\n  a: 1\r\n' | yqr '.m.b = 2' | od -c
+m : \r \n     a :   1 \r \n     b :   2 \n
+                                        ^^ bare LF
+
+$ printf 's:\r\n  - 1\r\n' | yqr '.s += 3' | od -c
+s : \r \n     - 1 \r \n     - 3 \n
+                                ^^ bare LF
+```
+
+The damage compounds with `yqr-b008`'s case: a multi-line string inserted into
+a CRLF document contributed a bare LF for *every* line of the block scalar.
+
+## 3. Scope — what was and was not affected
+
+Measured per operation on `m:\r\n  a: 1\r\ns:\r\n  - 1\r\n`:
+
+| Operation | CRLF preserved before the fix? |
+|---|---|
+| read (`.`) | yes — the read path slices original bytes |
+| `set_value` (existing key) | yes — replaces value bytes, adds no line |
+| `insert_key` (new key) | **no** |
+| `append` (`+=`) | **no** |
+| `del` | yes — `delete_entry` is yqr's own span arithmetic |
+
+Only the two line-adding operations, which is what makes the fix narrow.
+
+## 4. Fix
+
+`NoyalibWriter` records, per document at open time, whether that document's
+source was **wholly** CRLF (`is_all_crlf`: at least one line break, and no bare
+`\n` anywhere). `emit` then re-terminates any bare `\n` in such a document as
+`\r\n`.
+
+The restore is exact rather than heuristic, and that is the whole argument for
+doing it in `emit` rather than tracking edit sites: a wholly-CRLF document has
+no bare `\n` of its own, so every bare `\n` present in the output is one the
+edit introduced. An untouched document emits byte-identically and therefore has
+none, making this a no-op for the documents fidelity cares most about.
+
+**A mixed-ending document is deliberately left alone.** There is no convention
+to restore, and picking one would rewrite bytes the user did not ask about —
+the same class of unasked-for change the fidelity engine exists to prevent.
+
+## 5. Verification
+
+Five tests in `src/fidelity/write.rs`, all byte-exact:
+
+- `inserting_a_key_keeps_a_crlf_document_crlf`
+- `appending_an_item_keeps_a_crlf_document_crlf`
+- `a_multiline_insert_into_a_crlf_document_uses_crlf_throughout` — the
+  `yqr-b008` overlap; also asserts the value loads back
+- `an_lf_document_is_untouched_by_the_crlf_restore`
+- `a_mixed_ending_document_is_left_alone`
+
+## 6. Upstream
+
+The durable home for this is noyalib: an insertion should reproduce the
+document's existing line break rather than assume `\n`, the same way it already
+derives indentation from the site. Not yet filed — `yqr-f014` §4 records that
+the open upstream conversation (noyalib#221) needs a correction first, and this
+belongs in the same reply rather than as a separate drive-by issue.
+
+Until then the workaround is yqr's, costs one pass over the emitted string per
+edited document, and is covered by §5.
+</content>
+</invoke>
+
+---
+
 # Feature Specs
 
 URL: /yqr/specs/features
@@ -1790,6 +2118,7 @@ dependency/release timing.
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename/reorder deferred) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
+| [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -1808,9 +2137,18 @@ it used to refuse and promptly failed four delete tests, including one
 divergence `b004` §6.1 had missed (it *swallows* a following sibling's comment).
 So delete stays yqr's own path by decision, renamed `delete_entry` and no longer
 framed as a fallback (`f007` §5.1). Also settled: `key_span` does **not** replace
-`validate`'s green-tree walk. f008 (`|=` computed updates) is gated on `f001` M2
+`validate`'s green-tree walk. f014 **done**: the pin is now 0.0.21, taking
+0.0.19 (which carries yqr's own noyalib#226, the `remove`-trivia fix that closes
+`b004` §6.4) and 0.0.21 (three silent-corruption fixes in the mutators, two of
+which reached yqr through `set_value` — `.k = "a:"` errored and `.k = "\n"`
+silently wrote the wrong value). Its code change fixes `b008`: `+=` and new-key
+assignment hand-built a text fragment, so a multi-line string was spliced at the
+rendering's indentation rather than the insertion site's — producing unparseable
+output or a wrong value, both at exit 0. Both now use the typed tier
+(`insert_entry_value` / `push_back_value`), which is the `f013` §3.4 hand-off
+coming due early. f008 (`|=` computed updates) is gated on `f001` M2
 (arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
-(done) → f007 remainder → M2 → f008.
+(done) → f014 (done) → f007 remainder → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -1849,10 +2187,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 13
+- Total features: 14
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 7 (f002, f006, f009, f010, f011, f012, f013)
+- Done: 8 (f002, f006, f009, f010, f011, f012, f013, f014)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
@@ -2847,7 +3185,7 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 - **Structural delete** — multi-line, nested, sole-entry, and flow deletes that
   `Document::remove` rejects (`b004` 2.4). **Shipped** (§5).
 - **Comment editing** — add / change / remove a comment attached to a node
-  (`b004` 2.1; comments are read-only in 0.0.14). **Deferred** (§6).
+  (`b004` 2.1; comments were read-only in 0.0.14). **Deferred** (§6).
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
   (`b004` 2.2). **Deferred** (§6).
 - **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
@@ -2918,7 +3256,7 @@ module. Measured, it is wrong: upstream treats an entry as its key/value lines,
 where yqr treats an entry as owning its trivia. Three cases diverge, all of them
 silent successes rather than refusals — the `b006` failure class:
 
-| Case | `delete_entry` | 0.0.18 `Document::remove` |
+| Case | `delete_entry` | `Document::remove` as of 0.0.18 |
 |------|----------------|---------------------------|
 | Head comment above the entry | removed with the entry | survives, silently re-attributed to the next sibling |
 | Keep-chomped (`\|+`) scalar's kept trailing blanks | removed with the entry | left behind as stray blank lines |
@@ -2926,8 +3264,15 @@ silent successes rather than refusals — the `b006` failure class:
 
 The first two under-delete, the third over-deletes and loses a comment
 outright. §5.4's tests pin all three; each one fails against upstream `remove`,
-which is how the divergence was measured rather than assumed. `yqr-f013` §6
-carries the upstream ask that would close the gap.
+which is how the divergence was measured rather than assumed.
+
+**Since fixed upstream, and yqr still does not delegate.** All three were filed
+as noyalib#225 and fixed by yqr's noyalib#226, released in **noyalib 0.0.19**;
+yqr pins 0.0.21 (`yqr-f014`). The table above therefore describes 0.0.18, not
+the current pin. Delegation was reconsidered and declined on fresh grounds —
+0.0.21 fixed a `remove` that destroyed a whole flow collection while returning
+`Ok`, so this is where upstream churn concentrates, and yqr's path carries no
+open defect. See §6 for the standing item.
 
 Independently worth keeping: yqr's flow pre-check reports `removing an item
 from a flow collection is not supported`, where upstream surfaces `remove:
@@ -3023,10 +3368,38 @@ these become a call, not a splice (adoption: `yqr-f013` §3.4):
   no offset re-basing in yqr.
 
 The upstream `PR-with-fix` path (§2) already ran its course for all three, and
-0.0.18 is pinned, so each of these is now a grammar decision over a live API.
-Raw `replace_span` is the route of last resort rather than the expected one —
-though §5.1 is the standing reminder that "upstream has the call" and "upstream
-has yqr's semantics" are different questions.
+0.0.21 is pinned (`yqr-f014`), so each of these is now a grammar decision over
+a live API. Raw `replace_span` is the route of last resort rather than the
+expected one — though §5.1 is the standing reminder that "upstream has the
+call" and "upstream has yqr's semantics" are different questions.
+
+Two further items are open here, neither gated on grammar:
+
+- **Re-evaluate delegating delete to upstream `remove`.** The three trivia
+  divergences that made §5.1 keep yqr's path were fixed by yqr's noyalib#226,
+  released in 0.0.19, so `yqr-f013` §3.2's option (b) is unblocked.
+  `yqr-f014` §3.3 declined it for a different reason: 0.0.21 fixed a
+  `remove` that destroyed a flow collection while returning `Ok`, so delete is
+  where upstream churn concentrates, and yqr's path has no open defect. Cheap
+  to revisit; revisit deliberately, not as a side effect of another change.
+- **Collection right-hand sides for `+=` / new-key assignment.** Since
+  `yqr-b008` these route through the typed `Emit` tier, which can spell a
+  nested collection — so the "collections are not yet supported" refusal is now
+  a scope limit, not a backend one. Lifting it is a user-facing surface change
+  and belongs here or in `yqr-f008`, with its own tests and docs.
+- **Creating a key that holds `.` or `[`.** `insert_entry_value` can splice one
+  (it needs a path only to *replace* an existing key, so adding
+  `app.kubernetes.io/name` is supported upstream), but yqr still refuses it in
+  `insert_key`. The refusal is no longer about expressing the key — it is that
+  yqr's path grammar could not then address it, so the edit would write a key
+  the tool cannot read back. Lifting it means settling that addressing question
+  first (an escape or quoting form in the path syntax), which is grammar work,
+  not a splice change. This is the common Kubernetes label/annotation case and
+  is worth doing.
+- **A multi-line-insert case in the shared corpus.** `yqr-b008` §6: the unit
+  tests pin the fix, but `yqr-m003`'s byte-exact `EngineCase` tier has no
+  multi-line-string insert, so a backend swap could reintroduce the corruption
+  without failing `tests/corpus_validation.rs`.
 
 _(These criteria firm up once the grammar and the upstream API surface are
 known.)_
@@ -3960,17 +4333,245 @@ is a span-boundary refinement rather than new machinery, and offers a PR.
 
 That PR is
 [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226), opened
-the same day and **awaiting review**. It implements all three: `remove` now
+the same day, **merged 2026-08-05 and released in noyalib 0.0.19**
+(2026-08-11); #225 closed on the merge. It implements all three: `remove` now
 derives its range from the same value-span boundary `span_at` reports, which
 is what the refinement amounts to. The cross-check that matters here is that
 yqr's suite passes with `del` routed back through upstream `remove` against
 the patched crate — the four tests §3.2 records as failing on the bump
 included.
 
-When it lands **and ships in a release yqr can pin**, §3.2 option (b) becomes
-clearly correct and `delete.rs` can genuinely shrink to a trivia pre-pass;
-that re-evaluation is the natural successor to this feature, not part of it.
-Full case list in `yqr-b004` §6.4.
+It has since shipped, so the successor this section anticipated is
+**`yqr-f014`** (the 0.0.21 pin). That feature re-evaluated option (b) and
+declined it — not because the divergence remains, but because 0.0.21 exposed a
+*new* `remove` defect (a flow-collection delete that destroyed the document
+while returning `Ok`), and yqr's own path has no open defect. Full case list in
+`yqr-b004` §6.4; the standing decision is tracked in `yqr-f007` §6.
+
+One §3.4 hand-off also came due sooner than expected. The "latent correctness
+argument" for adopting the typed insertion tier turned out not to be latent:
+yqr's hand-built fragments were silently corrupting multi-line string inserts
+on this very pin. Filed as `yqr-b008` and fixed in `yqr-f014` §3.2.
+
+---
+
+# Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier
+
+URL: /yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption
+
+# Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier
+
+**Status:** Done
+**Epic:** Fidelity write tier (`f006`–`f008`)
+**Owner:** yqr maintainers
+**Related:** `yqr-f013` (the 0.0.18 adoption this succeeds, whose §3.4 hand-off
+this consumes), `yqr-b008` (the corruption this bump's typed tier fixes),
+`yqr-b004` (the mutation-API gap catalog, whose §6.4 follow-up shipped here),
+`yqr-b006` (delete trivia), `yqr-f007` (structural edits), `yqr-m004`
+(crates.io publishing)
+
+## 1. Scope
+
+Bump `noyalib = "0.0.18"` to `0.0.21` and consume what the two intervening
+releases bring. Unlike `yqr-f013`, this bump is **corrective, not
+preparatory**: three of the four defects it addresses were reachable from
+yqr's shipped CLI.
+
+**In scope:** the pin bump and its lockfile/audit fallout (§3.1); routing the
+two untyped insert paths through the typed tier, which is the `yqr-b008` fix
+(§3.2); restoring CRLF on inserted lines, `yqr-b009` (§3.3); recording that
+noyalib#226 shipped (§3.4); correcting the upstream status update for the
+record (§4).
+
+**Out of scope:** the comment-edit, key-rename and sequence-reorder grammar
+(still `yqr-f007` §6 — the APIs have been available since 0.0.18 and the
+blocker remains grammar, not backend). Lifting the collection restriction on
+`+=` / new-key assignment, which the typed tier now makes expressible (§3.4).
+
+## 2. What the two releases contain
+
+0.0.20 was merged upstream but never tagged, so the published sequence is
+0.0.18 → **0.0.19** (2026-08-11) → **0.0.21** (2026-08-13).
+
+### 2.1 noyalib 0.0.19
+
+- **CST `remove()` took trivia it did not own (#226)** — yqr's own PR, filed
+  against the divergences `yqr-b004` §6.1 measured. This is the release that
+  closes `yqr-b004` §6.4.
+- **`from_str_strict` rejected every populated `Option` field (#239)** — not a
+  path yqr uses.
+- **Bare `nan` / `inf` spellings destroyed a scalar's text** — a key `nAn`
+  came back as `nan`, so it did not round-trip. yqr's own fidelity harness
+  never caught this because the byte-fidelity path does not resolve plain
+  scalars; it would have surfaced under `--normalize`.
+
+### 2.2 noyalib 0.0.21
+
+Three silent-corruption fixes in the mutators, each of which returned `Ok`
+while damaging the document, and two `Emit` defects:
+
+| Upstream fix | Reachable from yqr? |
+|---|---|
+| `remove` deleted a whole flow collection (`remove("a.x")` on `a: {x: 1, y: 2}` deleted the document) | **No** — `yqr-f013` §3.2 stopped calling `remove`, and yqr's flow pre-check refuses first |
+| `set` fragment could reach outside its path | **No** — yqr calls `set_value`, never `set` |
+| `push_back` / `insert_after` had the same hole | **Partly** — see §3.2; yqr's exposure was a different failure of the same class |
+| `Emit` trailing colon (`"a:"` emitted as `a: a:`) | **Yes** — `.k = "a:"` errored out |
+| `Emit` lone newline (`"\n"` emitted as a `\|` header with no body) | **Yes** — `.k = "\n"` silently became the string `"\|"` |
+
+The two `Emit` defects reached yqr through `set_value`, the API documented as
+the *safe* route. Both are fixed by the bump alone, with no yqr change:
+
+| Probe | On 0.0.18 | On 0.0.21 |
+|---|---|---|
+| `.k = "a:"` | `runtime error: mapping values are not allowed in this context` (exit 5) | `k: "a:"` |
+| `.k = "\n"` | `k: \|` — reads back as `"\|"` (exit 0) | `k: "\n"` |
+
+That `yqr-f013`'s decision to keep yqr's own delete path also kept yqr clear of
+the flow-`remove` corruption is worth recording. It was decided on trivia
+grounds (`yqr-b006`), and the safety was incidental — but it is the second time
+that decision has paid.
+
+## 3. Work items
+
+### 3.1 Pin bump
+
+`Cargo.toml:41` and the comment above it, then `cargo check` to refresh
+`Cargo.lock` and the full local CI mirror.
+
+**Done.** `Cargo.lock` moves noyalib 0.0.18 → 0.0.21 and adds two transitive
+crates, `hashbrown 0.15.5` and `libm 0.2.16` — both arriving via 0.0.21's
+bare-metal `no_std` work (#210), which needed a hasher and float intrinsics
+that `core` does not provide. `cargo audit` is clean. MSRV upstream is 1.86.0
+against yqr's pinned 1.97.1 toolchain, so no impact. `tests/fidelity.rs` and
+`tests/corpus_validation.rs` pass untouched: byte fidelity is unaffected.
+
+### 3.2 Route the untyped insert paths through the typed tier (`yqr-b008`)
+
+The bump alone does **not** fix yqr's `+=` and new-key inserts. Upstream's
+`push_back` fix guards a fragment that escapes its *path*; yqr's fragment did
+not escape its path, it was mis-indented within it — the same class, a
+different symptom, and one only yqr can fix, because yqr is the one building
+the fragment.
+
+Full case analysis in `yqr-b008`. In short: `value_fragment` rendered the RHS
+to a string, and a string containing a newline renders to a multi-line block
+scalar whose continuation lines the fragment mutators splice verbatim. `+=`
+produced unparseable output; new-key assignment produced a wrong value. Both
+exited 0, so `-i` wrote the damage and reported success.
+
+`value_fragment` is replaced by `insertable` (lowering to `::noyalib::Value`),
+`insert_entry` → `insert_entry_value` and `push_back` → `push_back_value`. The
+typed tier owns the indentation and holds the splice to a load-back oracle.
+
+This is exactly the adoption `yqr-f013` §3.4 identified as having "a latent
+correctness argument … Evaluate it as f007's first slice". The argument turned
+out not to be latent, so it lands here as a bug fix rather than waiting on
+grammar.
+
+### 3.3 Restore CRLF on inserted lines (`yqr-b009`)
+
+Surfaced by review of this change rather than by the bump. The insertion
+mutators terminate a new line with `\n` whatever the document uses, so
+new-key assignment and `+=` gave a CRLF file mixed endings at exit 0.
+`yqr-b004` §2.5 had recorded the upstream behaviour but it was never filed,
+which is how this feature came within one review of setting the bug tracker to
+"Open: none" while shipping it.
+
+`emit` now restores the convention for documents that were **wholly** CRLF at
+open time. Exact, not heuristic: such a document has no bare `\n` of its own,
+so every bare `\n` in the output is one the edit added. Mixed-ending documents
+are left alone. Full analysis and the per-operation scope table in `yqr-b009`.
+
+### 3.4 noyalib#226 shipped — close out `yqr-b004` §6.4
+
+Merged 2026-08-05, released in 0.0.19. `yqr-b004` §6.4 and `yqr-f013` §6 both
+carried it as "open / awaiting review"; both now record the release.
+
+This re-opens the question `yqr-f013` §3.2 deferred: with the trivia
+divergences fixed upstream, is option (b) — call `remove`, keep a trivia
+pre-pass — now correct? **Not taken here, and not for the original reason.**
+0.0.21's flow-`remove` corruption (§2.2) is a reminder that the delete path is
+where upstream has had the most churn, and yqr's version is covered by the
+`yqr-f007` §5.4 tests with no open defects. Re-evaluating is cheap and can
+happen any time; doing it in the same change as a corruption fix is not worth
+the coupling. Recorded as still-open in `yqr-f007` §6.
+
+### 3.5 Now expressible, deliberately not taken
+
+Two refusals stop being backend constraints with this bump. Both stay, and the
+code now states the real reason so the next reader does not mistake either for
+a limitation that still exists. Both are tracked in `yqr-f007` §6.
+
+- **Collection right-hand sides.** The typed tier can spell a nested
+  collection, so "collections are not yet supported" is now a scope limit.
+  Allowing `.a.b = {…}` is a user-facing surface change needing its own tests
+  and docs. The refusal was also moved to cover `set_value`, which previously
+  let the engine refuse in its own words — naming `set` and "fragment", APIs
+  yqr does not expose, and calling it a parse error for input that parses.
+- **Creating a key holding `.` or `[`.** `insert_entry_value` can splice one
+  (a path is needed only to *replace* an existing key). yqr still refuses,
+  but the reason has changed: it is now that yqr's path grammar cannot
+  address such a key, so the edit would write something the tool cannot read
+  back. Settling that is grammar work. This is the common Kubernetes
+  label/annotation case and is worth doing.
+
+## 4. Correction to the upstream status update (for the record)
+
+On 2026-08-11 the maintainer posted a status update on
+[noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221), keeping
+it open as the umbrella for gaps 1, 4 and 5:
+
+> **Done on `main`:** `rename_key`, `key_span`, `swap_items`, `move_item`.
+> **Still open:** comment mutation; extended `remove`; fragment quoting.
+
+Verified against the published `.crate` files for both 0.0.18 and 0.0.21, that
+update **undercounts what has shipped** on all three "still open" items:
+
+| #221 item | Status update | In the published crate |
+|---|---|---|
+| 1. comment mutation | still open | `set_inline_comment` / `set_leading_comment` / `remove_inline_comment` / `remove_leading_comment` present in **0.0.18**; 0.0.21 adds `set_comment` / `remove_comment` + `CommentPosition` |
+| 4. extended `remove` | "still declines multi-line/nested" | 0.0.18 accepts both — behaviourally proven, since four yqr delete tests failed on the 0.0.18 bump *because* `remove` stopped refusing (`yqr-f013` §3.2) |
+| 5. fragment quoting | "still the deferred `Emit` work" | `Emit` / `EmitCtx` and `insert_entry_value` / `push_back_value` / `insert_after_value` present in **0.0.18** — noyalib#223, yqr's own PR; 0.0.21's release notes fix two `Emit` defects, which presupposes it exists |
+
+The practical consequence is the maintainer's standing offer, repeated on
+noyalib#226: *"Your offer to port the `replace_span` fallback for
+multi-line/nested removal upstream stands welcome."* That offer is moot as
+written — upstream `remove` has handled those shapes since 0.0.18, and yqr's
+own path exists for **trivia** reasons, which noyalib#226 already addressed.
+
+What is genuinely still unaccepted upstream is **sole-entry** and **flow**
+deletes, which yqr also refuses. Those are the remaining real gap, and the
+honest reply upstream is the evidence table above plus an offer on those two
+cases. **Not posted** — deferred by decision; this section is the record so the
+reply can be written from it later.
+
+## 5. Acceptance criteria
+
+- [x] `Cargo.toml` pins `noyalib = "0.0.21"`, the adjacent comment names 0.0.21,
+      and `Cargo.lock` is refreshed.
+- [x] `bash .github/scripts/local-ci.sh` passes, including `cargo audit`.
+- [x] `tests/fidelity.rs` and `tests/corpus_validation.rs` pass unchanged.
+- [x] `insert_key` and `append` route through the typed tier; `yqr-b008`'s
+      three regression tests pass and assert bytes **and** loaded-back value.
+- [x] The two `Emit` probes (`.k = "a:"`, `.k = "\n"`) are correct on 0.0.21,
+      and each carries a yqr-side round-trip test — the fix arrived through
+      `Cargo.toml`, so nothing else here would catch its return.
+- [x] A CRLF document stays CRLF across both insert paths (`yqr-b009`), with a
+      mixed-ending document left alone.
+- [x] `yqr-b004` §6.4 and `yqr-f013` §6 record noyalib#226 as released in
+      0.0.19; `yqr-b008` and `yqr-b009` are filed and marked Fixed.
+- [x] `CHANGELOG.md` records the bump and both fixes.
+
+## 6. Non-goals
+
+- No new filter grammar. `del`, `=`, `+=` and the existing surface are
+  unchanged.
+- No behaviour change to the read path or `--normalize`.
+- Not a release. `yqr-m001` governs when a version ships; `cargo publish` stays
+  separately authorized (`yqr-m004`).
+- No upstream comment posted (§4).
+</content>
+</invoke>
 
 ---
 

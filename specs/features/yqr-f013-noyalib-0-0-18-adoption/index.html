@@ -84,12 +84,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-02",
+  "dateModified": "2026-08-13",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption",
-  "wordCount": 1754
+  "wordCount": 1834
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,15 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -378,6 +387,15 @@
   
     
     
+  
+    
+    
+  
+    
+    
+  
+    
+    
       
       
       
@@ -406,6 +424,17 @@
         
       
         
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
         
       
         
@@ -560,6 +589,12 @@
             
               
               
+            
+              
+              
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link">Feature Status Tracker</a>
               
@@ -640,6 +675,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f013-noyalib-0-0-18-adoption"
                    class="sidebar-link active">Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f014-noyalib-0-0-21-adoption"
+                   class="sidebar-link">Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</a>
               
             
               
@@ -741,6 +782,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -891,6 +945,21 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b008-fragment-splice-corrupts-multiline-inserts"
+                   class="sidebar-link">Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents"
+                   class="sidebar-link">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -992,6 +1061,15 @@
         
         
           
+        
+      
+        
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1230,6 +1308,15 @@
               
               
             
+              
+              
+            
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1239,6 +1326,15 @@
     
       
       
+      
+        
+        
+      
+        
+        
+      
+        
+        
       
         
         
@@ -1371,6 +1467,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1597,6 +1702,15 @@
       
         
         
+      
+        
+        
+      
+        
+        
+      
+        
+        
           
         
       
@@ -1636,6 +1750,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1981,16 +2104,23 @@ repro per case plus the two controls 0.0.18 already gets right, argues the fix
 is a span-boundary refinement rather than new machinery, and offers a PR.</p>
 <p>That PR is
 <a href="https://github.com/sebastienrousseau/noyalib/pull/226">noyalib#226</a>, opened
-the same day and <strong>awaiting review</strong>. It implements all three: <code>remove</code> now
+the same day, <strong>merged 2026-08-05 and released in noyalib 0.0.19</strong>
+(2026-08-11); #225 closed on the merge. It implements all three: <code>remove</code> now
 derives its range from the same value-span boundary <code>span_at</code> reports, which
 is what the refinement amounts to. The cross-check that matters here is that
 yqr’s suite passes with <code>del</code> routed back through upstream <code>remove</code> against
 the patched crate — the four tests §3.2 records as failing on the bump
 included.</p>
-<p>When it lands <strong>and ships in a release yqr can pin</strong>, §3.2 option (b) becomes
-clearly correct and <code>delete.rs</code> can genuinely shrink to a trivia pre-pass;
-that re-evaluation is the natural successor to this feature, not part of it.
-Full case list in <code>yqr-b004</code> §6.4.</p>
+<p>It has since shipped, so the successor this section anticipated is
+<strong><code>yqr-f014</code></strong> (the 0.0.21 pin). That feature re-evaluated option (b) and
+declined it — not because the divergence remains, but because 0.0.21 exposed a
+<em>new</em> <code>remove</code> defect (a flow-collection delete that destroyed the document
+while returning <code>Ok</code>), and yqr’s own path has no open defect. Full case list in
+<code>yqr-b004</code> §6.4; the standing decision is tracked in <code>yqr-f007</code> §6.</p>
+<p>One §3.4 hand-off also came due sooner than expected. The “latent correctness
+argument” for adopting the typed insertion tier turned out not to be latent:
+yqr’s hand-built fragments were silently corrupting multi-line string inserts
+on this very pin. Filed as <code>yqr-b008</code> and fixed in <code>yqr-f014</code> §3.2.</p>
 
         </div>
         </accent-island>
@@ -2007,6 +2137,11 @@ Full case list in <code>yqr-b004</code> §6.4.</p>
         <span class="nav-title">Feature f012 — `yqr validate`: actionable YAML correctness checking</span>
     </a>
     
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f014-noyalib-0-0-21-adoption" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</span>
+    </a>
     
 </nav>
 
@@ -2069,31 +2204,31 @@ Full case list in <code>yqr-b004</code> §6.4.</p>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
   </ul>
@@ -2124,7 +2259,7 @@ Full case list in <code>yqr-b004</code> §6.4.</p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-02</span>
+        <span>Site last updated: 2026-08-13</span>
         
     </footer>
 

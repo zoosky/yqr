@@ -84,12 +84,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-02",
+  "dateModified": "2026-08-13",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 1683
+  "wordCount": 2046
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,15 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -378,6 +387,15 @@
   
     
     
+  
+    
+    
+  
+    
+    
+  
+    
+    
       
       
       
@@ -406,6 +424,17 @@
         
       
         
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
         
       
         
@@ -560,6 +589,12 @@
             
               
               
+            
+              
+              
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link">Feature Status Tracker</a>
               
@@ -640,6 +675,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f013-noyalib-0-0-18-adoption"
                    class="sidebar-link">Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f014-noyalib-0-0-21-adoption"
+                   class="sidebar-link">Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</a>
               
             
               
@@ -741,6 +782,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -891,6 +945,21 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b008-fragment-splice-corrupts-multiline-inserts"
+                   class="sidebar-link">Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents"
+                   class="sidebar-link">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -992,6 +1061,15 @@
         
         
           
+        
+      
+        
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1230,6 +1308,15 @@
               
               
             
+              
+              
+            
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1239,6 +1326,15 @@
     
       
       
+      
+        
+        
+      
+        
+        
+      
+        
+        
       
         
         
@@ -1371,6 +1467,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1597,6 +1702,15 @@
       
         
         
+      
+        
+        
+      
+        
+        
+      
+        
+        
           
         
       
@@ -1636,6 +1750,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1801,7 +1924,7 @@ excluded from <code>f006</code>. Each is cataloged in <code>yqr-b004</code> §2:
 <li><strong>Structural delete</strong> — multi-line, nested, sole-entry, and flow deletes that
 <code>Document::remove</code> rejects (<code>b004</code> 2.4). <strong>Shipped</strong> (§5).</li>
 <li><strong>Comment editing</strong> — add / change / remove a comment attached to a node
-(<code>b004</code> 2.1; comments are read-only in 0.0.14). <strong>Deferred</strong> (§6).</li>
+(<code>b004</code> 2.1; comments were read-only in 0.0.14). <strong>Deferred</strong> (§6).</li>
 <li><strong>Key rename</strong> — <code>.a.b</code> key renamed in place, preserving <code>:</code> and value
 (<code>b004</code> 2.2). <strong>Deferred</strong> (§6).</li>
 <li><strong>Sequence reorder / move / swap</strong> — reorder block-sequence items (<code>b004</code> 2.3).
@@ -1868,15 +1991,21 @@ module maps, so the obvious move on the pin bump was to call it and delete this
 module. Measured, it is wrong: upstream treats an entry as its key/value lines,
 where yqr treats an entry as owning its trivia. Three cases diverge, all of them
 silent successes rather than refusals — the <code>b006</code> failure class:</p>
-<table><thead><tr><th>Case</th><th><code>delete_entry</code></th><th>0.0.18 <code>Document::remove</code></th></tr></thead><tbody>
+<table><thead><tr><th>Case</th><th><code>delete_entry</code></th><th><code>Document::remove</code> as of 0.0.18</th></tr></thead><tbody>
 <tr><td>Head comment above the entry</td><td>removed with the entry</td><td>survives, silently re-attributed to the next sibling</td></tr>
 <tr><td>Keep-chomped (<code>|+</code>) scalar’s kept trailing blanks</td><td>removed with the entry</td><td>left behind as stray blank lines</td></tr>
 <tr><td>A following comment belonging to the <em>next</em> sibling</td><td>left in place</td><td>swallowed</td></tr>
 </tbody></table>
 <p>The first two under-delete, the third over-deletes and loses a comment
 outright. §5.4’s tests pin all three; each one fails against upstream <code>remove</code>,
-which is how the divergence was measured rather than assumed. <code>yqr-f013</code> §6
-carries the upstream ask that would close the gap.</p>
+which is how the divergence was measured rather than assumed.</p>
+<p><strong>Since fixed upstream, and yqr still does not delegate.</strong> All three were filed
+as noyalib#225 and fixed by yqr’s noyalib#226, released in <strong>noyalib 0.0.19</strong>;
+yqr pins 0.0.21 (<code>yqr-f014</code>). The table above therefore describes 0.0.18, not
+the current pin. Delegation was reconsidered and declined on fresh grounds —
+0.0.21 fixed a <code>remove</code> that destroyed a whole flow collection while returning
+<code>Ok</code>, so this is where upstream churn concentrates, and yqr’s path carries no
+open defect. See §6 for the standing item.</p>
 <p>Independently worth keeping: yqr’s flow pre-check reports <code>removing an item from a flow collection is not supported</code>, where upstream surfaces <code>remove: could not locate '-' indicator preceding sequence item</code>.</p>
 <h3 id="5-2-algorithm">5.2 Algorithm<a class="heading-anchor" href="#5-2-algorithm" aria-label="Link to this section"></a></h3>
 <p>For the target entry (final path segment <code>last</code>, resolved value byte span
@@ -1964,10 +2093,38 @@ for the key-token range <code>span_at</code> never exposed.</li>
 no offset re-basing in yqr.</li>
 </ul>
 <p>The upstream <code>PR-with-fix</code> path (§2) already ran its course for all three, and
-0.0.18 is pinned, so each of these is now a grammar decision over a live API.
-Raw <code>replace_span</code> is the route of last resort rather than the expected one —
-though §5.1 is the standing reminder that “upstream has the call” and “upstream
-has yqr’s semantics” are different questions.</p>
+0.0.21 is pinned (<code>yqr-f014</code>), so each of these is now a grammar decision over
+a live API. Raw <code>replace_span</code> is the route of last resort rather than the
+expected one — though §5.1 is the standing reminder that “upstream has the
+call” and “upstream has yqr’s semantics” are different questions.</p>
+<p>Two further items are open here, neither gated on grammar:</p>
+<ul>
+<li><strong>Re-evaluate delegating delete to upstream <code>remove</code>.</strong> The three trivia
+divergences that made §5.1 keep yqr’s path were fixed by yqr’s noyalib#226,
+released in 0.0.19, so <code>yqr-f013</code> §3.2’s option (b) is unblocked.
+<code>yqr-f014</code> §3.3 declined it for a different reason: 0.0.21 fixed a
+<code>remove</code> that destroyed a flow collection while returning <code>Ok</code>, so delete is
+where upstream churn concentrates, and yqr’s path has no open defect. Cheap
+to revisit; revisit deliberately, not as a side effect of another change.</li>
+<li><strong>Collection right-hand sides for <code>+=</code> / new-key assignment.</strong> Since
+<code>yqr-b008</code> these route through the typed <code>Emit</code> tier, which can spell a
+nested collection — so the “collections are not yet supported” refusal is now
+a scope limit, not a backend one. Lifting it is a user-facing surface change
+and belongs here or in <code>yqr-f008</code>, with its own tests and docs.</li>
+<li><strong>Creating a key that holds <code>.</code> or <code>[</code>.</strong> <code>insert_entry_value</code> can splice one
+(it needs a path only to <em>replace</em> an existing key, so adding
+<code>app.kubernetes.io/name</code> is supported upstream), but yqr still refuses it in
+<code>insert_key</code>. The refusal is no longer about expressing the key — it is that
+yqr’s path grammar could not then address it, so the edit would write a key
+the tool cannot read back. Lifting it means settling that addressing question
+first (an escape or quoting form in the path syntax), which is grammar work,
+not a splice change. This is the common Kubernetes label/annotation case and
+is worth doing.</li>
+<li><strong>A multi-line-insert case in the shared corpus.</strong> <code>yqr-b008</code> §6: the unit
+tests pin the fix, but <code>yqr-m003</code>’s byte-exact <code>EngineCase</code> tier has no
+multi-line-string insert, so a backend swap could reintroduce the corruption
+without failing <code>tests/corpus_validation.rs</code>.</li>
+</ul>
 <p><em>(These criteria firm up once the grammar and the upstream API surface are
 known.)</em></p>
 
@@ -2053,31 +2210,31 @@ known.)</em></p>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
   </ul>
@@ -2108,7 +2265,7 @@ known.)</em></p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-02</span>
+        <span>Site last updated: 2026-08-13</span>
         
     </footer>
 

@@ -84,12 +84,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-02",
+  "dateModified": "2026-08-13",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Bug Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 644
+  "wordCount": 971
 }
 </script>
 <script type="application/ld+json">
@@ -141,6 +141,15 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -378,6 +387,15 @@
   
     
     
+  
+    
+    
+  
+    
+    
+  
+    
+    
       
       
       
@@ -406,6 +424,17 @@
         
       
         
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
         
       
         
@@ -560,6 +589,12 @@
             
               
               
+            
+              
+              
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link">Feature Status Tracker</a>
               
@@ -640,6 +675,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f013-noyalib-0-0-18-adoption"
                    class="sidebar-link">Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f014-noyalib-0-0-21-adoption"
+                   class="sidebar-link">Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</a>
               
             
               
@@ -741,6 +782,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -891,6 +945,21 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b008-fragment-splice-corrupts-multiline-inserts"
+                   class="sidebar-link">Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents"
+                   class="sidebar-link">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -992,6 +1061,15 @@
         
         
           
+        
+      
+        
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1230,6 +1308,15 @@
               
               
             
+              
+              
+            
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1239,6 +1326,15 @@
     
       
       
+      
+        
+        
+      
+        
+        
+      
+        
+        
       
         
         
@@ -1371,6 +1467,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1597,6 +1702,15 @@
       
         
         
+      
+        
+        
+      
+        
+        
+      
+        
+        
           
         
       
@@ -1636,6 +1750,15 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1791,11 +1914,12 @@ in the same change that opens, advances, or resolves a bug (mirrors the feature
 status tracker convention).</p>
 <p><strong>Status legend:</strong> Open · In Progress · Fixed · Resolved · Won’t Fix · Duplicate</p>
 <h2 id="open">Open<a class="heading-anchor" href="#open" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps">b004</a></td><td>noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete</td><td>Medium</td><td>Resolved — all five gaps of umbrella issue noyalib#221 released in <strong>noyalib 0.0.18</strong> (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (<code>Emit</code> auto-formatting tier), both merged, the other three by the maintainer. yqr pins <code>noyalib = "0.0.18"</code> as of <code>yqr-f013</code>. Two adoption findings stand (b004 §6): upstream <code>remove</code> diverges on delete trivia in <strong>three</strong> measured ways — it strands head comments and keep-chomped trailing blanks, and <em>swallows</em> a following sibling’s comment — so delete stays yqr’s own code by decision rather than necessity (<code>yqr-f007</code> §5.1, would otherwise regress <code>yqr-b006</code>); and <code>key_span</code> does <strong>not</strong> replace <code>validate</code>’s green-tree walk. Those divergences are filed upstream as noyalib#225 and fixed by yqr’s noyalib#226 (open) (§6.4)</td><td><code>yqr-b002</code>, <code>yqr-b006</code>, <code>yqr-r002</code>, <code>yqr-m002</code>, <code>yqr-m005</code>, <code>yqr-f006</code>, <code>yqr-f007</code>, <code>yqr-f013</code></td></tr>
-</tbody></table>
+<p><em>None.</em></p>
 <h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
+<tr><td><a href="/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps">b004</a></td><td>noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete</td><td>Medium</td><td>Resolved — all five gaps of umbrella issue noyalib#221 released in <strong>noyalib 0.0.18</strong> (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (<code>Emit</code> auto-formatting tier), both merged, the other three by the maintainer. Two adoption findings stand (b004 §6): upstream <code>remove</code> diverges on delete trivia in <strong>three</strong> measured ways, so delete stays yqr’s own code by decision rather than necessity (<code>yqr-f007</code> §5.1, would otherwise regress <code>yqr-b006</code>); and <code>key_span</code> does <strong>not</strong> replace <code>validate</code>’s green-tree walk. Those divergences were filed as noyalib#225 and fixed by yqr’s noyalib#226 — <strong>merged 2026-08-05, released in noyalib 0.0.19</strong> (§6.4). yqr pins <code>noyalib = "0.0.21"</code> as of <code>yqr-f014</code>. Note that the maintainer’s 2026-08-11 status update on #221 lists three of these gaps as still open; verified against the published crates, that is inaccurate and this spec’s findings stand (<code>yqr-f014</code> §4)</td><td><code>yqr-b002</code>, <code>yqr-b006</code>, <code>yqr-b008</code>, <code>yqr-r002</code>, <code>yqr-m002</code>, <code>yqr-m005</code>, <code>yqr-f006</code>, <code>yqr-f007</code>, <code>yqr-f013</code>, <code>yqr-f014</code></td></tr>
+<tr><td><a href="/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents">b009</a></td><td>An inserted line ends with <code>\n</code>, giving a CRLF document mixed line endings</td><td>Medium</td><td>Fixed — noyalib’s insertion mutators hard-code <code>\n</code>, so new-key assignment and <code>+=</code> gave a CRLF file one bare LF per added line, at <strong>exit 0</strong>. Known upstream behaviour recorded in <code>b004</code> §2.5 but never filed, so nothing tracked or tested it. <code>emit</code> now restores the convention for documents that were <em>wholly</em> CRLF at open time — exact rather than heuristic, since such a document has no bare <code>\n</code> of its own; mixed-ending documents are deliberately left alone. Read, <code>set_value</code> and <code>del</code> were never affected. Five byte-exact tests</td><td><code>yqr-b001</code>, <code>yqr-b004</code>, <code>yqr-b008</code>, <code>yqr-f014</code>, <code>yqr-a001</code></td></tr>
+<tr><td><a href="/yqr/specs/bugs/yqr-b008-fragment-splice-corrupts-multiline-inserts">b008</a></td><td>Hand-built fragments corrupt <code>+=</code> and new-key inserts of a multi-line string</td><td>High</td><td>Fixed — <code>+=</code> produced unparseable output and new-key assignment a wrong value whenever the RHS string contained a newline, both at <strong>exit 0</strong>, so <code>-i</code> wrote the damage to the user’s file and reported success. <code>value_fragment</code> rendered the value to text, and the fragment-taking mutators splice a fragment verbatim — synthesising indentation for its first line only — so a block scalar’s continuation lines kept the rendering’s indentation instead of the insertion site’s. Both paths now use noyalib’s typed tier (<code>insert_entry_value</code> / <code>push_back_value</code>), which owns the indentation and holds the splice to a load-back oracle. Three regression tests assert emitted bytes <strong>and</strong> loaded-back value. Ships with the 0.0.21 pin (<code>yqr-f014</code>)</td><td><code>yqr-f006</code>, <code>yqr-f014</code>, <code>yqr-b004</code>, <code>yqr-f013</code>, <code>yqr-f007</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b007-site-links-broken-under-accent-0-23-1">b007</a></td><td>Website: demo-script media link and 404-page <code>/docs</code> link break under accent v0.23.1</td><td>Low</td><td>Resolved — demo script now linked on GitHub (accent refuses <code>.sh</code> as media), 404 page links <code>/specs/</code>; CI pins accent v0.23.1 and builds with <code>--strict-links</code> so missing link targets fail the build</td><td><code>yqr-f010</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b001-roundtrip-discards-whitespace-and-formatting">b001</a></td><td>Round-trip through the default pipeline discards whitespace, comments, and formatting</td><td>High</td><td>Resolved for the default read — byte fidelity is now the <strong>default</strong> (<code>yqr-f009</code>); <code>yqr '.' f</code> is byte-for-byte identical to <code>f</code> via the fidelity engine (<code>yqr-f002</code>). The lossy semantic round trip is now opt-in via <code>--normalize</code> (by design)</td><td><code>yqr-a001</code>, <code>yqr-r001</code>, <code>yqr.f001</code>, <code>yqr-f002</code>, <code>yqr-f009</code>, <code>yqr-m005</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b006-structural-delete-trivia-and-fidelity">b006</a></td><td>Structural delete mishandles comments, blank lines, and same-column sequences</td><td>High</td><td>Resolved — <code>owned_line_span</code> now derives its range from noyalib’s value span, commits via byte-preserving <code>replace_span</code>, and folds a same-indent head comment into the delete; regression tests cover each case</td><td><code>yqr-f007</code>, <code>yqr-b004</code>, <code>yqr-a001</code></td></tr>
@@ -1805,12 +1929,19 @@ status tracker convention).</p>
 </tbody></table>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total bugs: 7</li>
+<li>Total bugs: 9</li>
 <li>Open: 0</li>
-<li>Resolved: 7 (b004 — all five mutation-API gaps released in noyalib
+<li>Resolved: 9 (b009 — an inserted line ended with <code>\n</code> regardless of the
+document’s convention, silently giving CRLF files mixed endings; <code>emit</code>
+now restores it, <code>yqr-f014</code>;
+b008 — <code>+=</code> and new-key assignment of a multi-line string
+corrupted the document at exit 0; both insert paths now route through
+noyalib’s typed insertion tier, <code>yqr-f014</code>;
+b004 — all five mutation-API gaps released in noyalib
 0.0.18 and adopted by <code>yqr-f013</code>’s pin bump; delete deliberately keeps
 yqr’s own path, since upstream <code>remove</code> diverges on entry trivia in
-four measured cases;
+four measured cases — those divergences are now fixed upstream by yqr’s
+noyalib#226, released in 0.0.19 and pinned by <code>yqr-f014</code>;
 b007 — website links fixed for the accent v0.23.1 media
 policy and link checker, CI now builds with <code>--strict-links</code>;
 b001 — byte fidelity is now the default read (<code>yqr-f009</code>), closing
@@ -1873,31 +2004,31 @@ backend, <code>yqr-m005</code>)</li>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-08-02">2026-08-02</time>
+      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
     </li>
     
   </ul>
@@ -1928,7 +2059,7 @@ backend, <code>yqr-m005</code>)</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-02</span>
+        <span>Site last updated: 2026-08-13</span>
         
     </footer>
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature Status Tracker - yqr</title>
+    <title>Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings - yqr</title>
     
     
 
@@ -15,7 +15,7 @@
 <meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents">
 
 
 
@@ -27,10 +27,10 @@
 
 
 
-<meta property="og:title" content="Feature Status Tracker">
+<meta property="og:title" content="Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings">
 <meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -40,7 +40,7 @@
 
 
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Feature Status Tracker">
+<meta name="twitter:title" content="Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings">
 <meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
 
@@ -87,9 +87,9 @@
   "dateModified": "2026-08-13",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
-  "name": "Feature Status Tracker",
-  "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 1140
+  "name": "Bug b009 — an inserted line ends with `\\n`, giving a CRLF document mixed line endings",
+  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents",
+  "wordCount": 704
 }
 </script>
 <script type="application/ld+json">
@@ -111,14 +111,14 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/features",
-      "name": "Feature Specs",
+      "item": "https://zoosky.github.io/yqr/specs/bugs",
+      "name": "Bug Specs",
       "position": 3
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-      "name": "Feature Status Tracker",
+      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents",
+      "name": "Bug b009 — an inserted line ends with `\\n`, giving a CRLF document mixed line endings",
       "position": 4
     }
   ]
@@ -554,7 +554,7 @@
       
       
         <details class="sidebar-section"
-          open>
+          >
           <summary class="sidebar-section-title">Feature Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
@@ -596,7 +596,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
-                   class="sidebar-link active">Feature Status Tracker</a>
+                   class="sidebar-link">Feature Status Tracker</a>
               
             
               
@@ -886,7 +886,7 @@
       
       
         <details class="sidebar-section"
-          >
+          open>
           <summary class="sidebar-section-title">Bug Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
@@ -952,7 +952,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents"
-                   class="sidebar-link">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
+                   class="sidebar-link active">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
               
             
               
@@ -1898,130 +1898,98 @@
         <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
         <span aria-hidden="true">/</span>
     
-        <a href="&#x2f;yqr&#x2f;specs&#x2f;features">Feature Specs</a>
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Feature Status Tracker</span>
+    <span aria-current="page">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</span>
 </nav>
 
 
-        <h1>Feature Status Tracker</h1>
+        <h1>Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p>Single source of truth for the state of every <code>yqr-fNNN</code> feature spec. Update
-this file in the same change that advances a feature (CLAUDE.md rule 17).</p>
-<p><strong>Status legend:</strong> Draft · In Progress · Done · Superseded · Historical</p>
-<h2 id="epic-jq-style-yaml-processor-f001">Epic: jq-style YAML processor (f001)<a class="heading-anchor" href="#epic-jq-style-yaml-processor-f001" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/features/yqr-f001-yaml-jq-m0">f001</a></td><td>yqr: a Swiss Army knife for YAML (M0 foundation)</td><td>In Progress (M0 done; M1+ open)</td></tr>
+            <p><strong>Status:</strong> Fixed (2026-08-13) — <code>emit</code> restores the document’s own convention
+for the lines an edit added. Ships with <code>yqr-f014</code>.
+<strong>Severity:</strong> Medium — silent fidelity loss on a shipped write path, at exit 0,
+so <code>-i</code> wrote the mixed-ending file to disk and reported success. Lower than
+<code>yqr-b008</code> only because the result still parses and holds the right values.
+<strong>Owner:</strong> yqr maintainers
+<strong>Last updated:</strong> 2026-08-13
+<strong>Affects:</strong> <code>src/fidelity/write.rs</code> — the two line-<em>adding</em> operations,
+<code>insert_key</code> (new-key assignment) and <code>append</code> (<code>+=</code>). Present since the write
+tier shipped (<code>yqr-f006</code>, v0.4.0).
+<strong>Component:</strong> noyalib’s insertion mutators, worked around in yqr.
+<strong>Related:</strong> <code>yqr-b001</code> (whose acceptance criterion “CRLF line endings and
+trailing whitespace are preserved” this violated), <code>yqr-b004</code> §2.5 (which
+recorded the upstream behaviour without filing it), <code>yqr-b008</code> (the same two
+call sites, same silent-at-exit-0 class), <code>yqr-f014</code> (the release this fix
+ships with), <code>yqr-a001</code> (byte-fidelity property)</p>
+<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
+<p>noyalib’s insertion mutators build a line with a hard-coded <code>\n</code> terminator —
+<code>format!("{lead}{indent}{key}: {inline}\n")</code> — and their
+<code>leading_break_for_splice</code> helper only ever looks for <code>b'\n'</code>. A document that
+uses CRLF therefore gains one bare LF per inserted line.</p>
+<p><code>yqr-b004</code> §2.5 already recorded this (“a splice into a CRLF document inserts
+<code>\n</code>”) as a known upstream behaviour to be aware of before adopting the typed
+tier. It was never filed as a yqr bug, so nothing tracked it and nothing tested
+it — which is how <code>yqr-f014</code> came within one review of closing the bug tracker
+to “Open: none” while shipping it.</p>
+<h2 id="2-reproduction">2. Reproduction<a class="heading-anchor" href="#2-reproduction" aria-label="Link to this section"></a></h2>
+<p>Before the fix, exit <strong>0</strong> in both cases:</p>
+<pre><code class="language-console">$ printf 'm:\r\n  a: 1\r\n' | yqr '.m.b = 2' | od -c
+m : \r \n     a :   1 \r \n     b :   2 \n
+                                        ^^ bare LF
+
+$ printf 's:\r\n  - 1\r\n' | yqr '.s += 3' | od -c
+s : \r \n     - 1 \r \n     - 3 \n
+                                ^^ bare LF
+</code></pre>
+<p>The damage compounds with <code>yqr-b008</code>’s case: a multi-line string inserted into
+a CRLF document contributed a bare LF for <em>every</em> line of the block scalar.</p>
+<h2 id="3-scope-what-was-and-was-not-affected">3. Scope — what was and was not affected<a class="heading-anchor" href="#3-scope-what-was-and-was-not-affected" aria-label="Link to this section"></a></h2>
+<p>Measured per operation on <code>m:\r\n  a: 1\r\ns:\r\n  - 1\r\n</code>:</p>
+<table><thead><tr><th>Operation</th><th>CRLF preserved before the fix?</th></tr></thead><tbody>
+<tr><td>read (<code>.</code>)</td><td>yes — the read path slices original bytes</td></tr>
+<tr><td><code>set_value</code> (existing key)</td><td>yes — replaces value bytes, adds no line</td></tr>
+<tr><td><code>insert_key</code> (new key)</td><td><strong>no</strong></td></tr>
+<tr><td><code>append</code> (<code>+=</code>)</td><td><strong>no</strong></td></tr>
+<tr><td><code>del</code></td><td>yes — <code>delete_entry</code> is yqr’s own span arithmetic</td></tr>
 </tbody></table>
-<p>Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.</p>
-<h2 id="epic-fidelity-first-architecture-a001">Epic: Fidelity-first architecture (a001)<a class="heading-anchor" href="#epic-fidelity-first-architecture-a001" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/features/yqr-f002-fidelity-read-floor">f002</a></td><td>Fidelity read floor (<code>FidelityEngine</code> seam + noyalib backend)</td><td>Done</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f003-fidelity-backend-a-rustyaml">f003</a></td><td>Fidelity backend A (rust-yaml fork <code>RoundTripDocument</code> adapter)</td><td>Superseded (<code>yqr-m005</code>)</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f004-engine-parity-runtime-switch">f004</a></td><td>Engine parity: both backends default-on and runtime-switchable, from the zoosky forks</td><td>Superseded (<code>yqr-m005</code>)</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f005-preserve-flag-decouple">f005</a></td><td>Decouple byte/comment preservation from backend selection (<code>--preserve</code>)</td><td>Superseded (<code>yqr-f009</code>)</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f009-fidelity-default-normalize">f009</a></td><td>Byte fidelity by default; classic pipeline behind <code>--normalize</code></td><td>Done</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f011-remove-engine-flag">f011</a></td><td>Remove <code>--engine</code>: noyalib is the only engine</td><td>Done</td></tr>
-</tbody></table>
-<p>Progress: the <code>FidelityEngine</code> seam + the noyalib CST backend shipped (f002).
-The rust-yaml fork backend (f003) and the two-engine parity/runtime-switch story
-(f004) were <strong>superseded</strong> when yqr consolidated on noyalib as its sole YAML
-engine (<code>yqr-m005</code>) — removing the rust-yaml dependencies and unblocking the
-crates.io publish. noyalib round-trips the b001 corpus byte-for-byte. The
-byte-preserving read first shipped as an opt-in <code>--preserve</code> flag, with
-<code>--engine</code> reduced to backend selection (f005, <code>v0.3.0</code>); it then became the
-<strong>default</strong> read — the classic pipeline moved behind <code>--normalize</code> and
-<code>--preserve</code> was removed (f009), closing the lossy-default bug <code>b001</code>.
-Finally the <code>--engine</code> flag and the <code>BackendId</code> runtime seam were removed
-outright (f011): noyalib is yqr’s one and only engine, and the skald
-placeholder is retired.</p>
-<h2 id="epic-fidelity-write-tier-f006-f008">Epic: Fidelity write tier (f006–f008)<a class="heading-anchor" href="#epic-fidelity-write-tier-f006-f008" aria-label="Link to this section"></a></h2>
-<p>Surgical, provably-lossless edits — change only the bytes the filter targets,
-leave every other byte untouched, or refuse. yqr’s differentiating niche (jq is
-JSON-only; yq’s edits admit whitespace issues). Split into three features by
-dependency/release timing.</p>
-<table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/features/yqr-f006-fidelity-write-tier">f006</a></td><td>Write tier v1: value assignment and in-place edits (<code>--in-place</code>)</td><td>Done</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f007-write-tier-structural-edits">f007</a></td><td>Write tier: structural edits (the <code>b004</code> gaps)</td><td>In Progress (structural delete shipped; comment/rename/reorder deferred)</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f008-write-tier-computed-updates">f008</a></td><td>Write tier: computed updates (<code>|=</code>)</td><td>Draft (stub — gated on <code>f001</code> M2)</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption">f013</a></td><td>Adopt noyalib 0.0.18: pin bump and the released CST mutation API</td><td>Done</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption">f014</a></td><td>Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</td><td>Done</td></tr>
-</tbody></table>
-<p>Progress: f006 shipped on noyalib 0.0.14’s first-class, re-parse-guarded mutators
-(<code>set_value</code>/<code>insert_entry</code>/<code>push_back</code>/<code>remove</code>) — <code>=</code>, <code>+=</code>, new-key assign,
-<code>del</code>, scalar-literal / path RHS, and atomic <code>-i</code>, all through the fidelity write
-seam (<code>src/fidelity/write.rs</code>), zero upstream work. f007 landed its first slice:
-structural <strong>delete</strong> of multi-line / nested block entries via <code>replace_span</code>
-(<code>src/fidelity/write/delete.rs</code>) behind a re-parse integrity guard yqr enforces
-itself (<code>b004</code> 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
-gaps (comment editing, key rename, sequence reorder) each need new grammar and
-stay deferred — the upstream APIs for all three exist, released in noyalib
-0.0.18, so what is missing is yqr’s grammar, not the backend. f013 <strong>done</strong>: the
-pin is 0.0.18, the lockfile moved that one crate and nothing else, <code>cargo audit</code>
-is clean, and both fidelity harnesses passed untouched. Its one code change was
-to stop calling upstream <code>remove</code> — on the bump it started accepting the shapes
-it used to refuse and promptly failed four delete tests, including one
-divergence <code>b004</code> §6.1 had missed (it <em>swallows</em> a following sibling’s comment).
-So delete stays yqr’s own path by decision, renamed <code>delete_entry</code> and no longer
-framed as a fallback (<code>f007</code> §5.1). Also settled: <code>key_span</code> does <strong>not</strong> replace
-<code>validate</code>’s green-tree walk. f014 <strong>done</strong>: the pin is now 0.0.21, taking
-0.0.19 (which carries yqr’s own noyalib#226, the <code>remove</code>-trivia fix that closes
-<code>b004</code> §6.4) and 0.0.21 (three silent-corruption fixes in the mutators, two of
-which reached yqr through <code>set_value</code> — <code>.k = "a:"</code> errored and <code>.k = "\n"</code>
-silently wrote the wrong value). Its code change fixes <code>b008</code>: <code>+=</code> and new-key
-assignment hand-built a text fragment, so a multi-line string was spliced at the
-rendering’s indentation rather than the insertion site’s — producing unparseable
-output or a wrong value, both at exit 0. Both now use the typed tier
-(<code>insert_entry_value</code> / <code>push_back_value</code>), which is the <code>f013</code> §3.4 hand-off
-coming due early. f008 (<code>|=</code> computed updates) is gated on <code>f001</code> M2
-(arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
-(done) → f014 (done) → f007 remainder → M2 → f008.</p>
-<h2 id="epic-editing-loop-tooling-f012">Epic: Editing-loop tooling (f012)<a class="heading-anchor" href="#epic-editing-loop-tooling-f012" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/features/yqr-f012-validate-command">f012</a></td><td><code>yqr validate</code>: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, <code>--strict</code>)</td><td>Done</td></tr>
-</tbody></table>
-<p>Progress: shipped, then hardened by a full-branch code review (15
-confirmed findings, all fixed). yqr’s first subcommand parses every
-document, re-asserts the a001 byte-tiling invariant, and reports
-rustc-style diagnostics (<code>error[Ynnn]</code>, <code>--&gt; file:line:col</code>, source
-window, help) that humans and agents can act on; exit codes 0/1/5,
-highest wins across inputs; stdin explicit (<code>-</code>), empty file lists a loud
-usage error. <code>--strict</code> walks the lossless green tree and reports every
-duplicate key — merge keys included — with both occurrences’ positions;
-collisions report as <code>Y102</code> in the default checks, non-UTF-8 input as
-<code>Y003</code>. Conflict-marker files are recognized whole-file and anchored at
-the first marker. Rendering is hand-rolled — no new dependencies. The
-sized schema follow-up (<code>--schema</code>) stays open in the spec’s §5.1.</p>
-<h2 id="epic-project-website-f010">Epic: Project website (f010)<a class="heading-anchor" href="#epic-project-website-f010" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/features/yqr-f010-accent-website">f010</a></td><td>Accent CMS website over docs/ and specs/, deployed to GitHub Pages</td><td>Done</td></tr>
-</tbody></table>
-<p>Progress: the site builds from <code>docs/</code> (the home page is a real CMS page:
-original hand-authored markup in <code>content/index.md</code> with the design as a
-dedicated <code>home</code> template, framed by the theme header and footer) with
-<code>specs/</code> mounted at <code>/specs</code>, using the vendored Accent default theme
-restyled with the home page’s design tokens. <code>pages.yml</code>
-fetches the pinned accent binary (&gt;= v0.23.0, native sub-path support) from
-the upstream GitHub release, builds with the <code>/yqr</code> prefix derived from the
-base URL, and deploys to <code>gh-pages</code> while preserving the benchmark
-dashboard.</p>
-<h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
+<p>Only the two line-adding operations, which is what makes the fix narrow.</p>
+<h2 id="4-fix">4. Fix<a class="heading-anchor" href="#4-fix" aria-label="Link to this section"></a></h2>
+<p><code>NoyalibWriter</code> records, per document at open time, whether that document’s
+source was <strong>wholly</strong> CRLF (<code>is_all_crlf</code>: at least one line break, and no bare
+<code>\n</code> anywhere). <code>emit</code> then re-terminates any bare <code>\n</code> in such a document as
+<code>\r\n</code>.</p>
+<p>The restore is exact rather than heuristic, and that is the whole argument for
+doing it in <code>emit</code> rather than tracking edit sites: a wholly-CRLF document has
+no bare <code>\n</code> of its own, so every bare <code>\n</code> present in the output is one the
+edit introduced. An untouched document emits byte-identically and therefore has
+none, making this a no-op for the documents fidelity cares most about.</p>
+<p><strong>A mixed-ending document is deliberately left alone.</strong> There is no convention
+to restore, and picking one would rewrite bytes the user did not ask about —
+the same class of unasked-for change the fidelity engine exists to prevent.</p>
+<h2 id="5-verification">5. Verification<a class="heading-anchor" href="#5-verification" aria-label="Link to this section"></a></h2>
+<p>Five tests in <code>src/fidelity/write.rs</code>, all byte-exact:</p>
 <ul>
-<li>Total features: 14</li>
-<li>Draft: 1 (f008 — computed updates, gated on <code>f001</code> M2)</li>
-<li>In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)</li>
-<li>Done: 8 (f002, f006, f009, f010, f011, f012, f013, f014)</li>
-<li>Superseded: 3 (f003, f004 — single-engine consolidation, <code>yqr-m005</code>; f005 —
-fidelity-by-default flip, <code>yqr-f009</code>)</li>
-<li>Released in <code>v0.3.0</code>: f002 (fidelity engine) and f005 (<code>--preserve</code>, later
-superseded by f009 which makes fidelity the default)</li>
-<li>Released in <code>v0.4.0</code>: f006 (write tier — assignment, <code>+=</code>, new-key, <code>del</code>,
-<code>-i</code>), f007 (structural-delete slice), and f009 (fidelity by default;
-<code>--normalize</code> replaces <code>--preserve</code>)</li>
+<li><code>inserting_a_key_keeps_a_crlf_document_crlf</code></li>
+<li><code>appending_an_item_keeps_a_crlf_document_crlf</code></li>
+<li><code>a_multiline_insert_into_a_crlf_document_uses_crlf_throughout</code> — the
+<code>yqr-b008</code> overlap; also asserts the value loads back</li>
+<li><code>an_lf_document_is_untouched_by_the_crlf_restore</code></li>
+<li><code>a_mixed_ending_document_is_left_alone</code></li>
 </ul>
+<h2 id="6-upstream">6. Upstream<a class="heading-anchor" href="#6-upstream" aria-label="Link to this section"></a></h2>
+<p>The durable home for this is noyalib: an insertion should reproduce the
+document’s existing line break rather than assume <code>\n</code>, the same way it already
+derives indentation from the site. Not yet filed — <code>yqr-f014</code> §4 records that
+the open upstream conversation (noyalib#221) needs a correction first, and this
+belongs in the same reply rather than as a separate drive-by issue.</p>
+<p>Until then the workaround is yqr’s, costs one pass over the emitted string per
+edited document, and is covered by §5.
+</content>
+</invoke></p>
 
         </div>
         </accent-island>
@@ -2033,11 +2001,11 @@ superseded by f009 which makes fidelity the default)</li>
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f001-yaml-jq-m0" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Feature f001 — `yqr`: a Swiss Army knife for YAML</span>
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b008-fragment-splice-corrupts-multiline-inserts" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string</span>
     </a>
+    
     
 </nav>
 
@@ -2049,27 +2017,27 @@ superseded by f009 which makes fidelity the default)</li>
         <ul>
         
             <li class="toc-level-2">
-                <a href="#epic-jq-style-yaml-processor-f001">Epic: jq-style YAML processor (f001)</a>
+                <a href="#1-summary">1. Summary</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#epic-fidelity-first-architecture-a001">Epic: Fidelity-first architecture (a001)</a>
+                <a href="#2-reproduction">2. Reproduction</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#epic-fidelity-write-tier-f006-f008">Epic: Fidelity write tier (f006–f008)</a>
+                <a href="#3-scope-what-was-and-was-not-affected">3. Scope — what was and was not affected</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#epic-editing-loop-tooling-f012">Epic: Editing-loop tooling (f012)</a>
+                <a href="#4-fix">4. Fix</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#epic-project-website-f010">Epic: Project website (f010)</a>
+                <a href="#5-verification">5. Verification</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#summary">Summary</a>
+                <a href="#6-upstream">6. Upstream</a>
             </li>
         
         </ul>
