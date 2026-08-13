@@ -219,6 +219,19 @@ Two further items are open here, neither gated on grammar:
   nested collection — so the "collections are not yet supported" refusal is now
   a scope limit, not a backend one. Lifting it is a user-facing surface change
   and belongs here or in `yqr-f008`, with its own tests and docs.
+- **Creating a key that holds `.` or `[`.** `insert_entry_value` can splice one
+  (it needs a path only to *replace* an existing key, so adding
+  `app.kubernetes.io/name` is supported upstream), but yqr still refuses it in
+  `insert_key`. The refusal is no longer about expressing the key — it is that
+  yqr's path grammar could not then address it, so the edit would write a key
+  the tool cannot read back. Lifting it means settling that addressing question
+  first (an escape or quoting form in the path syntax), which is grammar work,
+  not a splice change. This is the common Kubernetes label/annotation case and
+  is worth doing.
+- **A multi-line-insert case in the shared corpus.** `yqr-b008` §6: the unit
+  tests pin the fix, but `yqr-m003`'s byte-exact `EngineCase` tier has no
+  multi-line-string insert, so a backend swap could reintroduce the corruption
+  without failing `tests/corpus_validation.rs`.
 
 _(These criteria firm up once the grammar and the upstream API surface are
 known.)_

@@ -22,6 +22,13 @@ All notable changes to `yqr` are documented here. The format is based on
   rejected as invalid, and a string that is a single newline was written as an
   empty block scalar and read back as `"|"`. Both fixed by the engine upgrade
   below.
+- **Adding a line to a CRLF file no longer mixes line endings.** Creating a key
+  or appending a list item wrote the new line with a Unix ending regardless of
+  the file's own convention, so a Windows-style file silently ended up with
+  both -- again at exit 0, so `-i` saved it that way. Files that consistently
+  use one convention keep it; a file that already mixes endings is left as it
+  is rather than being rewritten to a guess. Reading, replacing an existing
+  value, and `del` were never affected.
 
 ### Changed
 

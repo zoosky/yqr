@@ -18,8 +18,9 @@ yqr's shipped CLI.
 
 **In scope:** the pin bump and its lockfile/audit fallout (§3.1); routing the
 two untyped insert paths through the typed tier, which is the `yqr-b008` fix
-(§3.2); recording that noyalib#226 shipped (§3.3); correcting the upstream
-status update for the record (§4).
+(§3.2); restoring CRLF on inserted lines, `yqr-b009` (§3.3); recording that
+noyalib#226 shipped (§3.4); correcting the upstream status update for the
+record (§4).
 
 **Out of scope:** the comment-edit, key-rename and sequence-reorder grammar
 (still `yqr-f007` §6 — the APIs have been available since 0.0.18 and the
@@ -106,7 +107,21 @@ correctness argument … Evaluate it as f007's first slice". The argument turned
 out not to be latent, so it lands here as a bug fix rather than waiting on
 grammar.
 
-### 3.3 noyalib#226 shipped — close out `yqr-b004` §6.4
+### 3.3 Restore CRLF on inserted lines (`yqr-b009`)
+
+Surfaced by review of this change rather than by the bump. The insertion
+mutators terminate a new line with `\n` whatever the document uses, so
+new-key assignment and `+=` gave a CRLF file mixed endings at exit 0.
+`yqr-b004` §2.5 had recorded the upstream behaviour but it was never filed,
+which is how this feature came within one review of setting the bug tracker to
+"Open: none" while shipping it.
+
+`emit` now restores the convention for documents that were **wholly** CRLF at
+open time. Exact, not heuristic: such a document has no bare `\n` of its own,
+so every bare `\n` in the output is one the edit added. Mixed-ending documents
+are left alone. Full analysis and the per-operation scope table in `yqr-b009`.
+
+### 3.4 noyalib#226 shipped — close out `yqr-b004` §6.4
 
 Merged 2026-08-05, released in 0.0.19. `yqr-b004` §6.4 and `yqr-f013` §6 both
 carried it as "open / awaiting review"; both now record the release.
@@ -120,14 +135,24 @@ where upstream has had the most churn, and yqr's version is covered by the
 happen any time; doing it in the same change as a corruption fix is not worth
 the coupling. Recorded as still-open in `yqr-f007` §6.
 
-### 3.4 Now expressible, deliberately not taken
+### 3.5 Now expressible, deliberately not taken
 
-The typed tier can spell a nested collection, so the "collections are not yet
-supported" refusal on `+=` / new-key assignment is no longer a backend
-constraint. It stays, as a scope limit: allowing `.a.b = {…}` is a user-facing
-surface change that belongs to `yqr-f007` / `yqr-f008` with its own tests and
-docs. The code comment says so, so the next reader does not mistake it for a
-limitation that still exists.
+Two refusals stop being backend constraints with this bump. Both stay, and the
+code now states the real reason so the next reader does not mistake either for
+a limitation that still exists. Both are tracked in `yqr-f007` §6.
+
+- **Collection right-hand sides.** The typed tier can spell a nested
+  collection, so "collections are not yet supported" is now a scope limit.
+  Allowing `.a.b = {…}` is a user-facing surface change needing its own tests
+  and docs. The refusal was also moved to cover `set_value`, which previously
+  let the engine refuse in its own words — naming `set` and "fragment", APIs
+  yqr does not expose, and calling it a parse error for input that parses.
+- **Creating a key holding `.` or `[`.** `insert_entry_value` can splice one
+  (a path is needed only to *replace* an existing key). yqr still refuses,
+  but the reason has changed: it is now that yqr's path grammar cannot
+  address such a key, so the edit would write something the tool cannot read
+  back. Settling that is grammar work. This is the common Kubernetes
+  label/annotation case and is worth doing.
 
 ## 4. Correction to the upstream status update (for the record)
 
@@ -167,10 +192,14 @@ reply can be written from it later.
 - [x] `tests/fidelity.rs` and `tests/corpus_validation.rs` pass unchanged.
 - [x] `insert_key` and `append` route through the typed tier; `yqr-b008`'s
       three regression tests pass and assert bytes **and** loaded-back value.
-- [x] The two `Emit` probes (`.k = "a:"`, `.k = "\n"`) are correct on 0.0.21.
+- [x] The two `Emit` probes (`.k = "a:"`, `.k = "\n"`) are correct on 0.0.21,
+      and each carries a yqr-side round-trip test — the fix arrived through
+      `Cargo.toml`, so nothing else here would catch its return.
+- [x] A CRLF document stays CRLF across both insert paths (`yqr-b009`), with a
+      mixed-ending document left alone.
 - [x] `yqr-b004` §6.4 and `yqr-f013` §6 record noyalib#226 as released in
-      0.0.19; `yqr-b008` is filed and marked Fixed.
-- [x] `CHANGELOG.md` records the bump and the corruption fix.
+      0.0.19; `yqr-b008` and `yqr-b009` are filed and marked Fixed.
+- [x] `CHANGELOG.md` records the bump and both fixes.
 
 ## 6. Non-goals
 
