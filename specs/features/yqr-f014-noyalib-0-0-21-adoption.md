@@ -163,8 +163,9 @@ it open as the umbrella for gaps 1, 4 and 5:
 > **Done on `main`:** `rename_key`, `key_span`, `swap_items`, `move_item`.
 > **Still open:** comment mutation; extended `remove`; fragment quoting.
 
-Verified against the published `.crate` files for both 0.0.18 and 0.0.21, that
-update **undercounts what has shipped** on all three "still open" items:
+Verified against the published `.crate` files for both 0.0.18 and 0.0.21, and
+re-checked against `upstream/main` @ `554e883` before replying, that update
+**undercounts what has shipped** on all three "still open" items:
 
 | #221 item | Status update | In the published crate |
 |---|---|---|
@@ -179,10 +180,23 @@ written — upstream `remove` has handled those shapes since 0.0.18, and yqr's
 own path exists for **trivia** reasons, which noyalib#226 already addressed.
 
 What is genuinely still unaccepted upstream is **sole-entry** and **flow**
-deletes, which yqr also refuses. Those are the remaining real gap, and the
-honest reply upstream is the evidence table above plus an offer on those two
-cases. **Not posted** — deferred by decision; this section is the record so the
-reply can be written from it later.
+deletes, which yqr also refuses.
+
+**Posted 2026-08-13** as
+[noyalib#221 (comment)](https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5284260094):
+the evidence above per item, the note that the standing "port your delete
+fallback" offer is moot (`remove` already covers those shapes; the part that
+differed was trivia, which noyalib#226 upstreamed), and — instead of a
+duplicate — an offer to fix the **CRLF insertion** defect `yqr-b009` records,
+which yqr is currently working around locally. Reply framed as "flagging
+because yqr already depends on all three, so treating them as unbuilt risks a
+rewrite of shipping code", and invites correction if the maintainer is reading
+a different tree.
+
+If that offer is taken up, the PR covers the break derivation, every insertion
+path routed through it (typed, fragment, and both comment positions), tests per
+path plus LF and mixed-ending controls, and no behaviour change for LF
+documents. `yqr-b009` §6 carries the verified per-call table.
 
 ## 5. Acceptance criteria
 
@@ -208,6 +222,5 @@ reply can be written from it later.
 - No behaviour change to the read path or `--normalize`.
 - Not a release. `yqr-m001` governs when a version ships; `cargo publish` stays
   separately authorized (`yqr-m004`).
-- No upstream comment posted (§4).
 </content>
 </invoke>
