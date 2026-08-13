@@ -181,5 +181,3 @@ that reshapes it.
 
 The `-i` exposure is worth stating plainly: a guard that returns `Ok` on a
 corrupt result is worse than no guard, because the write-back path trusts it.
-</content>
-</invoke>
