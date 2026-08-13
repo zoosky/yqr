@@ -144,7 +144,8 @@ not a bug fix, and it is called out as such in the code.
 
 Three regression tests in `src/fidelity/write.rs`, each asserting the emitted
 bytes **and** the loaded-back value, so a future regression to a
-plausible-but-wrong spelling fails too:
+plausible-but-wrong spelling — valid YAML that means something else — fails
+too:
 
 - `appended_multiline_string_is_indented_for_its_insertion_site` — §2.1;
 - `inserted_multiline_string_is_indented_for_its_insertion_site` — §2.2;
@@ -167,9 +168,16 @@ Both load back as `"v\nqq: 7"`; `keep` is byte-identical.
 ## 6. Why the existing suite missed it
 
 Every insert/append test used a single-line scalar — `Value::Int(9090)`,
-`Value::String("prod")`. The corpus (`yqr-m003`) has no case that assigns a
-multi-line string either. The shape was untested rather than tested-and-wrong,
-and the tests added in §5 close that gap for both mutators.
+`Value::String("prod")`. The shape was untested rather than tested-and-wrong,
+and §5 closes that gap **at the unit level, for both mutators**.
+
+It is not closed at the corpus level. `yqr-m003`'s case table has no
+multi-line-string insert, and its `EngineCase` tier is the byte-exact,
+per-backend one — so an engine bump or backend swap that reintroduced this
+would still pass `tests/corpus_validation.rs`. Adding a case there is tracked
+in `yqr-f007` §6 rather than done here, because the corpus is a shared table
+whose cases are also benchmarked, and a corruption fix should not be the change
+that reshapes it.
 
 The `-i` exposure is worth stating plainly: a guard that returns `Ok` on a
 corrupt result is worse than no guard, because the write-back path trusts it.

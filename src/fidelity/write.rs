@@ -5,19 +5,28 @@
 //! leaves every other byte identical — or refuses. It is the write-side
 //! analogue of the read seam: a small `FidelityWriter` trait bounds the
 //! engine's edit surface, and the concrete `NoyalibWriter` routes each edit
-//! through noyalib's first-class, oracle-guarded *typed* mutators
-//! (`set_value` / `insert_entry_value` / `push_back_value`) — never the
-//! fragment-taking ones, whose guard rejects invalid YAML but not
-//! valid-but-misinterpreted YAML. Delete is yqr's own, for the trivia reason
+//! through noyalib's *typed* mutators (`set_value` / `insert_entry_value` /
+//! `push_back_value`) — never the fragment-taking ones, which splice a
+//! caller-built string verbatim and whose guard rejects invalid YAML but not
+//! valid-but-misinterpreted YAML. Delete is yqr's own, for the reason
 //! `delete_entry` documents.
+//!
+//! The typed mutators do not all guard equally, which is worth knowing before
+//! trusting one. The two *insertion* mutators carry a load-back oracle: after
+//! the splice the document must load as the pre-edit value with exactly that
+//! insertion applied, or the edit rolls back. `set_value` has no such oracle —
+//! it formats for the site and splices, so it inherits only the re-parse
+//! check. A spelling defect there produces a wrong value rather than a
+//! refusal, which has happened, so a `set_value` case is worth an explicit
+//! round-trip test rather than an assumption.
 //!
 //! The write path is the read path with the terminal call swapped: the
 //! evaluator resolves a filter to a concrete [`Path`], the same
 //! `to_noyalib_path` builder lowers it to a
 //! string path, and a mutator addressed by that string applies the edit. Each
-//! mutator returns `Result<()>`; that `Result` *is* the structural-integrity
-//! guard — an edit whose result would re-parse differently is refused (exit 5)
-//! and the document is left unchanged.
+//! mutator returns `Result<()>`; that `Result` carries the structural-integrity
+//! guard — a refused edit is reported (exit 5) and the document is left
+//! unchanged — to the strength described above, which differs per mutator.
 
 // Feature f006 (see specs/features/): write tier v1 — value assignment.
 
@@ -58,18 +67,28 @@ pub(crate) trait FidelityWriter {
     /// Replace the scalar at `path` with `value`, matching the neighbouring
     /// quoting style.
     ///
+    /// Unlike the insertion methods, this carries only a re-parse check, not a
+    /// load-back oracle: a mis-spelled value can be committed rather than
+    /// refused, so round-trip coverage is the caller's responsibility.
+    ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, does not resolve to a scalar, or
-    /// the edit would re-parse differently.
+    /// Errors when the path is unaddressable, does not resolve to a scalar, the
+    /// value is a collection, or the edit would re-parse differently.
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
 
     /// Insert a new `key: value` entry into the mapping at `parent`.
     ///
+    /// The implementation places and spells `value`; callers pass a value, not
+    /// a rendered fragment, so quoting and indentation are never theirs.
+    ///
     /// # Errors
     ///
     /// Errors when the parent is unaddressable, is not a non-empty block
-    /// mapping, or the edit would re-parse differently.
+    /// mapping, or `key` cannot be addressed once written. Also errors when
+    /// the result would not **load back** as the pre-edit value with exactly
+    /// this insertion applied — a stronger contract than "still parses", and
+    /// the one an alternative implementation must meet.
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()>;
 
     /// Append `value` as a new item to the block sequence at `path`.
@@ -77,7 +96,8 @@ pub(crate) trait FidelityWriter {
     /// # Errors
     ///
     /// Errors when the path is unaddressable, is not a non-empty block
-    /// sequence, or the edit would re-parse differently.
+    /// sequence, or the result would not load back as the pre-edit value with
+    /// exactly this insertion applied (see [`Self::insert_key`]).
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
 
     /// Remove the block entry at `path`, whether single-line, multi-line, or a
@@ -169,6 +189,10 @@ fn apply_to_doc(
 pub(crate) struct NoyalibWriter {
     /// One editable CST document per logical YAML document.
     docs: Vec<::noyalib::cst::Document>,
+    /// Per document: was its source wholly CRLF-terminated at open time? The
+    /// mutators end an inserted line with `\n` whatever the document uses, so
+    /// this records what to restore. See [`Self::emit`].
+    crlf: Vec<bool>,
 }
 
 impl NoyalibWriter {
@@ -184,7 +208,8 @@ impl NoyalibWriter {
         // concatenates each document, so a slice that diverged from the input
         // would corrupt an untouched document.
         super::noyalib::verify_stream_tiles_input(input, &docs)?;
-        Ok(Self { docs })
+        let crlf = docs.iter().map(|d| is_all_crlf(&d.to_string())).collect();
+        Ok(Self { docs, crlf })
     }
 
     /// Bounds-checked mutable document accessor.
@@ -221,15 +246,22 @@ impl FidelityWriter for NoyalibWriter {
 
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
         let path_str = noyalib_path(path)?;
-        let ny = ::noyalib::Value::from(value);
+        // Same scalar-only limit as the insert paths, checked here rather than
+        // left to the engine: `set_value`'s own refusal names `set` and
+        // fragments, APIs yqr never exposes, and reports a *parse* error for
+        // input that parses fine.
+        let ny = insertable(value)?;
         self.doc_mut(doc)?
             .set_value(&path_str, &ny)
             .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))
     }
 
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
-        // The new key itself must be plain — the string-path splice cannot
-        // express an escaped key, the same honest gap the read path declares.
+        // A key holding `.` or `[` composes into a path meaning something else,
+        // so it cannot be *addressed*. Creating one is still refused here even
+        // though the typed tier can splice it (it only needs a path to replace
+        // an existing key), because a key yqr can write but not read back is
+        // its own trap. Lifting this is tracked as structural-edit work.
         if !PathSeg::key_is_plain(key) {
             return Err(YqrError::eval(format!(
                 "cannot create key {key:?}: it uses characters the write path cannot express"
@@ -251,18 +283,37 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()> {
-        // Deliberately not noyalib's `remove`. Since 0.0.18 it accepts the same
-        // shapes as this path, but it treats an entry as its key/value lines
-        // only: a head comment above the entry survives and is re-attributed to
-        // the next sibling, a keep-chomped scalar's kept trailing blanks are
-        // left stranded, and a following sibling's own comment is swallowed
-        // (b004 6.1). All three are silent successes — the failure class b006
-        // was filed for — so the entry-owns-its-trivia rules stay yqr's.
+        // Deliberately not noyalib's `remove`, though the gap has narrowed: it
+        // accepts the same shapes since 0.0.18, and since 0.0.19 it folds the
+        // same entry-owned trivia this path does (that fix was yqr's, filed as
+        // the b006 rules diverging from it). What keeps the two separate now is
+        // churn, not semantics — 0.0.21 fixed a `remove` that destroyed a whole
+        // flow collection while reporting success, and this path carries the
+        // b006 rules next to the tests that pin them. Revisit deliberately.
         self.delete_entry(doc, path)
     }
 
     fn emit(&self) -> String {
-        self.docs.iter().map(ToString::to_string).collect()
+        self.docs
+            .iter()
+            .zip(&self.crlf)
+            .map(|(doc, &was_crlf)| {
+                let out = doc.to_string();
+                // An inserted line is terminated with `\n` regardless of the
+                // document's convention, so a CRLF file silently gained mixed
+                // endings. A document that was wholly CRLF has no bare `\n` of
+                // its own, which makes the restore exact rather than a guess:
+                // every bare `\n` left in the output is one this edit added.
+                // A mixed-ending document is left alone — there is no
+                // convention to restore, and guessing one would be the same
+                // class of unasked-for rewrite.
+                if was_crlf && out.contains('\n') {
+                    restore_crlf(&out)
+                } else {
+                    out
+                }
+            })
+            .collect()
     }
 }
 
@@ -277,21 +328,55 @@ fn noyalib_path(path: &Path) -> Result<String> {
     })
 }
 
-/// Lower a scalar [`Value`] to the noyalib value the *typed* insertion
-/// mutators take (`insert_entry_value` / `push_back_value`).
+/// Does `s` use CRLF for every line break it has, with no bare `\n`?
 ///
-/// These carry an oracle the fragment-taking mutators cannot: after the splice
-/// the document must load back as the pre-edit value with exactly that one
-/// insertion applied, so a value whose spelling would restructure the document
-/// is rolled back rather than committed. Hand-building the fragment instead —
-/// as this did before — put yqr on the wrong side of that guard: a string
-/// containing a newline rendered to a block scalar, which the untouched
-/// `insert_entry` / `push_back` spliced without re-indenting its continuation
-/// lines, silently producing a wrong value or unparseable output (bug b008).
+/// False for an LF document, for a mixed one, and for a document with no line
+/// break at all — in each case there is no single convention an inserted line
+/// should adopt.
+fn is_all_crlf(s: &str) -> bool {
+    let mut saw_crlf = false;
+    let bytes = s.as_bytes();
+    for (i, &b) in bytes.iter().enumerate() {
+        if b == b'\n' {
+            if i == 0 || bytes[i - 1] != b'\r' {
+                return false;
+            }
+            saw_crlf = true;
+        }
+    }
+    saw_crlf
+}
+
+/// Re-terminate every bare `\n` in `s` as `\r\n`, leaving existing `\r\n` alone.
+///
+/// Only ever applied to a document that was wholly CRLF before the edit, so the
+/// bare breaks it finds are exactly the ones an inserted line brought.
+fn restore_crlf(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 8);
+    let mut prev = '\0';
+    for c in s.chars() {
+        if c == '\n' && prev != '\r' {
+            out.push('\r');
+        }
+        out.push(c);
+        prev = c;
+    }
+    out
+}
+
+/// Lower a scalar [`Value`] to the noyalib value the typed mutators take.
+///
+/// Passing a value rather than a rendered fragment is what lets the engine
+/// place and spell it. Hand-building the fragment instead put yqr on the wrong
+/// side of the guard: a string containing a newline renders to a block scalar,
+/// which the fragment-taking mutators splice without re-indenting its
+/// continuation lines, silently producing a wrong value or unparseable output.
 ///
 /// A collection value stays refused. The typed tier can express one, so this is
-/// now a scope limit on `+=` / new-key assignment rather than a backend
-/// constraint — lifting it is structural-edit work, not a bug fix.
+/// now a scope limit on the mutating filters rather than a backend constraint —
+/// lifting it is structural-edit work, not a bug fix.
+// Bug b008: the fragment-splice corruption this refusal and the typed lowering
+// together replace.
 fn insertable(value: &Value) -> Result<::noyalib::Value> {
     if matches!(value, Value::Sequence(_) | Value::Mapping(_)) {
         return Err(YqrError::eval(
@@ -404,8 +489,120 @@ mod tests {
             "labels:\n  app: yqr\n",
         )
         .unwrap();
+        assert_eq!(out, "labels:\n  app: yqr\n  version: \"8080\"\n");
         let reparsed = crate::eval_str(".labels.version", &out).unwrap();
         assert_eq!(reparsed, vec![Value::String("8080".into())]);
+    }
+
+    // A CRLF document must stay CRLF. The mutators terminate an inserted line
+    // with `\n` whatever the file uses, so before the restore in `emit` these
+    // produced mixed endings at exit 0 — with `-i`, written straight to disk.
+
+    #[test]
+    fn inserting_a_key_keeps_a_crlf_document_crlf() {
+        let out = apply(
+            &assign(".m.b", Rhs::Literal(Value::Int(2))),
+            "m:\r\n  a: 1\r\n",
+        )
+        .unwrap();
+        assert_eq!(out, "m:\r\n  a: 1\r\n  b: 2\r\n");
+    }
+
+    #[test]
+    fn appending_an_item_keeps_a_crlf_document_crlf() {
+        let out = apply(
+            &Mutation::Append {
+                path: crate::parser::parse(".s").expect("valid"),
+                rhs: Rhs::Literal(Value::Int(3)),
+            },
+            "s:\r\n  - 1\r\n",
+        )
+        .unwrap();
+        assert_eq!(out, "s:\r\n  - 1\r\n  - 3\r\n");
+    }
+
+    #[test]
+    fn a_multiline_insert_into_a_crlf_document_uses_crlf_throughout() {
+        let out = apply(
+            &assign(".m.b", Rhs::Literal(Value::String("x\ny".into()))),
+            "m:\r\n  a: 1\r\n",
+        )
+        .unwrap();
+        assert_eq!(out, "m:\r\n  a: 1\r\n  b: |-\r\n    x\r\n    y\r\n");
+        assert_eq!(
+            crate::eval_str(".m.b", &out).unwrap(),
+            vec![Value::String("x\ny".into())]
+        );
+    }
+
+    #[test]
+    fn an_lf_document_is_untouched_by_the_crlf_restore() {
+        let out = apply(&assign(".m.b", Rhs::Literal(Value::Int(2))), "m:\n  a: 1\n").unwrap();
+        assert_eq!(out, "m:\n  a: 1\n  b: 2\n");
+    }
+
+    #[test]
+    fn a_mixed_ending_document_is_left_alone() {
+        // No convention to restore; inventing one would be its own unasked-for
+        // rewrite, so only the inserted line's own ending is in play.
+        let out = apply(
+            &assign(".m.b", Rhs::Literal(Value::Int(2))),
+            "m:\r\n  a: 1\n",
+        )
+        .unwrap();
+        assert_eq!(out, "m:\r\n  a: 1\n  b: 2\n");
+    }
+
+    // `set_value` carries no load-back oracle (see the module doc), so the
+    // spellings it gets wrong surface as wrong values rather than refusals.
+    // These two pin the cases that did: a string ending in `:` was rejected as
+    // invalid, and a lone newline was written as an empty block scalar that
+    // read back as "|". Both are engine fixes, which is exactly why yqr needs
+    // its own assertion — nothing else here would catch their return.
+
+    #[test]
+    fn assigned_string_ending_in_a_colon_round_trips() {
+        let out = apply(
+            &assign(".k", Rhs::Literal(Value::String("a:".into()))),
+            "k: 1\n",
+        )
+        .unwrap();
+        assert_eq!(
+            crate::eval_str(".k", &out).unwrap(),
+            vec![Value::String("a:".into())]
+        );
+    }
+
+    #[test]
+    fn assigned_lone_newline_round_trips() {
+        let out = apply(
+            &assign(".k", Rhs::Literal(Value::String("\n".into()))),
+            "k: 1\n",
+        )
+        .unwrap();
+        assert_eq!(
+            crate::eval_str(".k", &out).unwrap(),
+            vec![Value::String("\n".into())]
+        );
+    }
+
+    #[test]
+    fn collection_rhs_is_refused_the_same_way_on_an_existing_key() {
+        // The scalar-only limit is yqr's, so all three write paths must report
+        // it in yqr's words. Left to the engine, this one named `set` and
+        // "fragment" — APIs yqr does not expose — and called it a parse error.
+        let err = apply(
+            &assign(
+                ".a",
+                Rhs::Path(crate::parser::parse(".src").expect("valid")),
+            ),
+            "a: 1\nsrc:\n  k: 1\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.to_string().contains("must be a scalar"),
+            "engine wording leaked: {err}"
+        );
     }
 
     #[test]
@@ -467,8 +664,9 @@ mod tests {
 
     #[test]
     fn non_scalar_rhs_is_rejected() {
-        // Appending a collection has no single-line fragment form; it must be
-        // refused with a clear message rather than splicing mis-shaped YAML.
+        // A collection RHS is refused by scope, not by capability — the typed
+        // tier could spell one. What this pins is that the refusal is yqr's
+        // own message rather than an engine error naming engine APIs.
         let err = apply(
             &Mutation::Append {
                 path: crate::parser::parse(".list").expect("valid"),
