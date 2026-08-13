@@ -193,10 +193,18 @@ because yqr already depends on all three, so treating them as unbuilt risks a
 rewrite of shipping code", and invites correction if the maintainer is reading
 a different tree.
 
-If that offer is taken up, the PR covers the break derivation, every insertion
-path routed through it (typed, fragment, and both comment positions), tests per
-path plus LF and mixed-ending controls, and no behaviour change for LF
-documents. `yqr-b009` §6 carries the verified per-call table.
+That PR is **[noyalib#261](https://github.com/sebastienrousseau/noyalib/pull/261)**,
+opened the same day rather than held for an answer. It covers the break
+derivation, every insertion path routed through it (typed, fragment, and both
+comment positions), and the inline-comment splice that landed between the `\r`
+and the `\n`; 17 tests including LF, mixed-ending and no-break controls, and no
+behaviour change for LF documents. Upstream's suite goes 5,978 -> 5,995 with no
+failures.
+
+The decisive check is the same one #226 carried: with yqr's own workaround
+disabled and yqr pointed at the PR branch, all 163 yqr tests pass — and three
+fail against unpatched 0.0.21 with the workaround disabled. `yqr-b009` §6
+carries the per-call table and that evidence.
 
 ## 5. Acceptance criteria
 
@@ -222,5 +230,3 @@ documents. `yqr-b009` §6 carries the verified per-call table.
 - No behaviour change to the read path or `--normalize`.
 - Not a release. `yqr-m001` governs when a version ships; `cargo publish` stays
   separately authorized (`yqr-m004`).
-</content>
-</invoke>

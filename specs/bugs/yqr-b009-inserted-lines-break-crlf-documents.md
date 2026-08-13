@@ -89,14 +89,16 @@ Five tests in `src/fidelity/write.rs`, all byte-exact:
 - `an_lf_document_is_untouched_by_the_crlf_restore`
 - `a_mixed_ending_document_is_left_alone`
 
-## 6. Upstream — raised on noyalib#221 (2026-08-13), PR offered
+## 6. Upstream — noyalib#221 raised, fixed by noyalib#261 (open)
 
 The durable home for this is noyalib: an insertion should reproduce the
 document's existing line break rather than assume `\n`, the same way it already
 derives indentation from the site. Raised in
 [noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5284260094),
-in the same comment that corrects the status update (`yqr-f014` §4), with a PR
-offered on the #222 / #223 pattern.
+in the same comment that corrects the status update (`yqr-f014` §4), and
+contributed the same day as
+**[noyalib#261](https://github.com/sebastienrousseau/noyalib/pull/261)**
+(open, on the #222 / #223 / #226 pattern).
 
 **Verified against `upstream/main` @ `554e883` (v0.0.21), not just yqr's
 symptom.** The defect is wider than the two mutators yqr uses:
@@ -108,8 +110,13 @@ symptom.** The defect is wider than the two mutators yqr uses:
 | `insert_entry` / `push_back` / `insert_after` | same, fragment forms |
 | `set_comment(Before)` | `m:\r\n  # note\n  a: 1\r\n` — bare LF |
 | `set_comment(Inline)` | `m:\r\n  a: 1\r  # note\n` — splices **between** the `\r` and the `\n`, leaving a lone CR |
+| `set_leading_comment` | bare LF per comment line |
 | `set_value` | CRLF preserved (control) |
 | `remove` | CRLF preserved (control) |
+
+Worth noting: `set_inline_comment` is **correct** — it splices at the node's
+span end — so upstream's two APIs for the same operation disagreed, which is
+what the divergence with `set_comment(Inline)` amounts to.
 
 No data is lost in any of these — values round-trip, and the inline case stays
 valid because YAML 1.2 accepts a lone `\r` as a break. The cost is a file that
@@ -120,9 +127,22 @@ Cause is small and local: `leading_break_for_splice`
 returns `"\n"`, and the line is built as
 `format!("{indent}{key}: {fragment}\n")`.
 
-Until a fix ships in a release yqr can pin, the workaround is yqr's, costs one
-pass over the emitted string per edited document, and is covered by §5. It
-should be deleted when upstream lands — yqr second-guessing its engine's line
-endings is not a state to keep.
-</content>
-</invoke>
+### The fix contributed (noyalib#261)
+
+A `document_break` helper (plus `comment_line_break` in `annotated.rs`)
+answering what break the document uses — `"\r\n"` only when it is *wholly*
+CRLF, the same rule §4 uses. `leading_break_for_splice` returns it,
+`indent_continuation_lines` takes it so a multi-line emission grows CRLF on
+every line, and the inline-comment splice moves to a `line_break_start` that
+steps back over a `\r`. Mixed and no-break documents keep the `\n` default.
+17 tests; upstream's suite goes 5,978 → 5,995 with no failures.
+
+**The cross-check that matters for yqr**: with §4's workaround **disabled** and
+yqr pointed at the PR branch, all 163 yqr tests pass, the five §5 tests
+included. With the workaround disabled against unpatched 0.0.21, three of them
+fail on exactly this property. So the upstream fix subsumes the workaround.
+
+Until it ships in a release yqr can pin, the workaround stays: it costs one
+pass over the emitted string per edited document and is covered by §5. **Delete
+it when upstream lands** — yqr second-guessing its engine's line endings is not
+a state to keep, and it is now proven redundant rather than assumed to be.
