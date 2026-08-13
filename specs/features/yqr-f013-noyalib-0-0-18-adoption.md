@@ -214,14 +214,22 @@ is a span-boundary refinement rather than new machinery, and offers a PR.
 
 That PR is
 [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226), opened
-the same day and **awaiting review**. It implements all three: `remove` now
+the same day, **merged 2026-08-05 and released in noyalib 0.0.19**
+(2026-08-11); #225 closed on the merge. It implements all three: `remove` now
 derives its range from the same value-span boundary `span_at` reports, which
 is what the refinement amounts to. The cross-check that matters here is that
 yqr's suite passes with `del` routed back through upstream `remove` against
 the patched crate — the four tests §3.2 records as failing on the bump
 included.
 
-When it lands **and ships in a release yqr can pin**, §3.2 option (b) becomes
-clearly correct and `delete.rs` can genuinely shrink to a trivia pre-pass;
-that re-evaluation is the natural successor to this feature, not part of it.
-Full case list in `yqr-b004` §6.4.
+It has since shipped, so the successor this section anticipated is
+**`yqr-f014`** (the 0.0.21 pin). That feature re-evaluated option (b) and
+declined it — not because the divergence remains, but because 0.0.21 exposed a
+*new* `remove` defect (a flow-collection delete that destroyed the document
+while returning `Ok`), and yqr's own path has no open defect. Full case list in
+`yqr-b004` §6.4; the standing decision is tracked in `yqr-f007` §6.
+
+One §3.4 hand-off also came due sooner than expected. The "latent correctness
+argument" for adopting the typed insertion tier turned out not to be latent:
+yqr's hand-built fragments were silently corrupting multi-line string inserts
+on this very pin. Filed as `yqr-b008` and fixed in `yqr-f014` §3.2.

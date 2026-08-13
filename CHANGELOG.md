@@ -6,17 +6,40 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- **Adding a multi-line string could corrupt the file.** Creating a new key or
+  appending a list item whose value contained a newline -- `yqr '.s += "line
+  one\nline two"'` -- wrote the value at the wrong indentation. Appending to a
+  list produced a file that could no longer be parsed; creating a key produced
+  a value that read back with a stray `|-` in it. Both reported success and
+  exited 0, so `-i` wrote the damage to disk. Values are now handed to the
+  engine as values rather than as pre-rendered text, so the engine places and
+  spells them, and rejects the edit if the result would not read back as the
+  value given. Replacing an *existing* key was never affected.
+- **`.k = "a:"` failed, and `.k = "\n"` wrote the wrong value.** Two spelling
+  defects in the engine's value emitter: a string ending in a colon was
+  rejected as invalid, and a string that is a single newline was written as an
+  empty block scalar and read back as `"|"`. Both fixed by the engine upgrade
+  below.
+
 ### Changed
 
-- **YAML engine upgraded from noyalib 0.0.17 to 0.0.18.** The release brings
-  the CST mutation API yqr had been missing -- comment setters, `rename_key` /
+- **YAML engine upgraded from noyalib 0.0.17 to 0.0.21.** 0.0.18 brought the
+  CST mutation API yqr had been missing -- comment setters, `rename_key` /
   `key_span`, `swap_items` / `move_item`, a `remove` that accepts multi-line
   and nested values, and a typed insertion tier that quotes and escapes on the
-  caller's behalf. Two of those are yqr's own upstream contributions. Nothing
-  user-facing changes yet: the new operations still need filter grammar, so
-  this release is the pin and the groundwork. No other dependency moved, and
-  byte fidelity is unaffected -- the round-trip and corpus harnesses pass
-  untouched.
+  caller's behalf; two of those are yqr's own upstream contributions, and the
+  typed tier is what fixes the corruption above. The releases after it fix
+  defects rather than add surface: 0.0.19 carries yqr's own upstream fix for
+  how `remove()` treats the trivia around an entry, plus a scalar-resolution
+  bug where bare `nan` / `inf` spellings destroyed a key's original text;
+  0.0.21 fixes three cases where an edit could damage a document while
+  reporting success, and the two emitter defects noted above. The remaining new
+  operations still need filter grammar, so they are groundwork rather than
+  user-facing features. Two transitive dependencies are added (`hashbrown`,
+  `libm`), both from the engine's bare-metal support work. Byte fidelity is
+  unaffected -- the round-trip and corpus harnesses pass untouched.
 - **`del(...)` no longer delegates to the engine's `remove`.** 0.0.18's
   `remove` accepts the shapes it used to refuse, but it scopes a deletion to
   the entry's own key and value lines, where yqr treats an entry as owning the

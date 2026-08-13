@@ -5,8 +5,11 @@
 //! leaves every other byte identical — or refuses. It is the write-side
 //! analogue of the read seam: a small `FidelityWriter` trait bounds the
 //! engine's edit surface, and the concrete `NoyalibWriter` routes each edit
-//! through noyalib's first-class, re-parse-guarded mutators
-//! (`set_value` / `insert_entry` / `push_back` / `remove`).
+//! through noyalib's first-class, oracle-guarded *typed* mutators
+//! (`set_value` / `insert_entry_value` / `push_back_value`) — never the
+//! fragment-taking ones, whose guard rejects invalid YAML but not
+//! valid-but-misinterpreted YAML. Delete is yqr's own, for the trivia reason
+//! `delete_entry` documents.
 //!
 //! The write path is the read path with the terminal call swapped: the
 //! evaluator resolves a filter to a concrete [`Path`], the same
@@ -233,17 +236,17 @@ impl FidelityWriter for NoyalibWriter {
             )));
         }
         let parent_str = noyalib_path(parent)?;
-        let fragment = value_fragment(value)?;
+        let ny = insertable(value)?;
         self.doc_mut(doc)?
-            .insert_entry(&parent_str, key, &fragment)
+            .insert_entry_value(&parent_str, key, &ny)
             .map_err(|e| YqrError::eval(format!("cannot insert key {key:?}: {e}")))
     }
 
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
         let path_str = noyalib_path(path)?;
-        let fragment = value_fragment(value)?;
+        let ny = insertable(value)?;
         self.doc_mut(doc)?
-            .push_back(&path_str, &fragment)
+            .push_back_value(&path_str, &ny)
             .map_err(|e| YqrError::eval(format!("cannot append to {path_str:?}: {e}")))
     }
 
@@ -274,16 +277,22 @@ fn noyalib_path(path: &Path) -> Result<String> {
     })
 }
 
-/// Render a scalar [`Value`] to a single-line YAML fragment for the mutators
-/// that take a raw string (`push_back` / `insert_entry`).
+/// Lower a scalar [`Value`] to the noyalib value the *typed* insertion
+/// mutators take (`insert_entry_value` / `push_back_value`).
 ///
-/// Routing through the same `Value -> noyalib` emission the classic pipeline
-/// uses keeps quoting correct — a string needing quotes is quoted — so a
-/// fragment is never a raw, unescaped user string (see the fidelity spec's
-/// fragment-quoting note). A collection value has no single-line scalar form;
-/// splicing its multi-line rendering would silently mis-shape the document, so
-/// it is refused up front (v1 is scalar-only for `+=` / new-key inserts).
-fn value_fragment(value: &Value) -> Result<String> {
+/// These carry an oracle the fragment-taking mutators cannot: after the splice
+/// the document must load back as the pre-edit value with exactly that one
+/// insertion applied, so a value whose spelling would restructure the document
+/// is rolled back rather than committed. Hand-building the fragment instead —
+/// as this did before — put yqr on the wrong side of that guard: a string
+/// containing a newline rendered to a block scalar, which the untouched
+/// `insert_entry` / `push_back` spliced without re-indenting its continuation
+/// lines, silently producing a wrong value or unparseable output (bug b008).
+///
+/// A collection value stays refused. The typed tier can express one, so this is
+/// now a scope limit on `+=` / new-key assignment rather than a backend
+/// constraint — lifting it is structural-edit work, not a bug fix.
+fn insertable(value: &Value) -> Result<::noyalib::Value> {
     if matches!(value, Value::Sequence(_) | Value::Mapping(_)) {
         return Err(YqrError::eval(
             "the right-hand side of '+=' or a new-key assignment must be a scalar \
@@ -291,8 +300,7 @@ fn value_fragment(value: &Value) -> Result<String> {
                 .to_string(),
         ));
     }
-    let rendered = crate::render(std::slice::from_ref(value), false)?;
-    Ok(rendered.trim_end().to_string())
+    Ok(::noyalib::Value::from(value))
 }
 
 #[cfg(test)]
@@ -349,6 +357,55 @@ mod tests {
         )
         .unwrap();
         assert_eq!(out, "spec:\n  ports:\n    - 8080\n    - 9090\n");
+    }
+
+    // Bug b008: a multi-line string used to be hand-rendered to a block scalar
+    // and spliced verbatim, so its continuation lines kept the *rendering's*
+    // indentation rather than the insertion site's. The typed tier owns the
+    // indent now, and its oracle refuses anything that would load differently.
+
+    #[test]
+    fn appended_multiline_string_is_indented_for_its_insertion_site() {
+        let out = apply(
+            &Mutation::Append {
+                path: crate::parser::parse(".s").expect("valid"),
+                rhs: Rhs::Literal(Value::String("v\nqq: 7".into())),
+            },
+            "keep: 0\ns:\n  - one\n",
+        )
+        .unwrap();
+        assert_eq!(out, "keep: 0\ns:\n  - one\n  - |-\n      v\n      qq: 7\n");
+        // The decisive property: it loads back as the string it was given, and
+        // `qq` did not become a node of its own.
+        let reparsed = crate::eval_str(".s[1]", &out).unwrap();
+        assert_eq!(reparsed, vec![Value::String("v\nqq: 7".into())]);
+    }
+
+    #[test]
+    fn inserted_multiline_string_is_indented_for_its_insertion_site() {
+        let out = apply(
+            &assign(".m.b", Rhs::Literal(Value::String("v\nqq: 7".into()))),
+            "keep: 0\nm:\n  a: 1\n",
+        )
+        .unwrap();
+        assert_eq!(out, "keep: 0\nm:\n  a: 1\n  b: |-\n    v\n    qq: 7\n");
+        let reparsed = crate::eval_str(".m.b", &out).unwrap();
+        assert_eq!(reparsed, vec![Value::String("v\nqq: 7".into())]);
+    }
+
+    #[test]
+    fn inserted_string_is_quoted_when_its_plain_spelling_would_change_type() {
+        // `8080` plain would load as an integer; the typed tier quotes it.
+        let out = apply(
+            &assign(
+                ".labels.version",
+                Rhs::Literal(Value::String("8080".into())),
+            ),
+            "labels:\n  app: yqr\n",
+        )
+        .unwrap();
+        let reparsed = crate::eval_str(".labels.version", &out).unwrap();
+        assert_eq!(reparsed, vec![Value::String("8080".into())]);
     }
 
     #[test]

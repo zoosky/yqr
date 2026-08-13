@@ -50,6 +50,7 @@ dependency/release timing.
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename/reorder deferred) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
+| [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -68,9 +69,18 @@ it used to refuse and promptly failed four delete tests, including one
 divergence `b004` §6.1 had missed (it *swallows* a following sibling's comment).
 So delete stays yqr's own path by decision, renamed `delete_entry` and no longer
 framed as a fallback (`f007` §5.1). Also settled: `key_span` does **not** replace
-`validate`'s green-tree walk. f008 (`|=` computed updates) is gated on `f001` M2
+`validate`'s green-tree walk. f014 **done**: the pin is now 0.0.21, taking
+0.0.19 (which carries yqr's own noyalib#226, the `remove`-trivia fix that closes
+`b004` §6.4) and 0.0.21 (three silent-corruption fixes in the mutators, two of
+which reached yqr through `set_value` — `.k = "a:"` errored and `.k = "\n"`
+silently wrote the wrong value). Its code change fixes `b008`: `+=` and new-key
+assignment hand-built a text fragment, so a multi-line string was spliced at the
+rendering's indentation rather than the insertion site's — producing unparseable
+output or a wrong value, both at exit 0. Both now use the typed tier
+(`insert_entry_value` / `push_back_value`), which is the `f013` §3.4 hand-off
+coming due early. f008 (`|=` computed updates) is gated on `f001` M2
 (arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
-(done) → f007 remainder → M2 → f008.
+(done) → f014 (done) → f007 remainder → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -109,10 +119,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 13
+- Total features: 14
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 7 (f002, f006, f009, f010, f011, f012, f013)
+- Done: 8 (f002, f006, f009, f010, f011, f012, f013, f014)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
