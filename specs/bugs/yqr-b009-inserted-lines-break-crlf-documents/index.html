@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Bug b009 — an inserted line ends with `\\n`, giving a CRLF document mixed line endings",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents",
-  "wordCount": 704
+  "wordCount": 1090
 }
 </script>
 <script type="application/ld+json">
@@ -1980,16 +1980,53 @@ the same class of unasked-for change the fidelity engine exists to prevent.</p>
 <li><code>an_lf_document_is_untouched_by_the_crlf_restore</code></li>
 <li><code>a_mixed_ending_document_is_left_alone</code></li>
 </ul>
-<h2 id="6-upstream">6. Upstream<a class="heading-anchor" href="#6-upstream" aria-label="Link to this section"></a></h2>
+<h2 id="6-upstream-noyalib-221-raised-fixed-by-noyalib-261-open">6. Upstream — noyalib#221 raised, fixed by noyalib#261 (open)<a class="heading-anchor" href="#6-upstream-noyalib-221-raised-fixed-by-noyalib-261-open" aria-label="Link to this section"></a></h2>
 <p>The durable home for this is noyalib: an insertion should reproduce the
 document’s existing line break rather than assume <code>\n</code>, the same way it already
-derives indentation from the site. Not yet filed — <code>yqr-f014</code> §4 records that
-the open upstream conversation (noyalib#221) needs a correction first, and this
-belongs in the same reply rather than as a separate drive-by issue.</p>
-<p>Until then the workaround is yqr’s, costs one pass over the emitted string per
-edited document, and is covered by §5.
-</content>
-</invoke></p>
+derives indentation from the site. Raised in
+<a href="https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5284260094">noyalib#221</a>,
+in the same comment that corrects the status update (<code>yqr-f014</code> §4), and
+contributed the same day as
+<strong><a href="https://github.com/sebastienrousseau/noyalib/pull/261">noyalib#261</a></strong>
+(open, on the #222 / #223 / #226 pattern).</p>
+<p><strong>Verified against <code>upstream/main</code> @ <code>554e883</code> (v0.0.21), not just yqr’s
+symptom.</strong> The defect is wider than the two mutators yqr uses:</p>
+<table><thead><tr><th>Call</th><th>Result on <code>m:\r\n  a: 1\r\n</code> (or the sequence equivalent)</th></tr></thead><tbody>
+<tr><td><code>insert_entry_value</code></td><td><code>…  b: 2\n</code> — bare LF</td></tr>
+<tr><td><code>push_back_value</code></td><td><code>…  - 3\n</code> — bare LF</td></tr>
+<tr><td><code>insert_entry</code> / <code>push_back</code> / <code>insert_after</code></td><td>same, fragment forms</td></tr>
+<tr><td><code>set_comment(Before)</code></td><td><code>m:\r\n  # note\n  a: 1\r\n</code> — bare LF</td></tr>
+<tr><td><code>set_comment(Inline)</code></td><td><code>m:\r\n  a: 1\r  # note\n</code> — splices <strong>between</strong> the <code>\r</code> and the <code>\n</code>, leaving a lone CR</td></tr>
+<tr><td><code>set_leading_comment</code></td><td>bare LF per comment line</td></tr>
+<tr><td><code>set_value</code></td><td>CRLF preserved (control)</td></tr>
+<tr><td><code>remove</code></td><td>CRLF preserved (control)</td></tr>
+</tbody></table>
+<p>Worth noting: <code>set_inline_comment</code> is <strong>correct</strong> — it splices at the node’s
+span end — so upstream’s two APIs for the same operation disagreed, which is
+what the divergence with <code>set_comment(Inline)</code> amounts to.</p>
+<p>No data is lost in any of these — values round-trip, and the inline case stays
+valid because YAML 1.2 accepts a lone <code>\r</code> as a break. The cost is a file that
+comes back with two or three terminators in it.</p>
+<p>Cause is small and local: <code>leading_break_for_splice</code>
+(<code>crates/noyalib/src/cst/document.rs:4048</code>) is typed <code>-&gt; &amp;'static str</code> and
+returns <code>"\n"</code>, and the line is built as
+<code>format!("{indent}{key}: {fragment}\n")</code>.</p>
+<h3 id="the-fix-contributed-noyalib-261">The fix contributed (noyalib#261)<a class="heading-anchor" href="#the-fix-contributed-noyalib-261" aria-label="Link to this section"></a></h3>
+<p>A <code>document_break</code> helper (plus <code>comment_line_break</code> in <code>annotated.rs</code>)
+answering what break the document uses — <code>"\r\n"</code> only when it is <em>wholly</em>
+CRLF, the same rule §4 uses. <code>leading_break_for_splice</code> returns it,
+<code>indent_continuation_lines</code> takes it so a multi-line emission grows CRLF on
+every line, and the inline-comment splice moves to a <code>line_break_start</code> that
+steps back over a <code>\r</code>. Mixed and no-break documents keep the <code>\n</code> default.
+17 tests; upstream’s suite goes 5,978 → 5,995 with no failures.</p>
+<p><strong>The cross-check that matters for yqr</strong>: with §4’s workaround <strong>disabled</strong> and
+yqr pointed at the PR branch, all 163 yqr tests pass, the five §5 tests
+included. With the workaround disabled against unpatched 0.0.21, three of them
+fail on exactly this property. So the upstream fix subsumes the workaround.</p>
+<p>Until it ships in a release yqr can pin, the workaround stays: it costs one
+pass over the emitted string per edited document and is covered by §5. <strong>Delete
+it when upstream lands</strong> — yqr second-guessing its engine’s line endings is not
+a state to keep, and it is now proven redundant rather than assumed to be.</p>
 
         </div>
         </accent-island>
@@ -2037,7 +2074,11 @@ edited document, and is covered by §5.
             </li>
         
             <li class="toc-level-2">
-                <a href="#6-upstream">6. Upstream</a>
+                <a href="#6-upstream-noyalib-221-raised-fixed-by-noyalib-261-open">6. Upstream — noyalib#221 raised, fixed by noyalib#261 (open)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#the-fix-contributed-noyalib-261">The fix contributed (noyalib#261)</a>
             </li>
         
         </ul>

@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption",
-  "wordCount": 1794
+  "wordCount": 1957
 }
 </script>
 <script type="application/ld+json">
@@ -2042,8 +2042,9 @@ it open as the umbrella for gaps 1, 4 and 5:</p>
 <p><strong>Done on <code>main</code>:</strong> <code>rename_key</code>, <code>key_span</code>, <code>swap_items</code>, <code>move_item</code>.
 <strong>Still open:</strong> comment mutation; extended <code>remove</code>; fragment quoting.</p>
 </blockquote>
-<p>Verified against the published <code>.crate</code> files for both 0.0.18 and 0.0.21, that
-update <strong>undercounts what has shipped</strong> on all three “still open” items:</p>
+<p>Verified against the published <code>.crate</code> files for both 0.0.18 and 0.0.21, and
+re-checked against <code>upstream/main</code> @ <code>554e883</code> before replying, that update
+<strong>undercounts what has shipped</strong> on all three “still open” items:</p>
 <table><thead><tr><th>#221 item</th><th>Status update</th><th>In the published crate</th></tr></thead><tbody>
 <tr><td>1. comment mutation</td><td>still open</td><td><code>set_inline_comment</code> / <code>set_leading_comment</code> / <code>remove_inline_comment</code> / <code>remove_leading_comment</code> present in <strong>0.0.18</strong>; 0.0.21 adds <code>set_comment</code> / <code>remove_comment</code> + <code>CommentPosition</code></td></tr>
 <tr><td>4. extended <code>remove</code></td><td>“still declines multi-line/nested”</td><td>0.0.18 accepts both — behaviourally proven, since four yqr delete tests failed on the 0.0.18 bump <em>because</em> <code>remove</code> stopped refusing (<code>yqr-f013</code> §3.2)</td></tr>
@@ -2055,10 +2056,28 @@ multi-line/nested removal upstream stands welcome.”</em> That offer is moot as
 written — upstream <code>remove</code> has handled those shapes since 0.0.18, and yqr’s
 own path exists for <strong>trivia</strong> reasons, which noyalib#226 already addressed.</p>
 <p>What is genuinely still unaccepted upstream is <strong>sole-entry</strong> and <strong>flow</strong>
-deletes, which yqr also refuses. Those are the remaining real gap, and the
-honest reply upstream is the evidence table above plus an offer on those two
-cases. <strong>Not posted</strong> — deferred by decision; this section is the record so the
-reply can be written from it later.</p>
+deletes, which yqr also refuses.</p>
+<p><strong>Posted 2026-08-13</strong> as
+<a href="https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5284260094">noyalib#221 (comment)</a>:
+the evidence above per item, the note that the standing “port your delete
+fallback” offer is moot (<code>remove</code> already covers those shapes; the part that
+differed was trivia, which noyalib#226 upstreamed), and — instead of a
+duplicate — an offer to fix the <strong>CRLF insertion</strong> defect <code>yqr-b009</code> records,
+which yqr is currently working around locally. Reply framed as “flagging
+because yqr already depends on all three, so treating them as unbuilt risks a
+rewrite of shipping code”, and invites correction if the maintainer is reading
+a different tree.</p>
+<p>That PR is <strong><a href="https://github.com/sebastienrousseau/noyalib/pull/261">noyalib#261</a></strong>,
+opened the same day rather than held for an answer. It covers the break
+derivation, every insertion path routed through it (typed, fragment, and both
+comment positions), and the inline-comment splice that landed between the <code>\r</code>
+and the <code>\n</code>; 17 tests including LF, mixed-ending and no-break controls, and no
+behaviour change for LF documents. Upstream’s suite goes 5,978 -&gt; 5,995 with no
+failures.</p>
+<p>The decisive check is the same one #226 carried: with yqr’s own workaround
+disabled and yqr pointed at the PR branch, all 163 yqr tests pass — and three
+fail against unpatched 0.0.21 with the workaround disabled. <code>yqr-b009</code> §6
+carries the per-call table and that evidence.</p>
 <h2 id="5-acceptance-criteria">5. Acceptance criteria<a class="heading-anchor" href="#5-acceptance-criteria" aria-label="Link to this section"></a></h2>
 <ul>
 <li><input disabled="" type="checkbox" checked=""/>
@@ -2091,9 +2110,6 @@ unchanged.</li>
 <li>No behaviour change to the read path or <code>--normalize</code>.</li>
 <li>Not a release. <code>yqr-m001</code> governs when a version ships; <code>cargo publish</code> stays
 separately authorized (<code>yqr-m004</code>).</li>
-<li>No upstream comment posted (§4).
-</content>
-</invoke></li>
 </ul>
 
         </div>

@@ -89,7 +89,7 @@
   "inLanguage": "en",
   "name": "Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b008-fragment-splice-corrupts-multiline-inserts",
-  "wordCount": 1085
+  "wordCount": 1083
 }
 </script>
 <script type="application/ld+json">
@@ -2054,9 +2054,7 @@ in <code>yqr-f007</code> §6 rather than done here, because the corpus is a shar
 whose cases are also benchmarked, and a corruption fix should not be the change
 that reshapes it.</p>
 <p>The <code>-i</code> exposure is worth stating plainly: a guard that returns <code>Ok</code> on a
-corrupt result is worse than no guard, because the write-back path trusts it.
-</content>
-</invoke></p>
+corrupt result is worse than no guard, because the write-back path trusts it.</p>
 
         </div>
         </accent-island>
