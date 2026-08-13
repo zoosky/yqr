@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785670107639,
+  "lastUpdate": 1786642272699,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -881,6 +881,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 258731,
             "range": "± 3046",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "zoosky@gmail.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "distinct": true,
+          "id": "fad673e1b000c374a2411feb78fe29fe02fddf13",
+          "message": "fix(b009): keep CRLF documents CRLF, and correct the write-tier docs\n\nReview of the previous commit turned up a second silent-corruption case in the\nsame two functions, plus several claims in the new docs that do not hold.\n\nb009: the insertion mutators terminate a new line with '\\n' whatever the\ndocument uses, so new-key assignment and '+=' gave a CRLF file one bare LF per\nadded line -- at exit 0, so '-i' wrote it. b004 2.5 had recorded the upstream\nbehaviour but it was never filed, which is how this branch came within one\nreview of setting the bug tracker to \"Open: none\" while shipping it.\n\nemit() now restores the convention for documents that were wholly CRLF at open\ntime. That is exact rather than heuristic: such a document has no bare '\\n' of\nits own, so every bare '\\n' in the output is one the edit added, and an\nuntouched document has none. A mixed-ending document is left alone -- there is\nno convention to restore and guessing one would be its own unasked-for rewrite.\nRead, set_value and del were never affected; five byte-exact tests.\n\nDoc and consistency corrections, each verified against the upstream source or\nthe built binary:\n\n- The module doc called all three typed mutators \"oracle-guarded\". set_value is\n  write_span -> format_value_for_site -> replace_span with no load-back oracle;\n  only the two insertion mutators have one. The previous commit's own CHANGELOG\n  proves the gap -- '.k = \"\\n\"' wrote a wrong value through set_value with\n  nothing catching it. Now stated per mutator, with the weaker guarantee called\n  out on the trait method too.\n- delete()'s comment justified not delegating to remove() with three trivia\n  divergences that 0.0.19 fixed -- via yqr's own noyalib#226. The same commit\n  updated four spec files to say exactly that and left the code contradicting\n  them. Restated: the reason is churn, not semantics.\n- set_value bypassed insertable(), so a collection RHS on an existing key\n  surfaced the engine's own refusal naming 'set' and \"fragment\" -- APIs yqr does\n  not expose -- and labelled it a parse error for input that parses. All three\n  write paths now report the scalar-only limit in yqr's words.\n- Rule 19: \"(bug b008)\" appeared in a /// doc comment, which renders in cargo\n  doc. Moved to a plain // comment. It was the only such hit in src/.\n- The insert_key key guard's comment gave the fragment-era reason. The typed\n  tier can splice a dotted key; what yqr cannot do is address one afterwards.\n  Restated, and filed in f007 6 as worth lifting -- it is the Kubernetes\n  label/annotation case.\n- Stale test comment claiming a collection has no expressible form.\n\nTests the review found owed: round-trip cases for the two Emit fixes the\nCHANGELOG advertises (they arrived via Cargo.toml, so nothing in yqr would\ncatch their return), a byte assertion on the quoting test whose spec text\nalready claimed one, and the collection-refusal wording.\n\nb008 6 no longer claims the corpus gap is closed -- the unit tests close it at\nthe unit level; m003's byte-exact EngineCase tier still has no multi-line\ninsert. Tracked in f007 6 alongside the two lifting decisions.\n\n163 lib tests pass; full local CI mirror green including cargo audit.",
+          "timestamp": "2026-08-13T19:29:44+02:00",
+          "tree_id": "791d5f48e2d6e9beabf8e21941343b366886fbf4",
+          "url": "https://github.com/zoosky/yqr/commit/fad673e1b000c374a2411feb78fe29fe02fddf13"
+        },
+        "date": 1786642270649,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 363,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3732,
+            "range": "± 83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 199953,
+            "range": "± 2976",
             "unit": "ns/iter"
           }
         ]
