@@ -24,10 +24,23 @@ shipped. The earlier note here that issues are disabled upstream is
 stale — they are enabled. A follow-up to #221 §4,
 [noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225),
 was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
-the released `remove` (§6.4).
+the released `remove` (§6.4); it was **closed 2026-08-05** by the merge of
+noyalib#226.
+**Upstream status update, and why this spec does not follow it (2026-08-11):**
+the maintainer posted a status on #221 keeping it open as the umbrella for
+gaps 2.1, 2.4 and 2.5, described as still open. Verified against the
+published `.crate` files for 0.0.18 and 0.0.21, that is **not accurate** —
+all three shipped in 0.0.18, and this spec's §5 table (which was checked
+against the crate, not the branch) stands. The evidence table is in
+`yqr-f014` §4; the short form is that 2.1's comment setters and 2.5's
+`Emit` tier are both greppable in the 0.0.18 source, and 2.4's extended
+`remove` is proven behaviourally by the four yqr delete tests that failed
+on the 0.0.18 bump precisely *because* `remove` stopped refusing. Do not
+downgrade this spec's findings to match the update.
 **Contributed upstream:** the §6.4 delete-trivia fix as
 [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)
-(**open**, filed 2026-08-02 against `main`); the §2.2 key rename as
+(**merged** 2026-08-05, **released in noyalib 0.0.19** on 2026-08-11); the
+§2.2 key rename as
 [noyalib#222](https://github.com/sebastienrousseau/noyalib/pull/222)
 (**merged** 2026-07-31 06:15 UTC) and the §2.5 auto-formatting tier as
 [noyalib#223](https://github.com/sebastienrousseau/noyalib/pull/223)
@@ -348,14 +361,15 @@ for sequence reorder, the four comment setters for comment edits, and the
 unblocks a deferred `yqr-f007` §6 gap, and each still needs the user-facing
 grammar that spec calls out as unsettled — the API landing does not settle it.
 
-### 6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226)
+### 6.4 Follow-up upstream ask (noyalib#225, fixed by noyalib#226 — released)
 
 Filed 2026-08-02 as
 [noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225), a
 follow-up to #221 §4 against the released 0.0.18, and **fixed the same day
-by yqr's [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)**
-(open). Each of §6.1's three divergences is a silent wrong result rather
-than a refusal:
+by yqr's [noyalib#226](https://github.com/sebastienrousseau/noyalib/pull/226)**,
+which was **merged 2026-08-05 and released in noyalib 0.0.19** (2026-08-11);
+#225 closed on the merge. Each of §6.1's three divergences is a silent wrong
+result rather than a refusal:
 
 - `remove` should fold an entry's contiguous same-indent **head comment**
   into the deletion, instead of leaving it to silently document the next
@@ -387,7 +401,11 @@ check is that **yqr's own suite passes with `del` routed back through
 upstream `remove`** against the patched crate — the four tests that found the
 divergence included.
 
-When it lands and is released, `yqr-f013` §3.2's option (b) becomes clearly
-correct and `src/fidelity/write/delete.rs` can shrink to a trivia pre-pass —
-re-evaluate then. Until then yqr owns the whole delete path by decision
-(§6.1).
+It has now landed and shipped, so the re-evaluation this section deferred is
+live: `yqr-f013` §3.2's option (b) — call upstream `remove`, keep a trivia
+pre-pass — is no longer blocked by a known divergence. `yqr-f014` §3.3
+**did not take it**, for a new reason rather than the old one: noyalib 0.0.21
+fixed a case where `remove` deleted an entire flow collection while returning
+`Ok`, which makes delete the mutator with the most upstream churn, and yqr's
+own path has no open defect and a standing test net (`yqr-f007` §5.4). The
+option stays open and cheap to revisit; it is tracked in `yqr-f007` §6.

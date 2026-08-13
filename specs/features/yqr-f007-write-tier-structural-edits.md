@@ -17,7 +17,7 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 - **Structural delete** — multi-line, nested, sole-entry, and flow deletes that
   `Document::remove` rejects (`b004` 2.4). **Shipped** (§5).
 - **Comment editing** — add / change / remove a comment attached to a node
-  (`b004` 2.1; comments are read-only in 0.0.14). **Deferred** (§6).
+  (`b004` 2.1; comments were read-only in 0.0.14). **Deferred** (§6).
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
   (`b004` 2.2). **Deferred** (§6).
 - **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
@@ -88,7 +88,7 @@ module. Measured, it is wrong: upstream treats an entry as its key/value lines,
 where yqr treats an entry as owning its trivia. Three cases diverge, all of them
 silent successes rather than refusals — the `b006` failure class:
 
-| Case | `delete_entry` | 0.0.18 `Document::remove` |
+| Case | `delete_entry` | `Document::remove` as of 0.0.18 |
 |------|----------------|---------------------------|
 | Head comment above the entry | removed with the entry | survives, silently re-attributed to the next sibling |
 | Keep-chomped (`\|+`) scalar's kept trailing blanks | removed with the entry | left behind as stray blank lines |
@@ -96,8 +96,15 @@ silent successes rather than refusals — the `b006` failure class:
 
 The first two under-delete, the third over-deletes and loses a comment
 outright. §5.4's tests pin all three; each one fails against upstream `remove`,
-which is how the divergence was measured rather than assumed. `yqr-f013` §6
-carries the upstream ask that would close the gap.
+which is how the divergence was measured rather than assumed.
+
+**Since fixed upstream, and yqr still does not delegate.** All three were filed
+as noyalib#225 and fixed by yqr's noyalib#226, released in **noyalib 0.0.19**;
+yqr pins 0.0.21 (`yqr-f014`). The table above therefore describes 0.0.18, not
+the current pin. Delegation was reconsidered and declined on fresh grounds —
+0.0.21 fixed a `remove` that destroyed a whole flow collection while returning
+`Ok`, so this is where upstream churn concentrates, and yqr's path carries no
+open defect. See §6 for the standing item.
 
 Independently worth keeping: yqr's flow pre-check reports `removing an item
 from a flow collection is not supported`, where upstream surfaces `remove:
@@ -193,10 +200,25 @@ these become a call, not a splice (adoption: `yqr-f013` §3.4):
   no offset re-basing in yqr.
 
 The upstream `PR-with-fix` path (§2) already ran its course for all three, and
-0.0.18 is pinned, so each of these is now a grammar decision over a live API.
-Raw `replace_span` is the route of last resort rather than the expected one —
-though §5.1 is the standing reminder that "upstream has the call" and "upstream
-has yqr's semantics" are different questions.
+0.0.21 is pinned (`yqr-f014`), so each of these is now a grammar decision over
+a live API. Raw `replace_span` is the route of last resort rather than the
+expected one — though §5.1 is the standing reminder that "upstream has the
+call" and "upstream has yqr's semantics" are different questions.
+
+Two further items are open here, neither gated on grammar:
+
+- **Re-evaluate delegating delete to upstream `remove`.** The three trivia
+  divergences that made §5.1 keep yqr's path were fixed by yqr's noyalib#226,
+  released in 0.0.19, so `yqr-f013` §3.2's option (b) is unblocked.
+  `yqr-f014` §3.3 declined it for a different reason: 0.0.21 fixed a
+  `remove` that destroyed a flow collection while returning `Ok`, so delete is
+  where upstream churn concentrates, and yqr's path has no open defect. Cheap
+  to revisit; revisit deliberately, not as a side effect of another change.
+- **Collection right-hand sides for `+=` / new-key assignment.** Since
+  `yqr-b008` these route through the typed `Emit` tier, which can spell a
+  nested collection — so the "collections are not yet supported" refusal is now
+  a scope limit, not a backend one. Lifting it is a user-facing surface change
+  and belongs here or in `yqr-f008`, with its own tests and docs.
 
 _(These criteria firm up once the grammar and the upstream API surface are
 known.)_
