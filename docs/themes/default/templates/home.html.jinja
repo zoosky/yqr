@@ -117,9 +117,19 @@
     font-weight:400;
     font-size:clamp(34px, 5vw, 52px);
     line-height:1.12;
-    margin:0 0 18px;
+    margin:0 0 12px;
     color:var(--heading);
-    max-width:14ch;
+    max-width:16ch;
+  }
+  /* The line that used to be the h1. It keeps the display voice while the
+     heading above it carries the plain description of what yqr does. */
+  .hero .hero-lede{
+    font-family:var(--serif);
+    font-size:clamp(19px, 2.2vw, 24px);
+    line-height:1.35;
+    color:var(--brass-soft);
+    max-width:34ch;
+    margin:0 0 18px;
   }
   .hero p{
     font-size:17px;
@@ -477,4 +487,32 @@
 <div class="wrap">
 {{ page.content | safe }}
 </div>
+
+{# Structured data for the tool itself. accent's json_ld() already emits a
+   WebSite node describing the *site*; this describes the *software*, which is
+   the entity search engines can actually present richly for a developer tool.
+   JSON-LD is valid in the body, so this needs no change to the vendored base
+   template. Keep `softwareVersion` in step with Cargo.toml on release. #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "yqr",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "Command Line Utility",
+  "operatingSystem": "Linux, macOS, Windows",
+  "softwareVersion": "0.5.1",
+  "description": "A jq-style query and editing tool for YAML. Reads are byte-preserving by default; edits change only the targeted bytes, leaving comments, anchors, quote style and blank lines intact.",
+  "url": "https://zoosky.github.io/yqr/",
+  "codeRepository": "https://github.com/zoosky/yqr",
+  "programmingLanguage": "Rust",
+  "license": "MIT OR Apache-2.0",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
 {% endblock %}

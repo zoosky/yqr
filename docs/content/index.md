@@ -1,5 +1,12 @@
 ---
-title: yqr in Kubernetes
+# `title` drives <title>, og:title and twitter:title, so it carries the words
+# people actually search for rather than a section label. The brand is supplied
+# separately -- base.html.jinja appends " - yqr", and og:site_name is "yqr".
+title: jq for YAML -- query and edit without reformatting
+description: >-
+  yqr is a jq-style command-line tool for YAML. Query any field, edit a file in
+  place, and keep every comment, anchor, quote style and blank line
+  byte-for-byte.
 menu:
   title: Home
   order: 1
@@ -16,7 +23,9 @@ process:
   Feature/spec traceability: yqr-b001, yqr-f003, yqr-m002
 -->
   <div class="hero">
-    <h1>Chart a path to any field in a manifest.</h1>
+    <h1>Query and edit YAML from the command line.</h1>
+    <p class="hero-lede">Chart a path to any field in a manifest &mdash; and edit
+      it without reformatting the file.</p>
     <p>
       <code>yqr</code> is a jq-style filter for YAML. Point it at a manifest file,
       a <code>kubectl get -o yaml</code> dump, or a Helm-rendered bundle, and it

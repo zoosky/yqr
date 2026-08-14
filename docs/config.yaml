@@ -52,11 +52,24 @@ site:
   url: https://zoosky.github.io/yqr
   description: "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes."
   # Site-wide <meta> defaults; the theme's head_meta partial emits each entry
-  # on every page. Google Search Console ownership verification -- keep this
-  # tag in place even after verification succeeds, or the site loses its
-  # verified status.
+  # on every page, and an entry here overrides the standard tag of the same
+  # key (Open Graph parsers honour the first occurrence).
   meta:
+    # Google Search Console ownership verification -- keep this tag in place
+    # even after verification succeeds, or the site loses its verified status.
     google-site-verification: "yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw"
+    # Social card. Open Graph requires an absolute URL, so this cannot use the
+    # path prefix helper and repeats site.url -- change both together. The
+    # image is built from themes/default/assets/og-image.svg; regenerate with
+    #   rsvg-convert -w 1200 -h 630 og-image.svg -o og-image.png
+    # Without an image a card renders as a bare link, so this is set site-wide
+    # rather than per page.
+    og:image: "https://zoosky.github.io/yqr/theme/assets/og-image.png"
+    og:image:width: "1200"
+    og:image:height: "630"
+    og:image:alt: "yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched."
+    twitter:image: "https://zoosky.github.io/yqr/theme/assets/og-image.png"
+    twitter:card: "summary_large_image"
 
 code:
   theme: "base16-ocean.dark"
