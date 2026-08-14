@@ -1,6 +1,6 @@
 ---
 menu:
-  order: 2
+  order: 4
 ---
 # yqr Demo
 

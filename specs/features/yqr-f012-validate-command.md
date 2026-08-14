@@ -342,3 +342,16 @@ two PRs (paths first, spans second).
       validate cleanly in both modes (the no-false-positives guard).
 - [x] No new dependencies (noyalib's `miette` feature stays off; the
       renderer and the duplicate-key green-tree scan are hand-rolled).
+
+## 7. User-facing documentation (added 2026-08-14)
+
+`validate` shipped in v0.5.0 with no site documentation -- it existed only in
+`--help` and in this spec, which ground rule 15 asks for and this feature did
+not deliver. The gap is now closed by the guide page at `/guide/validate`,
+written as part of `yqr-k001`.
+
+It covers the success case, the diagnostic shape, multi-file runs and their
+exit codes, and gives `--strict` its own section: the duplicate-key check is
+the part with a real failure story behind it (a legal file that silently drops
+a field), and it was the least discoverable thing in the command.
+
