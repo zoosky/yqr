@@ -58,12 +58,23 @@ site:
     # Google Search Console ownership verification -- keep this tag in place
     # even after verification succeeds, or the site loses its verified status.
     google-site-verification: "yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw"
-    # Social card. Open Graph requires an absolute URL, so this cannot use the
-    # path prefix helper and repeats site.url -- change both together. The
-    # image is built from themes/default/assets/og-image.svg; regenerate with
+    # Social card. Without an image a shared link renders as a bare grey
+    # stub, so this is set site-wide -- every page unfurls, including the
+    # mounted spec tree.
+    #
+    # Per page, the frontmatter key is `image:` (it populates the
+    # `page.social_image` template variable, which is what the theme's
+    # head_meta partial reads -- the variable name is not itself a
+    # frontmatter key). There is no site-level equivalent of `image:`, so
+    # site-wide coverage has to go through this open meta map, which also
+    # lets twitter:card be upgraded from the default `summary`. A key here
+    # overrides the standard tag, so a per-page `image:` would be ignored
+    # while these entries exist.
+    #
+    # Open Graph requires an absolute URL, so this cannot use the path
+    # prefix helper and repeats site.url -- change both together. The image
+    # is built from themes/default/assets/og-image.svg; regenerate with
     #   rsvg-convert -w 1200 -h 630 og-image.svg -o og-image.png
-    # Without an image a card renders as a bare link, so this is set site-wide
-    # rather than per page.
     og:image: "https://zoosky.github.io/yqr/theme/assets/og-image.png"
     og:image:width: "1200"
     og:image:height: "630"
