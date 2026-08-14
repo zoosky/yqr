@@ -13,6 +13,7 @@ assets:
     - js/islands/copy-code.js
     - js/tabs.js
     - js/search-keys.js
+    - js/nav-menu.js
 styling:
   sass:
     enabled: true
