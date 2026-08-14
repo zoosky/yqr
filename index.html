@@ -108,7 +108,16 @@
                     <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
                         stroke-linecap="round" />
                 </svg>yqr</a>
-            <ul>
+            
+            <button id="nav-menu-toggle" class="nav-menu-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path class="nav-menu-bars" d="M4 7h16M4 12h16M4 17h16" />
+                    <path class="nav-menu-close" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <ul id="nav-menu">
                 
                 
                 
@@ -499,9 +508,13 @@
   .chart-yaml .hit .tok-val{color:var(--brass-soft); font-weight:600;}
 
   @media (max-width:640px){
-    .chart{grid-template-columns:1fr;}
+    /* `1fr` alone keeps `min-width:auto`, so the nowrap filter chip -- 322px
+       for a 36-character path -- pushed the grid past a 320px viewport and
+       the whole page scrolled sideways. minmax(0,1fr) lets the track shrink;
+       the chip scrolls inside its own row instead. */
+    .chart{grid-template-columns:minmax(0,1fr);}
     .chart-route{display:none;}
-    .chart-label{margin-bottom:10px;}
+    .chart-label{margin-bottom:10px; max-width:100%; overflow-x:auto;}
   }
 
   /* ---------- terminal / outcome strip ---------- */
@@ -1251,6 +1264,8 @@ true</pre>
     <script src="/yqr/theme/assets/js/tabs.js"></script>
     
     <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    <script src="/yqr/theme/assets/js/nav-menu.js"></script>
     
     
     
