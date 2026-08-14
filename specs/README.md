@@ -1,6 +1,6 @@
 ---
 menu:
-  order: 3
+  order: 5
 ---
 # yqr Specs
 
@@ -13,3 +13,4 @@ here as a markdown spec with a `**Status:**` field.
 - **architecture/** -- cross-cutting design documents (`yqr-aNNN-*`)
 - **implementation/** -- system conventions and ops specs (`yqr-mNNN-*`)
 - **research/** -- evaluations and investigations (`yqr-rNNN-*`)
+- **marketing/** -- positioning and content plans (`yqr-kNNN-*`)
