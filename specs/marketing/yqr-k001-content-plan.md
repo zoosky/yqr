@@ -100,11 +100,29 @@ Two new nav entries rather than four, so the header stays legible.
 Every command in them was run against a real build and its output pasted
 verbatim; the yq comparisons were run against yq v4.53.3.
 
+**`noindex` on the spec tree — done.** The site now offers 8 indexable pages
+(home, guide index and its three pages, compare index and its page, demo) and
+noindexes all 41 spec URLs.
+
+Implemented in the theme's `head_meta` partial rather than per file:
+`page.custom.noindex` is frontmatter-only, so the alternative was adding
+frontmatter to 39 specs and to every spec written afterwards. The rule matches
+the `/specs` path segment rather than a hardcoded `/yqr` prefix, which changes
+if the site moves to its own domain.
+
+It emits **`noindex,follow`**, not the `noindex,nofollow` used for drafts. The
+pages should still be crawled: that is how the noindex is seen at all, and
+links out of specs still count.
+
+**Known gap:** the spec URLs remain in `sitemap.xml`. accent 0.23.1 has no
+sitemap exclusion — a `sitemap.exclude` key is accepted and silently ignored,
+verified by adding one and diffing the output. A noindexed URL in a sitemap is
+untidy rather than harmful (crawlers fetch it, see the noindex, drop it), so
+this is left alone rather than worked around with build-time post-processing.
+Worth an upstream ask if accent gains the feature.
+
 **Deliberately not done:**
 
-- **`noindex` on `/specs/*`.** Still 39 of 45 indexed URLs. Recommended, but
-  it changes what the site publishes and is the owner's call, not a content
-  decision. The hook is `page.custom.noindex`.
 - **A feature matrix against yq.** §2 explains why.
 - **Anything requiring M1/M2 grammar.** §3.
 

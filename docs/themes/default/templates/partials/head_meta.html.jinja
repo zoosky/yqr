@@ -23,6 +23,15 @@
 {# Robots: keep non-published and explicitly-flagged pages out of indexes. #}
 {% if page.status in ["draft", "review", "archived"] or page.custom.noindex %}
 <meta name="robots" content="noindex,nofollow">
+{# The mounted spec tree is the project's issue tracker, not published
+   writing. It is 39 of the site's 45 URLs, so indexing it makes the site
+   look topically like a bug database and buries the pages meant for
+   readers. `follow` rather than `nofollow`: the pages should still be
+   crawled so their links are followed and so the noindex is actually seen.
+   Matched on the path segment rather than a hardcoded `/yqr` prefix, which
+   changes if the site moves to its own domain. #}
+{% elif page.url is endingwith("/specs") or "/specs/" in page.url %}
+<meta name="robots" content="noindex,follow">
 {% endif %}
 
 {# og:type honours a `meta: { og:type: ... }` override; otherwise derived from the date. #}
