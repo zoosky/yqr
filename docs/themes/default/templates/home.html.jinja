@@ -233,9 +233,13 @@
   .chart-yaml .hit .tok-val{color:var(--brass-soft); font-weight:600;}
 
   @media (max-width:640px){
-    .chart{grid-template-columns:1fr;}
+    /* `1fr` alone keeps `min-width:auto`, so the nowrap filter chip -- 322px
+       for a 36-character path -- pushed the grid past a 320px viewport and
+       the whole page scrolled sideways. minmax(0,1fr) lets the track shrink;
+       the chip scrolls inside its own row instead. */
+    .chart{grid-template-columns:minmax(0,1fr);}
     .chart-route{display:none;}
-    .chart-label{margin-bottom:10px;}
+    .chart-label{margin-bottom:10px; max-width:100%; overflow-x:auto;}
   }
 
   /* ---------- terminal / outcome strip ---------- */

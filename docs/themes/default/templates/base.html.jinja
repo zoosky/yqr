@@ -68,7 +68,18 @@
                     <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
                         stroke-linecap="round" />
                 </svg>{{ site.name }}</a>
-            <ul>
+            {# Revealed by js/nav-menu.js only. Without JavaScript it stays
+               hidden and the link list wraps instead of collapsing, so the
+               menu never depends on a click that cannot happen. #}
+            <button id="nav-menu-toggle" class="nav-menu-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path class="nav-menu-bars" d="M4 7h16M4 12h16M4 17h16" />
+                    <path class="nav-menu-close" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <ul id="nav-menu">
                 {# Top-level pages only. Depth is measured against url('/')
                    rather than a literal "/" so the menu survives sub-path
                    deployments (site.base_path): with a prefix, every page

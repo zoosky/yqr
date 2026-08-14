@@ -173,8 +173,38 @@ footer {
   }
 }
 
-// Responsive: stack header nav at narrow widths
-@media (max-width: 640px) {
+// The toggle is desktop-hidden and only revealed inside the narrow
+// breakpoint below, and then only once nav-menu.js has flagged the nav.
+.nav-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -0.25rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nav-menu-toggle:hover { color: var(--color-link); }
+.nav-menu-toggle .nav-menu-close { display: none; }
+
+// Swap the glyph to an X while the panel is open.
+.menu-open .nav-menu-toggle .nav-menu-bars { display: none; }
+.menu-open .nav-menu-toggle .nav-menu-close { display: block; }
+
+// Responsive: collapse the header nav at narrow widths.
+//
+// The nav is one flex row -- title, links, tools -- which stops fitting once
+// the site has more than a couple of pages. At 390px with five links the row
+// overflowed and the document scrolled sideways. Breakpoint is 780px, the
+// width below which the full row no longer fits comfortably.
+@media (max-width: 780px) {
   header {
     padding: 0 1rem;
   }
@@ -185,5 +215,61 @@ footer {
 
   header nav {
     gap: 0.5rem;
+    // Let the row grow rather than clip if the links wrap (the no-JS path).
+    height: auto;
+    min-height: 52px;
+    flex-wrap: wrap;
+  }
+
+  // Without JavaScript this is all that applies: the links wrap onto a
+  // second row, every one of them reachable, and nothing overflows.
+  header ul {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.5rem 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  // With JavaScript, `has-toggle` turns the list into a disclosure panel.
+  // The nav keeps wrapping: the panel carries `flex: 1 0 100%`, and it can
+  // only take a row of its own if the container is allowed to wrap. With
+  // `nowrap` it stayed on the first row and pushed the header 195px past
+  // the viewport whenever the menu was opened.
+  header nav.has-toggle {
+    flex-wrap: wrap;
+  }
+
+  header nav.has-toggle .nav-menu-toggle {
+    display: inline-flex;
+    order: 3;
+  }
+
+  // `space-between` would strand the tools mid-row once the links leave it,
+  // so push them and the toggle together against the right edge.
+  header nav.has-toggle .nav-tools {
+    order: 2;
+    margin-left: auto;
+  }
+
+  header nav.has-toggle ul {
+    display: none;
+    order: 4;
+    flex: 1 0 100%;
+    flex-direction: column;
+    gap: 0;
+    padding: 0.25rem 0 0.75rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  header nav.has-toggle.menu-open ul {
+    display: flex;
+  }
+
+  // Full-width rows give a comfortable target rather than a 19px word.
+  header nav.has-toggle ul a {
+    display: block;
+    padding: 0.75rem 0.25rem;
+    min-height: 44px;
+    line-height: 1.4;
   }
 }
