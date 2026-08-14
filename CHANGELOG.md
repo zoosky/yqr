@@ -6,6 +6,18 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-14
+
+A correctness release for the editing path. Adding a value that spanned more
+than one line could damage the file while reporting success -- appending to a
+list produced YAML that no longer parsed, and creating a key produced a value
+that read back wrong. Adding any line to a Windows-style file left it with
+mixed line endings. All three exited 0, so `--in-place` wrote the damage to
+disk and said nothing. yqr now hands values to the YAML engine as values rather
+than as pre-rendered text, so the engine places and spells them and rejects an
+edit that would not read back as what was given. Reading files, replacing
+existing values, and `del` were never affected.
+
 ### Fixed
 
 - **Adding a multi-line string could corrupt the file.** Creating a new key or
