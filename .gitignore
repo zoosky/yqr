@@ -12,3 +12,6 @@ docs/.build-manifest.json
 docs/.media-cache/
 docs/.diagram-cache/
 docs/.remote-cache/
+
+# Browser-automation scratch output (playwright MCP snapshots/screenshots).
+.playwright-mcp/
