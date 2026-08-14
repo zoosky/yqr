@@ -68,7 +68,7 @@ spec:
     </div>
   </div>
 
-  <p style="color:var(--text-soft); font-size:15px; max-width:62ch; margin-top:-32px;">
+  <p style="color:var(--text-soft); font-size:15px; max-width:74ch; text-wrap:pretty; margin-top:-32px;">
     Kubernetes spells file permissions in octal &mdash; <code>defaultMode: 0640</code> on
     a Secret or ConfigMap volume. Read that field through yqr and the value comes
     back exactly as written, because yqr never re-typed it in the first place.
