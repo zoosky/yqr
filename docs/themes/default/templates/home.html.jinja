@@ -146,11 +146,16 @@
   }
 
   /* ---------- chart (signature element) ---------- */
+  /* The route ends at the field the filter selects, and that field is the
+     highlighted last line of the YAML -- so the label and its route line up
+     with the end of the block, not its middle. Centring left the chip
+     floating with ~95px of dead space above and below it, and pointed the
+     dashed route at whatever happened to be halfway down. */
   .chart{
     margin:44px 0 20px;
     display:grid;
     grid-template-columns:auto 96px minmax(0,1fr);
-    align-items:center;
+    align-items:end;
     gap:0;
   }
   .chart-label{
@@ -224,13 +229,21 @@
   }
 
   /* ---------- terminal / outcome strip ---------- */
+  /* Two columns only when a card can actually hold its command unwrapped.
+     These are terminal transcripts: the longest of them needs ~620px of
+     content width, and a fixed `1fr 1fr` inside a 980px wrap gave each card
+     421px. The commands did not overflow -- `pre-wrap` folded them -- but a
+     shell command wrapped mid-line with no continuation indent reads as two
+     commands, which is worse than a wide card. auto-fit drops to a single
+     full-width column when two would not fit, and the `min()` keeps the
+     track from exceeding the viewport on a narrow screen (which is what the
+     old max-width:640px rule was for). */
   .outcomes{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 660px), 1fr));
     gap:14px;
     margin:0 0 56px;
   }
-  @media (max-width:640px){ .outcomes{grid-template-columns:1fr;} }
   .outcome{
     background:var(--ink-2);
     border:1px solid var(--line);
