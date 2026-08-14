@@ -1,3 +1,201 @@
+# How yqr compares to other YAML tools
+
+URL: /yqr/compare
+
+# How yqr compares
+
+There are good YAML tools already. These pages are about where yqr differs
+from them, measured rather than asserted -- every claim here comes from
+running both tools over the same file and diffing the result.
+
+If a comparison here ever stops matching what you see, the other tool has
+probably improved and this page needs re-measuring. The versions used are
+named on each page so you can tell how stale it is.
+
+- [yqr and yq](yq) -- the closest neighbour, and the one most people arrive
+  from.
+
+---
+
+# yqr and yq -- what actually changes in your file
+
+URL: /yqr/compare/yq
+
+# yqr and yq
+
+Let's get the important part out of the way first: **yq is a good tool.** It
+is mature, it does far more than yqr does, and if you need to build new
+documents, evaluate expressions, or convert between formats, you should
+reach for it and not for this.
+
+<!-- Every command and its output on this page was run against yq v4.53.3
+     and a real yqr build. Re-measure rather than re-assert when yq changes;
+     see specs/marketing/yqr-k001-content-plan.md. -->
+
+There is one thing yqr does that yq does not, and this page is about
+exactly that thing.
+
+## The short version
+
+yq **normalises** your file. yqr leaves it **byte-for-byte alone** apart
+from the edit you asked for.
+
+That difference does not show up as broken YAML -- yq's output is correct.
+It shows up in code review, as lines nobody touched appearing in the diff.
+
+## Where they agree
+
+More than you might expect, so let's be concrete. Take a Deployment:
+
+```yaml
+# Web tier. Owned by the platform team.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 3          # bumped for the Black Friday load test
+  template:
+    spec:
+      containers:
+        - name: web
+          image: "registry.example.com/web:1.4.2"
+          ports:
+            - containerPort: 8080
+```
+
+Bump the replica count with each tool and diff against the original.
+
+```console
+$ yq -i '.spec.replicas = 5' deploy.yaml
+$ diff original.yaml deploy.yaml
+9c9
+<   replicas: 3          # bumped for the Black Friday load test
+---
+>   replicas: 5 # bumped for the Black Friday load test
+```
+
+yq kept the comment, the quoting, the key order, the indentation, and the
+block style. That is careful work. The only casualty is the alignment of
+the trailing comment, which got collapsed to a single space.
+
+```console
+$ yqr -i '.spec.replicas = 5' deploy.yaml
+$ diff original.yaml deploy.yaml
+9c9
+<   replicas: 3          # bumped for the Black Friday load test
+---
+>   replicas: 5          # bumped for the Black Friday load test
+```
+
+Same edit, and the alignment survives.
+
+On **reads**, the two agree completely. Both give you `0640` for an octal
+file mode and `1.10` for a version string -- neither one re-types your
+scalars behind your back.
+
+## Where they diverge
+
+The gap widens on a whole-file round trip. Here is a file with an anchor, a
+merge key, and a blank line doing organisational work:
+
+```yaml
+defaults: &defaults
+  mode: 0640      # octal, on purpose
+  retries: 3
+
+# Services below inherit the defaults.
+web:
+  <<: *defaults
+  name: 'web'
+```
+
+Ask each tool for the identity filter -- read it and write it back out,
+changing nothing.
+
+```console
+$ yqr '.' anchors.yaml | diff anchors.yaml -
+$ echo $?
+0
+```
+
+Nothing. The output is byte-identical to the input.
+
+```console
+$ yq '.' anchors.yaml | diff anchors.yaml -
+2c2
+<   mode: 0640      # octal, on purpose
+---
+>   mode: 0640 # octal, on purpose
+4d3
+<
+7c6
+<   <<: *defaults
+---
+>   !!merge <<: *defaults
+```
+
+Three changes to a file nobody edited:
+
+1. **Comment alignment collapsed.** Cosmetic, but it is your cosmetic.
+2. **The blank line was deleted.** That line was separating two sections.
+3. **`<<: *defaults` became `!!merge <<: *defaults`.** yq made an implicit
+   merge key explicit by adding a tag that was not in your source.
+
+None of that is wrong YAML. All of it lands in your pull request.
+
+## Why this matters (and when it doesn't)
+
+If you are generating YAML, piping it somewhere, or reading values out of
+it, none of this matters and yq is the better tool by a mile.
+
+It starts mattering when the file is **checked in and reviewed by humans**.
+A one-line change should be a one-line diff. When a script bumps an image
+tag across forty manifests and each one comes back with reshuffled comments
+and stripped blank lines, the review stops being a review.
+
+That is the whole of yqr's argument. It is a narrow argument, and it is the
+only one being made here.
+
+## What yq does that yqr does not
+
+Plenty, and it is worth knowing before you switch:
+
+- **Building new documents.** yqr has no object or array construction, no
+  string interpolation, and no comma operator. It walks and edits documents
+  that already exist.
+- **Builtins and arithmetic.** No `map`, `select`, `length`, `+` on values.
+- **Format conversion.** No JSON, XML, TOML, or properties in or out.
+- **Comment, key-name, and ordering edits.** yqr can change values, add
+  keys, append to sequences, and delete entries. Renaming a key or
+  rewriting a comment is not in the released grammar yet.
+
+If you need any of those, use yq. The tools are not really substitutes;
+one of them is a scalpel with a very short blade.
+
+## Using both
+
+Nothing stops you. A pattern that works well:
+
+```console
+$ yq '.spec.template.spec.containers[] | .image' deploy.yaml   # explore
+$ yqr -i '.spec.replicas = 5' deploy.yaml                      # commit the edit
+```
+
+Read and explore with the tool that has the richer query language. Make the
+edit that lands in git with the one that will not touch anything else.
+
+## Next
+
+- [Byte-for-byte, explained](../guide/fidelity) -- what yqr is actually
+  doing, and the one flag that turns it off.
+- [Editing Kubernetes manifests](../guide/kubernetes) -- the workflow this
+  page keeps alluding to.
+
+---
+
 # yqr Demo
 
 URL: /yqr/demo
@@ -33,6 +231,437 @@ works from any working directory and reads the sample files in place.
 6. Fidelity by default -- `yqr '.'` reproduces the input byte-for-byte, comments and all, with no flag. `--normalize` opts into the classic re-serializing pipeline.
 7. jq-style exit codes -- `3` for parse errors, `5` for runtime errors, for scriptable error handling.
 8. Validate after editing -- `yqr validate` edits a copy in place, then confirms the file is still correct YAML (silent, exit 0). Break it and the verdict is a compiler-style diagnostic with a stable code, the offending line, and a caret; `--strict` additionally catches a duplicate key, which ordinary reads accept silently.
+
+---
+
+# Byte-for-byte YAML editing, explained
+
+URL: /yqr/guide/fidelity
+
+# Byte-for-byte, explained
+
+Most YAML tools work by parsing your file into data, doing something to the
+data, and printing the data back out. That last step is where formatting
+goes to die: the printer has opinions about quoting and indentation, and
+your file comes back wearing them.
+
+<!-- Feature f009 made fidelity the default; f002 is the read floor. -->
+
+yqr does something different. Nodes you did not touch are emitted as **the
+original bytes from your file**, sliced straight out of the source. There is
+no printer involved, so there are no opinions to apply.
+
+## The identity test
+
+The clearest way to see it is to ask for everything and change nothing:
+
+```console
+$ yqr '.' config.yaml | diff config.yaml -
+$ echo $?
+0
+```
+
+No output, exit 0. The file went through yqr and came back identical, down
+to the byte. That holds for the awkward cases too -- CRLF line endings, a
+byte-order mark, trailing whitespace, tabs inside strings, multiple
+documents in one file.
+
+It is a good thing to try on your own gnarliest config file. If it comes
+back clean, everything below is safe.
+
+## What survives
+
+Take this file, which has a few things that normally do not survive a round
+trip:
+
+```yaml
+defaults: &defaults
+  mode: 0640      # octal, on purpose
+  retries: 3
+
+# Services below inherit the defaults.
+web:
+  <<: *defaults
+  name: 'web'
+```
+
+Read it back with yqr and you get exactly that, including:
+
+- **Comments**, and the whitespace that aligns them.
+- **Blank lines**, which are doing real organisational work here.
+- **Anchors, aliases, and merge keys**, in the spelling you wrote them.
+- **Quote style** -- `'web'` stays single-quoted rather than becoming
+  `"web"` or bare `web`.
+- **Scalar spelling** -- `0640` stays `0640`.
+
+That last one is worth dwelling on.
+
+## Why `0640` is not `640`
+
+Kubernetes spells file permissions in octal. If a tool re-types that scalar
+as a number and prints it back, you get `640`, which is a different
+permission. Same story for a version pinned at `1.10`, which becomes `1.1`
+the moment something treats it as a float.
+
+yqr never re-types the value, so the question never arises:
+
+```console
+$ yqr -r '.mode' config.yaml
+0640
+$ yqr -r '.ver' config.yaml
+1.10
+```
+
+## When you want the opposite
+
+Sometimes you genuinely want canonical output -- comparing two files that
+are semantically equal but formatted differently, or feeding something
+downstream that wants predictable shapes. That is what `--normalize` (`-N`)
+is for.
+
+```console
+$ yqr --normalize '.' config.yaml
+defaults:
+  mode: 640
+  retries: 3
+web:
+  name: web
+  mode: 640
+  retries: 3
+```
+
+Look at what that did, because it is instructive. Comments are gone. The
+blank line is gone. The anchor and merge key have been resolved, so `web`
+now carries its own copies of `mode` and `retries`. And `0640` has become
+`640`.
+
+Every one of those is correct as *data*. None of them is what you want
+landing in a pull request. That is the trade, and it is why the byte-exact
+path is the default and `--normalize` is the flag you have to ask for.
+
+```console
+$ yqr -rN '.mode' config.yaml
+640
+$ yqr -rN '.ver' config.yaml
+1.1
+```
+
+## Editing works the same way
+
+The guarantee extends to edits. Change one value and everything else is
+untouched:
+
+```console
+$ yqr '.spec.replicas = 5' deploy.yaml
+```
+
+Only the bytes of that one scalar are replaced. The comment two spaces to
+its right, the indentation, the key order, the quoting elsewhere in the
+file -- all still the original bytes.
+
+If an edit *cannot* be made without restructuring the document, yqr refuses
+it and exits 5 rather than emitting something surprising. With `-i` the
+file is left untouched on refusal, so a failed edit never leaves you with a
+half-written file.
+
+## Next
+
+- [Editing Kubernetes manifests](kubernetes) -- this applied to a real
+  workflow.
+- [Validating YAML](validate) -- confirming a file is still correct
+  afterwards.
+
+---
+
+# Editing Kubernetes manifests without reformatting them
+
+URL: /yqr/guide/kubernetes
+
+# Editing Kubernetes manifests
+
+Manifests are checked in, reviewed, and argued over. So the useful property
+in a tool that edits them is not how much it can do -- it is how little it
+changes.
+
+Here is a manifest with the things real ones have: an ownership comment, a
+comment explaining a number, and a quoted image reference.
+
+```yaml
+# Web tier. Owned by the platform team.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 3          # bumped for the Black Friday load test
+  template:
+    spec:
+      containers:
+        - name: web
+          image: "registry.example.com/web:1.4.2"
+          ports:
+            - containerPort: 8080
+```
+
+## Reading a field
+
+Paths look like jq, because that is the idea:
+
+```console
+$ yqr '.spec.template.spec.containers[0].image' deploy.yaml
+"registry.example.com/web:1.4.2"
+```
+
+The quotes are there because that is how the value is written in the file.
+When you want the bare string -- to pass to `docker pull`, say -- use `-r`:
+
+```console
+$ yqr -r '.spec.template.spec.containers[0].image' deploy.yaml
+registry.example.com/web:1.4.2
+```
+
+## Bumping an image tag
+
+```console
+$ yqr '.spec.template.spec.containers[0].image = "registry.example.com/web:1.5.0"' deploy.yaml
+```
+
+That prints the whole file to stdout with one value changed. Add `-i` to
+write it back in place instead:
+
+```console
+$ yqr -i '.spec.template.spec.containers[0].image = "registry.example.com/web:1.5.0"' deploy.yaml
+```
+
+The write is atomic -- a temporary file and a rename -- so an interrupted
+run cannot leave you with half a manifest.
+
+## The part that matters
+
+```console
+$ yqr -i '.spec.replicas = 5' deploy.yaml
+$ git diff deploy.yaml
+```
+```diff
+-  replicas: 3          # bumped for the Black Friday load test
++  replicas: 5          # bumped for the Black Friday load test
+```
+
+One line. The comment is still aligned where it was, the quoting elsewhere
+is untouched, the blank lines are where you left them. A reviewer reads one
+line and moves on.
+
+Run that across forty manifests in a release script and you get forty
+one-line diffs, which is a review someone can actually do.
+
+## Other edits you can make today
+
+```console
+$ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
+$ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
+$ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
+```
+
+`del` handles nested blocks and multi-line values, not just single lines,
+and closes the gap cleanly afterwards. Two cases are refused with a clear
+message rather than guessed at: removing the only entry of a block, and
+removing an item from a flow collection like `[a, b, c]`.
+
+## Piping from kubectl
+
+There is no file argument needed -- yqr reads stdin:
+
+```console
+$ kubectl get deploy web -o yaml | yqr -r '.spec.template.spec.containers[0].image'
+```
+
+Worth knowing: `-i` needs a real file, so it is an error to combine it with
+stdin. That is deliberate; there is nothing to write back to.
+
+## What is not here yet
+
+Being straight about the edges, because finding them yourself is annoying:
+
+- **Renaming a key** or **editing a comment** is not in the released
+  grammar. Values, new keys, appends, and deletes are.
+- **The right-hand side must be a scalar.** Assigning a whole nested block
+  is not supported yet.
+- **Keys containing `.` or `[`** -- the Kubernetes
+  `app.kubernetes.io/name` style -- cannot be addressed by the path syntax,
+  so yqr will tell you so rather than guess.
+- **No arithmetic or builtins.** You cannot say "increment the replica
+  count"; you say what it should become.
+
+## Next
+
+- [Validating YAML](validate) -- worth wiring into the same script.
+- [Byte-for-byte, explained](fidelity) -- why the diff is one line.
+
+---
+
+# Validating YAML from the command line
+
+URL: /yqr/guide/validate
+
+# Validating YAML
+
+An edit went in -- by hand, by a script, or by an agent. Is the file still
+correct?
+
+<!-- Feature f012: the validate subcommand. -->
+
+```console
+$ yqr validate deploy.yaml
+$ echo $?
+0
+```
+
+Silence and exit 0. That is the whole success case, which makes it easy to
+put in a script or a pre-commit hook.
+
+A pass here means more than "it parsed". yqr checks that the parsed
+documents reproduce the input byte-for-byte, so a file that parses but
+round-trips differently is reported rather than waved through.
+
+## When something is wrong
+
+```console
+$ yqr validate broken.yaml
+error[Y001]: inconsistent indentation: token at a column that does not match any open block scope
+  --> broken.yaml
+$ echo $?
+1
+```
+
+Diagnostics are compiler-shaped on purpose: an error code, the file, and
+where possible the line, column, and a pointer into the source. That is as
+readable for a person as it is parseable for whatever is running it.
+
+Several files at once works, and the exit code covers all of them:
+
+```console
+$ yqr validate deploy.yaml service.yaml configmap.yaml
+```
+
+Exit 0 when every input is valid, 1 when any input fails, and 5 when an
+input cannot be read at all -- a missing file is a different problem from a
+malformed one, so it gets a different code.
+
+## `--strict`, and the bug it catches
+
+Here is a file that is perfectly legal YAML and almost certainly a mistake:
+
+```yaml
+name: web
+port: 8080
+name: api
+```
+
+`name` appears twice. The YAML spec says a mapping should not have
+duplicate keys, but almost every parser accepts it anyway and resolves
+last-wins. So does yqr:
+
+```console
+$ yqr validate dup.yaml
+$ echo $?
+0
+
+$ yqr -r '.name' dup.yaml
+api
+```
+
+The first `name` is simply gone. No warning, no error -- your data quietly
+lost a field. This is exactly the sort of thing a careless merge or a
+templating bug produces.
+
+`--strict` turns it into an error:
+
+```console
+$ yqr validate --strict dup.yaml
+error[Y101]: duplicate mapping key "name"
+  --> dup.yaml:3:1
+  |
+3 | name: api
+  | ^
+  = note: first occurrence at line 1, column 1
+  = help: later occurrences silently override earlier ones; remove or rename one
+$ echo $?
+1
+```
+
+It points at the later occurrence, tells you where the first one was, and
+says what will happen if you leave it. The two are kept separate because
+they answer different questions: plain `validate` asks "will this file
+load", `--strict` asks "will it load the way you think it will".
+
+**Use `--strict` in CI.** The cost is one flag; the thing it catches is
+silent data loss, which is the failure mode you find out about in
+production.
+
+## In a script
+
+The pattern that works:
+
+```bash
+yqr -i '.spec.replicas = 5' deploy.yaml
+yqr validate --strict deploy.yaml || exit 1
+```
+
+Edit, then check. yqr already refuses edits that would restructure the
+document, so this is a second net rather than the only one -- but it also
+catches problems that were in the file before you touched it, which is
+worth knowing before you ship it.
+
+In a pre-commit hook, over everything that changed:
+
+```bash
+git diff --cached --name-only --diff-filter=ACM -- '*.yaml' '*.yml' \
+  | xargs -r yqr validate --strict
+```
+
+## Reading from stdin
+
+Same as everywhere else -- omit the file, or pass `-`:
+
+```console
+$ kubectl get deploy web -o yaml | yqr validate --strict
+$ helm template ./chart | yqr validate --strict -
+```
+
+The second one is a genuinely useful check: chart templating produces YAML
+through string interpolation, which is exactly the process most likely to
+emit a duplicate key.
+
+## Next
+
+- [Editing Kubernetes manifests](kubernetes) -- the edits worth validating
+  after.
+- [Byte-for-byte, explained](fidelity) -- what "reproduces the input"
+  means.
+
+---
+
+# yqr guide
+
+URL: /yqr/guide
+
+# Guide
+
+Short, task-shaped pages. Every command in them was run against a real
+build, and the output you see is the output it printed.
+
+- [Byte-for-byte, explained](fidelity) -- what yqr preserves, why the
+  identity filter is a useful test, and when you want `--normalize`
+  instead.
+- [Editing Kubernetes manifests](kubernetes) -- bumping image tags and
+  replica counts so the diff is one line.
+- [Validating YAML](validate) -- checking a file is still correct after an
+  edit, and catching the duplicate keys that silently eat your data.
+
+If you are arriving from another tool, [how yqr compares to
+yq](../compare/yq) is probably the faster orientation.
 
 ---
 
@@ -4154,6 +4783,18 @@ two PRs (paths first, spans second).
 - [x] No new dependencies (noyalib's `miette` feature stays off; the
       renderer and the duplicate-key green-tree scan are hand-rolled).
 
+## 7. User-facing documentation (added 2026-08-14)
+
+`validate` shipped in v0.5.0 with no site documentation -- it existed only in
+`--help` and in this spec, which ground rule 15 asks for and this feature did
+not deliver. The gap is now closed by the guide page at `/guide/validate`,
+written as part of `yqr-k001`.
+
+It covers the success case, the diagnostic shape, multi-file runs and their
+exit codes, and gives `--strict` its own section: the duplicate-key check is
+the part with a real failure story behind it (a legal file that silently drops
+a field), and it was the least discoverable thing in the command.
+
 ---
 
 # Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API
@@ -5556,6 +6197,158 @@ retires.
 
 ---
 
+# Marketing
+
+URL: /yqr/specs/marketing
+
+# Marketing
+
+Positioning, content, and go-to-market notes (`yqr-kNNN-*`). Everything here
+is about how yqr is explained to people who have not used it, as opposed to
+how it is built.
+
+---
+
+# Marketing k001 — Content plan: four task pages on the fidelity axis
+
+URL: /yqr/specs/marketing/yqr-k001-content-plan
+
+# Marketing k001 — Content plan: four task pages on the fidelity axis
+
+**Status:** Done (2026-08-14) — all four pages shipped; §6 records what was
+built and what deliberately was not.
+**Owner:** yqr maintainers
+**Last updated:** 2026-08-14
+**Related:** `yqr-f010` (the Accent site these pages live in), `yqr-f012`
+(`validate`, which page 4 documents), `yqr-f009` (fidelity by default, which
+page 3 explains), `yqr-f001` (the filter grammar that bounds what the pages
+can honestly show)
+
+## 1. Why
+
+The site has three real pages — home, demo, specs index — against 39 indexed
+spec pages. Search engines therefore see a site mostly about internal bug
+tracking, and a reader who arrives has nowhere to go between "what is this"
+and "read the specs".
+
+Two things follow from that, and only one of them is marketing. The pages
+below are also documentation yqr owes its users regardless: `validate` shipped
+in v0.5.0 and is documented nowhere outside the spec tree.
+
+## 2. The positioning, corrected by measurement
+
+The obvious pitch — "yq reformats your YAML, yqr doesn't" — **is not true**,
+and a content plan built on it would collapse the first time a reader tried
+yq. Measured against yq v4.53.3 before writing anything:
+
+On a realistic Deployment edit (`.spec.replicas = 5`), yq preserved comments,
+quoting, key order and indentation. On scalar reads it matches yqr exactly:
+`0640` stays `0640`, `1.10` stays `1.10`. yq is a careful, capable tool and
+the pages must say so.
+
+Where the two genuinely differ is whole-file normalisation. Identity
+round-trip (`'.'`) over a file with anchors and blank lines:
+
+| | result |
+|---|---|
+| `yqr '.' fid.yaml` | **byte-identical to the input** |
+| `yq '.' fid.yaml` | three changes |
+
+```
+  mode: 0640      # octal   ->   mode: 0640 # octal     comment alignment collapsed
+  <blank line>              ->   (removed)
+  <<: *d                    ->   !!merge <<: *d         tag injected
+```
+
+So the honest axis is **diff noise**: lines you did not touch change, and a
+reviewer has to read them. That is a narrow claim, it is true, and it is the
+one thing yqr does that yq does not. Every page is written on it.
+
+**Corollary:** do not invite a feature-matrix comparison. yq wins that by a
+wide margin, and pretending otherwise makes the fidelity claim look like
+spin too.
+
+## 3. What the pages may promise
+
+Bounded by what ships today (`yqr-f001` M0 plus the write tier):
+
+**Available:** identity, field access, `.["key"]`, indexing including
+negative, `.[]`, pipe, `f?`; `=`, `+=`, new-key assignment, `del(...)`; `-i`;
+`validate` and `validate --strict`; `-r`; `--normalize`.
+
+**Not available, and not to be implied:** object/array construction, string
+interpolation, the comma operator (M1); builtins and arithmetic (M2); `|=`
+(`yqr-f008`); comment editing, key rename, sequence reorder (`yqr-f007` §6);
+collection right-hand sides; keys containing `.` or `[`.
+
+Every example on every page must be runnable against the released binary. The
+home page already holds itself to this; the new pages inherit it.
+
+## 4. The pages
+
+| Page | URL | Intent it serves |
+|---|---|---|
+| 1. Compare with yq | `/compare/yq` | "yq vs yqr", "yaml editor that keeps comments" |
+| 2. Kubernetes recipes | `/guide/kubernetes` | "update image tag yaml without reformatting" |
+| 3. Byte-for-byte guide | `/guide/fidelity` | "yaml edit preserve formatting", explains `--normalize` |
+| 4. Validate | `/guide/validate` | "validate yaml command line", "find duplicate yaml keys" |
+
+Page 1 is the ranking bet and the one that concedes most to yq. Page 4 is the
+pure documentation debt. Pages 2 and 3 are the connective tissue: 2 is the
+concrete task, 3 the concept it rests on.
+
+## 5. Information architecture
+
+```
+/                 home
+/guide/           fidelity, kubernetes, validate
+/compare/         yq
+/demo/            existing
+/specs/           existing, mounted
+```
+
+Two new nav entries rather than four, so the header stays legible.
+
+## 6. Outcome
+
+**Shipped.** All four pages, plus `/guide/` and `/compare/` section indexes.
+Every command in them was run against a real build and its output pasted
+verbatim; the yq comparisons were run against yq v4.53.3.
+
+**`noindex` on the spec tree — done.** The site now offers 8 indexable pages
+(home, guide index and its three pages, compare index and its page, demo) and
+noindexes all 41 spec URLs.
+
+Implemented in the theme's `head_meta` partial rather than per file:
+`page.custom.noindex` is frontmatter-only, so the alternative was adding
+frontmatter to 39 specs and to every spec written afterwards. The rule matches
+the `/specs` path segment rather than a hardcoded `/yqr` prefix, which changes
+if the site moves to its own domain.
+
+It emits **`noindex,follow`**, not the `noindex,nofollow` used for drafts. The
+pages should still be crawled: that is how the noindex is seen at all, and
+links out of specs still count.
+
+**Known gap:** the spec URLs remain in `sitemap.xml`. accent 0.23.1 has no
+sitemap exclusion — a `sitemap.exclude` key is accepted and silently ignored,
+verified by adding one and diffing the output. A noindexed URL in a sitemap is
+untidy rather than harmful (crawlers fetch it, see the noindex, drop it), so
+this is left alone rather than worked around with build-time post-processing.
+Worth an upstream ask if accent gains the feature.
+
+**Deliberately not done:**
+
+- **A feature matrix against yq.** §2 explains why.
+- **Anything requiring M1/M2 grammar.** §3.
+
+## 7. Maintenance
+
+The pages state a version-sensitive claim (what yq does to a file). When yq
+changes, that claim needs re-measuring rather than re-asserting — the yq
+version is named on the comparison page so a reader can tell how stale it is.
+
+---
+
 # Research Notes
 
 URL: /yqr/specs/research
@@ -6265,3 +7058,4 @@ here as a markdown spec with a `**Status:**` field.
 - **architecture/** -- cross-cutting design documents (`yqr-aNNN-*`)
 - **implementation/** -- system conventions and ops specs (`yqr-mNNN-*`)
 - **research/** -- evaluations and investigations (`yqr-rNNN-*`)
+- **marketing/** -- positioning and content plans (`yqr-kNNN-*`)

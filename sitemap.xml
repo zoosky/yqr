@@ -5,7 +5,31 @@
     <lastmod>2026-08-14</lastmod>
   </url>
   <url>
+    <loc>https://zoosky.github.io/yqr/compare</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/compare/yq</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
     <loc>https://zoosky.github.io/yqr/demo</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/guide</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/guide/fidelity</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/guide/kubernetes</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/guide/validate</loc>
     <lastmod>2026-08-14</lastmod>
   </url>
   <url>
@@ -150,6 +174,14 @@
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/implementation/yqr-m005-single-engine-noyalib</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/specs/marketing</loc>
+    <lastmod>2026-08-14</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/specs/marketing/yqr-k001-content-plan</loc>
     <lastmod>2026-08-14</lastmod>
   </url>
   <url>

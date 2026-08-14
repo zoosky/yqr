@@ -2,9 +2,21 @@
 
 > yqr is a jq-style query and editing tool for YAML written in Rust. Reads are byte-preserving by default; the write tier performs surgical edits that change only the targeted bytes. This site serves the usage documentation and the full feature/bug/architecture spec tree.
 
+## How yqr compares to other YAML tools
+
+- [How yqr compares to other YAML tools](/yqr/compare): There are good YAML tools already. These pages are about where yqr differs from them, measured rather than asserted -- …
+- [yqr and yq -- what actually changes in your file](/yqr/compare/yq): Let's get the important part out of the way first: yq is a good tool. It is mature, it does far more than yqr does, and…
+
 ## yqr Demo
 
 - [yqr Demo](/yqr/demo): A runnable showcase of yqr, a jq-style query & transform tool for YAML.
+
+## yqr guide
+
+- [Byte-for-byte YAML editing, explained](/yqr/guide/fidelity): Most YAML tools work by parsing your file into data, doing something to the data, and printing the data back out. That …
+- [Editing Kubernetes manifests without reformatting them](/yqr/guide/kubernetes): Manifests are checked in, reviewed, and argued over. So the useful property in a tool that edits them is not how much i…
+- [Validating YAML from the command line](/yqr/guide/validate): An edit went in -- by hand, by a script, or by an agent. Is the file still correct?
+- [yqr guide](/yqr/guide): Short, task-shaped pages. Every command in them was run against a real build, and the output you see is the output it p…
 
 ## yqr Specs
 

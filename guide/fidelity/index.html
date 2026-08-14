@@ -1,0 +1,604 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte-for-byte YAML editing, explained - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;fidelity">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Byte-for-byte YAML editing, explained">
+<meta property="og:description" content="What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;fidelity">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Byte-for-byte YAML editing, explained">
+<meta name="twitter:description" content="What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="2a961d40ef">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-08-14",
+  "description": "What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.",
+  "inLanguage": "en",
+  "name": "Byte-for-byte YAML editing, explained",
+  "url": "https://zoosky.github.io/yqr/guide/fidelity",
+  "wordCount": 660
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide",
+      "name": "Guide",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide/fidelity",
+      "name": "Byte-for-byte",
+      "position": 3
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide"  class="active" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr Demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;guide">Guide</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Byte-for-byte</span>
+</nav>
+
+
+    <h1>Byte-for-byte YAML editing, explained</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">4 min read</span>
+                </div>
+                
+
+                
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-1">
+            <a href="#byte-for-byte-explained">Byte-for-byte, explained</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#the-identity-test">The identity test</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#what-survives">What survives</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#why-0640-is-not-640">Why 0640 is not 640</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#when-you-want-the-opposite">When you want the opposite</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#editing-works-the-same-way">Editing works the same way</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#next">Next</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <h1 id="byte-for-byte-explained">Byte-for-byte, explained<a class="heading-anchor" href="#byte-for-byte-explained" aria-label="Link to this section"></a></h1>
+<p>Most YAML tools work by parsing your file into data, doing something to the
+data, and printing the data back out. That last step is where formatting
+goes to die: the printer has opinions about quoting and indentation, and
+your file comes back wearing them.</p>
+<!-- Feature f009 made fidelity the default; f002 is the read floor. -->
+<p>yqr does something different. Nodes you did not touch are emitted as <strong>the
+original bytes from your file</strong>, sliced straight out of the source. There is
+no printer involved, so there are no opinions to apply.</p>
+<h2 id="the-identity-test">The identity test<a class="heading-anchor" href="#the-identity-test" aria-label="Link to this section"></a></h2>
+<p>The clearest way to see it is to ask for everything and change nothing:</p>
+<pre><code class="language-console">$ yqr '.' config.yaml | diff config.yaml -
+$ echo $?
+0
+</code></pre>
+<p>No output, exit 0. The file went through yqr and came back identical, down
+to the byte. That holds for the awkward cases too – CRLF line endings, a
+byte-order mark, trailing whitespace, tabs inside strings, multiple
+documents in one file.</p>
+<p>It is a good thing to try on your own gnarliest config file. If it comes
+back clean, everything below is safe.</p>
+<h2 id="what-survives">What survives<a class="heading-anchor" href="#what-survives" aria-label="Link to this section"></a></h2>
+<p>Take this file, which has a few things that normally do not survive a round
+trip:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">defaults
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">mode</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">0640      </span><span style="color:#65737e;"># octal, on purpose
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">retries</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;"># Services below inherit the defaults.
+</span><span style="color:#bf616a;">web</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#d08770;">&lt;&lt;</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">*</span><span style="color:#bf616a;">defaults
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: &#39;</span><span style="color:#a3be8c;">web</span><span style="color:#c0c5ce;">&#39;
+</span></pre>
+<p>Read it back with yqr and you get exactly that, including:</p>
+<ul>
+<li><strong>Comments</strong>, and the whitespace that aligns them.</li>
+<li><strong>Blank lines</strong>, which are doing real organisational work here.</li>
+<li><strong>Anchors, aliases, and merge keys</strong>, in the spelling you wrote them.</li>
+<li><strong>Quote style</strong> – <code>'web'</code> stays single-quoted rather than becoming
+<code>"web"</code> or bare <code>web</code>.</li>
+<li><strong>Scalar spelling</strong> – <code>0640</code> stays <code>0640</code>.</li>
+</ul>
+<p>That last one is worth dwelling on.</p>
+<h2 id="why-0640-is-not-640">Why <code>0640</code> is not <code>640</code><a class="heading-anchor" href="#why-0640-is-not-640" aria-label="Link to this section"></a></h2>
+<p>Kubernetes spells file permissions in octal. If a tool re-types that scalar
+as a number and prints it back, you get <code>640</code>, which is a different
+permission. Same story for a version pinned at <code>1.10</code>, which becomes <code>1.1</code>
+the moment something treats it as a float.</p>
+<p>yqr never re-types the value, so the question never arises:</p>
+<pre><code class="language-console">$ yqr -r '.mode' config.yaml
+0640
+$ yqr -r '.ver' config.yaml
+1.10
+</code></pre>
+<h2 id="when-you-want-the-opposite">When you want the opposite<a class="heading-anchor" href="#when-you-want-the-opposite" aria-label="Link to this section"></a></h2>
+<p>Sometimes you genuinely want canonical output – comparing two files that
+are semantically equal but formatted differently, or feeding something
+downstream that wants predictable shapes. That is what <code>--normalize</code> (<code>-N</code>)
+is for.</p>
+<pre><code class="language-console">$ yqr --normalize '.' config.yaml
+defaults:
+  mode: 640
+  retries: 3
+web:
+  name: web
+  mode: 640
+  retries: 3
+</code></pre>
+<p>Look at what that did, because it is instructive. Comments are gone. The
+blank line is gone. The anchor and merge key have been resolved, so <code>web</code>
+now carries its own copies of <code>mode</code> and <code>retries</code>. And <code>0640</code> has become
+<code>640</code>.</p>
+<p>Every one of those is correct as <em>data</em>. None of them is what you want
+landing in a pull request. That is the trade, and it is why the byte-exact
+path is the default and <code>--normalize</code> is the flag you have to ask for.</p>
+<pre><code class="language-console">$ yqr -rN '.mode' config.yaml
+640
+$ yqr -rN '.ver' config.yaml
+1.1
+</code></pre>
+<h2 id="editing-works-the-same-way">Editing works the same way<a class="heading-anchor" href="#editing-works-the-same-way" aria-label="Link to this section"></a></h2>
+<p>The guarantee extends to edits. Change one value and everything else is
+untouched:</p>
+<pre><code class="language-console">$ yqr '.spec.replicas = 5' deploy.yaml
+</code></pre>
+<p>Only the bytes of that one scalar are replaced. The comment two spaces to
+its right, the indentation, the key order, the quoting elsewhere in the
+file – all still the original bytes.</p>
+<p>If an edit <em>cannot</em> be made without restructuring the document, yqr refuses
+it and exits 5 rather than emitting something surprising. With <code>-i</code> the
+file is left untouched on refusal, so a failed edit never leaves you with a
+half-written file.</p>
+<h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
+<ul>
+<li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – this applied to a real
+workflow.</li>
+<li><a href="/yqr/guide/validate">Validating YAML</a> – confirming a file is still correct
+afterwards.</li>
+</ul>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    
+    <a href="&#x2f;yqr&#x2f;guide&#x2f;kubernetes" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Kubernetes manifests</span>
+    </a>
+    
+</nav>
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-08-14</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

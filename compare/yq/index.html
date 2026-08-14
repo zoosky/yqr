@@ -1,0 +1,632 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>yqr and yq -- what actually changes in your file - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;compare&#x2f;yq">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="yqr and yq -- what actually changes in your file">
+<meta property="og:description" content="A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;compare&#x2f;yq">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="yqr and yq -- what actually changes in your file">
+<meta name="twitter:description" content="A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="2a961d40ef">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-08-14",
+  "description": "A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.",
+  "inLanguage": "en",
+  "name": "yqr and yq -- what actually changes in your file",
+  "url": "https://zoosky.github.io/yqr/compare/yq",
+  "wordCount": 878
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/compare",
+      "name": "Compare",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/compare/yq",
+      "name": "yqr and yq",
+      "position": 3
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare"  class="active" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr Demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;compare">Compare</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">yqr and yq</span>
+</nav>
+
+
+    <h1>yqr and yq -- what actually changes in your file</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">5 min read</span>
+                </div>
+                
+
+                
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-1">
+            <a href="#yqr-and-yq">yqr and yq</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#the-short-version">The short version</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#where-they-agree">Where they agree</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#where-they-diverge">Where they diverge</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#why-this-matters-and-when-it-doesn-t">Why this matters (and when it doesn’t)</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#what-yq-does-that-yqr-does-not">What yq does that yqr does not</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#using-both">Using both</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#next">Next</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <h1 id="yqr-and-yq">yqr and yq<a class="heading-anchor" href="#yqr-and-yq" aria-label="Link to this section"></a></h1>
+<p>Let’s get the important part out of the way first: <strong>yq is a good tool.</strong> It
+is mature, it does far more than yqr does, and if you need to build new
+documents, evaluate expressions, or convert between formats, you should
+reach for it and not for this.</p>
+<!-- Every command and its output on this page was run against yq v4.53.3
+     and a real yqr build. Re-measure rather than re-assert when yq changes;
+     see specs/marketing/yqr-k001-content-plan.md. -->
+<p>There is one thing yqr does that yq does not, and this page is about
+exactly that thing.</p>
+<h2 id="the-short-version">The short version<a class="heading-anchor" href="#the-short-version" aria-label="Link to this section"></a></h2>
+<p>yq <strong>normalises</strong> your file. yqr leaves it <strong>byte-for-byte alone</strong> apart
+from the edit you asked for.</p>
+<p>That difference does not show up as broken YAML – yq’s output is correct.
+It shows up in code review, as lines nobody touched appearing in the diff.</p>
+<h2 id="where-they-agree">Where they agree<a class="heading-anchor" href="#where-they-agree" aria-label="Link to this section"></a></h2>
+<p>More than you might expect, so let’s be concrete. Take a Deployment:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#65737e;"># Web tier. Owned by the platform team.
+</span><span style="color:#bf616a;">apiVersion</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">apps/v1
+</span><span style="color:#bf616a;">kind</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">Deployment
+</span><span style="color:#bf616a;">metadata</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">labels</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">app</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3          </span><span style="color:#65737e;"># bumped for the Black Friday load test
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">template</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">      </span><span style="color:#bf616a;">containers</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">        - </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: &quot;</span><span style="color:#a3be8c;">registry.example.com/web:1.4.2</span><span style="color:#c0c5ce;">&quot;
+</span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">ports</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">            - </span><span style="color:#bf616a;">containerPort</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
+</span></pre>
+<p>Bump the replica count with each tool and diff against the original.</p>
+<pre><code class="language-console">$ yq -i '.spec.replicas = 5' deploy.yaml
+$ diff original.yaml deploy.yaml
+9c9
+&lt;   replicas: 3          # bumped for the Black Friday load test
+---
+&gt;   replicas: 5 # bumped for the Black Friday load test
+</code></pre>
+<p>yq kept the comment, the quoting, the key order, the indentation, and the
+block style. That is careful work. The only casualty is the alignment of
+the trailing comment, which got collapsed to a single space.</p>
+<pre><code class="language-console">$ yqr -i '.spec.replicas = 5' deploy.yaml
+$ diff original.yaml deploy.yaml
+9c9
+&lt;   replicas: 3          # bumped for the Black Friday load test
+---
+&gt;   replicas: 5          # bumped for the Black Friday load test
+</code></pre>
+<p>Same edit, and the alignment survives.</p>
+<p>On <strong>reads</strong>, the two agree completely. Both give you <code>0640</code> for an octal
+file mode and <code>1.10</code> for a version string – neither one re-types your
+scalars behind your back.</p>
+<h2 id="where-they-diverge">Where they diverge<a class="heading-anchor" href="#where-they-diverge" aria-label="Link to this section"></a></h2>
+<p>The gap widens on a whole-file round trip. Here is a file with an anchor, a
+merge key, and a blank line doing organisational work:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">defaults
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">mode</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">0640      </span><span style="color:#65737e;"># octal, on purpose
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">retries</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#65737e;"># Services below inherit the defaults.
+</span><span style="color:#bf616a;">web</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#d08770;">&lt;&lt;</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">*</span><span style="color:#bf616a;">defaults
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: &#39;</span><span style="color:#a3be8c;">web</span><span style="color:#c0c5ce;">&#39;
+</span></pre>
+<p>Ask each tool for the identity filter – read it and write it back out,
+changing nothing.</p>
+<pre><code class="language-console">$ yqr '.' anchors.yaml | diff anchors.yaml -
+$ echo $?
+0
+</code></pre>
+<p>Nothing. The output is byte-identical to the input.</p>
+<pre><code class="language-console">$ yq '.' anchors.yaml | diff anchors.yaml -
+2c2
+&lt;   mode: 0640      # octal, on purpose
+---
+&gt;   mode: 0640 # octal, on purpose
+4d3
+&lt;
+7c6
+&lt;   &lt;&lt;: *defaults
+---
+&gt;   !!merge &lt;&lt;: *defaults
+</code></pre>
+<p>Three changes to a file nobody edited:</p>
+<ol>
+<li><strong>Comment alignment collapsed.</strong> Cosmetic, but it is your cosmetic.</li>
+<li><strong>The blank line was deleted.</strong> That line was separating two sections.</li>
+<li><strong><code>&lt;&lt;: *defaults</code> became <code>!!merge &lt;&lt;: *defaults</code>.</strong> yq made an implicit
+merge key explicit by adding a tag that was not in your source.</li>
+</ol>
+<p>None of that is wrong YAML. All of it lands in your pull request.</p>
+<h2 id="why-this-matters-and-when-it-doesn-t">Why this matters (and when it doesn’t)<a class="heading-anchor" href="#why-this-matters-and-when-it-doesn-t" aria-label="Link to this section"></a></h2>
+<p>If you are generating YAML, piping it somewhere, or reading values out of
+it, none of this matters and yq is the better tool by a mile.</p>
+<p>It starts mattering when the file is <strong>checked in and reviewed by humans</strong>.
+A one-line change should be a one-line diff. When a script bumps an image
+tag across forty manifests and each one comes back with reshuffled comments
+and stripped blank lines, the review stops being a review.</p>
+<p>That is the whole of yqr’s argument. It is a narrow argument, and it is the
+only one being made here.</p>
+<h2 id="what-yq-does-that-yqr-does-not">What yq does that yqr does not<a class="heading-anchor" href="#what-yq-does-that-yqr-does-not" aria-label="Link to this section"></a></h2>
+<p>Plenty, and it is worth knowing before you switch:</p>
+<ul>
+<li><strong>Building new documents.</strong> yqr has no object or array construction, no
+string interpolation, and no comma operator. It walks and edits documents
+that already exist.</li>
+<li><strong>Builtins and arithmetic.</strong> No <code>map</code>, <code>select</code>, <code>length</code>, <code>+</code> on values.</li>
+<li><strong>Format conversion.</strong> No JSON, XML, TOML, or properties in or out.</li>
+<li><strong>Comment, key-name, and ordering edits.</strong> yqr can change values, add
+keys, append to sequences, and delete entries. Renaming a key or
+rewriting a comment is not in the released grammar yet.</li>
+</ul>
+<p>If you need any of those, use yq. The tools are not really substitutes;
+one of them is a scalpel with a very short blade.</p>
+<h2 id="using-both">Using both<a class="heading-anchor" href="#using-both" aria-label="Link to this section"></a></h2>
+<p>Nothing stops you. A pattern that works well:</p>
+<pre><code class="language-console">$ yq '.spec.template.spec.containers[] | .image' deploy.yaml   # explore
+$ yqr -i '.spec.replicas = 5' deploy.yaml                      # commit the edit
+</code></pre>
+<p>Read and explore with the tool that has the richer query language. Make the
+edit that lands in git with the one that will not touch anything else.</p>
+<h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
+<ul>
+<li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – what yqr is actually
+doing, and the one flag that turns it off.</li>
+<li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – the workflow this
+page keeps alluding to.</li>
+</ul>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-08-14</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,602 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editing Kubernetes manifests without reformatting them - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;kubernetes">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Editing Kubernetes manifests without reformatting them">
+<meta property="og:description" content="Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;kubernetes">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Editing Kubernetes manifests without reformatting them">
+<meta name="twitter:description" content="Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="2a961d40ef">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-08-14",
+  "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
+  "inLanguage": "en",
+  "name": "Editing Kubernetes manifests without reformatting them",
+  "url": "https://zoosky.github.io/yqr/guide/kubernetes",
+  "wordCount": 588
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide",
+      "name": "Guide",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide/kubernetes",
+      "name": "Kubernetes manifests",
+      "position": 3
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide"  class="active" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr Demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;guide">Guide</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Kubernetes manifests</span>
+</nav>
+
+
+    <h1>Editing Kubernetes manifests without reformatting them</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">3 min read</span>
+                </div>
+                
+
+                
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-1">
+            <a href="#editing-kubernetes-manifests">Editing Kubernetes manifests</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#reading-a-field">Reading a field</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#bumping-an-image-tag">Bumping an image tag</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#the-part-that-matters">The part that matters</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#other-edits-you-can-make-today">Other edits you can make today</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#piping-from-kubectl">Piping from kubectl</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#what-is-not-here-yet">What is not here yet</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#next">Next</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <h1 id="editing-kubernetes-manifests">Editing Kubernetes manifests<a class="heading-anchor" href="#editing-kubernetes-manifests" aria-label="Link to this section"></a></h1>
+<p>Manifests are checked in, reviewed, and argued over. So the useful property
+in a tool that edits them is not how much it can do – it is how little it
+changes.</p>
+<p>Here is a manifest with the things real ones have: an ownership comment, a
+comment explaining a number, and a quoted image reference.</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#65737e;"># Web tier. Owned by the platform team.
+</span><span style="color:#bf616a;">apiVersion</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">apps/v1
+</span><span style="color:#bf616a;">kind</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">Deployment
+</span><span style="color:#bf616a;">metadata</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">labels</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">app</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3          </span><span style="color:#65737e;"># bumped for the Black Friday load test
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">template</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">      </span><span style="color:#bf616a;">containers</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">        - </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: &quot;</span><span style="color:#a3be8c;">registry.example.com/web:1.4.2</span><span style="color:#c0c5ce;">&quot;
+</span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">ports</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">            - </span><span style="color:#bf616a;">containerPort</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
+</span></pre>
+<h2 id="reading-a-field">Reading a field<a class="heading-anchor" href="#reading-a-field" aria-label="Link to this section"></a></h2>
+<p>Paths look like jq, because that is the idea:</p>
+<pre><code class="language-console">$ yqr '.spec.template.spec.containers[0].image' deploy.yaml
+"registry.example.com/web:1.4.2"
+</code></pre>
+<p>The quotes are there because that is how the value is written in the file.
+When you want the bare string – to pass to <code>docker pull</code>, say – use <code>-r</code>:</p>
+<pre><code class="language-console">$ yqr -r '.spec.template.spec.containers[0].image' deploy.yaml
+registry.example.com/web:1.4.2
+</code></pre>
+<h2 id="bumping-an-image-tag">Bumping an image tag<a class="heading-anchor" href="#bumping-an-image-tag" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ yqr '.spec.template.spec.containers[0].image = "registry.example.com/web:1.5.0"' deploy.yaml
+</code></pre>
+<p>That prints the whole file to stdout with one value changed. Add <code>-i</code> to
+write it back in place instead:</p>
+<pre><code class="language-console">$ yqr -i '.spec.template.spec.containers[0].image = "registry.example.com/web:1.5.0"' deploy.yaml
+</code></pre>
+<p>The write is atomic – a temporary file and a rename – so an interrupted
+run cannot leave you with half a manifest.</p>
+<h2 id="the-part-that-matters">The part that matters<a class="heading-anchor" href="#the-part-that-matters" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ yqr -i '.spec.replicas = 5' deploy.yaml
+$ git diff deploy.yaml
+</code></pre>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">-  replicas: 3          # bumped for the Black Friday load test
+</span><span style="color:#a3be8c;">+  replicas: 5          # bumped for the Black Friday load test
+</span></pre>
+<p>One line. The comment is still aligned where it was, the quoting elsewhere
+is untouched, the blank lines are where you left them. A reviewer reads one
+line and moves on.</p>
+<p>Run that across forty manifests in a release script and you get forty
+one-line diffs, which is a review someone can actually do.</p>
+<h2 id="other-edits-you-can-make-today">Other edits you can make today<a class="heading-anchor" href="#other-edits-you-can-make-today" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
+$ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
+$ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
+</code></pre>
+<p><code>del</code> handles nested blocks and multi-line values, not just single lines,
+and closes the gap cleanly afterwards. Two cases are refused with a clear
+message rather than guessed at: removing the only entry of a block, and
+removing an item from a flow collection like <code>[a, b, c]</code>.</p>
+<h2 id="piping-from-kubectl">Piping from kubectl<a class="heading-anchor" href="#piping-from-kubectl" aria-label="Link to this section"></a></h2>
+<p>There is no file argument needed – yqr reads stdin:</p>
+<pre><code class="language-console">$ kubectl get deploy web -o yaml | yqr -r '.spec.template.spec.containers[0].image'
+</code></pre>
+<p>Worth knowing: <code>-i</code> needs a real file, so it is an error to combine it with
+stdin. That is deliberate; there is nothing to write back to.</p>
+<h2 id="what-is-not-here-yet">What is not here yet<a class="heading-anchor" href="#what-is-not-here-yet" aria-label="Link to this section"></a></h2>
+<p>Being straight about the edges, because finding them yourself is annoying:</p>
+<ul>
+<li><strong>Renaming a key</strong> or <strong>editing a comment</strong> is not in the released
+grammar. Values, new keys, appends, and deletes are.</li>
+<li><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
+is not supported yet.</li>
+<li><strong>Keys containing <code>.</code> or <code>[</code></strong> – the Kubernetes
+<code>app.kubernetes.io/name</code> style – cannot be addressed by the path syntax,
+so yqr will tell you so rather than guess.</li>
+<li><strong>No arithmetic or builtins.</strong> You cannot say “increment the replica
+count”; you say what it should become.</li>
+</ul>
+<h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
+<ul>
+<li><a href="/yqr/guide/validate">Validating YAML</a> – worth wiring into the same script.</li>
+<li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – why the diff is one line.</li>
+</ul>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    <a href="&#x2f;yqr&#x2f;guide&#x2f;fidelity" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Byte-for-byte</span>
+    </a>
+    
+    
+    <a href="&#x2f;yqr&#x2f;guide&#x2f;validate" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Validating YAML</span>
+    </a>
+    
+</nav>
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-08-14</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

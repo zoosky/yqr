@@ -1,0 +1,598 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validating YAML from the command line - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;validate">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Validating YAML from the command line">
+<meta property="og:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;validate">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Validating YAML from the command line">
+<meta name="twitter:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="2a961d40ef">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-08-14",
+  "description": "Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.",
+  "inLanguage": "en",
+  "name": "Validating YAML from the command line",
+  "url": "https://zoosky.github.io/yqr/guide/validate",
+  "wordCount": 638
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide",
+      "name": "Guide",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide/validate",
+      "name": "Validating YAML",
+      "position": 3
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            <ul>
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide"  class="active" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr Demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;guide">Guide</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Validating YAML</span>
+</nav>
+
+
+    <h1>Validating YAML from the command line</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">4 min read</span>
+                </div>
+                
+
+                
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-1">
+            <a href="#validating-yaml">Validating YAML</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#when-something-is-wrong">When something is wrong</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#strict-and-the-bug-it-catches">--strict, and the bug it catches</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#in-a-script">In a script</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#reading-from-stdin">Reading from stdin</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#next">Next</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <h1 id="validating-yaml">Validating YAML<a class="heading-anchor" href="#validating-yaml" aria-label="Link to this section"></a></h1>
+<p>An edit went in – by hand, by a script, or by an agent. Is the file still
+correct?</p>
+<!-- Feature f012: the validate subcommand. -->
+<pre><code class="language-console">$ yqr validate deploy.yaml
+$ echo $?
+0
+</code></pre>
+<p>Silence and exit 0. That is the whole success case, which makes it easy to
+put in a script or a pre-commit hook.</p>
+<p>A pass here means more than “it parsed”. yqr checks that the parsed
+documents reproduce the input byte-for-byte, so a file that parses but
+round-trips differently is reported rather than waved through.</p>
+<h2 id="when-something-is-wrong">When something is wrong<a class="heading-anchor" href="#when-something-is-wrong" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ yqr validate broken.yaml
+error[Y001]: inconsistent indentation: token at a column that does not match any open block scope
+  --&gt; broken.yaml
+$ echo $?
+1
+</code></pre>
+<p>Diagnostics are compiler-shaped on purpose: an error code, the file, and
+where possible the line, column, and a pointer into the source. That is as
+readable for a person as it is parseable for whatever is running it.</p>
+<p>Several files at once works, and the exit code covers all of them:</p>
+<pre><code class="language-console">$ yqr validate deploy.yaml service.yaml configmap.yaml
+</code></pre>
+<p>Exit 0 when every input is valid, 1 when any input fails, and 5 when an
+input cannot be read at all – a missing file is a different problem from a
+malformed one, so it gets a different code.</p>
+<h2 id="strict-and-the-bug-it-catches"><code>--strict</code>, and the bug it catches<a class="heading-anchor" href="#strict-and-the-bug-it-catches" aria-label="Link to this section"></a></h2>
+<p>Here is a file that is perfectly legal YAML and almost certainly a mistake:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#bf616a;">port</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
+</span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">api
+</span></pre>
+<p><code>name</code> appears twice. The YAML spec says a mapping should not have
+duplicate keys, but almost every parser accepts it anyway and resolves
+last-wins. So does yqr:</p>
+<pre><code class="language-console">$ yqr validate dup.yaml
+$ echo $?
+0
+
+$ yqr -r '.name' dup.yaml
+api
+</code></pre>
+<p>The first <code>name</code> is simply gone. No warning, no error – your data quietly
+lost a field. This is exactly the sort of thing a careless merge or a
+templating bug produces.</p>
+<p><code>--strict</code> turns it into an error:</p>
+<pre><code class="language-console">$ yqr validate --strict dup.yaml
+error[Y101]: duplicate mapping key "name"
+  --&gt; dup.yaml:3:1
+  |
+3 | name: api
+  | ^
+  = note: first occurrence at line 1, column 1
+  = help: later occurrences silently override earlier ones; remove or rename one
+$ echo $?
+1
+</code></pre>
+<p>It points at the later occurrence, tells you where the first one was, and
+says what will happen if you leave it. The two are kept separate because
+they answer different questions: plain <code>validate</code> asks “will this file
+load”, <code>--strict</code> asks “will it load the way you think it will”.</p>
+<p><strong>Use <code>--strict</code> in CI.</strong> The cost is one flag; the thing it catches is
+silent data loss, which is the failure mode you find out about in
+production.</p>
+<h2 id="in-a-script">In a script<a class="heading-anchor" href="#in-a-script" aria-label="Link to this section"></a></h2>
+<p>The pattern that works:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#8fa1b3;">yqr</span><span style="color:#bf616a;"> -i </span><span style="color:#c0c5ce;">&#39;</span><span style="color:#a3be8c;">.spec.replicas = 5</span><span style="color:#c0c5ce;">&#39; deploy.yaml
+</span><span style="color:#8fa1b3;">yqr</span><span style="color:#c0c5ce;"> validate</span><span style="color:#bf616a;"> --strict</span><span style="color:#c0c5ce;"> deploy.yaml || </span><span style="color:#96b5b4;">exit</span><span style="color:#c0c5ce;"> 1
+</span></pre>
+<p>Edit, then check. yqr already refuses edits that would restructure the
+document, so this is a second net rather than the only one – but it also
+catches problems that were in the file before you touched it, which is
+worth knowing before you ship it.</p>
+<p>In a pre-commit hook, over everything that changed:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> diff</span><span style="color:#bf616a;"> --cached --name-only --diff-filter</span><span style="color:#c0c5ce;">=ACM -- &#39;</span><span style="color:#a3be8c;">*.yaml</span><span style="color:#c0c5ce;">&#39; &#39;</span><span style="color:#a3be8c;">*.yml</span><span style="color:#c0c5ce;">&#39; \
+</span><span style="color:#c0c5ce;">  | </span><span style="color:#8fa1b3;">xargs</span><span style="color:#bf616a;"> -r</span><span style="color:#c0c5ce;"> yqr validate</span><span style="color:#bf616a;"> --strict
+</span></pre>
+<h2 id="reading-from-stdin">Reading from stdin<a class="heading-anchor" href="#reading-from-stdin" aria-label="Link to this section"></a></h2>
+<p>Same as everywhere else – omit the file, or pass <code>-</code>:</p>
+<pre><code class="language-console">$ kubectl get deploy web -o yaml | yqr validate --strict
+$ helm template ./chart | yqr validate --strict -
+</code></pre>
+<p>The second one is a genuinely useful check: chart templating produces YAML
+through string interpolation, which is exactly the process most likely to
+emit a duplicate key.</p>
+<h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
+<ul>
+<li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – the edits worth validating
+after.</li>
+<li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – what “reproduces the input”
+means.</li>
+</ul>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    <a href="&#x2f;yqr&#x2f;guide&#x2f;kubernetes" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Kubernetes manifests</span>
+    </a>
+    
+    
+</nav>
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-08-14</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>
