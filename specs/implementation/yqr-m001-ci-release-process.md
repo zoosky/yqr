@@ -78,7 +78,8 @@ an agent acting for one).
 ```bash
 # 1. Update CHANGELOG.md: turn [Unreleased] into [X.Y.Z] - YYYY-MM-DD,
 #    with a short lead paragraph in the style of the previous entries.
-# 2. Bump `version` in Cargo.toml.
+# 2. Bump `version` in Cargo.toml, and `softwareVersion` in the
+#    SoftwareApplication JSON-LD (docs/themes/default/templates/home.html.jinja).
 # 3. cargo check          # refreshes Cargo.lock's own yqr entry
 # 4. bash .github/scripts/local-ci.sh   # full gate before tagging
 

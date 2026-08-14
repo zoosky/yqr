@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1524"/>
+      <stop offset="100%" stop-color="#0f1d33"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="6" fill="#c68a3e"/>
+
+  <!-- Wordmark and tagline -->
+  <text x="80" y="152" font-family="Georgia, 'Times New Roman', serif" font-size="108"
+        font-weight="bold" fill="#e0b169" letter-spacing="-2">yqr</text>
+  <text x="298" y="152" font-family="Georgia, 'Times New Roman', serif" font-size="44"
+        fill="#4fb3ac">jq for YAML</text>
+
+  <text x="80" y="206" font-family="-apple-system, 'Helvetica Neue', sans-serif" font-size="27"
+        fill="#8ea0b8">Query and edit YAML from the command line — without reformatting the file.</text>
+
+  <!-- Terminal panel -->
+  <rect x="80" y="252" width="1040" height="216" rx="12" fill="#132340" stroke="#26364f" stroke-width="1.5"/>
+
+  <text x="128" y="316" xml:space="preserve" font-family="Menlo, Monaco, monospace" font-size="27"><tspan fill="#5c6d84">$ </tspan><tspan fill="#dbe4f0">yqr </tspan><tspan fill="#e8dcb8">'.spec.replicas = 5'</tspan><tspan fill="#dbe4f0"> deploy.yaml</tspan></text>
+
+  <text x="128" y="372" xml:space="preserve" font-family="Menlo, Monaco, monospace" font-size="27"><tspan fill="#a9c3e0">replicas:</tspan><tspan fill="#dbe4f0"> 5</tspan><tspan fill="#5fae7a">  # scaled for peak traffic</tspan></text>
+
+  <text x="128" y="428" xml:space="preserve" font-family="Menlo, Monaco, monospace" font-size="27"><tspan fill="#a9c3e0">image:</tspan><tspan fill="#dbe4f0"> </tspan><tspan fill="#e8dcb8">"web:1.4.2"</tspan><tspan fill="#5c6d84">    &lt;- every other byte untouched</tspan></text>
+
+  <!-- Footer line -->
+  <text x="80" y="546" font-family="-apple-system, 'Helvetica Neue', sans-serif" font-size="25"
+        fill="#dbe4f0">Comments, anchors, quoting and blank lines survive the edit.</text>
+  <text x="80" y="586" font-family="Menlo, Monaco, monospace" font-size="23"
+        fill="#5c6d84">github.com/zoosky/yqr</text>
+
+  <text x="1120" y="586" text-anchor="end" font-family="Menlo, Monaco, monospace" font-size="23"
+        fill="#5c6d84">written in Rust</text>
+</svg>
