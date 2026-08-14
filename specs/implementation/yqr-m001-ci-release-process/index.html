@@ -39,7 +39,7 @@
 
 
 
-<meta name="twitter:card" content="summary">
+
 <meta name="twitter:title" content="Implementation m001 — CI pipeline and release process">
 <meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
 
@@ -49,6 +49,12 @@
 
 
 <meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
 
     <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
     <meta name="theme-color" content="#0b1524">
@@ -84,12 +90,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-13",
+  "dateModified": "2026-08-14",
   "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
   "inLanguage": "en",
   "name": "Implementation m001 — CI pipeline and release process",
   "url": "https://zoosky.github.io/yqr/specs/implementation/yqr-m001-ci-release-process",
-  "wordCount": 998
+  "wordCount": 1006
 }
 </script>
 <script type="application/ld+json">
@@ -1980,7 +1986,8 @@ an agent acting for one).</p>
 <pre style="background-color:#2b303b;">
 <span style="color:#65737e;"># 1. Update CHANGELOG.md: turn [Unreleased] into [X.Y.Z] - YYYY-MM-DD,
 </span><span style="color:#65737e;">#    with a short lead paragraph in the style of the previous entries.
-</span><span style="color:#65737e;"># 2. Bump `version` in Cargo.toml.
+</span><span style="color:#65737e;"># 2. Bump `version` in Cargo.toml, and `softwareVersion` in the
+</span><span style="color:#65737e;">#    SoftwareApplication JSON-LD (docs/themes/default/templates/home.html.jinja).
 </span><span style="color:#65737e;"># 3. cargo check          # refreshes Cargo.lock&#39;s own yqr entry
 </span><span style="color:#65737e;"># 4. bash .github/scripts/local-ci.sh   # full gate before tagging
 </span><span style="color:#c0c5ce;">
@@ -2118,31 +2125,31 @@ alert.</p>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
+      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
+      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
+      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
+      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-08-13">2026-08-13</time>
+      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
     </li>
     
   </ul>
@@ -2173,7 +2180,7 @@ alert.</p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-13</span>
+        <span>Site last updated: 2026-08-14</span>
         
     </footer>
 

@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>yqr in Kubernetes - yqr</title>
+    <title>jq for YAML -- query and edit without reformatting - yqr</title>
     
     
 
@@ -13,7 +13,7 @@
 
 
 
-<meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta name="description" content="yqr is a jq-style command-line tool for YAML. Query any field, edit a file in place, and keep every comment, anchor, quote style and blank line byte-for-byte.">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;">
@@ -28,8 +28,8 @@
 
 
 
-<meta property="og:title" content="yqr in Kubernetes">
-<meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta property="og:title" content="jq for YAML -- query and edit without reformatting">
+<meta property="og:description" content="yqr is a jq-style command-line tool for YAML. Query any field, edit a file in place, and keep every comment, anchor, quote style and blank line byte-for-byte.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;">
 <meta property="og:site_name" content="yqr">
@@ -40,9 +40,9 @@
 
 
 
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="yqr in Kubernetes">
-<meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+
+<meta name="twitter:title" content="jq for YAML -- query and edit without reformatting">
+<meta name="twitter:description" content="yqr is a jq-style command-line tool for YAML. Query any field, edit a file in place, and keep every comment, anchor, quote style and blank line byte-for-byte.">
 
 
 
@@ -50,6 +50,12 @@
 
 
 <meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
 
     <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
     <meta name="theme-color" content="#0b1524">
@@ -351,9 +357,19 @@
     font-weight:400;
     font-size:clamp(34px, 5vw, 52px);
     line-height:1.12;
-    margin:0 0 18px;
+    margin:0 0 12px;
     color:var(--heading);
-    max-width:14ch;
+    max-width:16ch;
+  }
+  /* The line that used to be the h1. It keeps the display voice while the
+     heading above it carries the plain description of what yqr does. */
+  .hero .hero-lede{
+    font-family:var(--serif);
+    font-size:clamp(19px, 2.2vw, 24px);
+    line-height:1.35;
+    color:var(--brass-soft);
+    max-width:34ch;
+    margin:0 0 18px;
   }
   .hero p{
     font-size:17px;
@@ -718,7 +734,9 @@
   Feature/spec traceability: yqr-b001, yqr-f003, yqr-m002
 -->
   <div class="hero">
-    <h1>Chart a path to any field in a manifest.</h1>
+    <h1>Query and edit YAML from the command line.</h1>
+    <p class="hero-lede">Chart a path to any field in a manifest &mdash; and edit
+      it without reformatting the file.</p>
     <p>
       <code>yqr</code> is a jq-style filter for YAML. Point it at a manifest file,
       a <code>kubectl get -o yaml</code> dump, or a Helm-rendered bundle, and it
@@ -1126,6 +1144,30 @@ true</pre>
 
 </div>
 
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "yqr",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "Command Line Utility",
+  "operatingSystem": "Linux, macOS, Windows",
+  "softwareVersion": "0.5.1",
+  "description": "A jq-style query and editing tool for YAML. Reads are byte-preserving by default; edits change only the targeted bytes, leaving comments, anchors, quote style and blank lines intact.",
+  "url": "https://zoosky.github.io/yqr/",
+  "codeRepository": "https://github.com/zoosky/yqr",
+  "programmingLanguage": "Rust",
+  "license": "MIT OR Apache-2.0",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+
     </main>
 
     <footer>
@@ -1136,7 +1178,7 @@ true</pre>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-13</span>
+        <span>Site last updated: 2026-08-14</span>
         
     </footer>
 
