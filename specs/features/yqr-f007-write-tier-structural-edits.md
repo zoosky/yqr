@@ -100,11 +100,13 @@ which is how the divergence was measured rather than assumed.
 
 **Since fixed upstream, and yqr still does not delegate.** All three were filed
 as noyalib#225 and fixed by yqr's noyalib#226, released in **noyalib 0.0.19**;
-yqr pins 0.0.21 (`yqr-f014`). The table above therefore describes 0.0.18, not
-the current pin. Delegation was reconsidered and declined on fresh grounds —
-0.0.21 fixed a `remove` that destroyed a whole flow collection while returning
-`Ok`, so this is where upstream churn concentrates, and yqr's path carries no
-open defect. See §6 for the standing item.
+yqr pins 0.0.22 (`yqr-f015`). The table above therefore describes 0.0.18, not
+the current pin — **upstream now agrees with yqr on every case this module
+pins**, measured, not assumed (§6). Delegation is nonetheless declined, on
+grounds that do not depend on upstream being behind: an independent
+implementation is the *oracle* that makes the engine's correctness checkable,
+and it is what produced noyalib#225/#226 in the first place. Full reasoning in
+§6.
 
 Independently worth keeping: yqr's flow pre-check reports `removing an item
 from a flow collection is not supported`, where upstream surfaces `remove:
@@ -207,13 +209,50 @@ call" and "upstream has yqr's semantics" are different questions.
 
 Two further items are open here, neither gated on grammar:
 
-- **Re-evaluate delegating delete to upstream `remove`.** The three trivia
-  divergences that made §5.1 keep yqr's path were fixed by yqr's noyalib#226,
-  released in 0.0.19, so `yqr-f013` §3.2's option (b) is unblocked.
-  `yqr-f014` §3.3 declined it for a different reason: 0.0.21 fixed a
-  `remove` that destroyed a flow collection while returning `Ok`, so delete is
-  where upstream churn concentrates, and yqr's path has no open defect. Cheap
-  to revisit; revisit deliberately, not as a side effect of another change.
+- **Delegating delete to upstream `remove` — revisited 2026-08-15, and
+  settled: no.** This was carried through `yqr-f013` §3.2, `yqr-f014` §3.4 and
+  `yqr-b004` §6.4 as "cheap to revisit". It has now been revisited on the 0.0.22
+  pin, deliberately and on its own rather than inside another change, so it is
+  no longer an open question.
+
+  **Measurement.** `delete` was routed to `Document::remove` on a throwaway
+  branch and the whole suite run. **161 of 163 lib tests pass**, and every
+  integration suite passes untouched (46 corpus, 17 cli, 4 fidelity, 2
+  integration). The two failures are `refuses_a_flow_collection_item` and
+  `refuses_a_root_flow_collection_item_with_a_clear_message` — and neither is a
+  behaviour difference: upstream *also* refuses, returning `YqrError::Eval`,
+  and both fail only the assertion that the message names the flow collection.
+  Every `b006` case agrees: head-comment absorption, multiple contiguous head
+  comments, a detached comment correctly *not* absorbed, a keep-chomped `|+`
+  scalar's kept blanks, not eating the next sibling's comment, same-column
+  block sequences, both sole-entry refusals, and the anchor/alias guard.
+
+  So the reason previously on record — that delete is where upstream churn
+  concentrates — no longer describes the semantics. yqr's own noyalib#226 is
+  why. Three reasons that do not depend on upstream being behind keep the
+  decision where it is:
+
+  - **The independent implementation is a differential oracle, and it has paid
+    twice.** yqr found upstream's trivia bugs by having a second implementation
+    that disagreed — that *is* what noyalib#225/#226 were, two of yqr's four
+    upstream contributions. Delegating removes the ability to notice the engine
+    drifting, in precisely the property yqr sells.
+  - **This is not the `yqr-f015` case wearing different clothes.** The CRLF
+    workaround deleted there was pure redundancy — a post-pass over the
+    engine's own output, doing a job the engine had started doing correctly.
+    This module is an *alternative implementation* with its own semantics and
+    failure modes. Deleting redundancy is strictly good; swapping
+    implementations trades a known risk for an unknown one.
+  - **The trade is asymmetric.** The gain is roughly 350 lines of production
+    code deleted — written, tested, stable and quiet, the cheapest kind to own.
+    The cost is making byte-fidelity-on-edit depend on the mutator with the
+    most defect history in the dependency (trivia in 0.0.18, a flow collection
+    destroyed at `Ok` in 0.0.21). And the module does not fully go away
+    regardless: the flow pre-check has to stay for the diagnostic, which
+    §5.1 records as worth keeping on its own merits.
+
+  Reopen only on a *new* argument — not on upstream improving further, which is
+  already accounted for above.
 - **Collection right-hand sides for `+=` / new-key assignment.** Since
   `yqr-b008` these route through the typed `Emit` tier, which can spell a
   nested collection — so the "collections are not yet supported" refusal is now

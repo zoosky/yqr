@@ -227,7 +227,12 @@ It has since shipped, so the successor this section anticipated is
 declined it — not because the divergence remains, but because 0.0.21 exposed a
 *new* `remove` defect (a flow-collection delete that destroyed the document
 while returning `Ok`), and yqr's own path has no open defect. Full case list in
-`yqr-b004` §6.4; the standing decision is tracked in `yqr-f007` §6.
+`yqr-b004` §6.4.
+
+Option (b) was then **settled on 2026-08-15** against the 0.0.22 pin, by
+measurement rather than argument: upstream `remove` now reproduces every case
+yqr's path pins, and the decision to keep yqr's own path stands on the oracle
+argument instead. `yqr-f007` §6 carries it, and it is no longer an open item.
 
 One §3.4 hand-off also came due sooner than expected. The "latent correctness
 argument" for adopting the typed insertion tier turned out not to be latent:

@@ -278,13 +278,16 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()> {
-        // Deliberately not noyalib's `remove`, though the gap has narrowed: it
-        // accepts the same shapes since 0.0.18, and since 0.0.19 it folds the
-        // same entry-owned trivia this path does (that fix was yqr's, filed as
-        // the b006 rules diverging from it). What keeps the two separate now is
-        // churn, not semantics — 0.0.21 fixed a `remove` that destroyed a whole
-        // flow collection while reporting success, and this path carries the
-        // b006 rules next to the tests that pin them. Revisit deliberately.
+        // Deliberately not noyalib's `remove`, and the gap has closed rather
+        // than narrowed: measured on 0.0.22, upstream agrees with this path on
+        // every case the b006 tests pin, differing only in how it words the
+        // flow-item refusal. Keeping this path is therefore not a claim that
+        // upstream is behind. It is that two implementations are what make
+        // either one checkable — this one is how upstream's trivia divergences
+        // were found and fixed (noyalib#225/#226) — and that swapping
+        // implementations is a different trade from deleting a redundant pass
+        // over the engine's own output, which is what f015 removed. Settled;
+        // reopen on a new argument, not on upstream improving further.
         self.delete_entry(doc, path)
     }
 
