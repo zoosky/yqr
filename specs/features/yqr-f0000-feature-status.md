@@ -112,7 +112,8 @@ original hand-authored markup in `content/index.md` with the design as a
 dedicated `home` template, framed by the theme header and footer) with
 `specs/` mounted at `/specs`, using the vendored Accent default theme
 restyled with the home page's design tokens. `pages.yml`
-fetches the pinned accent binary (>= v0.23.0, native sub-path support) from
+fetches the pinned accent binary (v0.24.0; floor is >= v0.24.0 for the
+search-index fixes, sub-path support since v0.23.0) from
 the upstream GitHub release, builds with the `/yqr` prefix derived from the
 base URL, and deploys to `gh-pages` while preserving the benchmark
 dashboard.

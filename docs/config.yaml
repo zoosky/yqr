@@ -13,14 +13,23 @@
 # theme provides the header menu and the footer; the rest of the site uses
 # the standard theme, restyled with the home page's ink/brass/teal tokens.
 #
-# Requires accent >= v0.23.1. The site is served under the /yqr/ sub-path
-# on GitHub Pages; accent derives the deployment path prefix from the
-# site.url path component below, emits every internal URL prefixed, and
-# fails the build if an unprefixed root-absolute link slips through.
-# Since v0.23.1 the dev server applies the same prefix (serve/build
-# parity): `accent serve` redirects / to /yqr/ and mounts the site there.
-# Moving to a custom domain later just means changing site.url -- the
-# prefix disappears with it.
+# Requires accent >= v0.24.0, the version pages.yml pins. The site renders
+# identically under v0.23.1 -- every built page is byte-for-byte the same
+# apart from the version stamp in the footer -- but two v0.24.0 fixes to the
+# search index are load-bearing here, so the floor moves with the pin:
+# raw HTML in a page body is no longer tokenized as searchable text, which
+# is what kept `<!-- Feature fNNN -->` traceability comments (ground rule 19)
+# and the home page's leading comment block out of _search/index.json, and
+# indexed titles and snippets are escaped rather than concatenated into
+# innerHTML.
+#
+# The site is served under the /yqr/ sub-path on GitHub Pages; accent
+# derives the deployment path prefix from the site.url path component
+# below, emits every internal URL prefixed, and fails the build if an
+# unprefixed root-absolute link slips through. Since v0.23.1 the dev server
+# applies the same prefix (serve/build parity): `accent serve` redirects /
+# to /yqr/ and mounts the site there. Moving to a custom domain later just
+# means changing site.url -- the prefix disappears with it.
 #
 # Local development:  cd docs && accent serve   (site served under /yqr/)
 # Static build:       cd docs && accent build --clean
@@ -28,6 +37,14 @@
 # (accent build takes the base URL from site.url below; CI passes
 # --base-url explicitly with the same value, so the two produce identical
 # output.)
+#
+# Since v0.24.0 both `accent serve` and `accent serve-static` bind HTTPS
+# with a cached self-signed certificate and negotiate HTTP/2, so the local
+# URL is https://127.0.0.1:4400/yqr/ and the browser warns once until the
+# certificate is trusted (the server prints the install command on first
+# start). Pass --no-tls to either command for the old cleartext behaviour --
+# needed by anything that curls the dev server, though nothing in this
+# repository does.
 
 server:
   address: "127.0.0.1"
@@ -81,6 +98,19 @@ site:
     og:image:alt: "yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched."
     twitter:image: "https://zoosky.github.io/yqr/theme/assets/og-image.png"
     twitter:card: "summary_large_image"
+
+# No `build:` section. v0.24.0 added two blocks under it that carry serve-time
+# behaviour into a static build, and neither reaches this deployment:
+#
+#   build.header_artifacts  emits _headers (Netlify/Cloudflare Pages) or
+#                           .htaccess (Apache) from the `http_headers` config.
+#   build.routing           adds error_document / canonical_host / redirects
+#                           to the generated .htaccess (Apache only).
+#
+# GitHub Pages reads neither file, and this site sets no `http_headers` to
+# project in the first place, so both would emit dead bytes into the output
+# tree that rsync then deploys. They become relevant only if the site moves to
+# a host that honours one of the two dialects.
 
 code:
   theme: "base16-ocean.dark"

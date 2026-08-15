@@ -277,7 +277,8 @@ It is an [Accent CMS](https://accentcms.dev) site — a single-binary markdown
 CMS ([source](https://github.com/AccentCMS/accent)) — built from
 [`docs/`](docs/) with [`specs/`](specs/) mounted at `/specs`, deployed by the
 `Website` workflow on every push to `main`. Local preview:
-`cd docs && accent serve`.
+`cd docs && accent serve` (accent v0.24.0 serves it over HTTPS with a
+self-signed certificate; add `--no-tls` for plain HTTP).
 
 ## Architecture
 
