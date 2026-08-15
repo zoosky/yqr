@@ -6,6 +6,16 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **YAML engine upgraded from noyalib 0.0.22.** The one functional change in
+  that release is yqr's own contribution: an edit that adds a line now takes
+  the file's own line ending instead of always writing a Unix one. 0.5.1 fixed
+  that from yqr's side, by repairing the line endings after the fact; the
+  engine now gets them right when it writes the line, so the repair pass is
+  gone. Files are unchanged either way -- this removes a second mechanism doing
+  the same job, not a behaviour. No new dependencies.
+
 ## [0.5.1] - 2026-08-14
 
 A correctness release for the editing path. Adding a value that spanned more

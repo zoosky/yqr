@@ -1,12 +1,15 @@
 # Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings
 
-**Status:** Fixed (2026-08-13) — `emit` restores the document's own convention
-for the lines an edit added. Ships with `yqr-f014`.
+**Status:** Resolved (2026-08-15) — fixed upstream by yqr's noyalib#261,
+released in **noyalib 0.0.22**; the local workaround it subsumes was deleted
+with `yqr-f015`. (Fixed 2026-08-13 in yqr by an `emit` pass that restored the
+document's own convention for the lines an edit added, shipped with `yqr-f014`;
+§6 records the hand-over.)
 **Severity:** Medium — silent fidelity loss on a shipped write path, at exit 0,
 so `-i` wrote the mixed-ending file to disk and reported success. Lower than
 `yqr-b008` only because the result still parses and holds the right values.
 **Owner:** yqr maintainers
-**Last updated:** 2026-08-13
+**Last updated:** 2026-08-15
 **Affects:** `src/fidelity/write.rs` — the two line-*adding* operations,
 `insert_key` (new-key assignment) and `append` (`+=`). Present since the write
 tier shipped (`yqr-f006`, v0.4.0).
@@ -89,7 +92,7 @@ Five tests in `src/fidelity/write.rs`, all byte-exact:
 - `an_lf_document_is_untouched_by_the_crlf_restore`
 - `a_mixed_ending_document_is_left_alone`
 
-## 6. Upstream — noyalib#221 raised, fixed by noyalib#261 (open)
+## 6. Upstream — noyalib#221 raised, fixed by noyalib#261 (released in 0.0.22)
 
 The durable home for this is noyalib: an insertion should reproduce the
 document's existing line break rather than assume `\n`, the same way it already
@@ -97,8 +100,10 @@ derives indentation from the site. Raised in
 [noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5284260094),
 in the same comment that corrects the status update (`yqr-f014` §4), and
 contributed the same day as
-**[noyalib#261](https://github.com/sebastienrousseau/noyalib/pull/261)**
-(open, on the #222 / #223 / #226 pattern).
+**[noyalib#261](https://github.com/sebastienrousseau/noyalib/pull/261)**, on the
+#222 / #223 / #226 pattern. **Merged 2026-08-14 as `0e647db` — unmodified, all
+three files as submitted, no review changes requested — and released in noyalib
+0.0.22 the same day.**
 
 **Verified against `upstream/main` @ `554e883` (v0.0.21), not just yqr's
 symptom.** The defect is wider than the two mutators yqr uses:
@@ -142,7 +147,18 @@ yqr pointed at the PR branch, all 163 yqr tests pass, the five §5 tests
 included. With the workaround disabled against unpatched 0.0.21, three of them
 fail on exactly this property. So the upstream fix subsumes the workaround.
 
-Until it ships in a release yqr can pin, the workaround stays: it costs one
-pass over the emitted string per edited document and is covered by §5. **Delete
-it when upstream lands** — yqr second-guessing its engine's line endings is not
-a state to keep, and it is now proven redundant rather than assumed to be.
+### The workaround is gone (`yqr-f015`)
+
+Upstream landed, so §4's workaround was deleted rather than kept as
+belt-and-braces: yqr second-guessing its engine's line endings was never a state
+to keep, and two mechanisms agreeing today is one more place to disagree the
+next time either side moves.
+
+The §5 tests survive the deletion unchanged and now pin the **engine's**
+behaviour — they are the only thing that would catch a regression, since neither
+`tests/corpus_validation.rs` nor `tests/fidelity.rs` edits a CRLF document. The
+control was re-run against the published crate rather than the PR branch: with
+the workaround removed, `inserting_a_key_keeps_a_crlf_document_crlf`,
+`appending_an_item_keeps_a_crlf_document_crlf` and
+`a_multiline_insert_into_a_crlf_document_uses_crlf_throughout` fail against a
+temporary 0.0.21 pin and pass on 0.0.22. Details in `yqr-f015` §3.2 and §4.

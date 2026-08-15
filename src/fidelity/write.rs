@@ -189,10 +189,6 @@ fn apply_to_doc(
 pub(crate) struct NoyalibWriter {
     /// One editable CST document per logical YAML document.
     docs: Vec<::noyalib::cst::Document>,
-    /// Per document: was its source wholly CRLF-terminated at open time? The
-    /// mutators end an inserted line with `\n` whatever the document uses, so
-    /// this records what to restore. See [`Self::emit`].
-    crlf: Vec<bool>,
 }
 
 impl NoyalibWriter {
@@ -208,8 +204,7 @@ impl NoyalibWriter {
         // concatenates each document, so a slice that diverged from the input
         // would corrupt an untouched document.
         super::noyalib::verify_stream_tiles_input(input, &docs)?;
-        let crlf = docs.iter().map(|d| is_all_crlf(&d.to_string())).collect();
-        Ok(Self { docs, crlf })
+        Ok(Self { docs })
     }
 
     /// Bounds-checked mutable document accessor.
@@ -293,27 +288,17 @@ impl FidelityWriter for NoyalibWriter {
         self.delete_entry(doc, path)
     }
 
+    /// Concatenate the document stream, byte-for-byte as each document now
+    /// stands.
+    ///
+    /// Nothing is post-processed here. yqr used to re-terminate the lines an
+    /// edit added, because the mutators ended an inserted line with `\n`
+    /// whatever the document used; noyalib 0.0.22 derives the terminator from
+    /// the document the same way it already derived the indentation, so the
+    /// bytes arrive correct and second-guessing the engine's line endings would
+    /// only be a rewrite waiting to disagree with it.
     fn emit(&self) -> String {
-        self.docs
-            .iter()
-            .zip(&self.crlf)
-            .map(|(doc, &was_crlf)| {
-                let out = doc.to_string();
-                // An inserted line is terminated with `\n` regardless of the
-                // document's convention, so a CRLF file silently gained mixed
-                // endings. A document that was wholly CRLF has no bare `\n` of
-                // its own, which makes the restore exact rather than a guess:
-                // every bare `\n` left in the output is one this edit added.
-                // A mixed-ending document is left alone — there is no
-                // convention to restore, and guessing one would be the same
-                // class of unasked-for rewrite.
-                if was_crlf && out.contains('\n') {
-                    restore_crlf(&out)
-                } else {
-                    out
-                }
-            })
-            .collect()
+        self.docs.iter().map(ToString::to_string).collect()
     }
 }
 
@@ -326,42 +311,6 @@ fn noyalib_path(path: &Path) -> Result<String> {
             "cannot address key {key:?}: it uses characters the write path cannot express"
         ))
     })
-}
-
-/// Does `s` use CRLF for every line break it has, with no bare `\n`?
-///
-/// False for an LF document, for a mixed one, and for a document with no line
-/// break at all — in each case there is no single convention an inserted line
-/// should adopt.
-fn is_all_crlf(s: &str) -> bool {
-    let mut saw_crlf = false;
-    let bytes = s.as_bytes();
-    for (i, &b) in bytes.iter().enumerate() {
-        if b == b'\n' {
-            if i == 0 || bytes[i - 1] != b'\r' {
-                return false;
-            }
-            saw_crlf = true;
-        }
-    }
-    saw_crlf
-}
-
-/// Re-terminate every bare `\n` in `s` as `\r\n`, leaving existing `\r\n` alone.
-///
-/// Only ever applied to a document that was wholly CRLF before the edit, so the
-/// bare breaks it finds are exactly the ones an inserted line brought.
-fn restore_crlf(s: &str) -> String {
-    let mut out = String::with_capacity(s.len() + 8);
-    let mut prev = '\0';
-    for c in s.chars() {
-        if c == '\n' && prev != '\r' {
-            out.push('\r');
-        }
-        out.push(c);
-        prev = c;
-    }
-    out
 }
 
 /// Lower a scalar [`Value`] to the noyalib value the typed mutators take.
@@ -494,9 +443,14 @@ mod tests {
         assert_eq!(reparsed, vec![Value::String("8080".into())]);
     }
 
-    // A CRLF document must stay CRLF. The mutators terminate an inserted line
-    // with `\n` whatever the file uses, so before the restore in `emit` these
-    // produced mixed endings at exit 0 — with `-i`, written straight to disk.
+    // A CRLF document must stay CRLF. These five once pinned a yqr-side pass
+    // over the emitted string, added because the mutators terminated an
+    // inserted line with `\n` whatever the file used and so produced mixed
+    // endings at exit 0 — with `-i`, written straight to disk. The engine owns
+    // the terminator as of 0.0.22, so they now pin *its* behaviour, and they
+    // are the only thing here that would catch its return: the property is
+    // invisible to the corpus and fidelity harnesses, which never edit a CRLF
+    // document.
 
     #[test]
     fn inserting_a_key_keeps_a_crlf_document_crlf() {
@@ -536,7 +490,7 @@ mod tests {
     }
 
     #[test]
-    fn an_lf_document_is_untouched_by_the_crlf_restore() {
+    fn an_lf_document_stays_lf() {
         let out = apply(&assign(".m.b", Rhs::Literal(Value::Int(2))), "m:\n  a: 1\n").unwrap();
         assert_eq!(out, "m:\n  a: 1\n  b: 2\n");
     }
