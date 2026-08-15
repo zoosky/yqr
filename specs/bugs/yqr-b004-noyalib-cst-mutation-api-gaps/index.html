@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps",
-  "wordCount": 3604
+  "wordCount": 3700
 }
 </script>
 <script type="application/ld+json">
@@ -2918,12 +2918,20 @@ upstream <code>remove</code></strong> against the patched crate — the four tes
 divergence included.</p>
 <p>It has now landed and shipped, so the re-evaluation this section deferred is
 live: <code>yqr-f013</code> §3.2’s option (b) — call upstream <code>remove</code>, keep a trivia
-pre-pass — is no longer blocked by a known divergence. <code>yqr-f014</code> §3.3
+pre-pass — is no longer blocked by a known divergence. <code>yqr-f014</code> §3.4
 <strong>did not take it</strong>, for a new reason rather than the old one: noyalib 0.0.21
 fixed a case where <code>remove</code> deleted an entire flow collection while returning
 <code>Ok</code>, which makes delete the mutator with the most upstream churn, and yqr’s
-own path has no open defect and a standing test net (<code>yqr-f007</code> §5.4). The
-option stays open and cheap to revisit; it is tracked in <code>yqr-f007</code> §6.</p>
+own path has no open defect and a standing test net (<code>yqr-f007</code> §5.4).</p>
+<p><strong>Settled 2026-08-15, on the 0.0.22 pin: still no, and the churn reason is not
+what holds it.</strong> Routing <code>delete</code> to upstream <code>remove</code> passes 161 of 163 lib
+tests and every integration suite; the two failures are flow cases where
+upstream also refuses and only the diagnostic differs. Upstream reproduces every
+divergence §6.1 measured — this section’s own fix is why. What keeps yqr’s path
+is that an independent implementation is the oracle that made those divergences
+<em>measurable</em> (this issue and noyalib#226 exist because of it), and that swapping
+implementations is a materially different trade from deleting redundancy
+(<code>yqr-f015</code>). No longer an open item; the full record is in <code>yqr-f007</code> §6.</p>
 
         </div>
         </accent-island>

@@ -2136,12 +2136,21 @@ divergence included.
 
 It has now landed and shipped, so the re-evaluation this section deferred is
 live: `yqr-f013` §3.2's option (b) — call upstream `remove`, keep a trivia
-pre-pass — is no longer blocked by a known divergence. `yqr-f014` §3.3
+pre-pass — is no longer blocked by a known divergence. `yqr-f014` §3.4
 **did not take it**, for a new reason rather than the old one: noyalib 0.0.21
 fixed a case where `remove` deleted an entire flow collection while returning
 `Ok`, which makes delete the mutator with the most upstream churn, and yqr's
-own path has no open defect and a standing test net (`yqr-f007` §5.4). The
-option stays open and cheap to revisit; it is tracked in `yqr-f007` §6.
+own path has no open defect and a standing test net (`yqr-f007` §5.4).
+
+**Settled 2026-08-15, on the 0.0.22 pin: still no, and the churn reason is not
+what holds it.** Routing `delete` to upstream `remove` passes 161 of 163 lib
+tests and every integration suite; the two failures are flow cases where
+upstream also refuses and only the diagnostic differs. Upstream reproduces every
+divergence §6.1 measured — this section's own fix is why. What keeps yqr's path
+is that an independent implementation is the oracle that made those divergences
+*measurable* (this issue and noyalib#226 exist because of it), and that swapping
+implementations is a materially different trade from deleting redundancy
+(`yqr-f015`). No longer an open item; the full record is in `yqr-f007` §6.
 
 ---
 
@@ -3966,11 +3975,13 @@ which is how the divergence was measured rather than assumed.
 
 **Since fixed upstream, and yqr still does not delegate.** All three were filed
 as noyalib#225 and fixed by yqr's noyalib#226, released in **noyalib 0.0.19**;
-yqr pins 0.0.21 (`yqr-f014`). The table above therefore describes 0.0.18, not
-the current pin. Delegation was reconsidered and declined on fresh grounds —
-0.0.21 fixed a `remove` that destroyed a whole flow collection while returning
-`Ok`, so this is where upstream churn concentrates, and yqr's path carries no
-open defect. See §6 for the standing item.
+yqr pins 0.0.22 (`yqr-f015`). The table above therefore describes 0.0.18, not
+the current pin — **upstream now agrees with yqr on every case this module
+pins**, measured, not assumed (§6). Delegation is nonetheless declined, on
+grounds that do not depend on upstream being behind: an independent
+implementation is the *oracle* that makes the engine's correctness checkable,
+and it is what produced noyalib#225/#226 in the first place. Full reasoning in
+§6.
 
 Independently worth keeping: yqr's flow pre-check reports `removing an item
 from a flow collection is not supported`, where upstream surfaces `remove:
@@ -4073,13 +4084,50 @@ call" and "upstream has yqr's semantics" are different questions.
 
 Two further items are open here, neither gated on grammar:
 
-- **Re-evaluate delegating delete to upstream `remove`.** The three trivia
-  divergences that made §5.1 keep yqr's path were fixed by yqr's noyalib#226,
-  released in 0.0.19, so `yqr-f013` §3.2's option (b) is unblocked.
-  `yqr-f014` §3.3 declined it for a different reason: 0.0.21 fixed a
-  `remove` that destroyed a flow collection while returning `Ok`, so delete is
-  where upstream churn concentrates, and yqr's path has no open defect. Cheap
-  to revisit; revisit deliberately, not as a side effect of another change.
+- **Delegating delete to upstream `remove` — revisited 2026-08-15, and
+  settled: no.** This was carried through `yqr-f013` §3.2, `yqr-f014` §3.4 and
+  `yqr-b004` §6.4 as "cheap to revisit". It has now been revisited on the 0.0.22
+  pin, deliberately and on its own rather than inside another change, so it is
+  no longer an open question.
+
+  **Measurement.** `delete` was routed to `Document::remove` on a throwaway
+  branch and the whole suite run. **161 of 163 lib tests pass**, and every
+  integration suite passes untouched (46 corpus, 17 cli, 4 fidelity, 2
+  integration). The two failures are `refuses_a_flow_collection_item` and
+  `refuses_a_root_flow_collection_item_with_a_clear_message` — and neither is a
+  behaviour difference: upstream *also* refuses, returning `YqrError::Eval`,
+  and both fail only the assertion that the message names the flow collection.
+  Every `b006` case agrees: head-comment absorption, multiple contiguous head
+  comments, a detached comment correctly *not* absorbed, a keep-chomped `|+`
+  scalar's kept blanks, not eating the next sibling's comment, same-column
+  block sequences, both sole-entry refusals, and the anchor/alias guard.
+
+  So the reason previously on record — that delete is where upstream churn
+  concentrates — no longer describes the semantics. yqr's own noyalib#226 is
+  why. Three reasons that do not depend on upstream being behind keep the
+  decision where it is:
+
+  - **The independent implementation is a differential oracle, and it has paid
+    twice.** yqr found upstream's trivia bugs by having a second implementation
+    that disagreed — that *is* what noyalib#225/#226 were, two of yqr's four
+    upstream contributions. Delegating removes the ability to notice the engine
+    drifting, in precisely the property yqr sells.
+  - **This is not the `yqr-f015` case wearing different clothes.** The CRLF
+    workaround deleted there was pure redundancy — a post-pass over the
+    engine's own output, doing a job the engine had started doing correctly.
+    This module is an *alternative implementation* with its own semantics and
+    failure modes. Deleting redundancy is strictly good; swapping
+    implementations trades a known risk for an unknown one.
+  - **The trade is asymmetric.** The gain is roughly 350 lines of production
+    code deleted — written, tested, stable and quiet, the cheapest kind to own.
+    The cost is making byte-fidelity-on-edit depend on the mutator with the
+    most defect history in the dependency (trivia in 0.0.18, a flow collection
+    destroyed at `Ok` in 0.0.21). And the module does not fully go away
+    regardless: the flow pre-check has to stay for the diagnostic, which
+    §5.1 records as worth keeping on its own merits.
+
+  Reopen only on a *new* argument — not on upstream improving further, which is
+  already accounted for above.
 - **Collection right-hand sides for `+=` / new-key assignment.** Since
   `yqr-b008` these route through the typed `Emit` tier, which can spell a
   nested collection — so the "collections are not yet supported" refusal is now
@@ -5069,7 +5117,12 @@ It has since shipped, so the successor this section anticipated is
 declined it — not because the divergence remains, but because 0.0.21 exposed a
 *new* `remove` defect (a flow-collection delete that destroyed the document
 while returning `Ok`), and yqr's own path has no open defect. Full case list in
-`yqr-b004` §6.4; the standing decision is tracked in `yqr-f007` §6.
+`yqr-b004` §6.4.
+
+Option (b) was then **settled on 2026-08-15** against the 0.0.22 pin, by
+measurement rather than argument: upstream `remove` now reproduces every case
+yqr's path pins, and the decision to keep yqr's own path stands on the oracle
+argument instead. `yqr-f007` §6 carries it, and it is no longer an open item.
 
 One §3.4 hand-off also came due sooner than expected. The "latent correctness
 argument" for adopting the typed insertion tier turned out not to be latent:
@@ -5218,6 +5271,18 @@ where upstream has had the most churn, and yqr's version is covered by the
 `yqr-f007` §5.4 tests with no open defects. Re-evaluating is cheap and can
 happen any time; doing it in the same change as a corruption fix is not worth
 the coupling. Recorded as still-open in `yqr-f007` §6.
+
+**Settled 2026-08-15 — the answer is still no, and the reason above is not the
+one that holds.** Measured on the 0.0.22 pin (`yqr-f015`), with `delete` routed
+to upstream `remove`: 161 of 163 lib tests pass and every integration suite
+passes, the two failures being flow cases where upstream *also* refuses and only
+the message differs. Upstream agrees on every `b006` case, so "churn
+concentrates here" no longer describes the semantics — yqr's own noyalib#226 is
+why. The decision stands on grounds that do not depend on upstream being behind:
+the independent implementation is the differential oracle that produced
+noyalib#225/#226, and swapping implementations is a different trade from
+`yqr-f015`'s deletion of pure redundancy. Full measurement and reasoning in
+`yqr-f007` §6, which is no longer an open item.
 
 ### 3.5 Now expressible, deliberately not taken
 

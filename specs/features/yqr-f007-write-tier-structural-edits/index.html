@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 2046
+  "wordCount": 2396
 }
 </script>
 <script type="application/ld+json">
@@ -2669,11 +2669,13 @@ outright. §5.4’s tests pin all three; each one fails against upstream <code>r
 which is how the divergence was measured rather than assumed.</p>
 <p><strong>Since fixed upstream, and yqr still does not delegate.</strong> All three were filed
 as noyalib#225 and fixed by yqr’s noyalib#226, released in <strong>noyalib 0.0.19</strong>;
-yqr pins 0.0.21 (<code>yqr-f014</code>). The table above therefore describes 0.0.18, not
-the current pin. Delegation was reconsidered and declined on fresh grounds —
-0.0.21 fixed a <code>remove</code> that destroyed a whole flow collection while returning
-<code>Ok</code>, so this is where upstream churn concentrates, and yqr’s path carries no
-open defect. See §6 for the standing item.</p>
+yqr pins 0.0.22 (<code>yqr-f015</code>). The table above therefore describes 0.0.18, not
+the current pin — <strong>upstream now agrees with yqr on every case this module
+pins</strong>, measured, not assumed (§6). Delegation is nonetheless declined, on
+grounds that do not depend on upstream being behind: an independent
+implementation is the <em>oracle</em> that makes the engine’s correctness checkable,
+and it is what produced noyalib#225/#226 in the first place. Full reasoning in
+§6.</p>
 <p>Independently worth keeping: yqr’s flow pre-check reports <code>removing an item from a flow collection is not supported</code>, where upstream surfaces <code>remove: could not locate '-' indicator preceding sequence item</code>.</p>
 <h3 id="5-2-algorithm">5.2 Algorithm<a class="heading-anchor" href="#5-2-algorithm" aria-label="Link to this section"></a></h3>
 <p>For the target entry (final path segment <code>last</code>, resolved value byte span
@@ -2767,19 +2769,59 @@ expected one — though §5.1 is the standing reminder that “upstream has the
 call” and “upstream has yqr’s semantics” are different questions.</p>
 <p>Two further items are open here, neither gated on grammar:</p>
 <ul>
-<li><strong>Re-evaluate delegating delete to upstream <code>remove</code>.</strong> The three trivia
-divergences that made §5.1 keep yqr’s path were fixed by yqr’s noyalib#226,
-released in 0.0.19, so <code>yqr-f013</code> §3.2’s option (b) is unblocked.
-<code>yqr-f014</code> §3.3 declined it for a different reason: 0.0.21 fixed a
-<code>remove</code> that destroyed a flow collection while returning <code>Ok</code>, so delete is
-where upstream churn concentrates, and yqr’s path has no open defect. Cheap
-to revisit; revisit deliberately, not as a side effect of another change.</li>
-<li><strong>Collection right-hand sides for <code>+=</code> / new-key assignment.</strong> Since
+<li>
+<p><strong>Delegating delete to upstream <code>remove</code> — revisited 2026-08-15, and
+settled: no.</strong> This was carried through <code>yqr-f013</code> §3.2, <code>yqr-f014</code> §3.4 and
+<code>yqr-b004</code> §6.4 as “cheap to revisit”. It has now been revisited on the 0.0.22
+pin, deliberately and on its own rather than inside another change, so it is
+no longer an open question.</p>
+<p><strong>Measurement.</strong> <code>delete</code> was routed to <code>Document::remove</code> on a throwaway
+branch and the whole suite run. <strong>161 of 163 lib tests pass</strong>, and every
+integration suite passes untouched (46 corpus, 17 cli, 4 fidelity, 2
+integration). The two failures are <code>refuses_a_flow_collection_item</code> and
+<code>refuses_a_root_flow_collection_item_with_a_clear_message</code> — and neither is a
+behaviour difference: upstream <em>also</em> refuses, returning <code>YqrError::Eval</code>,
+and both fail only the assertion that the message names the flow collection.
+Every <code>b006</code> case agrees: head-comment absorption, multiple contiguous head
+comments, a detached comment correctly <em>not</em> absorbed, a keep-chomped <code>|+</code>
+scalar’s kept blanks, not eating the next sibling’s comment, same-column
+block sequences, both sole-entry refusals, and the anchor/alias guard.</p>
+<p>So the reason previously on record — that delete is where upstream churn
+concentrates — no longer describes the semantics. yqr’s own noyalib#226 is
+why. Three reasons that do not depend on upstream being behind keep the
+decision where it is:</p>
+<ul>
+<li><strong>The independent implementation is a differential oracle, and it has paid
+twice.</strong> yqr found upstream’s trivia bugs by having a second implementation
+that disagreed — that <em>is</em> what noyalib#225/#226 were, two of yqr’s four
+upstream contributions. Delegating removes the ability to notice the engine
+drifting, in precisely the property yqr sells.</li>
+<li><strong>This is not the <code>yqr-f015</code> case wearing different clothes.</strong> The CRLF
+workaround deleted there was pure redundancy — a post-pass over the
+engine’s own output, doing a job the engine had started doing correctly.
+This module is an <em>alternative implementation</em> with its own semantics and
+failure modes. Deleting redundancy is strictly good; swapping
+implementations trades a known risk for an unknown one.</li>
+<li><strong>The trade is asymmetric.</strong> The gain is roughly 350 lines of production
+code deleted — written, tested, stable and quiet, the cheapest kind to own.
+The cost is making byte-fidelity-on-edit depend on the mutator with the
+most defect history in the dependency (trivia in 0.0.18, a flow collection
+destroyed at <code>Ok</code> in 0.0.21). And the module does not fully go away
+regardless: the flow pre-check has to stay for the diagnostic, which
+§5.1 records as worth keeping on its own merits.</li>
+</ul>
+<p>Reopen only on a <em>new</em> argument — not on upstream improving further, which is
+already accounted for above.</p>
+</li>
+<li>
+<p><strong>Collection right-hand sides for <code>+=</code> / new-key assignment.</strong> Since
 <code>yqr-b008</code> these route through the typed <code>Emit</code> tier, which can spell a
 nested collection — so the “collections are not yet supported” refusal is now
 a scope limit, not a backend one. Lifting it is a user-facing surface change
-and belongs here or in <code>yqr-f008</code>, with its own tests and docs.</li>
-<li><strong>Creating a key that holds <code>.</code> or <code>[</code>.</strong> <code>insert_entry_value</code> can splice one
+and belongs here or in <code>yqr-f008</code>, with its own tests and docs.</p>
+</li>
+<li>
+<p><strong>Creating a key that holds <code>.</code> or <code>[</code>.</strong> <code>insert_entry_value</code> can splice one
 (it needs a path only to <em>replace</em> an existing key, so adding
 <code>app.kubernetes.io/name</code> is supported upstream), but yqr still refuses it in
 <code>insert_key</code>. The refusal is no longer about expressing the key — it is that
@@ -2787,11 +2829,14 @@ yqr’s path grammar could not then address it, so the edit would write a key
 the tool cannot read back. Lifting it means settling that addressing question
 first (an escape or quoting form in the path syntax), which is grammar work,
 not a splice change. This is the common Kubernetes label/annotation case and
-is worth doing.</li>
-<li><strong>A multi-line-insert case in the shared corpus.</strong> <code>yqr-b008</code> §6: the unit
+is worth doing.</p>
+</li>
+<li>
+<p><strong>A multi-line-insert case in the shared corpus.</strong> <code>yqr-b008</code> §6: the unit
 tests pin the fix, but <code>yqr-m003</code>’s byte-exact <code>EngineCase</code> tier has no
 multi-line-string insert, so a backend swap could reintroduce the corruption
-without failing <code>tests/corpus_validation.rs</code>.</li>
+without failing <code>tests/corpus_validation.rs</code>.</p>
+</li>
 </ul>
 <p><em>(These criteria firm up once the grammar and the upstream API surface are
 known.)</em></p>

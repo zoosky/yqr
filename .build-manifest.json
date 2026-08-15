@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-15T20:55:57Z",
+  "timestamp": "2026-08-15T21:11:16Z",
   "pages": {
     "/": {
       "content_hash": "0069f998b82fa6e5",
@@ -83,7 +83,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps": {
-      "content_hash": "81c6ba079b4eed75",
+      "content_hash": "4eddb91da2b67e3c",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -153,7 +153,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "1ebd4cd747830e07",
+      "content_hash": "4630ee0dbd0ec0b0",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -183,12 +183,12 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f013-noyalib-0-0-18-adoption": {
-      "content_hash": "9629a9f50269d7d7",
+      "content_hash": "446f1274a9d2f957",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f014-noyalib-0-0-21-adoption": {
-      "content_hash": "fb727b04aade06ee",
+      "content_hash": "adb0fed794a05ad1",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

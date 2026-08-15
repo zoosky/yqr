@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption",
-  "wordCount": 1834
+  "wordCount": 1877
 }
 </script>
 <script type="application/ld+json">
@@ -2784,7 +2784,11 @@ included.</p>
 declined it — not because the divergence remains, but because 0.0.21 exposed a
 <em>new</em> <code>remove</code> defect (a flow-collection delete that destroyed the document
 while returning <code>Ok</code>), and yqr’s own path has no open defect. Full case list in
-<code>yqr-b004</code> §6.4; the standing decision is tracked in <code>yqr-f007</code> §6.</p>
+<code>yqr-b004</code> §6.4.</p>
+<p>Option (b) was then <strong>settled on 2026-08-15</strong> against the 0.0.22 pin, by
+measurement rather than argument: upstream <code>remove</code> now reproduces every case
+yqr’s path pins, and the decision to keep yqr’s own path stands on the oracle
+argument instead. <code>yqr-f007</code> §6 carries it, and it is no longer an open item.</p>
 <p>One §3.4 hand-off also came due sooner than expected. The “latent correctness
 argument” for adopting the typed insertion tier turned out not to be latent:
 yqr’s hand-built fragments were silently corrupting multi-line string inserts
