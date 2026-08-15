@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786827426470,
+  "lastUpdate": 1786828346784,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1007,6 +1007,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 247594,
             "range": "± 1435",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "41041d40cbcf41ba71a6885887d52ad6ef633267",
+          "message": "docs(specs): settle the delete-delegation question, measured on 0.0.22 (#63)\n\nf013 3.2, f014 3.4 and b004 6.4 each carried 'call upstream remove\ninstead of yqr's delete path' as cheap to revisit. Revisited on the\n0.0.22 pin, on its own rather than inside another change.\n\nMeasured: with delete routed to Document::remove, 161 of 163 lib tests\npass and every integration suite passes. Both failures are flow cases\nwhere upstream also refuses -- only the diagnostic wording differs. Every\nb006 case agrees, so 'churn concentrates here', the reason previously on\nrecord, no longer describes the semantics. yqr's own noyalib#226 is why.\n\nThe decision stands on grounds that do not depend on upstream being\nbehind: the independent implementation is the differential oracle that\nmade those divergences measurable in the first place, and swapping\nimplementations is a different trade from f015's deletion of a redundant\npass over the engine's own output. No longer an open item -- reopen on a\nnew argument, not on upstream improving further.\n\nThe delete() comment said 'revisit deliberately' and would otherwise\ncontradict the specs, so it carries the settled reasoning now.",
+          "timestamp": "2026-08-15T23:11:04+02:00",
+          "tree_id": "e5187a15980eaeb75001664d0da0f53af20f6484",
+          "url": "https://github.com/zoosky/yqr/commit/41041d40cbcf41ba71a6885887d52ad6ef633267"
+        },
+        "date": 1786828344945,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 514,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5174,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 263671,
+            "range": "± 1314",
             "unit": "ns/iter"
           }
         ]
