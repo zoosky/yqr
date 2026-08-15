@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786685041350,
+  "lastUpdate": 1786827426470,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -965,6 +965,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 265663,
             "range": "± 845",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e8759cf006757ffedac4d7b47dfaff7aac02c15c",
+          "message": "chore(deps): adopt noyalib 0.0.22 and delete the b009 CRLF workaround (#62)\n\n0.0.22 carries one functional change, yqr's own noyalib#261 (merged\nunmodified 2026-08-14): a splice now takes the document's own line break\ninstead of assuming \\n, the same way it already took the indentation.\n\nThat subsumes the workaround f014 added -- a pass over the emitted string\nthat re-terminated the lines an edit introduced for documents that were\nwholly CRLF at open time. NoyalibWriter loses the crlf field, is_all_crlf,\nrestore_crlf, and the branch in emit, which is now a plain concatenation.\n\nKeeping both mechanisms would only add a place for them to disagree. The\ndeletion is measured, not assumed: with the workaround removed, three of\nthe five CRLF tests fail against a temporary 0.0.21 pin and pass on\n0.0.22. Those five survive unchanged and now pin the engine -- neither\nthe corpus nor the fidelity harness edits a CRLF document, so nothing\nelse here would catch a regression.\n\nSpecs: f015 (this adoption), b009 resolved and its delete-when-upstream-\nlands instruction carried out, f014 4 records that the #221 correction\nwas accepted upstream.",
+          "timestamp": "2026-08-15T22:55:45+02:00",
+          "tree_id": "0d91bb5446eeab170d35a4619783f53a2ee57dfb",
+          "url": "https://github.com/zoosky/yqr/commit/e8759cf006757ffedac4d7b47dfaff7aac02c15c"
+        },
+        "date": 1786827425498,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 518,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5070,
+            "range": "± 226",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 247594,
+            "range": "± 1435",
             "unit": "ns/iter"
           }
         ]
