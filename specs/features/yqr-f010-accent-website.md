@@ -74,7 +74,20 @@ a page; no wrapper folders, no required frontmatter):
 Local development uses the same binary: `cd docs && accent serve` (or
 `accent build --clean` plus the home-page copy to reproduce CI output;
 `accent serve-static --dir output` previews the build under the `/yqr`
-prefix).
+prefix). From accent v0.24.0 both serve commands bind HTTPS with a cached
+self-signed certificate and negotiate HTTP/2 — the local URL is
+`https://127.0.0.1:4400/yqr/`, and `--no-tls` restores cleartext.
+
+**Pinned accent version.** `pages.yml` pins `ACCENT_VERSION` and local
+development is expected to match it. The floor is v0.24.0: the site builds
+byte-identically under v0.23.1 (only the footer version stamp differs), but
+v0.24.0 stops raw HTML in a page body being tokenized as searchable text.
+Under v0.23.1 that leaked into `_search/index.json` twice — the
+`<!-- Feature f012 ... -->` traceability comment in `guide/validate.md`
+became a searchable term, against ground rule 19, and the home page's
+leading comment block became the home page's own search snippet, since
+`process.markdown: false` makes that comment the first paragraph the
+excerpt deriver sees.
 
 ## 3. Acceptance criteria
 

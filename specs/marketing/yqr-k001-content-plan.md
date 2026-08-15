@@ -114,12 +114,22 @@ It emits **`noindex,follow`**, not the `noindex,nofollow` used for drafts. The
 pages should still be crawled: that is how the noindex is seen at all, and
 links out of specs still count.
 
-**Known gap:** the spec URLs remain in `sitemap.xml`. accent 0.23.1 has no
-sitemap exclusion — a `sitemap.exclude` key is accepted and silently ignored,
-verified by adding one and diffing the output. A noindexed URL in a sitemap is
-untidy rather than harmful (crawlers fetch it, see the noindex, drop it), so
-this is left alone rather than worked around with build-time post-processing.
-Worth an upstream ask if accent gains the feature.
+**Known gap:** the spec URLs remain in `sitemap.xml` — 40 of the 49 entries.
+There is still no `sitemap.exclude` config key in accent 0.24.0 (the pinned
+version); such a key is accepted and silently ignored, verified by adding one
+and diffing the output. The one exclusion accent does apply is
+`frontmatter.noindex`, which drops a page from the sitemap — but that is a
+frontmatter field, and the specs get their `noindex,follow` from a URL-prefix
+rule in the theme's `head_meta` partial instead. Closing the gap through that
+route would mean either writing `noindex: true` into all 40 spec files (the
+tree is mounted and served as-is, so that is repository pollution for a
+website concern) or a `default_frontmatter` option on `content.mounts`, which
+does not exist — the mount config carries only `source`, `mount`, `priority`,
+`default_template`, and `fetch`. A noindexed URL in a sitemap is untidy rather
+than harmful (crawlers fetch it, see the noindex, drop it), so this is left
+alone rather than worked around with build-time post-processing. The upstream
+ask is now specific: per-mount default frontmatter, or a sitemap exclusion
+list keyed on URL prefix.
 
 **Deliberately not done:**
 

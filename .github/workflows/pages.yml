@@ -15,10 +15,13 @@ name: Website
 # preserves that directory.
 #
 # The accent binary is fetched from the upstream GitHub release and verified
-# against the published checksums. Requires accent >= v0.23.1 (base-path
-# support plus --strict-links, which fails the build if any internal link
-# target is missing from the output); keep ACCENT_VERSION in sync with the
-# version used for local development (accent --version).
+# against the published checksums. Requires accent >= v0.24.0 (base-path
+# support and --strict-links from v0.23.1, which fails the build if any
+# internal link target is missing from the output; v0.24.0 stops raw HTML in
+# a page body being indexed as searchable text, which is what keeps the
+# `<!-- Feature fNNN -->` traceability comments out of the search index);
+# keep ACCENT_VERSION in sync with the version used for local development
+# (accent --version). See docs/config.yaml for the full rationale.
 on:
   push:
     branches: [main]
@@ -43,7 +46,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  ACCENT_VERSION: v0.23.1
+  ACCENT_VERSION: v0.24.0
   SITE_URL: https://zoosky.github.io/yqr
 
 jobs:
