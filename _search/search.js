@@ -18,8 +18,13 @@
   // Shared rendering helpers
   // ===========================================================================
 
-  function escapeAttr(s) {
-    return s
+  // Escape text destined for innerHTML. Covers the four characters that can
+  // change parsing in element content and in a double-quoted attribute value,
+  // so one helper serves both the result URLs and the indexed title/snippet
+  // text. Everything the renderer interpolates must pass through here: indexed
+  // text is page content, and page content is authored, not trusted markup.
+  function escapeHtml(s) {
+    return String(s)
       .replace(/&/g, "&amp;")
       .replace(/"/g, "&quot;")
       .replace(/</g, "&lt;")
@@ -30,14 +35,63 @@
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
+  // Collect the [start, end) ranges of every query-token match in `text`,
+  // sorted by start and with overlaps merged, so a character is highlighted at
+  // most once no matter how many tokens cover it.
+  function matchRanges(text, queryTokens) {
+    var ranges = [];
+    for (var i = 0; i < queryTokens.length; i++) {
+      if (!queryTokens[i]) continue;
+      var re = new RegExp(escapeRegex(queryTokens[i]), "gi");
+      var m;
+      while ((m = re.exec(text)) !== null) {
+        if (m[0].length === 0) {
+          re.lastIndex++;
+          continue;
+        }
+        ranges.push([m.index, m.index + m[0].length]);
+      }
+    }
+    ranges.sort(function (a, b) {
+      return a[0] - b[0] || a[1] - b[1];
+    });
+    var merged = [];
+    for (var j = 0; j < ranges.length; j++) {
+      var last = merged.length > 0 ? merged[merged.length - 1] : null;
+      if (last && ranges[j][0] <= last[1]) {
+        if (ranges[j][1] > last[1]) last[1] = ranges[j][1];
+      } else {
+        merged.push([ranges[j][0], ranges[j][1]]);
+      }
+    }
+    return merged;
+  }
+
+  // Build the highlighted HTML for one indexed field: escape every segment of
+  // the source text and wrap the matched ones in <mark>, so the marks are the
+  // only markup in the result.
+  //
+  // Matching runs over the *raw* text and escaping happens per segment, rather
+  // than escaping up front and matching the escaped string: escaping first
+  // would let a token match inside an entity this function had just produced
+  // (a query of "amp" hitting the "amp" of "&amp;"), splitting it into visible
+  // garbage. It also keeps the marks out of the search space, so tokens like
+  // "mark" or "class" cannot match markup the previous iteration inserted.
   function highlightText(text, queryTokens, maxLen) {
     if (!text) return "";
     var snippet = text.length > maxLen ? text.substring(0, maxLen) + "..." : text;
-    for (var i = 0; i < queryTokens.length; i++) {
-      var re = new RegExp("(" + escapeRegex(queryTokens[i]) + ")", "gi");
-      snippet = snippet.replace(re, '<mark class="acms-search-highlight">$1</mark>');
+    var ranges = matchRanges(snippet, queryTokens);
+    var html = "";
+    var pos = 0;
+    for (var i = 0; i < ranges.length; i++) {
+      html += escapeHtml(snippet.substring(pos, ranges[i][0]));
+      html +=
+        '<mark class="acms-search-highlight">' +
+        escapeHtml(snippet.substring(ranges[i][0], ranges[i][1])) +
+        "</mark>";
+      pos = ranges[i][1];
     }
-    return snippet;
+    return html + escapeHtml(snippet.substring(pos));
   }
 
   function renderResults(container, results, queryTokens) {
@@ -55,7 +109,7 @@
       var snippet = highlightText(r.snippet, queryTokens, 150);
       html +=
         '<a class="acms-search-result" href="' +
-        escapeAttr(r.url) +
+        escapeHtml(r.url) +
         '" role="option"' +
         (i === 0 ? ' aria-selected="true"' : "") +
         ">" +
@@ -425,7 +479,9 @@
     }
 
     input.addEventListener("focus", function () {
-      if (input.value.trim().length >= 2 && resultsContainer.innerHTML) {
+      // hasChildNodes() rather than reading innerHTML: same truthiness, but it
+      // does not serialize the whole result list to a string on every focus.
+      if (input.value.trim().length >= 2 && resultsContainer.hasChildNodes()) {
         resultsContainer.hidden = false;
       }
     });

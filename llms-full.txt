@@ -2852,7 +2852,8 @@ original hand-authored markup in `content/index.md` with the design as a
 dedicated `home` template, framed by the theme header and footer) with
 `specs/` mounted at `/specs`, using the vendored Accent default theme
 restyled with the home page's design tokens. `pages.yml`
-fetches the pinned accent binary (>= v0.23.0, native sub-path support) from
+fetches the pinned accent binary (v0.24.0; floor is >= v0.24.0 for the
+search-index fixes, sub-path support since v0.23.0) from
 the upstream GitHub release, builds with the `/yqr` prefix derived from the
 base URL, and deploys to `gh-pages` while preserving the benchmark
 dashboard.
@@ -4322,7 +4323,20 @@ a page; no wrapper folders, no required frontmatter):
 Local development uses the same binary: `cd docs && accent serve` (or
 `accent build --clean` plus the home-page copy to reproduce CI output;
 `accent serve-static --dir output` previews the build under the `/yqr`
-prefix).
+prefix). From accent v0.24.0 both serve commands bind HTTPS with a cached
+self-signed certificate and negotiate HTTP/2 — the local URL is
+`https://127.0.0.1:4400/yqr/`, and `--no-tls` restores cleartext.
+
+**Pinned accent version.** `pages.yml` pins `ACCENT_VERSION` and local
+development is expected to match it. The floor is v0.24.0: the site builds
+byte-identically under v0.23.1 (only the footer version stamp differs), but
+v0.24.0 stops raw HTML in a page body being tokenized as searchable text.
+Under v0.23.1 that leaked into `_search/index.json` twice — the
+`<!-- Feature f012 ... -->` traceability comment in `guide/validate.md`
+became a searchable term, against ground rule 19, and the home page's
+leading comment block became the home page's own search snippet, since
+`process.markdown: false` makes that comment the first paragraph the
+excerpt deriver sees.
 
 ## 3. Acceptance criteria
 
@@ -6329,12 +6343,22 @@ It emits **`noindex,follow`**, not the `noindex,nofollow` used for drafts. The
 pages should still be crawled: that is how the noindex is seen at all, and
 links out of specs still count.
 
-**Known gap:** the spec URLs remain in `sitemap.xml`. accent 0.23.1 has no
-sitemap exclusion — a `sitemap.exclude` key is accepted and silently ignored,
-verified by adding one and diffing the output. A noindexed URL in a sitemap is
-untidy rather than harmful (crawlers fetch it, see the noindex, drop it), so
-this is left alone rather than worked around with build-time post-processing.
-Worth an upstream ask if accent gains the feature.
+**Known gap:** the spec URLs remain in `sitemap.xml` — 40 of the 49 entries.
+There is still no `sitemap.exclude` config key in accent 0.24.0 (the pinned
+version); such a key is accepted and silently ignored, verified by adding one
+and diffing the output. The one exclusion accent does apply is
+`frontmatter.noindex`, which drops a page from the sitemap — but that is a
+frontmatter field, and the specs get their `noindex,follow` from a URL-prefix
+rule in the theme's `head_meta` partial instead. Closing the gap through that
+route would mean either writing `noindex: true` into all 40 spec files (the
+tree is mounted and served as-is, so that is repository pollution for a
+website concern) or a `default_frontmatter` option on `content.mounts`, which
+does not exist — the mount config carries only `source`, `mount`, `priority`,
+`default_template`, and `fetch`. A noindexed URL in a sitemap is untidy rather
+than harmful (crawlers fetch it, see the noindex, drop it), so this is left
+alone rather than worked around with build-time post-processing. The upstream
+ask is now specific: per-mount default frontmatter, or a sitemap exclusion
+list keyed on URL prefix.
 
 **Deliberately not done:**
 

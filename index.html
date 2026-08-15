@@ -84,7 +84,7 @@
     
     
     
-    <meta name="build-hash" content="2a961d40ef">
+    <meta name="build-hash" content="a245532b55">
     
     
     <script type="application/ld+json">
@@ -788,21 +788,22 @@
 
 <div class="wrap">
 <!--
-  yqr in Kubernetes -- install paths and usage recipes.
-  Every command and output on this page was run against a real yqr build;
-  see the fidelity corpus this demo borrows from.
+  Home page -- the pitch, the three outcome cards, and the worked examples.
+  `process.markdown: false` in the frontmatter above passes this markup to
+  the browser untouched, so what follows is hand-authored HTML rather than
+  rendered markdown.
   The theme provides the header menu and footer; the page design lives in
   themes/default/templates/home.html.jinja.
   Feature/spec traceability: yqr-b001, yqr-f003, yqr-m002
 -->
   <div class="hero">
     <h1>Query and edit YAML from the command line.</h1>
-    <p class="hero-lede">Chart a path to any field in a manifest &mdash; and edit
+    <p class="hero-lede">Chart a path to any field in a manifest — and edit
       it without reformatting the file.</p>
     <p>
       <code>yqr</code> is a jq-style filter for YAML. Point it at a manifest file,
       a <code>kubectl get -o yaml</code> dump, or a Helm-rendered bundle, and it
-      walks straight to the field you asked for &mdash; as a value, not as JSON
+      walks straight to the field you asked for — as a value, not as JSON
       you have to decode back.
     </p>
   </div>
@@ -842,7 +843,7 @@ spec:
   </div>
 
   <p style="color:var(--text-soft); font-size:15px; max-width:74ch; text-wrap:pretty; margin-top:-32px;">
-    Kubernetes spells file permissions in octal &mdash; <code>defaultMode: 0640</code> on
+    Kubernetes spells file permissions in octal — <code>defaultMode: 0640</code> on
     a Secret or ConfigMap volume. Read that field through yqr and the value comes
     back exactly as written, because yqr never re-typed it in the first place.
     Only if you opt into the classic
@@ -862,7 +863,7 @@ spec:
         <h3>On your machine</h3>
         <code class="loc">cargo install yqr</code>
         <p>Pulls the published crate to <code class="mono">~/.cargo/bin/yqr</code>
-          &mdash; keep that directory on <code class="mono">PATH</code> so plain
+          — keep that directory on <code class="mono">PATH</code> so plain
           <code class="mono">yqr</code> resolves from any shell, including one
           already piping <code class="mono">kubectl</code> output.</p>
         <code class="loc">cargo build --release</code>
@@ -875,20 +876,20 @@ spec:
         <h3>Inside a container image</h3>
         <code class="loc">/usr/local/bin/yqr</code>
         <p>Build it in a multi-stage <code class="mono">Dockerfile</code> and
-          copy just the binary into the runtime stage &mdash; no Rust
+          copy just the binary into the runtime stage — no Rust
           toolchain, no source tree, in the image that actually ships.</p>
       </div>
     </div>
 
     <div class="callout" id="engines">
       <strong class="callout-title">Byte-preserving reads are the default.</strong>
-      Untouched nodes come back as their original source bytes &mdash; comments,
+      Untouched nodes come back as their original source bytes — comments,
       quoting, indentation, and line endings survive, and the identity filter
       reproduces the input byte-for-byte, no flag required.
       <pre><span class="prompt">$</span> yqr '.' pod.yaml</pre>
       Pass <code>--normalize</code> (<code>-N</code>) to opt into the classic,
       re-serializing pipeline (comments dropped, scalars canonicalized).
-      Byte-preserving reads are powered by noyalib's lossless CST &mdash;
+      Byte-preserving reads are powered by noyalib's lossless CST —
       yqr's one and only YAML engine.
       See the <a href="https://github.com/zoosky/yqr/tree/main/docs/content/demo">runnable demo</a>
       for an eight-step walkthrough of navigation, iteration, pipes, raw output,
@@ -897,12 +898,12 @@ spec:
 
     <!-- Feature f006: write tier v1 (value assignment + in-place edits) -->
     <div class="callout" id="edits">
-      <strong class="callout-title">It edits, too &mdash; and only the bytes you target.</strong>
+      <strong class="callout-title">It edits, too — and only the bytes you target.</strong>
       Give it a mutating filter and yqr changes just that node, leaving every
-      other byte &mdash; comments, indentation, quoting, key order &mdash;
+      other byte — comments, indentation, quoting, key order —
       untouched, or refuses. Replace a value with <code>=</code>, append to a
       block sequence with <code>+=</code>, add a key, or drop an entry with
-      <code>del(&hellip;)</code>:
+      <code>del(…)</code>:
       <pre><span class="prompt">$</span> yqr <span class="filter">'.spec.replicas = 5'</span> deploy.yaml
 <span class="prompt">$</span> yqr <span class="filter">'.spec.ports += 9090'</span> deploy.yaml
 <span class="prompt">$</span> yqr <span class="filter">'del(.metadata.labels)'</span> deploy.yaml
@@ -912,7 +913,7 @@ spec:
       identical; deleting the only entry of a block, or an item of a flow
       collection (<code>[a, b]</code>), is refused with a clear message.
       Add <code>-i</code> (<code>--in-place</code>) and the file is rewritten
-      atomically &mdash; a <code>git diff</code> touches only the line you
+      atomically — a <code>git diff</code> touches only the line you
       changed. An edit that would restructure the document is refused (exit 5)
       rather than emitted, and under <code>-i</code> the file is left untouched.
       <pre><span class="prompt">$</span> yqr -i <span class="filter">'.spec.replicas = 5'</span> deploy.yaml
@@ -922,7 +923,7 @@ spec:
     <!-- Feature f012: the validate subcommand -->
     <div class="callout" id="validate">
       <strong class="callout-title">Validate after every edit.</strong>
-      One command answers whether a file is still correct YAML &mdash; and a
+      One command answers whether a file is still correct YAML — and a
       pass certifies more than "parses": the parsed documents must reproduce
       the input byte-for-byte, the same invariant behind yqr's fidelity
       reads. Failures are compiler-style diagnostics with a stable code, a
@@ -930,8 +931,8 @@ spec:
       so humans and agents can act on them. Edit, then verify:
       <pre><span class="prompt">$</span> yqr -i <span class="filter">'.spec.replicas = 5'</span> deploy.yaml   <span class="filter"># edit</span>
 <span class="prompt">$</span> yqr validate --strict deploy.yaml        <span class="filter"># verify -- silent, exit 0</span></pre>
-      When the file is not correct YAML &mdash; a hand edit gone wrong, a
-      half-resolved merge, a truncated write &mdash; the verdict names the
+      When the file is not correct YAML — a hand edit gone wrong, a
+      half-resolved merge, a truncated write — the verdict names the
       spot:
       <pre><span class="prompt">$</span> yqr validate deploy.yaml
 error[Y001]: expected a node but found StreamEnd
@@ -940,8 +941,8 @@ error[Y001]: expected a node but found StreamEnd
 3 | b: [1,
   |   ^</pre>
       <code>--strict</code> also flags duplicate mapping keys
-      (<code>Y101</code>) &mdash; accepted last-wins by ordinary reads, so a
-      bad edit silently drops data &mdash; reporting every duplicate,
+      (<code>Y101</code>) — accepted last-wins by ordinary reads, so a
+      bad edit silently drops data — reporting every duplicate,
       <code>&lt;&lt;</code> merge keys included, with the positions of both
       occurrences. Keys that collide after string conversion are refused
       outright (<code>Y102</code>), non-UTF-8 input is a coded finding
@@ -977,7 +978,7 @@ error[Y001]: expected a node but found StreamEnd
 
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> kubectl get pod web-0 -o yaml | yqr -r <span class="filter">'.spec.initContainers[]? | .image'</span></pre>
-          <p class="note">Init container images when the pod has any &mdash;
+          <p class="note">Init container images when the pod has any —
             the trailing <code class="mono">?</code> keeps pods with none
             from erroring the pipeline.</p>
         </div>
@@ -986,9 +987,9 @@ error[Y001]: expected a node but found StreamEnd
           <pre class="cmd"><span class="prompt">$</span> yqr validate --strict manifests/*.yaml</pre>
           <p class="note">A gate before <code class="mono">kubectl apply</code>:
             every manifest must parse, round-trip byte-for-byte, and carry no
-            duplicate keys. Exit 1 with a located diagnostic if not &mdash; and
+            duplicate keys. Exit 1 with a located diagnostic if not — and
             an empty file list is a loud usage error, so a glob that matches
-            nothing never passes as &ldquo;all valid&rdquo;.</p>
+            nothing never passes as “all valid”.</p>
         </div>
       </div>
 
@@ -1009,7 +1010,7 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.data.enableBeta'</span> /config/values.yaml</pre>
           <p class="note">Read a flag out of a mounted ConfigMap and hand it
-            to the next step &mdash; a common init-container job.</p>
+            to the next step — a common init-container job.</p>
         </div>
       </div>
 
@@ -1028,16 +1029,16 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
       <div class="mini-card">
         <h3>CI/CD pipelines</h3>
         <p>GitHub Actions workflows are YAML. Audit what a job actually runs
-          without opening the file &mdash; these two ran against this
+          without opening the file — these two ran against this
           repo's own <code class="mono">ci.yml</code>.</p>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.jobs.test.["runs-on"]'</span> ci.yml</pre>
-          <p class="note">ubuntu-latest &mdash; bracket syntax reaches keys a
+          <p class="note">ubuntu-latest — bracket syntax reaches keys a
             bareword can't spell, like <code class="mono">runs-on</code>.</p>
         </div>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.jobs.test.steps[1].with.toolchain'</span> ci.yml</pre>
-          <p class="note">1.97 &mdash; confirm the pinned Rust version without
+          <p class="note">1.97 — confirm the pinned Rust version without
             scrolling past the cache step.</p>
         </div>
       </div>
@@ -1048,27 +1049,27 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
           run it.</p>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.services[] | .image'</span> compose.yaml</pre>
-          <p class="note">yqr-demo:latest, postgres:16 &mdash; every image
+          <p class="note">yqr-demo:latest, postgres:16 — every image
             referenced, one per line.</p>
         </div>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.services.web.environment.LOG_LEVEL'</span> compose.yaml</pre>
-          <p class="note">debug &mdash; one config value, no grep.</p>
+          <p class="note">debug — one config value, no grep.</p>
         </div>
       </div>
 
       <div class="mini-card">
         <h3>Ansible playbooks</h3>
-        <p>A playbook is a YAML list of plays &mdash; walk it like any other
+        <p>A playbook is a YAML list of plays — walk it like any other
           sequence.</p>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.[0].tasks[] | .name'</span> playbook.yml</pre>
-          <p class="note">Install nginx, Start nginx &mdash; every task in
+          <p class="note">Install nginx, Start nginx — every task in
             the first play, at a glance.</p>
         </div>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.[0].hosts'</span> playbook.yml</pre>
-          <p class="note">web &mdash; which hosts that play targets.</p>
+          <p class="note">web — which hosts that play targets.</p>
         </div>
       </div>
 
@@ -1079,7 +1080,7 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
     <div class="section-head">
       <p class="eyebrow">further afield</p>
       <h2>Three more, shown in full</h2>
-      <p>Same grammar, different files &mdash; this time with the source
+      <p>Same grammar, different files — this time with the source
         shown, so nothing here has to be taken on faith.</p>
     </div>
 
@@ -1100,7 +1101,7 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.paths.["/widgets/{id}"].get.summary'</span> openapi.yaml
 Get a widget</pre>
           <p class="note">Path keys have slashes and braces, so a bareword
-            can't spell them &mdash; bracket syntax reaches them anyway,
+            can't spell them — bracket syntax reaches them anyway,
             the same way <code class="mono">.["runs-on"]</code> did for the
             CI workflow above.</p>
         </div>
@@ -1139,7 +1140,7 @@ HighLatency</pre>
         <div class="recipe">
           <pre class="cmd"><span class="prompt">$</span> yqr -r <span class="filter">'.groups[0].rules[0].expr'</span> rules.yaml
 rate(http_requests_total{status="5xx"}[5m]) &gt; 0.05</pre>
-          <p class="note">The exact expression for that alert &mdash; useful
+          <p class="note">The exact expression for that alert — useful
             when you just need to confirm the number that pages someone,
             not re-read the whole rules file.</p>
         </div>
@@ -1149,7 +1150,7 @@ rate(http_requests_total{status="5xx"}[5m]) &gt; 0.05</pre>
     <div class="explicit-card">
       <h3>Application config</h3>
       <p class="lede">Most services ship a YAML config file alongside the
-        binary &mdash; database targets, ports, feature flags. yqr reads it
+        binary — database targets, ports, feature flags. yqr reads it
         the same way it reads anything else.</p>
       <pre class="snippet"><code><span class="tok-key">database:</span>
   host: db.internal
@@ -1179,7 +1180,7 @@ true</pre>
     <div class="section-head">
       <p class="eyebrow">filter grammar</p>
       <h2>What yqr can walk today</h2>
-      <p>yqr is at milestone M0. This is the whole grammar &mdash; every
+      <p>yqr is at milestone M0. This is the whole grammar — every
         recipe on this page is built from it.</p>
     </div>
     <table>
@@ -1237,10 +1238,10 @@ true</pre>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-14</span>
+        <span>Site last updated: 2026-08-15</span>
         
     </footer>
 

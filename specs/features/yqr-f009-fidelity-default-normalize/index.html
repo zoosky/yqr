@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta name="description" content="Status: Done Epic: Fidelity-first architecture (a001) Owner: yqr maintainers Related: yqr-f002 (fidelity read floor &#x2f; engine seam), yqr-f005 (the --preserve&#x2f;--engine split — superseded by this spec), yqr-f006 (write tier — already fidelity-by-default), yqr-b001 (the lossy-default bug this clo...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`">
-<meta property="og:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta property="og:description" content="Status: Done Epic: Fidelity-first architecture (a001) Owner: yqr maintainers Related: yqr-f002 (fidelity read floor &#x2f; engine seam), yqr-f005 (the --preserve&#x2f;--engine split — superseded by this spec), yqr-f006 (write tier — already fidelity-by-default), yqr-b001 (the lossy-default bug this clo...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`">
-<meta name="twitter:description" content="yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.">
+<meta name="twitter:description" content="Status: Done Epic: Fidelity-first architecture (a001) Owner: yqr maintainers Related: yqr-f002 (fidelity read floor &#x2f; engine seam), yqr-f005 (the --preserve&#x2f;--engine split — superseded by this spec), yqr-f006 (write tier — already fidelity-by-default), yqr-b001 (the lossy-default bug this clo...">
 
 
 
@@ -85,15 +85,15 @@
     
     
     
-    <meta name="build-hash" content="2a961d40ef">
+    <meta name="build-hash" content="a245532b55">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-14",
-  "description": "yqr -- a jq-style query and editing tool for YAML with byte-fidelity reads and surgical writes.",
+  "dateModified": "2026-08-15",
+  "description": "Status: Done Epic: Fidelity-first architecture (a001) Owner: yqr maintainers Related: yqr-f002 (fidelity read floor / engine seam), yqr-f005 (the --preserve/--engine split — superseded by this spec), yqr-f006 (write tier — already fidelity-by-default), yqr-b001 (the lossy-default bug this clo...",
   "inLanguage": "en",
   "name": "Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f009-fidelity-default-normalize",
@@ -2692,31 +2692,31 @@ Demo, black-box CLI tests, README fidelity section, the CHANGELOG, and
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
+      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
+      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
+      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
+      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
       
-      <time class="recent-docs-date" datetime="2026-08-14">2026-08-14</time>
+      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
     </li>
     
   </ul>
@@ -2744,10 +2744,10 @@ Demo, black-box CLI tests, README fidelity section, the CHANGELOG, and
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.23.1 (ecf4853)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-14</span>
+        <span>Site last updated: 2026-08-15</span>
         
     </footer>
 
