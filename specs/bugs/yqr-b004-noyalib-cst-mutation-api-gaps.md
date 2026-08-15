@@ -403,9 +403,18 @@ divergence included.
 
 It has now landed and shipped, so the re-evaluation this section deferred is
 live: `yqr-f013` §3.2's option (b) — call upstream `remove`, keep a trivia
-pre-pass — is no longer blocked by a known divergence. `yqr-f014` §3.3
+pre-pass — is no longer blocked by a known divergence. `yqr-f014` §3.4
 **did not take it**, for a new reason rather than the old one: noyalib 0.0.21
 fixed a case where `remove` deleted an entire flow collection while returning
 `Ok`, which makes delete the mutator with the most upstream churn, and yqr's
-own path has no open defect and a standing test net (`yqr-f007` §5.4). The
-option stays open and cheap to revisit; it is tracked in `yqr-f007` §6.
+own path has no open defect and a standing test net (`yqr-f007` §5.4).
+
+**Settled 2026-08-15, on the 0.0.22 pin: still no, and the churn reason is not
+what holds it.** Routing `delete` to upstream `remove` passes 161 of 163 lib
+tests and every integration suite; the two failures are flow cases where
+upstream also refuses and only the diagnostic differs. Upstream reproduces every
+divergence §6.1 measured — this section's own fix is why. What keeps yqr's path
+is that an independent implementation is the oracle that made those divergences
+*measurable* (this issue and noyalib#226 exist because of it), and that swapping
+implementations is a materially different trade from deleting redundancy
+(`yqr-f015`). No longer an open item; the full record is in `yqr-f007` §6.

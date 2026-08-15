@@ -135,6 +135,18 @@ where upstream has had the most churn, and yqr's version is covered by the
 happen any time; doing it in the same change as a corruption fix is not worth
 the coupling. Recorded as still-open in `yqr-f007` §6.
 
+**Settled 2026-08-15 — the answer is still no, and the reason above is not the
+one that holds.** Measured on the 0.0.22 pin (`yqr-f015`), with `delete` routed
+to upstream `remove`: 161 of 163 lib tests pass and every integration suite
+passes, the two failures being flow cases where upstream *also* refuses and only
+the message differs. Upstream agrees on every `b006` case, so "churn
+concentrates here" no longer describes the semantics — yqr's own noyalib#226 is
+why. The decision stands on grounds that do not depend on upstream being behind:
+the independent implementation is the differential oracle that produced
+noyalib#225/#226, and swapping implementations is a different trade from
+`yqr-f015`'s deletion of pure redundancy. Full measurement and reasoning in
+`yqr-f007` §6, which is no longer an open item.
+
 ### 3.5 Now expressible, deliberately not taken
 
 Two refusals stop being backend constraints with this bump. Both stay, and the
