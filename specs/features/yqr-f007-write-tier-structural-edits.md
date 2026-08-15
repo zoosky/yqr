@@ -200,7 +200,7 @@ these become a call, not a splice (adoption: `yqr-f013` §3.4):
   no offset re-basing in yqr.
 
 The upstream `PR-with-fix` path (§2) already ran its course for all three, and
-0.0.21 is pinned (`yqr-f014`), so each of these is now a grammar decision over
+0.0.22 is pinned (`yqr-f015`), so each of these is now a grammar decision over
 a live API. Raw `replace_span` is the route of last resort rather than the
 expected one — though §5.1 is the standing reminder that "upstream has the
 call" and "upstream has yqr's semantics" are different questions.

@@ -206,6 +206,17 @@ disabled and yqr pointed at the PR branch, all 163 yqr tests pass — and three
 fail against unpatched 0.0.21 with the workaround disabled. `yqr-b009` §6
 carries the per-call table and that evidence.
 
+**Outcome (2026-08-15).** Both halves landed. #261 was merged unmodified on
+2026-08-14 and released in **noyalib 0.0.22**; `yqr-f015` pins it and deletes
+the workaround. And the correction above was **accepted**: the maintainer's
+[2026-08-14 update on #221](https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5297805246)
+now records gaps 1, 2 and 3 as shipped and re-scopes 4 and 5 from "open" to
+*partial*, which is what this section argued from the published crates. The two
+that remain — fragment quoting not yet wired into the fragment mutators, and
+`remove_subtree` / sole-entry / flow removal — are catalogued in `yqr-f015` §5;
+neither blocks yqr, and the standing offer to port yqr's delete fallback stays
+moot for the reason given above.
+
 ## 5. Acceptance criteria
 
 - [x] `Cargo.toml` pins `noyalib = "0.0.21"`, the adjacent comment names 0.0.21,

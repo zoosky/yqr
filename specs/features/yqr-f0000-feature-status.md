@@ -51,6 +51,7 @@ dependency/release timing.
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
+| [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -78,9 +79,16 @@ assignment hand-built a text fragment, so a multi-line string was spliced at the
 rendering's indentation rather than the insertion site's — producing unparseable
 output or a wrong value, both at exit 0. Both now use the typed tier
 (`insert_entry_value` / `push_back_value`), which is the `f013` §3.4 hand-off
-coming due early. f008 (`|=` computed updates) is gated on `f001` M2
-(arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
-(done) → f014 (done) → f007 remainder → M2 → f008.
+coming due early. f015 **done**: the pin is now 0.0.22, a single-purpose release
+carrying yqr's own noyalib#261 — merged unmodified — so the feature is a bump
+plus a **deletion**, retiring the `b009` CRLF restore from `emit` now that the
+engine derives an inserted line's terminator from the document the same way it
+already derived the indentation. The control is what makes that safe rather than
+plausible: with the workaround removed, the same three tests fail against a
+temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f008 (`|=` computed
+updates) is gated on `f001` M2 (arithmetic/builtins). Priority order: f006
+(done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f007
+remainder → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -120,10 +128,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 14
+- Total features: 15
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
-- Done: 8 (f002, f006, f009, f010, f011, f012, f013, f014)
+- Done: 9 (f002, f006, f009, f010, f011, f012, f013, f014, f015)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
