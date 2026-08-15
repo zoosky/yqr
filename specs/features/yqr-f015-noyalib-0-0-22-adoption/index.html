@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementation m001 — CI pipeline and release process - yqr</title>
+    <title>Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes - yqr</title>
     
     
 
@@ -12,10 +12,10 @@
 
 
 
-<meta name="description" content="Status: In Progress (documents the shipped pipeline; §5 records the gaps) Owner: yqr maintainers Last updated: 2026-07-29 Related: yqr-m004 (crates.io release posture), yqr-m003 (the shared corpus the test job runs), yqr-f010 (the website workflow)">
+<meta name="description" content="Status: Done Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f014 (the 0.0.21 adoption this succeeds, whose §3.3 workaround this removes), yqr-b009 (the bug that workaround was for, and whose §6 instruction — &quot;delete it when upstream lands&quot; — this carries out), y...">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m001-ci-release-process">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f015-noyalib-0-0-22-adoption">
 
 
 
@@ -29,10 +29,10 @@
 
 
 
-<meta property="og:title" content="Implementation m001 — CI pipeline and release process">
-<meta property="og:description" content="Status: In Progress (documents the shipped pipeline; §5 records the gaps) Owner: yqr maintainers Last updated: 2026-07-29 Related: yqr-m004 (crates.io release posture), yqr-m003 (the shared corpus the test job runs), yqr-f010 (the website workflow)">
+<meta property="og:title" content="Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes">
+<meta property="og:description" content="Status: Done Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f014 (the 0.0.21 adoption this succeeds, whose §3.3 workaround this removes), yqr-b009 (the bug that workaround was for, and whose §6 instruction — &quot;delete it when upstream lands&quot; — this carries out), y...">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m001-ci-release-process">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f015-noyalib-0-0-22-adoption">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -42,8 +42,8 @@
 
 
 
-<meta name="twitter:title" content="Implementation m001 — CI pipeline and release process">
-<meta name="twitter:description" content="Status: In Progress (documents the shipped pipeline; §5 records the gaps) Owner: yqr maintainers Last updated: 2026-07-29 Related: yqr-m004 (crates.io release posture), yqr-m003 (the shared corpus the test job runs), yqr-f010 (the website workflow)">
+<meta name="twitter:title" content="Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes">
+<meta name="twitter:description" content="Status: Done Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f014 (the 0.0.21 adoption this succeeds, whose §3.3 workaround this removes), yqr-b009 (the bug that workaround was for, and whose §6 instruction — &quot;delete it when upstream lands&quot; — this carries out), y...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-15",
-  "description": "Status: In Progress (documents the shipped pipeline; §5 records the gaps) Owner: yqr maintainers Last updated: 2026-07-29 Related: yqr-m004 (crates.io release posture), yqr-m003 (the shared corpus the test job runs), yqr-f010 (the website workflow)",
+  "description": "Status: Done Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f014 (the 0.0.21 adoption this succeeds, whose §3.3 workaround this removes), yqr-b009 (the bug that workaround was for, and whose §6 instruction — \"delete it when upstream lands\" — this carries out), y...",
   "inLanguage": "en",
-  "name": "Implementation m001 — CI pipeline and release process",
-  "url": "https://zoosky.github.io/yqr/specs/implementation/yqr-m001-ci-release-process",
-  "wordCount": 1006
+  "name": "Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes",
+  "url": "https://zoosky.github.io/yqr/specs/features/yqr-f015-noyalib-0-0-22-adoption",
+  "wordCount": 1510
 }
 </script>
 <script type="application/ld+json">
@@ -119,14 +119,14 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/implementation",
-      "name": "Implementation Specs",
+      "item": "https://zoosky.github.io/yqr/specs/features",
+      "name": "Feature Specs",
       "position": 3
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/implementation/yqr-m001-ci-release-process",
-      "name": "Implementation m001 — CI pipeline and release process",
+      "item": "https://zoosky.github.io/yqr/specs/features/yqr-f015-noyalib-0-0-22-adoption",
+      "name": "Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes",
       "position": 4
     }
   ]
@@ -641,7 +641,7 @@
       
       
         <details class="sidebar-section"
-          >
+          open>
           <summary class="sidebar-section-title">Feature Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
@@ -773,7 +773,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f015-noyalib-0-0-22-adoption"
-                   class="sidebar-link">Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</a>
+                   class="sidebar-link active">Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</a>
               
             
               
@@ -1723,7 +1723,7 @@
       
       
         <details class="sidebar-section"
-          open>
+          >
           <summary class="sidebar-section-title">Implementation Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
@@ -1813,7 +1813,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m001-ci-release-process"
-                   class="sidebar-link active">Implementation m001 — CI pipeline and release process</a>
+                   class="sidebar-link">Implementation m001 — CI pipeline and release process</a>
               
             
               
@@ -2566,145 +2566,195 @@
         <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
         <span aria-hidden="true">/</span>
     
-        <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation">Implementation Specs</a>
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;features">Feature Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Implementation m001 — CI pipeline and release process</span>
+    <span aria-current="page">Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</span>
 </nav>
 
 
-        <h1>Implementation m001 — CI pipeline and release process</h1>
+        <h1>Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> In Progress (documents the shipped pipeline; §5 records the gaps)
+            <p><strong>Status:</strong> Done
+<strong>Epic:</strong> Fidelity write tier (<code>f006</code>–<code>f008</code>)
 <strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-07-29
-<strong>Related:</strong> <code>yqr-m004</code> (crates.io release posture), <code>yqr-m003</code> (the shared
-corpus the test job runs), <code>yqr-f010</code> (the website workflow)</p>
-<h2 id="1-purpose">1. Purpose<a class="heading-anchor" href="#1-purpose" aria-label="Link to this section"></a></h2>
-<p><code>AGENT.md</code> points here for the details of continuous integration and
-releases. This document is the <strong>source of truth</strong> for both: what runs, on
-what trigger, on which runner, and what a human does by hand. It was written
-after the v0.5.0 release found <code>AGENT.md</code>’s CI/CD section describing a
-pipeline yqr never had (see §5).</p>
-<p>Keep this file in sync when a workflow changes — the workflows themselves
-are short enough to read, but the <em>manual</em> half of the release only exists
-here.</p>
-<h2 id="2-workflows">2. Workflows<a class="heading-anchor" href="#2-workflows" aria-label="Link to this section"></a></h2>
-<p>Three workflows live in <code>.github/workflows/</code>. There are no others.</p>
-<h3 id="2-1-ci-yml-build-test-lint">2.1 <code>ci.yml</code> — build, test, lint<a class="heading-anchor" href="#2-1-ci-yml-build-test-lint" aria-label="Link to this section"></a></h3>
-<ul>
-<li>
-<p><strong>Triggers:</strong> pushes to <strong>any</strong> branch and pull requests, both filtered to
-Rust-relevant paths (<code>**/*.rs</code>, <code>**/Cargo.toml</code>, <code>Cargo.lock</code>,
-<code>rust-toolchain.toml</code>, <code>ci.yml</code> itself). Filtering is GitHub’s native
-<code>on.&lt;event&gt;.paths</code>; no filter action is involved. Markdown- and
-spec-only changes therefore skip CI entirely, which is why docs PRs show
-no <code>build · test · lint</code> check at all rather than a green one.</p>
-</li>
-<li>
-<p><strong>Runner:</strong> <code>ubuntu-latest</code>. There is no self-hosted runner.</p>
-</li>
-<li>
-<p><strong>Jobs:</strong> exactly one, <code>test</code> (displayed as <code>build · test · lint</code>), on the
-pinned 1.97.1 toolchain with a cargo registry/target cache:</p>
-<table><thead><tr><th>Step</th><th>Command</th></tr></thead><tbody>
-<tr><td>Format</td><td><code>cargo fmt --all -- --check</code></td></tr>
-<tr><td>Clippy</td><td><code>cargo clippy --all-targets --all-features -- -D warnings</code></td></tr>
-<tr><td>Build</td><td><code>cargo build --all-targets --locked</code></td></tr>
-<tr><td>Test</td><td><code>cargo test --all-targets --locked</code></td></tr>
-<tr><td>Test (all features)</td><td><code>cargo test --all-targets --all-features --locked</code></td></tr>
+<strong>Related:</strong> <code>yqr-f014</code> (the 0.0.21 adoption this succeeds, whose §3.3 workaround
+this removes), <code>yqr-b009</code> (the bug that workaround was for, and whose §6
+instruction — “delete it when upstream lands” — this carries out), <code>yqr-b004</code>
+(the mutation-API gap catalog), <code>yqr-f007</code> §6 (the deferred grammar work),
+<code>yqr-m004</code> (crates.io publishing)</p>
+<h2 id="1-scope">1. Scope<a class="heading-anchor" href="#1-scope" aria-label="Link to this section"></a></h2>
+<p>Bump <code>noyalib = "0.0.21"</code> to <code>0.0.22</code> and <strong>delete code</strong>. This release contains
+exactly one functional change, and it is yqr’s own contribution
+(<a href="https://github.com/sebastienrousseau/noyalib/pull/261">noyalib#261</a>) — so the
+whole feature is a pin bump plus the removal of the local workaround that
+contribution makes redundant.</p>
+<p><strong>In scope:</strong> the pin bump (§3.1); deleting the <code>yqr-b009</code> CRLF restore from
+<code>NoyalibWriter</code> (§3.2); re-aiming its five tests at the engine (§3.3); the
+evidence that the deletion is safe rather than merely plausible (§4); recording
+the upstream close-out (§5).</p>
+<p><strong>Out of scope:</strong> everything in <code>yqr-f007</code> §6 — the comment/rename/reorder
+grammar, collection right-hand sides, and keys holding <code>.</code> or <code>[</code>. None of them
+moved with this release. Contributing upstream’s two remaining <code>#221</code> gaps
+(§6).</p>
+<h2 id="2-what-0-0-22-contains">2. What 0.0.22 contains<a class="heading-anchor" href="#2-what-0-0-22-contains" aria-label="Link to this section"></a></h2>
+<p>Released 2026-08-14, one day after 0.0.21. The changelog has one <code>Fixed</code> entry
+and one <code>Changed</code> entry:</p>
+<table><thead><tr><th>Change</th><th>Reachable from yqr?</th></tr></thead><tbody>
+<tr><td><strong>Splices adopt the document’s own line break instead of assuming <code>\n</code></strong> (#261)</td><td><strong>Yes</strong> — it is the fix for <code>yqr-b009</code>, filed against yqr’s own two insert paths</td></tr>
+<tr><td>Install snippets across the upstream READMEs moved from <code>0.0.18</code> to <code>0.0.22</code></td><td>No — documentation only</td></tr>
 </tbody></table>
-<p>The two test passes are historical: they differed when the fidelity
-backends were feature-gated. yqr has had <strong>no <code>[features]</code> section</strong> since
-the single-engine consolidation (<code>yqr-m005</code>, <code>yqr-f011</code>), so the passes
-are currently equivalent. The second is kept as a guard for the day a
-feature returns.</p>
-</li>
-</ul>
-<h3 id="2-2-benchmark-yml-continuous-benchmarking">2.2 <code>benchmark.yml</code> — continuous benchmarking<a class="heading-anchor" href="#2-2-benchmark-yml-continuous-benchmarking" aria-label="Link to this section"></a></h3>
+<p>So unlike <code>yqr-f013</code> (a capability bump) and <code>yqr-f014</code> (a corrective bump with
+three fixes of its own to consume), this one is single-purpose. Nothing else in
+the release touches a path yqr calls.</p>
+<p><strong>noyalib#261 was merged unmodified.</strong> One commit (<code>0e647db</code>), all three files
+as submitted — <code>cst/annotated.rs</code>, <code>cst/document.rs</code>, and the 185-line
+<code>tests/cst_crlf_splices.rs</code> — with no review changes requested. There is
+therefore no divergence between what yqr verified on the PR branch and what the
+published crate does, which is what makes §4’s earlier cross-check still valid
+as evidence.</p>
+<h2 id="3-work-items">3. Work items<a class="heading-anchor" href="#3-work-items" aria-label="Link to this section"></a></h2>
+<h3 id="3-1-pin-bump">3.1 Pin bump<a class="heading-anchor" href="#3-1-pin-bump" aria-label="Link to this section"></a></h3>
+<p><code>Cargo.toml:47</code> and the comment above it, then <code>cargo check</code> to refresh
+<code>Cargo.lock</code>.</p>
+<p><strong>Done.</strong> Lockfile-only fallout: no transitive crates added or removed (0.0.21’s
+<code>hashbrown</code> / <code>libm</code> stay), and upstream MSRV holds at 1.86.0 against yqr’s
+pinned 1.97.1 toolchain. The lockfile checksum
+<code>213c922c1762f1e25cdd85773b2a7968b96e5b88058265733a847e2be3b589ce</code> matches the
+SHA256 published on the v0.0.22 release for <code>noyalib-0.0.22.crate</code>, so the
+resolved artifact is the released one.</p>
+<h3 id="3-2-delete-the-yqr-b009-workaround">3.2 Delete the <code>yqr-b009</code> workaround<a class="heading-anchor" href="#3-2-delete-the-yqr-b009-workaround" aria-label="Link to this section"></a></h3>
+<p><code>src/fidelity/write.rs</code> loses four things:</p>
 <ul>
-<li><strong>Triggers:</strong> pushes to <code>main</code> only, Rust-path filtered. Never on PRs.</li>
-<li><strong>Runner:</strong> <code>ubuntu-latest</code>.</li>
-<li><strong>What it runs:</strong> <code>cargo bench --bench eval --locked -- --output-format bencher</code>. Only the <code>eval</code> target: the <code>corpus_bench</code> target
-(<code>yqr-m003</code>) is <strong>not</strong> tracked over time — it compiles in CI via
-<code>cargo bench --no-run</code> locally, but its timings are not stored.</li>
-<li><strong>Storage and alerting:</strong> <code>benchmark-action/github-action-benchmark@v1</code>
-stores results on the <code>gh-pages</code> branch (published at <code>/dev/bench</code>) and
-alerts with a commit comment at <code>alert-threshold: 130%</code> — that is, a
-regression worse than 30% against the stored baseline.</li>
-<li><code>gh-pages</code> is shared with the website deploy (<code>yqr-f010</code>), which is why
-<code>pages.yml</code> excludes <code>dev/</code> from its <code>rsync --delete</code>.</li>
+<li>the <code>crlf: Vec&lt;bool&gt;</code> field on <code>NoyalibWriter</code> and its doc comment</li>
+<li>the <code>is_all_crlf</code> call in <code>open</code>, which computed it per document</li>
+<li>the <code>zip</code> / restore branch in <code>emit</code>, which is now a plain concatenation</li>
+<li>the <code>is_all_crlf</code> and <code>restore_crlf</code> free functions</li>
 </ul>
-<h3 id="2-3-pages-yml-website">2.3 <code>pages.yml</code> — website<a class="heading-anchor" href="#2-3-pages-yml-website" aria-label="Link to this section"></a></h3>
-<p>Builds the Accent CMS site from <code>docs/</code> (with <code>specs/</code> mounted at <code>/specs</code>)
-and deploys it to <code>gh-pages</code>. Documented in <code>yqr-f010</code>; the accent binary is
-pinned by <code>ACCENT_VERSION</code> and the build runs with <code>--strict-links</code>.</p>
-<h2 id="3-release-process">3. Release process<a class="heading-anchor" href="#3-release-process" aria-label="Link to this section"></a></h2>
-<p>Releases are <strong>manual</strong>. No workflow reacts to tags — pushing <code>vX.Y.Z</code>
-builds nothing and attaches nothing. Every step below is run by a human (or
-an agent acting for one).</p>
-<pre style="background-color:#2b303b;">
-<span style="color:#65737e;"># 1. Update CHANGELOG.md: turn [Unreleased] into [X.Y.Z] - YYYY-MM-DD,
-</span><span style="color:#65737e;">#    with a short lead paragraph in the style of the previous entries.
-</span><span style="color:#65737e;"># 2. Bump `version` in Cargo.toml, and `softwareVersion` in the
-</span><span style="color:#65737e;">#    SoftwareApplication JSON-LD (docs/themes/default/templates/home.html.jinja).
-</span><span style="color:#65737e;"># 3. cargo check          # refreshes Cargo.lock&#39;s own yqr entry
-</span><span style="color:#65737e;"># 4. bash .github/scripts/local-ci.sh   # full gate before tagging
-</span><span style="color:#c0c5ce;">
-</span><span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> add CHANGELOG.md Cargo.toml Cargo.lock
-</span><span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> commit</span><span style="color:#bf616a;"> -m </span><span style="color:#c0c5ce;">&quot;</span><span style="color:#a3be8c;">chore: release vX.Y.Z</span><span style="color:#c0c5ce;">&quot;
-</span><span style="color:#65737e;"># Ground rule 1 applies: this lands on main through a pull request.
-</span><span style="color:#c0c5ce;">
-</span><span style="color:#65737e;"># After the PR merges, from an up-to-date main:
-</span><span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> tag</span><span style="color:#bf616a;"> -a</span><span style="color:#c0c5ce;"> vX.Y.Z</span><span style="color:#bf616a;"> -m </span><span style="color:#c0c5ce;">&quot;</span><span style="color:#a3be8c;">Release vX.Y.Z</span><span style="color:#c0c5ce;">&quot;
-</span><span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> push origin vX.Y.Z
-</span><span style="color:#8fa1b3;">gh</span><span style="color:#c0c5ce;"> release create vX.Y.Z</span><span style="color:#bf616a;"> --title </span><span style="color:#c0c5ce;">&quot;</span><span style="color:#a3be8c;">vX.Y.Z</span><span style="color:#c0c5ce;">&quot;</span><span style="color:#bf616a;"> --notes-file </span><span style="color:#c0c5ce;">&lt;changelog-section&gt;
-</span><span style="color:#c0c5ce;">
-</span><span style="color:#65737e;"># 5. Publish to crates.io (see yqr-m004):
-</span><span style="color:#8fa1b3;">cargo</span><span style="color:#c0c5ce;"> publish
-</span></pre>
-<p>Notes that only live here:</p>
+<p>The file goes 66 lines deleted against 20 added, and all but the §3.3 test edits
+are production code. <code>emit</code> gains a doc comment saying what it no
+longer does and why, because “this used to post-process and deliberately
+stopped” is the kind of fact a future reader is otherwise likely to re-derive
+the hard way.</p>
+<p>The argument for removing it rather than keeping it as belt-and-braces is
+<code>yqr-b009</code> §6’s: the workaround was a pass over the emitted string that
+second-guessed the engine’s line endings. Two mechanisms agreeing today is not
+a reason to keep both — it is one more place to disagree the next time either
+side changes. The restore was also <em>exact</em> only under an assumption that no
+longer holds (that every bare <code>\n</code> in the output of a wholly-CRLF document came
+from an edit); now that the engine emits CRLF at the edit site, the pass is a
+no-op that still walks every byte of every edited document.</p>
+<h3 id="3-3-what-the-five-crlf-tests-now-pin">3.3 What the five CRLF tests now pin<a class="heading-anchor" href="#3-3-what-the-five-crlf-tests-now-pin" aria-label="Link to this section"></a></h3>
+<p>They stay, unchanged in their assertions, and change meaning: they pinned
+yqr’s own pass, and now pin the engine’s behaviour. One rename —
+<code>an_lf_document_is_untouched_by_the_crlf_restore</code> → <code>an_lf_document_stays_lf</code>,
+since there is no restore left to be untouched by.</p>
+<p>That they are the <em>only</em> thing guarding this property is worth stating, and the
+test comment now does: <code>tests/corpus_validation.rs</code> and <code>tests/fidelity.rs</code>
+never edit a CRLF document, so a regression here would be invisible to both.
+This is the same argument <code>yqr-f014</code> §5 made for pinning the two <code>Emit</code> probes
+whose fix arrived through <code>Cargo.toml</code> — a fix yqr consumes but does not own
+needs a yqr-side assertion, or nothing local catches its return.</p>
+<h3 id="3-4-upstream-close-out">3.4 Upstream close-out<a class="heading-anchor" href="#3-4-upstream-close-out" aria-label="Link to this section"></a></h3>
+<p><code>yqr-b009</code> §6 moves from “fixed upstream by noyalib#261 (open)” to released,
+and drops its “delete it when upstream lands” instruction, which is now carried
+out. <code>yqr-b004</code> §6.4 and <code>yqr-f013</code> §6 are unaffected — they track #226, which
+shipped in 0.0.19.</p>
+<h2 id="4-verification-the-control-run-against-the-published-crate">4. Verification — the control, run against the published crate<a class="heading-anchor" href="#4-verification-the-control-run-against-the-published-crate" aria-label="Link to this section"></a></h2>
+<p>The claim that needed testing is not “0.0.22 preserves CRLF” but “0.0.22
+preserves CRLF <em>well enough that yqr’s workaround is redundant</em>”, and the only
+way to see that is to remove the workaround and check what fails.</p>
+<p><strong>Before removal</strong>, on the published 0.0.22: the full suite passes. Expected —
+<code>restore_crlf</code> is idempotent over output that is already correct, so the bump
+alone is invisible.</p>
+<p><strong>After removal</strong>, the two runs that matter:</p>
+<table><thead><tr><th>Pin</th><th><code>cargo test --lib fidelity::write</code></th></tr></thead><tbody>
+<tr><td><code>0.0.22</code></td><td>48 passed, 0 failed</td></tr>
+<tr><td><code>0.0.21</code> (temporary, control)</td><td>45 passed, <strong>3 failed</strong></td></tr>
+</tbody></table>
+<p>The three that fail on 0.0.21 are <code>inserting_a_key_keeps_a_crlf_document_crlf</code>,
+<code>appending_an_item_keeps_a_crlf_document_crlf</code>, and
+<code>a_multiline_insert_into_a_crlf_document_uses_crlf_throughout</code> — exactly the
+three the PR’s cross-check predicted, reproduced here against crates.io rather
+than a branch. The other two (<code>an_lf_document_stays_lf</code>,
+<code>a_mixed_ending_document_is_left_alone</code>) pass on both pins, because both are
+<code>\n</code>-default cases that neither the workaround nor the upstream fix alters.</p>
+<p>So the deletion is load-bearing-free by measurement: the property is still
+enforced, and it is the engine enforcing it.</p>
+<p>Full suite on 0.0.22 with the workaround gone: <strong>262 tests, 0 failed</strong> (163
+lib + 99 across the integration targets), and <code>bash .github/scripts/local-ci.sh</code>
+clean including <code>cargo audit</code>.</p>
+<h2 id="5-upstream-status-the-221-correction-was-accepted">5. Upstream status — the #221 correction was accepted<a class="heading-anchor" href="#5-upstream-status-the-221-correction-was-accepted" aria-label="Link to this section"></a></h2>
+<p><code>yqr-f014</code> §4 recorded a disagreement: the maintainer’s 2026-08-11 status update
+on <a href="https://github.com/sebastienrousseau/noyalib/issues/221">noyalib#221</a> listed
+comment mutation, extended <code>remove</code> and fragment quoting as still open, and yqr
+replied on 2026-08-13 with per-item evidence from the published crates that all
+three had shipped.</p>
+<p><strong>That reply was accepted.</strong> The maintainer’s
+<a href="https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5297805246">2026-08-14 update</a>
+now records gaps 1 (comment mutation, 0.0.21), 2 (<code>rename_key</code>, 0.0.18) and 3
+(sequence reorder) as shipped, and re-scopes 4 and 5 as <em>partial</em> rather than
+open. <code>yqr-f014</code> §4’s finding therefore stands as settled rather than contested,
+and <code>yqr-b004</code>’s status-tracker entry no longer needs to flag the update as
+inaccurate.</p>
+<p>Two gaps remain open upstream, neither blocking yqr:</p>
 <ul>
-<li><strong>Version choice.</strong> yqr is pre-1.0, so a breaking change — of the CLI
-<em>or</em> of the library API — bumps the <strong>minor</strong>. v0.5.0 was a minor because
-<code>--engine</code> was removed; a purely additive release is a patch.</li>
-<li><strong>Release notes</strong> are the CHANGELOG section body, verbatim. Releases
-carry <strong>no binary assets</strong> (see §5.1), matching every release since
-v0.1.0.</li>
-<li><strong><code>cargo publish</code> is irreversible</strong> — a version can be yanked but never
-unpublished, and the version number can never be reused. It is a separate,
-explicitly-authorized step: an agent must not infer authorization for it
-from “cut the release”.</li>
-<li><strong>After publishing</strong>, confirm the version is live on crates.io and that
-docs.rs built it (a failed docs.rs build is invisible from the repo).</li>
+<li><strong>Gap 5 — <code>Emit</code> is not wired into the fragment mutators.</strong> <code>set</code> /
+<code>insert_entry</code> / <code>push_back</code> still splice a caller’s string verbatim, so a
+fragment containing a <code>:</code> or a leading <code>-</code> can restructure a document in a way
+the guard cannot catch (it rejects <em>invalid</em> YAML, not
+<em>valid-but-misinterpreted</em> YAML). Upstream tracks this as roadmap item A4 and
+calls it the last correctness hazard. <strong>yqr is not exposed</strong>: <code>yqr-f014</code> §3.2
+moved every call to the typed <code>_value</code> tier, and the module doc in
+<code>src/fidelity/write.rs</code> records that as a standing rule. This is a
+contribution opportunity on the #222 / #223 / #226 / #261 pattern, not a yqr
+need.</li>
+<li><strong>Gap 4 remainder — <code>remove_subtree</code>, sole-entry and flow-member removal.</strong>
+The maintainer’s standing offer to take yqr’s <code>replace_span</code> fallback upstream
+is repeated, and remains moot as written for the reason <code>yqr-f014</code> §4 gave:
+upstream <code>remove</code> has handled multi-line and nested shapes since 0.0.18, and
+what differed was trivia, which yqr’s noyalib#226 already fixed. What is
+genuinely unbuilt — sole-entry and flow deletes — <strong>yqr also refuses</strong>, so
+there is no yqr-side driver and nothing to port.</li>
 </ul>
-<h2 id="4-local-mirror">4. Local mirror<a class="heading-anchor" href="#4-local-mirror" aria-label="Link to this section"></a></h2>
-<p><code>bash .github/scripts/local-ci.sh</code> runs a superset of <code>ci.yml</code>: fmt, clippy,
-build, test, test (all features), <code>cargo bench --no-run</code>, <code>cargo doc --no-deps</code>, and <code>cargo audit</code> when it is installed. Running it before
-pushing is the cheapest way to avoid a red PR — <code>cargo bench --no-run</code> in
-particular catches bench targets broken by a refactor, which <code>cargo test</code>
-never compiles.</p>
-<h2 id="5-known-gaps">5. Known gaps<a class="heading-anchor" href="#5-known-gaps" aria-label="Link to this section"></a></h2>
-<h3 id="5-1-no-tag-triggered-release-workflow">5.1 No tag-triggered release workflow<a class="heading-anchor" href="#5-1-no-tag-triggered-release-workflow" aria-label="Link to this section"></a></h3>
-<p>Nothing builds or attaches binaries, so users install via <code>cargo install yqr</code> or build from source; there is no <code>curl | sh</code> path and no
-per-platform archive. Adding one would mean a <code>release.yml</code> triggered on
-<code>v*</code> tags, cross-compiling the documented targets, attaching archives plus
-checksums to the GitHub release, and (optionally) publishing to crates.io
-from CI with a token. That is a feature, not a doc fix — it needs its own
-<code>specs/features/</code> spec before implementation.</p>
-<h3 id="5-2-no-automated-pr-review">5.2 No automated PR review<a class="heading-anchor" href="#5-2-no-automated-pr-review" aria-label="Link to this section"></a></h3>
-<p><code>AGENT.md</code> previously described an automated PR-review workflow (an
-<code>ANTHROPIC_API_KEY</code> secret, an agent posting review comments). No such
-workflow has ever existed in this repository. Reviews are run on demand
-from a developer’s own tooling instead. The description has been removed
-rather than reinstated; if an automated reviewer is wanted later, it starts
-from a spec.</p>
-<h3 id="5-3-benchmark-coverage">5.3 Benchmark coverage<a class="heading-anchor" href="#5-3-benchmark-coverage" aria-label="Link to this section"></a></h3>
-<p>Only the <code>eval</code> bench target is tracked over time; <code>corpus_bench</code> timings
-are not stored, so a regression visible only in the corpus suite would not
-alert.</p>
+<h2 id="6-acceptance-criteria">6. Acceptance criteria<a class="heading-anchor" href="#6-acceptance-criteria" aria-label="Link to this section"></a></h2>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>Cargo.toml</code> pins <code>noyalib = "0.0.22"</code>, the adjacent comment names 0.0.22
+and says what it brings, and <code>Cargo.lock</code> is refreshed.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+The <code>yqr-b009</code> workaround is gone from <code>src/fidelity/write.rs</code>: no <code>crlf</code>
+field, no <code>is_all_crlf</code>, no <code>restore_crlf</code>, and <code>emit</code> is a plain
+concatenation.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+The five CRLF tests survive the removal with their assertions unchanged,
+and the comment above them states that they now pin the engine.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+The control is recorded: the same three tests fail against a temporary
+0.0.21 pin with the workaround removed (§4).</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>bash .github/scripts/local-ci.sh</code> passes, including <code>cargo audit</code>.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>tests/fidelity.rs</code> and <code>tests/corpus_validation.rs</code> pass unchanged.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>yqr-b009</code> records noyalib#261 as merged unmodified and released in
+0.0.22, and no longer carries the delete-when-upstream-lands instruction.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>yqr-f014</code> §4 records that the #221 correction was accepted.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>CHANGELOG.md</code> records the bump and the workaround removal.</li>
+</ul>
+<h2 id="7-non-goals">7. Non-goals<a class="heading-anchor" href="#7-non-goals" aria-label="Link to this section"></a></h2>
+<ul>
+<li>No new filter grammar, and no change to the write surface. The bytes yqr
+produces are identical before and after; only which layer produces them
+changes.</li>
+<li>No behaviour change to the read path or <code>--normalize</code>.</li>
+<li>Not a release. <code>yqr-m001</code> governs when a version ships; <code>cargo publish</code> stays
+separately authorized (<code>yqr-m004</code>).</li>
+</ul>
 
         </div>
         </accent-island>
@@ -2716,11 +2766,11 @@ alert.</p>
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</span>
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f014-noyalib-0-0-21-adoption" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</span>
     </a>
+    
     
 </nav>
 
@@ -2732,47 +2782,47 @@ alert.</p>
         <ul>
         
             <li class="toc-level-2">
-                <a href="#1-purpose">1. Purpose</a>
+                <a href="#1-scope">1. Scope</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#2-workflows">2. Workflows</a>
-            </li>
-        
-            <li class="toc-level-3">
-                <a href="#2-1-ci-yml-build-test-lint">2.1 ci.yml — build, test, lint</a>
-            </li>
-        
-            <li class="toc-level-3">
-                <a href="#2-2-benchmark-yml-continuous-benchmarking">2.2 benchmark.yml — continuous benchmarking</a>
-            </li>
-        
-            <li class="toc-level-3">
-                <a href="#2-3-pages-yml-website">2.3 pages.yml — website</a>
+                <a href="#2-what-0-0-22-contains">2. What 0.0.22 contains</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#3-release-process">3. Release process</a>
+                <a href="#3-work-items">3. Work items</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-1-pin-bump">3.1 Pin bump</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-2-delete-the-yqr-b009-workaround">3.2 Delete the yqr-b009 workaround</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-3-what-the-five-crlf-tests-now-pin">3.3 What the five CRLF tests now pin</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-4-upstream-close-out">3.4 Upstream close-out</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-local-mirror">4. Local mirror</a>
+                <a href="#4-verification-the-control-run-against-the-published-crate">4. Verification — the control, run against the published crate</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#5-known-gaps">5. Known gaps</a>
+                <a href="#5-upstream-status-the-221-correction-was-accepted">5. Upstream status — the #221 correction was accepted</a>
             </li>
         
-            <li class="toc-level-3">
-                <a href="#5-1-no-tag-triggered-release-workflow">5.1 No tag-triggered release workflow</a>
+            <li class="toc-level-2">
+                <a href="#6-acceptance-criteria">6. Acceptance criteria</a>
             </li>
         
-            <li class="toc-level-3">
-                <a href="#5-2-no-automated-pr-review">5.2 No automated PR review</a>
-            </li>
-        
-            <li class="toc-level-3">
-                <a href="#5-3-benchmark-coverage">5.3 Benchmark coverage</a>
+            <li class="toc-level-2">
+                <a href="#7-non-goals">7. Non-goals</a>
             </li>
         
         </ul>

@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Bug Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 1007
+  "wordCount": 1073
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -448,6 +451,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -482,6 +488,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -761,6 +772,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f015-noyalib-0-0-22-adoption"
+                   class="sidebar-link">Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</a>
+              
+            
+              
+              
             
               
               
@@ -895,6 +912,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1196,6 +1216,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1215,6 +1238,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1519,6 +1545,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1531,6 +1560,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1696,6 +1728,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1970,6 +2005,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2030,6 +2068,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2289,6 +2330,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2350,6 +2394,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2538,8 +2585,8 @@ status tracker convention).</p>
 <p><em>None.</em></p>
 <h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps">b004</a></td><td>noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete</td><td>Medium</td><td>Resolved — all five gaps of umbrella issue noyalib#221 released in <strong>noyalib 0.0.18</strong> (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (<code>Emit</code> auto-formatting tier), both merged, the other three by the maintainer. Two adoption findings stand (b004 §6): upstream <code>remove</code> diverges on delete trivia in <strong>three</strong> measured ways, so delete stays yqr’s own code by decision rather than necessity (<code>yqr-f007</code> §5.1, would otherwise regress <code>yqr-b006</code>); and <code>key_span</code> does <strong>not</strong> replace <code>validate</code>’s green-tree walk. Those divergences were filed as noyalib#225 and fixed by yqr’s noyalib#226 — <strong>merged 2026-08-05, released in noyalib 0.0.19</strong> (§6.4). yqr pins <code>noyalib = "0.0.21"</code> as of <code>yqr-f014</code>. Note that the maintainer’s 2026-08-11 status update on #221 lists three of these gaps as still open; verified against the published crates, that is inaccurate and this spec’s findings stand (<code>yqr-f014</code> §4)</td><td><code>yqr-b002</code>, <code>yqr-b006</code>, <code>yqr-b008</code>, <code>yqr-r002</code>, <code>yqr-m002</code>, <code>yqr-m005</code>, <code>yqr-f006</code>, <code>yqr-f007</code>, <code>yqr-f013</code>, <code>yqr-f014</code></td></tr>
-<tr><td><a href="/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents">b009</a></td><td>An inserted line ends with <code>\n</code>, giving a CRLF document mixed line endings</td><td>Medium</td><td>Fixed — noyalib’s insertion mutators hard-code <code>\n</code>, so new-key assignment and <code>+=</code> gave a CRLF file one bare LF per added line, at <strong>exit 0</strong>. Known upstream behaviour recorded in <code>b004</code> §2.5 but never filed, so nothing tracked or tested it. Fixed upstream by yqr’s noyalib#261 (open), raised on noyalib#221 (b009 §6); the defect is wider there — the fragment mutators and both comment setters share it, and <code>set_comment(Inline)</code> splices between the <code>\r</code> and the <code>\n</code>. Locally, <code>emit</code> now restores the convention for documents that were <em>wholly</em> CRLF at open time — exact rather than heuristic, since such a document has no bare <code>\n</code> of its own; mixed-ending documents are deliberately left alone. Read, <code>set_value</code> and <code>del</code> were never affected. Five byte-exact tests</td><td><code>yqr-b001</code>, <code>yqr-b004</code>, <code>yqr-b008</code>, <code>yqr-f014</code>, <code>yqr-a001</code></td></tr>
+<tr><td><a href="/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps">b004</a></td><td>noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete</td><td>Medium</td><td>Resolved — all five gaps of umbrella issue noyalib#221 released in <strong>noyalib 0.0.18</strong> (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (<code>Emit</code> auto-formatting tier), both merged, the other three by the maintainer. Two adoption findings stand (b004 §6): upstream <code>remove</code> diverges on delete trivia in <strong>three</strong> measured ways, so delete stays yqr’s own code by decision rather than necessity (<code>yqr-f007</code> §5.1, would otherwise regress <code>yqr-b006</code>); and <code>key_span</code> does <strong>not</strong> replace <code>validate</code>’s green-tree walk. Those divergences were filed as noyalib#225 and fixed by yqr’s noyalib#226 — <strong>merged 2026-08-05, released in noyalib 0.0.19</strong> (§6.4). yqr pins <code>noyalib = "0.0.22"</code> as of <code>yqr-f015</code>. The maintainer’s 2026-08-11 status update on #221 listed three of these gaps as still open; yqr’s per-item correction from the published crates (<code>yqr-f014</code> §4) was <strong>accepted in the 2026-08-14 update</strong>, which now records comment mutation, <code>rename_key</code> and sequence reorder as shipped and re-scopes extended <code>remove</code> and fragment quoting as partial (<code>yqr-f015</code> §5)</td><td><code>yqr-b002</code>, <code>yqr-b006</code>, <code>yqr-b008</code>, <code>yqr-r002</code>, <code>yqr-m002</code>, <code>yqr-m005</code>, <code>yqr-f006</code>, <code>yqr-f007</code>, <code>yqr-f013</code>, <code>yqr-f014</code>, <code>yqr-f015</code></td></tr>
+<tr><td><a href="/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents">b009</a></td><td>An inserted line ends with <code>\n</code>, giving a CRLF document mixed line endings</td><td>Medium</td><td>Resolved — noyalib’s insertion mutators hard-coded <code>\n</code>, so new-key assignment and <code>+=</code> gave a CRLF file one bare LF per added line, at <strong>exit 0</strong>. Known upstream behaviour recorded in <code>b004</code> §2.5 but never filed, so nothing tracked or tested it. Fixed upstream by yqr’s <strong>noyalib#261, merged unmodified 2026-08-14 and released in noyalib 0.0.22</strong>, raised on noyalib#221 (b009 §6); the defect was wider there — the fragment mutators and both comment setters shared it, and <code>set_comment(Inline)</code> spliced between the <code>\r</code> and the <code>\n</code>. yqr carried a local <code>emit</code> restore in the meantime (<code>f014</code>); <code>f015</code> pins 0.0.22 and <strong>deletes</strong> it, since the engine now derives an inserted line’s terminator from the document the same way it already derived the indentation. The five byte-exact tests survive unchanged and now pin the engine — with the workaround gone, three of them fail against a temporary 0.0.21 pin. Read, <code>set_value</code> and <code>del</code> were never affected</td><td><code>yqr-b001</code>, <code>yqr-b004</code>, <code>yqr-b008</code>, <code>yqr-f014</code>, <code>yqr-f015</code>, <code>yqr-a001</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b008-fragment-splice-corrupts-multiline-inserts">b008</a></td><td>Hand-built fragments corrupt <code>+=</code> and new-key inserts of a multi-line string</td><td>High</td><td>Fixed — <code>+=</code> produced unparseable output and new-key assignment a wrong value whenever the RHS string contained a newline, both at <strong>exit 0</strong>, so <code>-i</code> wrote the damage to the user’s file and reported success. <code>value_fragment</code> rendered the value to text, and the fragment-taking mutators splice a fragment verbatim — synthesising indentation for its first line only — so a block scalar’s continuation lines kept the rendering’s indentation instead of the insertion site’s. Both paths now use noyalib’s typed tier (<code>insert_entry_value</code> / <code>push_back_value</code>), which owns the indentation and holds the splice to a load-back oracle. Three regression tests assert emitted bytes <strong>and</strong> loaded-back value. Ships with the 0.0.21 pin (<code>yqr-f014</code>)</td><td><code>yqr-f006</code>, <code>yqr-f014</code>, <code>yqr-b004</code>, <code>yqr-f013</code>, <code>yqr-f007</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b007-site-links-broken-under-accent-0-23-1">b007</a></td><td>Website: demo-script media link and 404-page <code>/docs</code> link break under accent v0.23.1</td><td>Low</td><td>Resolved — demo script now linked on GitHub (accent refuses <code>.sh</code> as media), 404 page links <code>/specs/</code>; CI pins accent v0.23.1 and builds with <code>--strict-links</code> so missing link targets fail the build</td><td><code>yqr-f010</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b001-roundtrip-discards-whitespace-and-formatting">b001</a></td><td>Round-trip through the default pipeline discards whitespace, comments, and formatting</td><td>High</td><td>Resolved for the default read — byte fidelity is now the <strong>default</strong> (<code>yqr-f009</code>); <code>yqr '.' f</code> is byte-for-byte identical to <code>f</code> via the fidelity engine (<code>yqr-f002</code>). The lossy semantic round trip is now opt-in via <code>--normalize</code> (by design)</td><td><code>yqr-a001</code>, <code>yqr-r001</code>, <code>yqr.f001</code>, <code>yqr-f002</code>, <code>yqr-f009</code>, <code>yqr-m005</code></td></tr>
@@ -2553,8 +2600,9 @@ status tracker convention).</p>
 <li>Total bugs: 9</li>
 <li>Open: 0</li>
 <li>Resolved: 9 (b009 — an inserted line ended with <code>\n</code> regardless of the
-document’s convention, silently giving CRLF files mixed endings; <code>emit</code>
-now restores it, <code>yqr-f014</code>;
+document’s convention, silently giving CRLF files mixed endings; worked
+around in <code>emit</code> (<code>yqr-f014</code>), then fixed at the source by yqr’s
+noyalib#261, released in 0.0.22, and the workaround deleted (<code>yqr-f015</code>);
 b008 — <code>+=</code> and new-key assignment of a multi-line string
 corrupted the document at exit 0; both insert paths now route through
 noyalib’s typed insertion tier, <code>yqr-f014</code>;

@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Fixed (2026-08-13) — emit restores the document&#x27;s own convention for the lines an edit added. Ships with yqr-f014. Severity: Medium — silent fidelity loss on a shipped write path, at exit 0, so -i wrote the mixed-ending file to disk and reported success. Lower than yqr-b008 only becau...">
+<meta name="description" content="Status: Resolved (2026-08-15) — fixed upstream by yqr&#x27;s noyalib#261, released in noyalib 0.0.22; the local workaround it subsumes was deleted with yqr-f015. (Fixed 2026-08-13 in yqr by an emit pass that restored the document&#x27;s own convention for the lines an edit added, shipped with yqr-f014; ...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings">
-<meta property="og:description" content="Status: Fixed (2026-08-13) — emit restores the document&#x27;s own convention for the lines an edit added. Ships with yqr-f014. Severity: Medium — silent fidelity loss on a shipped write path, at exit 0, so -i wrote the mixed-ending file to disk and reported success. Lower than yqr-b008 only becau...">
+<meta property="og:description" content="Status: Resolved (2026-08-15) — fixed upstream by yqr&#x27;s noyalib#261, released in noyalib 0.0.22; the local workaround it subsumes was deleted with yqr-f015. (Fixed 2026-08-13 in yqr by an emit pass that restored the document&#x27;s own convention for the lines an edit added, shipped with yqr-f014; ...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings">
-<meta name="twitter:description" content="Status: Fixed (2026-08-13) — emit restores the document&#x27;s own convention for the lines an edit added. Ships with yqr-f014. Severity: Medium — silent fidelity loss on a shipped write path, at exit 0, so -i wrote the mixed-ending file to disk and reported success. Lower than yqr-b008 only becau...">
+<meta name="twitter:description" content="Status: Resolved (2026-08-15) — fixed upstream by yqr&#x27;s noyalib#261, released in noyalib 0.0.22; the local workaround it subsumes was deleted with yqr-f015. (Fixed 2026-08-13 in yqr by an emit pass that restored the document&#x27;s own convention for the lines an edit added, shipped with yqr-f014; ...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-15",
-  "description": "Status: Fixed (2026-08-13) — emit restores the document's own convention for the lines an edit added. Ships with yqr-f014. Severity: Medium — silent fidelity loss on a shipped write path, at exit 0, so -i wrote the mixed-ending file to disk and reported success. Lower than yqr-b008 only becau...",
+  "description": "Status: Resolved (2026-08-15) — fixed upstream by yqr's noyalib#261, released in noyalib 0.0.22; the local workaround it subsumes was deleted with yqr-f015. (Fixed 2026-08-13 in yqr by an emit pass that restored the document's own convention for the lines an edit added, shipped with yqr-f014; ...",
   "inLanguage": "en",
   "name": "Bug b009 — an inserted line ends with `\\n`, giving a CRLF document mixed line endings",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents",
-  "wordCount": 1090
+  "wordCount": 1205
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -448,6 +451,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -482,6 +488,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -761,6 +772,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f015-noyalib-0-0-22-adoption"
+                   class="sidebar-link">Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</a>
+              
+            
+              
+              
             
               
               
@@ -895,6 +912,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1196,6 +1216,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1215,6 +1238,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1519,6 +1545,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1531,6 +1560,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1696,6 +1728,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1970,6 +2005,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2030,6 +2068,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2289,6 +2330,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2350,6 +2394,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2530,13 +2577,16 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Fixed (2026-08-13) — <code>emit</code> restores the document’s own convention
-for the lines an edit added. Ships with <code>yqr-f014</code>.
+            <p><strong>Status:</strong> Resolved (2026-08-15) — fixed upstream by yqr’s noyalib#261,
+released in <strong>noyalib 0.0.22</strong>; the local workaround it subsumes was deleted
+with <code>yqr-f015</code>. (Fixed 2026-08-13 in yqr by an <code>emit</code> pass that restored the
+document’s own convention for the lines an edit added, shipped with <code>yqr-f014</code>;
+§6 records the hand-over.)
 <strong>Severity:</strong> Medium — silent fidelity loss on a shipped write path, at exit 0,
 so <code>-i</code> wrote the mixed-ending file to disk and reported success. Lower than
 <code>yqr-b008</code> only because the result still parses and holds the right values.
 <strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-08-13
+<strong>Last updated:</strong> 2026-08-15
 <strong>Affects:</strong> <code>src/fidelity/write.rs</code> — the two line-<em>adding</em> operations,
 <code>insert_key</code> (new-key assignment) and <code>append</code> (<code>+=</code>). Present since the write
 tier shipped (<code>yqr-f006</code>, v0.4.0).
@@ -2601,15 +2651,17 @@ the same class of unasked-for change the fidelity engine exists to prevent.</p>
 <li><code>an_lf_document_is_untouched_by_the_crlf_restore</code></li>
 <li><code>a_mixed_ending_document_is_left_alone</code></li>
 </ul>
-<h2 id="6-upstream-noyalib-221-raised-fixed-by-noyalib-261-open">6. Upstream — noyalib#221 raised, fixed by noyalib#261 (open)<a class="heading-anchor" href="#6-upstream-noyalib-221-raised-fixed-by-noyalib-261-open" aria-label="Link to this section"></a></h2>
+<h2 id="6-upstream-noyalib-221-raised-fixed-by-noyalib-261-released-in-0-0-22">6. Upstream — noyalib#221 raised, fixed by noyalib#261 (released in 0.0.22)<a class="heading-anchor" href="#6-upstream-noyalib-221-raised-fixed-by-noyalib-261-released-in-0-0-22" aria-label="Link to this section"></a></h2>
 <p>The durable home for this is noyalib: an insertion should reproduce the
 document’s existing line break rather than assume <code>\n</code>, the same way it already
 derives indentation from the site. Raised in
 <a href="https://github.com/sebastienrousseau/noyalib/issues/221#issuecomment-5284260094">noyalib#221</a>,
 in the same comment that corrects the status update (<code>yqr-f014</code> §4), and
 contributed the same day as
-<strong><a href="https://github.com/sebastienrousseau/noyalib/pull/261">noyalib#261</a></strong>
-(open, on the #222 / #223 / #226 pattern).</p>
+<strong><a href="https://github.com/sebastienrousseau/noyalib/pull/261">noyalib#261</a></strong>, on the
+#222 / #223 / #226 pattern. <strong>Merged 2026-08-14 as <code>0e647db</code> — unmodified, all
+three files as submitted, no review changes requested — and released in noyalib
+0.0.22 the same day.</strong></p>
 <p><strong>Verified against <code>upstream/main</code> @ <code>554e883</code> (v0.0.21), not just yqr’s
 symptom.</strong> The defect is wider than the two mutators yqr uses:</p>
 <table><thead><tr><th>Call</th><th>Result on <code>m:\r\n  a: 1\r\n</code> (or the sequence equivalent)</th></tr></thead><tbody>
@@ -2644,10 +2696,19 @@ steps back over a <code>\r</code>. Mixed and no-break documents keep the <code>\
 yqr pointed at the PR branch, all 163 yqr tests pass, the five §5 tests
 included. With the workaround disabled against unpatched 0.0.21, three of them
 fail on exactly this property. So the upstream fix subsumes the workaround.</p>
-<p>Until it ships in a release yqr can pin, the workaround stays: it costs one
-pass over the emitted string per edited document and is covered by §5. <strong>Delete
-it when upstream lands</strong> — yqr second-guessing its engine’s line endings is not
-a state to keep, and it is now proven redundant rather than assumed to be.</p>
+<h3 id="the-workaround-is-gone-yqr-f015">The workaround is gone (<code>yqr-f015</code>)<a class="heading-anchor" href="#the-workaround-is-gone-yqr-f015" aria-label="Link to this section"></a></h3>
+<p>Upstream landed, so §4’s workaround was deleted rather than kept as
+belt-and-braces: yqr second-guessing its engine’s line endings was never a state
+to keep, and two mechanisms agreeing today is one more place to disagree the
+next time either side moves.</p>
+<p>The §5 tests survive the deletion unchanged and now pin the <strong>engine’s</strong>
+behaviour — they are the only thing that would catch a regression, since neither
+<code>tests/corpus_validation.rs</code> nor <code>tests/fidelity.rs</code> edits a CRLF document. The
+control was re-run against the published crate rather than the PR branch: with
+the workaround removed, <code>inserting_a_key_keeps_a_crlf_document_crlf</code>,
+<code>appending_an_item_keeps_a_crlf_document_crlf</code> and
+<code>a_multiline_insert_into_a_crlf_document_uses_crlf_throughout</code> fail against a
+temporary 0.0.21 pin and pass on 0.0.22. Details in <code>yqr-f015</code> §3.2 and §4.</p>
 
         </div>
         </accent-island>
@@ -2695,11 +2756,15 @@ a state to keep, and it is now proven redundant rather than assumed to be.</p>
             </li>
         
             <li class="toc-level-2">
-                <a href="#6-upstream-noyalib-221-raised-fixed-by-noyalib-261-open">6. Upstream — noyalib#221 raised, fixed by noyalib#261 (open)</a>
+                <a href="#6-upstream-noyalib-221-raised-fixed-by-noyalib-261-released-in-0-0-22">6. Upstream — noyalib#221 raised, fixed by noyalib#261 (released in 0.0.22)</a>
             </li>
         
             <li class="toc-level-3">
                 <a href="#the-fix-contributed-noyalib-261">The fix contributed (noyalib#261)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#the-workaround-is-gone-yqr-f015">The workaround is gone (yqr-f015)</a>
             </li>
         
         </ul>

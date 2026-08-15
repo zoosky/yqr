@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 1148
+  "wordCount": 1253
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -448,6 +451,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -482,6 +488,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -761,6 +772,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f015-noyalib-0-0-22-adoption"
+                   class="sidebar-link">Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</a>
+              
+            
+              
+              
             
               
               
@@ -895,6 +912,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1196,6 +1216,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1215,6 +1238,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1519,6 +1545,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1531,6 +1560,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1696,6 +1728,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1970,6 +2005,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2030,6 +2068,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2289,6 +2330,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2350,6 +2394,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2570,6 +2617,7 @@ dependency/release timing.</p>
 <tr><td><a href="/yqr/specs/features/yqr-f008-write-tier-computed-updates">f008</a></td><td>Write tier: computed updates (<code>|=</code>)</td><td>Draft (stub — gated on <code>f001</code> M2)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption">f013</a></td><td>Adopt noyalib 0.0.18: pin bump and the released CST mutation API</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption">f014</a></td><td>Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</td><td>Done</td></tr>
+<tr><td><a href="/yqr/specs/features/yqr-f015-noyalib-0-0-22-adoption">f015</a></td><td>Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</td><td>Done</td></tr>
 </tbody></table>
 <p>Progress: f006 shipped on noyalib 0.0.14’s first-class, re-parse-guarded mutators
 (<code>set_value</code>/<code>insert_entry</code>/<code>push_back</code>/<code>remove</code>) — <code>=</code>, <code>+=</code>, new-key assign,
@@ -2597,9 +2645,16 @@ assignment hand-built a text fragment, so a multi-line string was spliced at the
 rendering’s indentation rather than the insertion site’s — producing unparseable
 output or a wrong value, both at exit 0. Both now use the typed tier
 (<code>insert_entry_value</code> / <code>push_back_value</code>), which is the <code>f013</code> §3.4 hand-off
-coming due early. f008 (<code>|=</code> computed updates) is gated on <code>f001</code> M2
-(arithmetic/builtins). Priority order: f006 (done) → f007 delete (done) → f013
-(done) → f014 (done) → f007 remainder → M2 → f008.</p>
+coming due early. f015 <strong>done</strong>: the pin is now 0.0.22, a single-purpose release
+carrying yqr’s own noyalib#261 — merged unmodified — so the feature is a bump
+plus a <strong>deletion</strong>, retiring the <code>b009</code> CRLF restore from <code>emit</code> now that the
+engine derives an inserted line’s terminator from the document the same way it
+already derived the indentation. The control is what makes that safe rather than
+plausible: with the workaround removed, the same three tests fail against a
+temporary 0.0.21 pin and pass on 0.0.22 (<code>f015</code> §4). f008 (<code>|=</code> computed
+updates) is gated on <code>f001</code> M2 (arithmetic/builtins). Priority order: f006
+(done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f007
+remainder → M2 → f008.</p>
 <h2 id="epic-editing-loop-tooling-f012">Epic: Editing-loop tooling (f012)<a class="heading-anchor" href="#epic-editing-loop-tooling-f012" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
 <tr><td><a href="/yqr/specs/features/yqr-f012-validate-command">f012</a></td><td><code>yqr validate</code>: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, <code>--strict</code>)</td><td>Done</td></tr>
@@ -2632,10 +2687,10 @@ base URL, and deploys to <code>gh-pages</code> while preserving the benchmark
 dashboard.</p>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total features: 14</li>
+<li>Total features: 15</li>
 <li>Draft: 1 (f008 — computed updates, gated on <code>f001</code> M2)</li>
 <li>In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)</li>
-<li>Done: 8 (f002, f006, f009, f010, f011, f012, f013, f014)</li>
+<li>Done: 9 (f002, f006, f009, f010, f011, f012, f013, f014, f015)</li>
 <li>Superseded: 3 (f003, f004 — single-engine consolidation, <code>yqr-m005</code>; f005 —
 fidelity-by-default flip, <code>yqr-f009</code>)</li>
 <li>Released in <code>v0.3.0</code>: f002 (fidelity engine) and f005 (<code>--preserve</code>, later
