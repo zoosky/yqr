@@ -418,3 +418,44 @@ is that an independent implementation is the oracle that made those divergences
 *measurable* (this issue and noyalib#226 exist because of it), and that swapping
 implementations is a materially different trade from deleting redundancy
 (`yqr-f015`). No longer an open item; the full record is in `yqr-f007` §6.
+
+### 6.5 Reorder moves values, not entries (open, measured 2026-08-15)
+
+Not a reopened gap — §2.3's API exists and ships. A **defect inside it**,
+found while settling the reorder grammar (`yqr-a002` §6), of the same class
+as §6.1 and §6.4: a silent wrong result at exit 0, not a refusal.
+
+`swap_items` and `move_item` exchange the items' **value bytes** and nothing
+else, so every comment stays attached to the position rather than to the item
+it documents. Measured on the 0.0.22 pin:
+
+```text
+in                  swap_items("", 0, 1)      in                move_item("", 0, 2)
+- one  # first      - two  # first            - a  # ca         - b  # ca
+- two  # second     - one  # second           - b  # cb         - c  # cb
+                                              - c  # cc         - a  # cc
+```
+
+Head comments behave identically — `# about one` stays above index 0 while the
+value it described moves away. Both return `Ok`, and both pass the upstream
+integrity guard *by construction*: that guard compares typed values, and a
+comment is not in the typed value, so it cannot see this class of damage.
+
+Two of `swap_items`' documented refusals are also stale on 0.0.22 — a **flow**
+sequence (`[one, two, three]` -> `[three, two, one]`) and multi-line items both
+succeed, where the doc comment lists them as errors. Nothing yqr plans depends
+on those refusals; they are recorded because `yqr-f007` §5.1's reminder now
+needs a third clause — "upstream has the call", "upstream does what its docs
+say", and "upstream has yqr's semantics" are three different questions.
+
+**Route: upstream, on the §5 `PR-with-fix` precedent, and yqr already owns the
+reference implementation.** `delete_entry` (`src/fidelity/write/delete.rs`)
+computes exactly the range an entry owns — value span, continuation lines, and
+the contiguous same-indent head-comment run above it, with a blank-detached
+comment correctly excluded. A trivia-aware reorder is two of those ranges
+exchanged; the arithmetic was written, argued and tested for delete in
+`yqr-b006`. Not yet filed upstream.
+
+This is what blocks the `swap`/`move` slice in `yqr-a002` §9, and it is the
+third time an independent yqr implementation has been the thing that made an
+upstream trivia divergence measurable (§6.1, §6.4, here).

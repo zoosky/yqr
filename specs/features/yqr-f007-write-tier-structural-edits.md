@@ -2,12 +2,15 @@
 
 **Status:** In Progress (structural **delete** shipped, and since `yqr-f013`
 it is yqr's whole delete path rather than a fallback; comment editing, key
-rename, and sequence reorder remain deferred)
+rename, and sequence reorder remain deferred, but their grammar is settled as
+of `yqr-a002` and staged in §6)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
-on), `yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog), `yqr-m002`
-§4/§6.2 (write-tier seam)
+on), `yqr-a002` (the addressing grammar for the three deferred slices),
+`yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog) and its §6.5 (the
+reorder trivia defect that blocks one slice), `yqr-m002` §4/§6.2 (write-tier
+seam)
 
 ## 1. Scope
 
@@ -60,10 +63,11 @@ the document untouched.
 - [x] Delete of a multi-line / nested node, byte-exact elsewhere; a clear error
       where still unsupported (sole-entry, flow).
 - [x] Every `replace_span` edit is guarded and covered by a byte-exact test.
-- [ ] Comment set/insert/remove at a resolved path, byte-exact elsewhere.
-- [ ] `.old |= key-rename` (final syntax TBD) renames a key, preserving value +
-      trailing comment.
-- [ ] Sequence reorder/move/swap by index, re-parse-guarded.
+- [ ] `line_comment(<path>)` / `head_comment(<path>)` set and remove
+      (`yqr-a002` §2.4), byte-exact elsewhere.
+- [ ] `key(<path>) = "new"` renames a key, preserving value + trailing comment.
+- [ ] `swap(<path>; i; j)` / `move(<path>; from; to)` reorder by index,
+      re-parse-guarded, with each item's comments travelling with the item.
 
 ## 5. Structural delete (shipped)
 
@@ -185,29 +189,47 @@ cannot slip past them.
 
 ## 6. Deferred gaps (roadmap)
 
-The remaining three gaps each need **new user-facing grammar** the epic has not
-settled; they stay deferred and continue to error with a clear "not yet
-supported" message. The byte arithmetic, however, is no longer yqr's problem —
-noyalib 0.0.18 ships a guarded API for each, so once the grammar is settled
-these become a call, not a splice (adoption: `yqr-f013` §3.4):
+The remaining three gaps each needed **new user-facing grammar** the epic had
+not settled. **That grammar is now settled in `yqr-a002`** (2026-08-15), which
+found the three to be one problem — yqr's path grammar addresses value nodes
+and only value nodes, while a comment, a key token, and an ordering are none of
+those — and answers it with a naming function wrapping a path
+(`line_comment(<path>)`, `head_comment(<path>)`, `key(<path>)`, assignable with
+`=` and removable with `del(...)`), plus a reorder verb (`swap(<path>; i; j)`,
+`move(<path>; from; to)`) for the case with no single node to name. The three
+slices, their refusal catalogs, and their acceptance criteria are staged in
+`yqr-a002` §9; they stay deferred here and continue to error with a clear "not
+yet supported" message until each ships.
 
-- **Comment editing** (`b004` 2.1) — needs a comment-addressing syntax.
-  Upstream: `set_inline_comment` / `remove_inline_comment`,
-  `set_leading_comment` / `remove_leading_comment`, single-line nodes only.
-- **Key rename** (`b004` 2.2) — needs a rename syntax. Upstream: `rename_key`
+The byte arithmetic is not yqr's problem — noyalib 0.0.18 shipped a guarded API
+for each, so with the grammar settled two of the three are a call, not a splice
+(adoption: `yqr-f013` §3.4):
+
+- **Comment editing** (`b004` 2.1) — `yqr-a002` §2.4. Upstream:
+  `set_inline_comment` / `remove_inline_comment`, `set_leading_comment` /
+  `remove_leading_comment`, single-line nodes only. Measured on 0.0.22, upstream
+  places a leading block **above** the addressed entry — the correct side, and
+  the opposite of yq — so the call is adoptable as-is.
+- **Key rename** (`b004` 2.2) — `key(<path>) = "new"`. Upstream: `rename_key`
   with style-matched quoting and sibling-duplicate refusal, plus `key_span`
   for the key-token range `span_at` never exposed.
-- **Sequence reorder** (`b004` 2.3) — needs a reorder syntax. Upstream:
-  `swap_items` and `move_item`, the latter a guarded run of adjacent swaps, so
-  no offset re-basing in yqr.
+- **Sequence reorder** (`b004` 2.3) — grammar settled, **slice blocked**.
+  `swap_items` / `move_item` exchange value bytes only, leaving every comment
+  attached to the position rather than to the item it documents, at exit 0 and
+  past upstream's own guard (which compares typed values, where comments do not
+  exist). That is §5.1's failure class exactly, and this module's entry-range
+  arithmetic is the reference implementation for the fix. Measured and routed in
+  `yqr-a002` §6 / `yqr-b004` §6.5.
 
 The upstream `PR-with-fix` path (§2) already ran its course for all three, and
-0.0.22 is pinned (`yqr-f015`), so each of these is now a grammar decision over
-a live API. Raw `replace_span` is the route of last resort rather than the
-expected one — though §5.1 is the standing reminder that "upstream has the
-call" and "upstream has yqr's semantics" are different questions.
+0.0.22 is pinned (`yqr-f015`), so comment editing and key rename are now
+implementation over a live API. Raw `replace_span` is the route of last resort
+rather than the expected one — and §5.1's reminder earned a third clause along
+the way: "upstream has the call", "upstream does what its docs say", and
+"upstream has yqr's semantics" are three different questions.
 
-Two further items are open here, neither gated on grammar:
+Four further items are recorded here, none gated on the `yqr-a002` grammar. The
+first is settled; the other three are open:
 
 - **Delegating delete to upstream `remove` — revisited 2026-08-15, and
   settled: no.** This was carried through `yqr-f013` §3.2, `yqr-f014` §3.4 and
@@ -258,19 +280,33 @@ Two further items are open here, neither gated on grammar:
   nested collection — so the "collections are not yet supported" refusal is now
   a scope limit, not a backend one. Lifting it is a user-facing surface change
   and belongs here or in `yqr-f008`, with its own tests and docs.
-- **Creating a key that holds `.` or `[`.** `insert_entry_value` can splice one
-  (it needs a path only to *replace* an existing key, so adding
-  `app.kubernetes.io/name` is supported upstream), but yqr still refuses it in
-  `insert_key`. The refusal is no longer about expressing the key — it is that
-  yqr's path grammar could not then address it, so the edit would write a key
-  the tool cannot read back. Lifting it means settling that addressing question
-  first (an escape or quoting form in the path syntax), which is grammar work,
-  not a splice change. This is the common Kubernetes label/annotation case and
-  is worth doing.
+- **Keys that hold `.` or `[` — and it is wider than "creating" one.** Measured
+  2026-08-15 on the 0.0.22 pin, against `app.kubernetes.io/name`:
+  - yqr's **filter** grammar already addresses such a key —
+    `.metadata.labels["app.kubernetes.io/name"]` parses and reads. So the
+    missing piece is *not* an escape form in yqr's path syntax, as this item
+    previously recorded.
+  - That read is **synthetic**, not byte-exact: a `|` block scalar comes back
+    re-indented to the emitter's two spaces instead of its authored four. The
+    key costs read fidelity, not just write access.
+  - **All three write paths refuse**, not only insert: `set_value` and `delete`
+    report `cannot address key ...`, and `insert_key` reports `cannot create
+    key ...`. `insert_entry_value` can still splice one, because it takes the
+    key as an argument rather than in a path.
+  - The blocker is **upstream and total**: noyalib's `parse_query_path`
+    (`src/path.rs`) has no escape or quoting form at all — it splits on `.`,
+    `[` and `*` unconditionally — and every addressing API (`span_at`,
+    `key_span`, `set_value`, `remove`, `rename_key`, `swap_items`) goes through
+    it. So this is an upstream grammar question on the §2 `PR-with-fix` route,
+    or a yqr-owned green-tree walk, not a change to yqr's own path syntax.
+
+  Every `yqr-a002` form inherits the same refusal (`yqr-a002` §7.3). This is the
+  common Kubernetes label/annotation case and is worth doing.
 - **A multi-line-insert case in the shared corpus.** `yqr-b008` §6: the unit
   tests pin the fix, but `yqr-m003`'s byte-exact `EngineCase` tier has no
   multi-line-string insert, so a backend swap could reintroduce the corruption
   without failing `tests/corpus_validation.rs`.
 
-_(These criteria firm up once the grammar and the upstream API surface are
-known.)_
+_(The grammar and the upstream API surface are now both known; the per-slice
+criteria live in `yqr-a002` §9. What stays open here is the scope and
+addressing work above, which `yqr-a002` §8 explicitly does not decide.)_
