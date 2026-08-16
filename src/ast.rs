@@ -18,10 +18,51 @@ use crate::Value;
 // Feature f006: top-level query/mutation split.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Program {
-    /// A read-only, streaming query (the M0 model).
-    Query(Ast),
+    /// A read-only query. [`Target::Value`] is the M0 streaming model; the
+    /// other variants read something attached to a node instead.
+    Query(Target),
     /// A single mutation applied to the source document.
     Mutate(Mutation),
+}
+
+/// What a read or a mutation addresses: a value node, or something attached
+/// to one.
+///
+/// yqr's path grammar addresses value nodes and only value nodes — a `Path`
+/// resolves to a *value's* byte span. A key token is attached to a node
+/// without being one, so it cannot be named by a path alone; a naming
+/// function wraps the path instead. The same wrapper is what a comment
+/// selector will use.
+///
+/// The inner [`Ast`] is the ordinary path, so it resolves and iterates
+/// exactly as it does anywhere else.
+// Feature f007: the non-value addressing target.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Target {
+    /// A value node — a bare path, unchanged from M0.
+    Value(Ast),
+    /// `key(<path>)` — the key token of the mapping entry at `<path>`.
+    Key(Ast),
+}
+
+impl Target {
+    /// The path this target wraps, whichever kind it is.
+    #[must_use]
+    pub fn path(&self) -> &Ast {
+        match self {
+            Target::Value(ast) | Target::Key(ast) => ast,
+        }
+    }
+
+    /// The selector's spelling, for diagnostics. `None` for a plain value
+    /// path, which has no function name to quote back at the user.
+    #[must_use]
+    pub fn selector_name(&self) -> Option<&'static str> {
+        match self {
+            Target::Value(_) => None,
+            Target::Key(_) => Some("key"),
+        }
+    }
 }
 
 /// A surgical edit targeting exactly one addressable node.
@@ -31,25 +72,28 @@ pub enum Program {
 // Feature f006: value-assignment mutation surface (`=`, `+=`, `del`).
 #[derive(Debug, Clone, PartialEq)]
 pub enum Mutation {
-    /// `<path> = <rhs>` — replace the value at `path` (or create a new mapping
-    /// key when the final segment is absent).
+    /// `<target> = <rhs>` — replace the value at a path (or create a new
+    /// mapping key when the final segment is absent), or rename a key when
+    /// the target is [`Target::Key`].
     Assign {
-        /// The left-hand path selecting the node to write.
-        path: Ast,
+        /// The left-hand target selecting what to write.
+        target: Target,
         /// The value source.
         rhs: Rhs,
     },
     /// `<path> += <rhs>` — append an item to the block sequence at `path`.
+    ///
+    /// Value-only: there is nothing to append to a key.
     Append {
         /// The left-hand path selecting the sequence.
         path: Ast,
         /// The item to append.
         rhs: Rhs,
     },
-    /// `del(<path>)` — remove the single-line block entry at `path`.
+    /// `del(<target>)` — remove the block entry at a path.
     Delete {
-        /// The path selecting the entry to remove.
-        path: Ast,
+        /// The target selecting what to remove.
+        target: Target,
     },
 }
 

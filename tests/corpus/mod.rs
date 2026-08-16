@@ -315,6 +315,32 @@ pub fn engine_cases() -> Vec<EngineCase> {
             expect: "registry.example.com/api\n",
         },
         // -- raw output on the engine path ------------------------------------
+        // -- Feature f007: the key selector reads the document's own token ---
+        EngineCase {
+            id: "engine/key/nested-plain",
+            doc: K8S_DEPLOYMENT,
+            filter: "key(.metadata.name)",
+            raw: false,
+            expect: "name\n",
+        },
+        EngineCase {
+            id: "engine/key/merge-produced-key-is-null",
+            // `retries` reaches `service` through `<<: *defaults`, so it is in
+            // the typed value but owns no token in the file. Answering from
+            // the filter's own path segment would report `retries` here — the
+            // exact case that separates a document read from an echo.
+            doc: FIDELITY_RICH,
+            filter: "key(.service.retries)",
+            raw: false,
+            expect: "null\n",
+        },
+        EngineCase {
+            id: "engine/key/sequence-item-is-null",
+            doc: GH_ACTIONS,
+            filter: "key(.jobs.build.steps[0])",
+            raw: false,
+            expect: "null\n",
+        },
         EngineCase {
             id: "engine/raw/top-level-string",
             doc: APP_CONFIG,

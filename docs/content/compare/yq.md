@@ -155,9 +155,15 @@ Plenty, and it is worth knowing before you switch:
   that already exist.
 - **Builtins and arithmetic.** No `map`, `select`, `length`, `+` on values.
 - **Format conversion.** No JSON, XML, TOML, or properties in or out.
-- **Comment, key-name, and ordering edits.** yqr can change values, add
-  keys, append to sequences, and delete entries. Renaming a key or
-  rewriting a comment is not in the released grammar yet.
+- **Comment and ordering edits.** yqr can change values, add keys, append
+  to sequences, delete entries, and rename keys with `key(...)`. Rewriting
+  a comment and reordering a sequence are not in the released grammar yet.
+
+  Where yqr does have the operation, the shape differs on purpose. yq
+  spells a rename `(.a | key) = "z"` and a comment edit `.a
+  line_comment="hi"` -- two different shapes, and the one that works for
+  comments is a **silent no-op** for keys. yqr uses one shape for both,
+  `key(.a) = "z"`, so learning either teaches the other.
 
 If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.

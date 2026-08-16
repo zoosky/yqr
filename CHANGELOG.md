@@ -6,6 +6,30 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **Rename a key: `key(.a.b) = "new"`.** A path names a *value*, so until now
+  there was no way to say "the key of this entry" -- renaming meant deleting
+  the entry and writing it back, which loses its position and its comments.
+  `key(...)` wraps a path and names the key instead. The rename rewrites the
+  key token and nothing else: the value keeps its spelling, the entry keeps
+  its place in the mapping, and the comments above and beside it are
+  untouched.
+
+  `key(.a.b)` also *reads* a key, and reads what the file says -- a key
+  written `"a"` comes back `"a"`, quotes included, because the read slices the
+  document rather than echoing back the path you typed. `-r` unquotes it, as
+  it does for a string value.
+
+  Reads never fail a batch: a sequence item has no key, and neither does one
+  that arrived through a `<<` merge, so both read `null`. Writing to those is
+  refused with the reason, as is a rename that would collide with an existing
+  sibling, or one to a name the path syntax could not address afterwards.
+
+  `key` is only a keyword directly before `(`, so `.key` still reads a field
+  named `key` -- along with `.swap`, `.move`, `.del` and the comment words
+  reserved for later.
+
 ### Changed
 
 - **YAML engine upgraded from noyalib 0.0.22.** The one functional change in

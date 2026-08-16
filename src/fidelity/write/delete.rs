@@ -345,14 +345,14 @@ fn collection_noun(last: &PathSeg) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::super::apply;
-    use crate::ast::Mutation;
+    use crate::ast::{Mutation, Target};
     use crate::error::YqrError;
 
     /// Run `del(<path>)` over `input` on the default backend.
     fn del(path: &str, input: &str) -> Result<String, YqrError> {
         apply(
             &Mutation::Delete {
-                path: crate::parser::parse(path).expect("valid path"),
+                target: Target::Value(crate::parser::parse(path).expect("valid path")),
             },
             input,
         )

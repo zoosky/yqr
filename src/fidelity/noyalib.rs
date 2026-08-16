@@ -138,6 +138,31 @@ impl FidelityEngine for NoyalibEngine {
             Ok(Resolved::Absent)
         }
     }
+
+    // Feature f007.
+    fn key_bytes(&self, doc: usize, path: &Path) -> Result<Option<&str>> {
+        self.check_doc(doc)?;
+        // The root is the document, not an entry, so it has no key. Same for
+        // a path this backend cannot address — reads stay total, so both are
+        // `None` rather than an error.
+        if path.is_root() {
+            return Ok(None);
+        }
+        let Some(path_str) = to_noyalib_path(path) else {
+            return Ok(None);
+        };
+        // `key_span` is `None` for exactly the cases with no key token of
+        // their own: a sequence item, an absent path, a key produced by a
+        // `<<` merge, and alias-expanded content. That makes it both the
+        // source of the bytes and the test for whether there are any.
+        let Some((start, end)) = self.docs[doc].key_span(&path_str) else {
+            return Ok(None);
+        };
+        let doc_span = self.doc_span(doc).expect("checked above");
+        Ok(Some(
+            Span::new(doc_span.start + start, doc_span.start + end).slice(&self.source),
+        ))
+    }
 }
 
 impl NoyalibEngine {
@@ -570,5 +595,59 @@ mod tests {
                 other => panic!("expected Found, got {other:?}"),
             }
         }
+    }
+
+    // -- Feature f007: key-token reads ------------------------------------
+
+    #[test]
+    fn key_bytes_returns_the_token_verbatim() {
+        let e = engine("\"quoted\": 1\n'single': 2\nplain: 3\n");
+        for (key, want) in [
+            ("quoted", "\"quoted\""),
+            ("single", "'single'"),
+            ("plain", "plain"),
+        ] {
+            let path = Path::root().child(PathSeg::Key(key.into()));
+            assert_eq!(
+                e.key_bytes(0, &path).unwrap(),
+                Some(want),
+                "key {key} should read back its own token"
+            );
+        }
+    }
+
+    #[test]
+    fn key_bytes_is_none_where_there_is_no_key_token() {
+        let e = engine("xs:\n  - one\n");
+        // A sequence item has no key.
+        let item = Path::root()
+            .child(PathSeg::Key("xs".into()))
+            .child(PathSeg::Index(0));
+        assert_eq!(e.key_bytes(0, &item).unwrap(), None);
+        // Neither does the document root.
+        assert_eq!(e.key_bytes(0, &Path::root()).unwrap(), None);
+        // Nor an absent path.
+        let absent = Path::root().child(PathSeg::Key("nope".into()));
+        assert_eq!(e.key_bytes(0, &absent).unwrap(), None);
+    }
+
+    #[test]
+    fn key_bytes_is_none_for_a_merge_produced_key() {
+        // The key is in the typed value but owns no bytes, which is the case
+        // that makes reading the path segment back wrong.
+        let e = engine("base: &b\n  x: 1\nuse:\n  <<: *b\n  y: 2\n");
+        let merged = Path::root()
+            .child(PathSeg::Key("use".into()))
+            .child(PathSeg::Key("x".into()));
+        assert_eq!(e.key_bytes(0, &merged).unwrap(), None);
+    }
+
+    #[test]
+    fn key_bytes_offsets_are_document_relative_in_a_stream() {
+        // The span comes back relative to its own document; a stream must not
+        // slice the first document's bytes for the second's key.
+        let e = engine("a: 1\n---\nlonger_key: 2\n");
+        let path = Path::root().child(PathSeg::Key("longer_key".into()));
+        assert_eq!(e.key_bytes(1, &path).unwrap(), Some("longer_key"));
     }
 }

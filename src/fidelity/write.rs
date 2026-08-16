@@ -31,7 +31,7 @@
 // Feature f006 (see specs/features/): write tier v1 — value assignment.
 
 use crate::Value;
-use crate::ast::Mutation;
+use crate::ast::{Mutation, Target};
 use crate::error::{Result, YqrError};
 use crate::eval::{AssignTarget, resolve_assign_target, resolve_rhs, resolve_target};
 use crate::fidelity::{Path, PathSeg};
@@ -112,6 +112,20 @@ pub(crate) trait FidelityWriter {
     /// different document.
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()>;
 
+    /// Rename the key of the mapping entry at `path`, leaving its value, its
+    /// comments, and every other byte in the document identical.
+    ///
+    /// Only the key *token* is rewritten, so the entry keeps its position in
+    /// the mapping — a rename is not a delete plus an insert.
+    ///
+    /// # Errors
+    ///
+    /// Errors when the path is unaddressable or names a sequence item, when
+    /// `new_key` cannot be addressed once written, when the rename would
+    /// collide with an existing sibling, and when the entry has no key token
+    /// of its own (a `<<` merge or an alias site).
+    fn rename_key(&mut self, doc: usize, path: &Path, new_key: &str) -> Result<()>;
+
     /// Emit the whole document stream: edited documents reflect their edits,
     /// every other document is byte-identical to the input.
     fn emit(&self) -> String;
@@ -159,7 +173,10 @@ fn apply_to_doc(
     // untouched, so a path RHS that happens to be absent in that document must
     // not be evaluated (and must not turn a skip into a hard error).
     match mutation {
-        Mutation::Assign { path, rhs } => {
+        Mutation::Assign {
+            target: Target::Value(path),
+            rhs,
+        } => {
             let Some(target) = resolve_assign_target(path, value)? else {
                 return Ok(());
             };
@@ -171,6 +188,21 @@ fn apply_to_doc(
                 }
             }
         }
+        // A rename addresses an entry that must already exist: there is no
+        // key to rename otherwise, and `resolve_assign_target`'s create-a-key
+        // branch would be the wrong answer (`key(.absent) = "x"` must not
+        // invent an entry). So this uses the plain resolver and skips the
+        // document when the path is absent, exactly as `del` does.
+        Mutation::Assign {
+            target: Target::Key(path),
+            rhs,
+        } => {
+            let Some(target) = resolve_target(path, value)? else {
+                return Ok(());
+            };
+            let new_key = key_name(&resolve_rhs(rhs, value)?)?;
+            writer.rename_key(doc, &target, &new_key)
+        }
         Mutation::Append { path, rhs } => {
             let Some(target) = resolve_target(path, value)? else {
                 return Ok(());
@@ -178,10 +210,48 @@ fn apply_to_doc(
             let item = resolve_rhs(rhs, value)?;
             writer.append(doc, &target, &item)
         }
-        Mutation::Delete { path } => match resolve_target(path, value)? {
+        Mutation::Delete {
+            target: Target::Value(path),
+        } => match resolve_target(path, value)? {
             Some(target) => writer.delete(doc, &target),
             None => Ok(()),
         },
+        // Refused at parse (`parse_del`), so reaching here would mean the
+        // parser and this dispatch had drifted apart.
+        Mutation::Delete {
+            target: Target::Key(_),
+        } => Err(YqrError::eval(
+            "del(key(...)) is not an edit: a key cannot outlive its entry".to_string(),
+        )),
+    }
+}
+
+/// The new key a `key(<path>) = <rhs>` rename writes.
+///
+/// yqr's path model addresses mapping keys as strings (`PathSeg::Key`), so a
+/// rename target has to be one. A number or boolean would produce an entry the
+/// typed view could hold but no filter could name, which is the same trap the
+/// `key_is_plain` check exists to prevent — refused here, where the message can
+/// name what was given.
+fn key_name(value: &Value) -> Result<String> {
+    match value {
+        Value::String(s) => Ok(s.clone()),
+        other => Err(YqrError::eval(format!(
+            "the right-hand side of a key rename must be a string, but found {}",
+            type_name(other)
+        ))),
+    }
+}
+
+/// The user-facing name of a value's type, for diagnostics.
+fn type_name(value: &Value) -> &'static str {
+    match value {
+        Value::Null => "null",
+        Value::Bool(_) => "a boolean",
+        Value::Int(_) | Value::Float(_) => "a number",
+        Value::String(_) => "a string",
+        Value::Sequence(_) => "a sequence",
+        Value::Mapping(_) => "a mapping",
     }
 }
 
@@ -291,6 +361,25 @@ impl FidelityWriter for NoyalibWriter {
         self.delete_entry(doc, path)
     }
 
+    fn rename_key(&mut self, doc: usize, path: &Path, new_key: &str) -> Result<()> {
+        // A key yqr can write but not address again is a trap, and rename is
+        // where the addressable set could stop being closed under editing:
+        // upstream accepts an empty new key and writes `"": 1`, after which no
+        // yqr path reaches the entry. Checked against the same predicate the
+        // path lowering uses, so what a rename can produce is exactly what a
+        // filter can name.
+        if !PathSeg::key_is_plain(new_key) {
+            return Err(YqrError::eval(format!(
+                "cannot rename to {new_key:?}: it uses characters the path grammar \
+                 cannot address, so the renamed entry could not be selected again"
+            )));
+        }
+        let path_str = noyalib_path(path)?;
+        self.doc_mut(doc)?
+            .rename_key(&path_str, new_key)
+            .map_err(|e| YqrError::eval(format!("cannot rename key at {path_str:?}: {e}")))
+    }
+
     /// Concatenate the document stream, byte-for-byte as each document now
     /// stands.
     ///
@@ -347,9 +436,146 @@ mod tests {
 
     fn assign(path: &str, rhs: Rhs) -> Mutation {
         Mutation::Assign {
-            path: crate::parser::parse(path).expect("valid path"),
+            target: Target::Value(crate::parser::parse(path).expect("valid path")),
             rhs,
         }
+    }
+
+    /// Run `key(<path>) = <new>` over `input`.
+    // Feature f007: key rename.
+    fn rename(path: &str, new_key: &str, input: &str) -> Result<String> {
+        apply(
+            &Mutation::Assign {
+                target: Target::Key(crate::parser::parse(path).expect("valid path")),
+                rhs: Rhs::Literal(Value::String(new_key.to_string())),
+            },
+            input,
+        )
+    }
+
+    // -- Feature f007: key rename ---------------------------------------------
+
+    #[test]
+    fn rename_rewrites_the_key_token_and_nothing_else() {
+        // The whole property in one case: the value keeps its spelling, the
+        // inline comment keeps its column, the head comment stays above, the
+        // sibling and the document header are untouched, and the entry keeps
+        // its position in the mapping.
+        let input = "# header\nmetadata:\n  # names the app\n  name:   app   # why\n  tier: web\n";
+        let out = rename(".metadata.name", "title", input).unwrap();
+        assert_eq!(
+            out,
+            "# header\nmetadata:\n  # names the app\n  title:   app   # why\n  tier: web\n"
+        );
+    }
+
+    #[test]
+    fn rename_keeps_key_order() {
+        // A rename is not a delete plus an insert; `b` must not move to the end.
+        let out = rename(".b", "z", "a: 1\nb: 2\nc: 3\n").unwrap();
+        assert_eq!(out, "a: 1\nz: 2\nc: 3\n");
+    }
+
+    #[test]
+    fn rename_matches_the_neighbouring_quote_style() {
+        let out = rename(".b", "new", "\"a\": 1\n\"b\": 2\n").unwrap();
+        assert_eq!(out, "\"a\": 1\n\"new\": 2\n");
+    }
+
+    #[test]
+    fn rename_preserves_a_multi_line_value_verbatim() {
+        let input = "notes: |\n    line one\n    line two\nafter: 1\n";
+        let out = rename(".notes", "text", input).unwrap();
+        assert_eq!(out, "text: |\n    line one\n    line two\nafter: 1\n");
+    }
+
+    #[test]
+    fn rename_of_an_absent_path_is_a_noop_not_a_new_key() {
+        // `resolve_assign_target`'s create-a-key branch would be the wrong
+        // answer here: there is no key to rename, so the document is left
+        // alone rather than growing an entry the filter never named.
+        let input = "a: 1\n";
+        assert_eq!(rename(".absent", "x", input).unwrap(), input);
+    }
+
+    #[test]
+    fn rename_skips_documents_where_the_path_is_absent() {
+        let input = "a: 1\n---\nb: 2\n";
+        assert_eq!(rename(".a", "z", input).unwrap(), "z: 1\n---\nb: 2\n");
+    }
+
+    #[test]
+    fn rename_refuses_a_sequence_item() {
+        let input = "xs:\n  - one\n";
+        let err = rename(".xs[0]", "k", input).unwrap_err();
+        assert!(
+            format!("{err}").contains("sequence item"),
+            "message should name the reason, got: {err}"
+        );
+    }
+
+    #[test]
+    fn rename_refuses_a_sibling_collision() {
+        let err = rename(".a", "b", "a: 1\nb: 2\n").unwrap_err();
+        assert!(
+            format!("{err}").contains("already has an entry"),
+            "message should name the collision, got: {err}"
+        );
+    }
+
+    #[test]
+    fn rename_refuses_a_merge_key() {
+        let input = "base: &b\n  x: 1\nuse:\n  <<: *b\n  y: 2\n";
+        let err = rename(".use.x", "z", input).unwrap_err();
+        assert!(
+            format!("{err}").contains("merge key"),
+            "message should name the merge, got: {err}"
+        );
+    }
+
+    #[test]
+    fn rename_refuses_an_empty_key_as_yqrs_own_precheck() {
+        // Upstream accepts this and writes `"": 1`, after which no yqr path
+        // reaches the entry. The refusal is yqr's, so the message is yqr's —
+        // it must not read like a forwarded backend error.
+        let err = rename(".a", "", "a: 1\n").unwrap_err();
+        let text = format!("{err}");
+        assert!(text.contains("could not be selected again"), "got: {text}");
+        assert!(!text.contains("rename_key:"), "should not forward: {text}");
+    }
+
+    #[test]
+    fn rename_refuses_a_key_the_path_grammar_cannot_address() {
+        for bad in ["a.b", "a[0]", "a*b"] {
+            let err = rename(".a", bad, "a: 1\n").unwrap_err();
+            assert!(
+                format!("{err}").contains("cannot rename to"),
+                "{bad:?} should be refused"
+            );
+        }
+    }
+
+    #[test]
+    fn rename_refuses_a_non_string_key() {
+        let err = apply(
+            &Mutation::Assign {
+                target: Target::Key(crate::parser::parse(".a").expect("valid")),
+                rhs: Rhs::Literal(Value::Int(5)),
+            },
+            "a: 1\n",
+        )
+        .unwrap_err();
+        assert!(format!("{err}").contains("must be a string"), "got: {err}");
+    }
+
+    #[test]
+    fn a_refused_rename_leaves_the_document_untouched() {
+        // The `-i` contract: a refusal must not have half-applied anything.
+        let input = "a: 1\nb: 2\n";
+        assert!(rename(".a", "b", input).is_err());
+        // Re-running a *valid* rename over the same input still produces the
+        // clean result, so nothing was mutated in place on the way out.
+        assert_eq!(rename(".a", "z", input).unwrap(), "z: 1\nb: 2\n");
     }
 
     #[test]
@@ -566,7 +792,7 @@ mod tests {
     fn delete_removes_a_single_line_entry() {
         let out = apply(
             &Mutation::Delete {
-                path: crate::parser::parse(".metadata.labels").expect("valid"),
+                target: Target::Value(crate::parser::parse(".metadata.labels").expect("valid")),
             },
             "metadata:\n  name: app\n  labels: prod\n",
         )
@@ -611,7 +837,7 @@ mod tests {
         let input = "kept: 1\n";
         let out = apply(
             &Mutation::Delete {
-                path: crate::parser::parse(".deprecated").expect("valid"),
+                target: Target::Value(crate::parser::parse(".deprecated").expect("valid")),
             },
             input,
         )
@@ -685,7 +911,7 @@ mod tests {
         // closing up its owned lines and leaving the sibling byte-identical.
         let out = apply(
             &Mutation::Delete {
-                path: crate::parser::parse(".outer").expect("valid"),
+                target: Target::Value(crate::parser::parse(".outer").expect("valid")),
             },
             "outer:\n  inner: 1\nother: 2\n",
         )
@@ -699,7 +925,7 @@ mod tests {
         // (a structural change); it is refused, not silently emptied.
         let err = apply(
             &Mutation::Delete {
-                path: crate::parser::parse(".only").expect("valid"),
+                target: Target::Value(crate::parser::parse(".only").expect("valid")),
             },
             "only:\n  a: 1\n  b: 2\n",
         )
@@ -712,7 +938,7 @@ mod tests {
         // A dotted key cannot be expressed in the string-path grammar.
         let err = apply(
             &Mutation::Assign {
-                path: crate::parser::parse(r#".["a.b"]"#).expect("valid"),
+                target: Target::Value(crate::parser::parse(r#".["a.b"]"#).expect("valid")),
                 rhs: Rhs::Literal(Value::Int(1)),
             },
             "'a.b': 1\n",

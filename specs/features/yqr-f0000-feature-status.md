@@ -47,7 +47,7 @@ dependency/release timing.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
-| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename grammar settled in `yqr-a002`, unimplemented; reorder blocked on `yqr-b010`) |
+| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete and **key rename** shipped; comment editing settled in `yqr-a002` but unimplemented; reorder blocked on `yqr-b010`) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
@@ -66,7 +66,12 @@ itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
 wrapping a path — `line_comment(p)`, `head_comment(p)`, `key(p)`, assignable
 with `=` and removable with `del(...)` — plus a reorder verb `swap(p; i; j)` /
 `move(p; from; to)`, staged as three slices with per-slice acceptance criteria.
-Two of the three are now implementation over a live API. The third is **not**:
+Two of the three are now implementation over a live API, and the **first has
+shipped**: `yqr-a002` slice 1 landed 2026-08-16 as `key(<path>)` / `key(<path>)
+= "new"` (`f007` §7) — the whole new grammar path under the operation with the
+fewest cases. Its read goes through `key_span` rather than the filter's own
+resolved path segment, which is what keeps `key(...)` printing the document's
+bytes instead of echoing the query. The third is **not**:
 measuring 0.0.22 rather than reading its docs showed the backend *is* the
 blocker for reorder — `swap_items`/`move_item` exchange value bytes only, so a
 reorder silently re-attributes every comment in the range at exit 0, filed as
@@ -152,9 +157,9 @@ dashboard.
 - Total features: 16
 - Draft: 2 (f008 — computed updates, gated on `f001` M2; f016 — noyalib 0.0.23
   adoption, blocked on the release, and owing the `f007` §6 re-measurement)
-- In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
-  rename / reorder grammar settled in `yqr-a002` and staged as three slices,
-  none implemented, and slice 3 blocked on `yqr-b010`)
+- In Progress: 2 (f001 M0; f007 — structural delete and key rename shipped;
+  the comment / reorder grammar settled in `yqr-a002`, slice 2 (comments)
+  unimplemented and slice 3 (reorder) blocked on `yqr-b010`)
 - Done: 9 (f002, f006, f009, f010, f011, f012, f013, f014, f015)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
