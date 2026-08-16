@@ -10,7 +10,8 @@ of `yqr-a002` and staged in §6)
 on), `yqr-a002` (the addressing grammar for the three deferred slices),
 `yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog) and its §6.6 (the
 comment-mutator asymmetries the slice must pre-check), `yqr-b010` (the reorder
-trivia defect that blocks one slice), `yqr-m002` §4/§6.2 (write-tier seam)
+trivia disagreement that blocks one slice), `yqr-m002` §4/§6.2 (write-tier
+seam)
 
 ## 1. Scope
 
