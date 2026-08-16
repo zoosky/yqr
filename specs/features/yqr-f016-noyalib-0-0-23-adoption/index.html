@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f016-noyalib-0-0-23-adoption",
-  "wordCount": 1456
+  "wordCount": 1524
 }
 </script>
 <script type="application/ld+json">
@@ -2794,8 +2794,15 @@ reorder silently re-attributes every comment in the range at exit 0. Verified
 <code>move_item</code> appears in the diff, and both resolve through <code>span_at</code> +
 <code>replace_span</code>, which are unchanged for them.</p>
 <p>So the <code>yqr-a002</code> §9 slice 3 block survives this release. With <code>#221</code> now
-closed, <code>yqr-b010</code> needs its own upstream issue rather than a comment on a
-closed umbrella.</p>
+closed, it went upstream as its own issue —
+<a href="https://github.com/sebastienrousseau/noyalib/issues/269">noyalib#269</a>, with a
+fix offered as <a href="https://github.com/sebastienrousseau/noyalib/pull/270">noyalib#270</a>.</p>
+<p>That PR is worth noting <em>here</em> rather than only in <code>yqr-b010</code>, because it is a
+second-order consequence of this release: <code>#268</code> added <code>owned_entry_range</code> to
+compute the range an entry owns, which is precisely what a trivia-aware reorder
+needs. The extended <code>remove</code> shipped the arithmetic; the reorder fix is mostly
+composition over it. Adopting 0.0.23 and settling <code>b010</code> are still separate
+questions, but they now share a helper.</p>
 <h2 id="4-the-measurement-yqr-f007-6-needs-re-run">4. The measurement <code>yqr-f007</code> §6 needs re-run<a class="heading-anchor" href="#4-the-measurement-yqr-f007-6-needs-re-run" aria-label="Link to this section"></a></h2>
 <p><code>yqr-f007</code> §6 settled “delegate <code>delete</code> to upstream <code>remove</code>: <strong>no</strong>” on the
 0.0.22 pin, and closed with “reopen only on a <em>new</em> argument — not on upstream

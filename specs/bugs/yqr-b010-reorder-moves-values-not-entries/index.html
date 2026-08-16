@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items &#x2f; cst::Document::move_item (upstream), reached from yqr&#x27;s planned reorder verb Blocks: the swap &#x2f; m...">
+<meta name="description" content="Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer&#x27;s decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind">
-<meta property="og:description" content="Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items &#x2f; cst::Document::move_item (upstream), reached from yqr&#x27;s planned reorder verb Blocks: the swap &#x2f; m...">
+<meta property="og:description" content="Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer&#x27;s decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind">
-<meta name="twitter:description" content="Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items &#x2f; cst::Document::move_item (upstream), reached from yqr&#x27;s planned reorder verb Blocks: the swap &#x2f; m...">
+<meta name="twitter:description" content="Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer&#x27;s decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-16",
-  "description": "Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items / cst::Document::move_item (upstream), reached from yqr's planned reorder verb Blocks: the swap / m...",
+  "description": "Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer's decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...",
   "inLanguage": "en",
   "name": "Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries",
-  "wordCount": 908
+  "wordCount": 1540
 }
 </script>
 <script type="application/ld+json">
@@ -2718,8 +2718,11 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed
-upstream)
+            <p><strong>Status:</strong> Open — filed upstream 2026-08-16 as
+<a href="https://github.com/sebastienrousseau/noyalib/issues/269">noyalib#269</a>, with a
+fix offered as <a href="https://github.com/sebastienrousseau/noyalib/pull/270">noyalib#270</a>.
+Awaiting the maintainer’s decision, which is a <strong>semantics</strong> call rather than a
+defect triage — see §1.1
 <strong>Severity:</strong> Medium — a silent wrong result at exit 0, not a refusal
 <strong>Component:</strong> noyalib <code>cst::Document::swap_items</code> / <code>cst::Document::move_item</code>
 (upstream), reached from yqr’s planned reorder verb
@@ -2728,15 +2731,42 @@ upstream)
 adoption finding that points here), <code>yqr-b006</code> (the same failure class in
 yqr’s own delete), <code>yqr-a002</code> §6 (the architecture consequence),
 <code>yqr-f007</code> §5.1 (the standing reminder this is the third instance of),
-<code>yqr-f015</code> (the 0.0.22 pin)</p>
+<code>yqr-f015</code> (the 0.0.22 pin), <code>yqr-f016</code> (0.0.23, which does not fix this — §4.1)</p>
 <h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
 <p>noyalib’s sequence-reorder mutators exchange the items’ <strong>value bytes</strong> and
 nothing else. Every comment stays attached to the position rather than to the
 item it documents, so a reorder silently re-attributes the file’s
 documentation. Both calls return <code>Ok</code>, the exit code is 0, and <code>yqr -i</code> would
 write the damage to the user’s file.</p>
-<p>This is not a reopened gap — <code>yqr-b004</code> §2.3’s API exists and ships. It is a
-defect <em>inside</em> a shipped mutator, of the same class as <code>b004</code> §6.1 and §6.4.</p>
+<p>This is not a reopened gap — <code>yqr-b004</code> §2.3’s API exists and ships.</p>
+<h3 id="1-1-it-is-a-disagreement-not-a-defect-corrected-2026-08-16">1.1 It is a disagreement, not a defect — corrected 2026-08-16<a class="heading-anchor" href="#1-1-it-is-a-disagreement-not-a-defect-corrected-2026-08-16" aria-label="Link to this section"></a></h3>
+<p>This spec and the first version of noyalib#269 both called it a defect “of the
+same class as <code>b004</code> §6.1 and §6.4”. <strong>That framing is wrong</strong>, and the
+correction is on the record upstream.</p>
+<p>Upstream’s behaviour is deliberate, documented and tested. <code>swap_items</code>’ doc
+comment says it rewrites “only the two items’ value bytes”, and
+<code>swap_preserves_inline_comment_position</code> pins exactly the §2 measurement with
+its rationale in a comment: <em>“Only the value bytes move; the comment annotates
+the slot.”</em> §6.1/§6.4 were cases where upstream diverged from what it said it
+did. This is not one; it is yqr disagreeing with what upstream says it does.</p>
+<p>The measurement in §2 stands unchanged — only the word for it moves. And the
+disagreement still blocks the slice, because what yqr needs from a reorder is
+not what upstream currently provides.</p>
+<p><strong>The argument yqr makes is internal consistency, not correctness in the
+abstract.</strong> <code>remove</code> already decides the same question the other way for the
+same bytes: an entry owns the contiguous same-indent comment run directly above
+it (<code>owned_entry_range</code> / <code>absorb_head_comments</code>), on the reasoning that leaving
+it behind makes the comment “documentation for the <em>next</em> entry”. Two mutators
+in one crate cannot hold opposite views of who owns a comment. <code># about one</code>
+above <code>- one</code> is not plausibly annotating position 0.</p>
+<p>For <strong>inline</strong> comments the slot reading is defensible — <code>- a  # first</code> can mean
+“first in the list”. yqr’s position is that it is the rarer case and that
+splitting the two would be worse than either choice, since head comments
+travelling while inline ones stayed would make one swap’s output incoherent.</p>
+<p>Lesson for this repo, since it cost a mis-filed issue: measuring behaviour and
+reading the implementation is not the same as reading the <strong>tests</strong>. A tested
+behaviour with a rationale in the test body is a decision, and has to be argued
+with rather than reported.</p>
 <h2 id="2-measurement">2. Measurement<a class="heading-anchor" href="#2-measurement" aria-label="Link to this section"></a></h2>
 <p>Driven directly against the pinned crate, 2026-08-15, re-confirmed 2026-08-16.
 Two separate inputs, one per call:</p>
@@ -2783,9 +2813,8 @@ plus a new <code>Removal</code> enum and <code>flow_member_range</code> helper. 
 <code>swap_items</code> nor <code>move_item</code> appears in the diff, and both resolve through
 <code>span_at</code> + <code>replace_span</code>, unchanged for them. This bug survives 0.0.23.</p>
 <p><code>#221</code> covered reorder as its sub-ask 3 and considers it shipped in 0.0.18 —
-correctly, since the API exists; this is a defect inside it. With the umbrella
-now closed, the filing in §5 must be <strong>its own issue</strong>, not a comment on a
-closed thread.</p>
+correctly, since the API exists. With the umbrella now closed, the filing in
+§5 went as <strong>its own issue</strong> rather than a comment on a closed thread.</p>
 <h2 id="5-route-upstream-and-yqr-already-owns-the-reference-implementation">5. Route: upstream, and yqr already owns the reference implementation<a class="heading-anchor" href="#5-route-upstream-and-yqr-already-owns-the-reference-implementation" aria-label="Link to this section"></a></h2>
 <p>On the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent. <code>delete_entry</code>
 (<code>src/fidelity/write/delete.rs</code>) computes exactly the range an entry owns —
@@ -2793,7 +2822,32 @@ value span, continuation lines, and the contiguous same-indent head-comment
 run above it, with a blank-detached comment deliberately excluded. A
 trivia-aware reorder is two of those ranges exchanged. That arithmetic was
 written, argued and tested for delete in <code>yqr-b006</code>; it transfers.</p>
-<p><strong>Not yet filed.</strong> The filing hangs here.</p>
+<p><strong>Filed and fixed, 2026-08-16.</strong></p>
+<ul>
+<li>
+<p><a href="https://github.com/sebastienrousseau/noyalib/issues/269">noyalib#269</a> — the
+issue, plus the §1.1 correction posted as a follow-up once the pinning test
+turned up.</p>
+</li>
+<li>
+<p><a href="https://github.com/sebastienrousseau/noyalib/pull/270">noyalib#270</a> — the
+fix. It turned out that upstream <em>already has</em> the arithmetic: <code>#268</code> added
+<code>owned_entry_range</code> for the extended <code>remove</code>, so the change is
+<code>swap_items</code> asking <code>entry_line_span</code> for each item and taking the
+whole-entry path when both come back as <code>Removal::Line</code>, rather than new
+byte machinery. Flow members keep the value-span exchange. <code>move_item</code> is a
+run of adjacent swaps and inherits it.</p>
+<p>One detail worth carrying back if yqr ever owns this: each <em>position</em> keeps
+its own line terminator while the bodies move. A document whose last entry
+has no trailing newline otherwise splices <code>- a\n- b</code> into <code>- b- a</code>.</p>
+<p>Evidence offered with it: 5594 tests and 499 doctests pass, clippy and fmt
+clean, and <strong>exactly one existing test changed</strong> — the one pinning the old
+semantics. That number is the argument. The rest of the suite is indifferent,
+so the single disagreement is the design decision and not a blast radius.</p>
+</li>
+</ul>
+<p>The maintainer may prefer slot semantics and close it. §6 is written for
+either outcome.</p>
 <h2 id="6-impact-on-yqr">6. Impact on yqr<a class="heading-anchor" href="#6-impact-on-yqr" aria-label="Link to this section"></a></h2>
 <p><code>yqr-a002</code> settles the reorder grammar (<code>swap(&lt;path&gt;; i; j)</code>,
 <code>move(&lt;path&gt;; from; to)</code>) and then stages that slice <strong>last</strong> and blocked, on
@@ -2803,18 +2857,33 @@ but it declines the common case, since a commented list item is the normal
 shape of the files yqr targets (<code>spec.containers</code>, GitHub Actions <code>steps</code>,
 Ansible tasks).</p>
 <p>This is the third time an independent yqr implementation has been the thing
-that made an upstream trivia divergence measurable (<code>b004</code> §6.1, §6.4, here).</p>
+that made an upstream trivia divergence measurable (<code>b004</code> §6.1, §6.4, here) —
+though this one is a disagreement rather than a divergence (§1.1).</p>
+<p><strong>If upstream keeps slot semantics</strong>, the slice ships with the yqr-side refusal
+above and this bug closes as Won’t Fix rather than Resolved; <code>yqr-a002</code> §9
+slice 3’s second criterion (“an item’s inline and head comments travel with the
+item”) becomes unreachable through the backend and would have to be met by yqr
+owning the arithmetic — the <code>yqr-f007</code> §2 route of last resort. Decide that
+only if it happens.</p>
 <h2 id="7-acceptance">7. Acceptance<a class="heading-anchor" href="#7-acceptance" aria-label="Link to this section"></a></h2>
 <ul>
+<li><input disabled="" type="checkbox" checked=""/>
+Filed upstream with the §2 measurement and the §5 reference —
+noyalib#269, 2026-08-16.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Framing corrected upstream once the pinning test was found (§1.1).</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Fix offered as a PR — noyalib#270.</li>
 <li><input disabled="" type="checkbox"/>
-Filed upstream with the §2 measurement and the §5 reference.</li>
+Maintainer’s decision on the semantics.</li>
 <li><input disabled="" type="checkbox"/>
 A released noyalib moves an entry’s inline and head comments with the
 item, for both <code>swap_items</code> and <code>move_item</code>.</li>
 <li><input disabled="" type="checkbox"/>
 <code>yqr-a002</code> §9 slice 3’s criteria pass against that release.</li>
 <li><input disabled="" type="checkbox"/>
-<code>yqr-b000</code> and this file move to Resolved in the same change.</li>
+<code>yqr-b000</code> and this file move to Resolved (or Won’t Fix, §6) in the same
+change.</li>
 </ul>
 
         </div>
@@ -2844,6 +2913,10 @@ item, for both <code>swap_items</code> and <code>move_item</code>.</li>
         
             <li class="toc-level-2">
                 <a href="#1-summary">1. Summary</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#1-1-it-is-a-disagreement-not-a-defect-corrected-2026-08-16">1.1 It is a disagreement, not a defect — corrected 2026-08-16</a>
             </li>
         
             <li class="toc-level-2">

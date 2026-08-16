@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-16T12:05:44Z",
+  "timestamp": "2026-08-16T14:58:53Z",
   "pages": {
     "/": {
       "content_hash": "0069f998b82fa6e5",
@@ -58,7 +58,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/architecture/yqr-a002-non-value-addressing-grammar": {
-      "content_hash": "e7b1d5210a0d8c70",
+      "content_hash": "d60eb30cf3483641",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "0a65a1c0fa75de16",
+      "content_hash": "538abfc55a433ef2",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -88,7 +88,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps": {
-      "content_hash": "8b426297d3c2d0d4",
+      "content_hash": "79689ce8febdadd7",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -118,7 +118,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b010-reorder-moves-values-not-entries": {
-      "content_hash": "7bd31a1d9baca853",
+      "content_hash": "434a0dd796ebd782",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -163,7 +163,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "e49d38c6687efacd",
+      "content_hash": "765f62354b9ab544",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -208,7 +208,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f016-noyalib-0-0-23-adoption": {
-      "content_hash": "5cb1a4390fcb6298",
+      "content_hash": "5e0532392296d235",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
