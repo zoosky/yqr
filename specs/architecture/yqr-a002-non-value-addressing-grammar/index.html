@@ -1,0 +1,3524 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture a002 — Addressing what is not a value: comments, keys, and sequence order - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
+
+
+
+<meta name="robots" content="noindex,follow">
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
+<meta property="og:description" content="Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
+<meta name="twitter:description" content="Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="a245532b55">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-08-16",
+  "description": "Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the \"final syntax TBD\" left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...",
+  "inLanguage": "en",
+  "name": "Architecture a002 — Addressing what is not a value: comments, keys, and sequence order",
+  "url": "https://zoosky.github.io/yqr/specs/architecture/yqr-a002-non-value-addressing-grammar",
+  "wordCount": 5587
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs",
+      "name": "yqr Specs",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/architecture",
+      "name": "Architecture Specs",
+      "position": 3
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/specs/architecture/yqr-a002-non-value-addressing-grammar",
+      "name": "Architecture a002 — Addressing what is not a value: comments, keys, and sequence order",
+      "position": 4
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            
+            <button id="nav-menu-toggle" class="nav-menu-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path class="nav-menu-bars" d="M4 7h16M4 12h16M4 17h16" />
+                    <path class="nav-menu-close" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <ul id="nav-menu">
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr Demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/specs"  class="active" >yqr Specs</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<div class="docs-layout">
+    
+
+
+
+
+<nav class="docs-sidebar" aria-label="Documentation navigation">
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Feature Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
+                   class="sidebar-link">Feature Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f001-yaml-jq-m0"
+                   class="sidebar-link">Feature f001 — `yqr`: a Swiss Army knife for YAML</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f002-fidelity-read-floor"
+                   class="sidebar-link">Feature f002 — Fidelity read floor (`FidelityEngine` seam + noyalib backend)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f003-fidelity-backend-a-rustyaml"
+                   class="sidebar-link">Feature f003 — Fidelity backend A (rust-yaml fork `RoundTripDocument` adapter)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f004-engine-parity-runtime-switch"
+                   class="sidebar-link">Feature f004 — Engine parity: both fidelity backends default-on and runtime-switchable, from the zoosky forks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f005-preserve-flag-decouple"
+                   class="sidebar-link">Feature f005 — Decouple byte&#x2f;comment preservation from backend selection (`--preserve`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f006-fidelity-write-tier"
+                   class="sidebar-link">Feature f006 — Write tier v1: value assignment and in-place edits (`--in-place`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits"
+                   class="sidebar-link">Feature f007 — Write tier: structural edits (the `b004` gaps)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates"
+                   class="sidebar-link">Feature f008 — Write tier: computed updates (`|=`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize"
+                   class="sidebar-link">Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f010-accent-website"
+                   class="sidebar-link">Feature f010 — Project website: Accent CMS site over docs&#x2f; and specs&#x2f;, on GitHub Pages</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f011-remove-engine-flag"
+                   class="sidebar-link">Feature f011 — Remove `--engine`: noyalib is the only engine</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f012-validate-command"
+                   class="sidebar-link">Feature f012 — `yqr validate`: actionable YAML correctness checking</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f013-noyalib-0-0-18-adoption"
+                   class="sidebar-link">Feature f013 — Adopt noyalib 0.0.18: pin bump and the released CST mutation API</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f014-noyalib-0-0-21-adoption"
+                   class="sidebar-link">Feature f014 — Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f015-noyalib-0-0-22-adoption"
+                   class="sidebar-link">Feature f015 — Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Bug Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status"
+                   class="sidebar-link">Bug Status Tracker</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting"
+                   class="sidebar-link">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies"
+                   class="sidebar-link">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker"
+                   class="sidebar-link">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps"
+                   class="sidebar-link">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion"
+                   class="sidebar-link">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity"
+                   class="sidebar-link">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b007-site-links-broken-under-accent-0-23-1"
+                   class="sidebar-link">Bug b007 — Website: two internal links break under accent v0.23.1</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b008-fragment-splice-corrupts-multiline-inserts"
+                   class="sidebar-link">Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents"
+                   class="sidebar-link">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries"
+                   class="sidebar-link">Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          open>
+          <summary class="sidebar-section-title">Architecture Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit"
+                   class="sidebar-link">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar"
+                   class="sidebar-link active">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Implementation Specs</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m001-ci-release-process"
+                   class="sidebar-link">Implementation m001 — CI pipeline and release process</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m002-fidelity-engine-adapter"
+                   class="sidebar-link">Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m003-shared-corpus"
+                   class="sidebar-link">Implementation m003 — Shared real-world corpus for validation and benchmarks</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture"
+                   class="sidebar-link">Implementation m004 — crates.io release posture (git-dep fidelity backends)</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m005-single-engine-noyalib"
+                   class="sidebar-link">Implementation m005 — Single YAML engine: consolidation on noyalib</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Research Notes</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r001-jq-feature-gap"
+                   class="sidebar-link">Research r001 — jq Feature-Gap Analysis</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;research&#x2f;yqr-r002-noyalib-fidelity-evaluation"
+                   class="sidebar-link">Research r002 — Evaluating `noyalib` as a fidelity engine for yqr</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+    
+    
+      
+      
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+          
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+        
+        
+      
+      
+        <details class="sidebar-section"
+          >
+          <summary class="sidebar-section-title">Marketing</summary>
+          <div class="sidebar-children">
+            <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
+               class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing&#x2f;yqr-k001-content-plan"
+                   class="sidebar-link">Marketing k001 — Content plan: four task pages on the fidelity axis</a>
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+              
+              
+            
+          </div>
+        </details>
+      
+    
+  
+</nav>
+
+    <article class="docs-content">
+        
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture">Architecture Specs</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</span>
+</nav>
+
+
+        <h1>Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</h1>
+
+        <accent-island data-component="copy-code" data-hydrate="load">
+        <div class="content prose">
+            <p><strong>Status:</strong> Accepted (grammar settled; the three slices are staged in §9, and
+one of them is blocked on an upstream defect — <code>yqr-b010</code>, §6)
+<strong>Owner:</strong> yqr maintainers
+<strong>Last updated:</strong> 2026-08-16
+<strong>Decides:</strong> the “final syntax TBD” left open by <code>yqr-f007</code> §4 and §6 for
+comment editing, key rename, and sequence reorder
+<strong>Affects:</strong> <code>src/lexer.rs</code>, <code>src/parser.rs</code>, <code>src/ast.rs</code>, <code>src/eval.rs</code>,
+<code>src/fidelity/write.rs</code>, <code>src/fidelity/mod.rs</code>, <code>docs/content/guide/</code>
+<strong>Related:</strong> <code>yqr-a001</code> (the fidelity guarantee these edits must not break),
+<code>yqr-f007</code> (the three deferred slices this unblocks), <code>yqr-b004</code> §2.1–2.3 (the
+original upstream gap catalog), <code>yqr-b010</code> (the reorder defect that blocks
+slice 3, measured out of §6), <code>yqr-f015</code> (the noyalib 0.0.22 pin every form
+here calls into)</p>
+<h2 id="1-the-problem-the-three-slices-share">1. The problem the three slices share<a class="heading-anchor" href="#1-the-problem-the-three-slices-share" aria-label="Link to this section"></a></h2>
+<p><code>yqr-f007</code> defers comment editing, key rename, and sequence reorder for one
+stated reason each — “needs a comment-addressing syntax”, “needs a rename
+syntax”, “needs a reorder syntax”. Treated separately those look like three
+naming bikesheds. They are one problem:</p>
+<blockquote>
+<p><strong>yqr’s path grammar addresses value nodes, and only value nodes. All three
+of these edits target something that is not a value node.</strong></p>
+</blockquote>
+<p>That is not an accident of the implementation. <code>PathSeg</code> is <code>Key(String) | Index(usize)</code>, a <code>Path</code> resolves through <code>Document::span_at</code> to the byte span
+of a <em>value</em>, and the read seam emits that span verbatim. The whole fidelity
+architecture (<code>yqr-a001</code> §4) is built on “a path names a value; a value has
+bytes; print or replace those bytes”. A comment has bytes but is not a value; a
+key has bytes but is not the value the path names; an ordering has no bytes of
+its own at all.</p>
+<p>So the question is not “what should the rename operator be called”. It is
+<strong>how does a filter name something attached to the node at a path</strong>, and the
+answer has to cover all three or yqr grows three unrelated syntaxes.</p>
+<h2 id="2-decision">2. Decision<a class="heading-anchor" href="#2-decision" aria-label="Link to this section"></a></h2>
+<p>Two shapes, because the three slices are two kinds of thing.</p>
+<p><strong>2.1 A <em>naming function</em> wraps a path and names something attached to it.</strong>
+The result is a target: it can be read, assigned with <code>=</code>, or removed with
+<code>del(...)</code>.</p>
+<pre><code class="language-text">line_comment(&lt;path&gt;)    the '# ...' comment after the value on the entry's own line
+head_comment(&lt;path&gt;)    the run of comment lines immediately above the entry
+key(&lt;path&gt;)             the key token of the mapping entry
+</code></pre>
+<p><strong>2.2 A <em>reorder verb</em> takes a path and two indices.</strong> There is no single node
+to name, so there is nothing for shape 2.1 to wrap.</p>
+<pre><code class="language-text">swap(&lt;path&gt;; &lt;i&gt;; &lt;j&gt;)  exchange two items of the block sequence at &lt;path&gt;
+move(&lt;path&gt;; &lt;from&gt;; &lt;to&gt;)  move one item, shifting the rest
+</code></pre>
+<h3 id="2-3-grammar">2.3 Grammar<a class="heading-anchor" href="#2-3-grammar" aria-label="Link to this section"></a></h3>
+<p>Added to the productions in <code>src/parser.rs</code>:</p>
+<pre><code class="language-text">program   := 'del' '(' target ')'              ; remove
+           | target '=' rhs                     ; set
+           | pipeline '+=' rhs                  ; append (unchanged)
+           | reorder                            ; reorder verb
+           | target                             ; read (bare pipeline, unchanged,
+                                                ;  or bare selector)
+
+target    := selector
+           | pipeline                           ; a value node (unchanged)
+selector  := 'line_comment' '(' path ')'
+           | 'head_comment' '(' path ')'
+           | 'foot_comment' '(' path ')'        ; parses only to be refused (§8)
+           | 'key'          '(' path ')'
+reorder   := ('swap' | 'move') '(' path ';' int ';' int ')'
+</code></pre>
+<p>The value arm of <code>target</code> is <code>pipeline</code>, not <code>path</code>, because that is what
+<code>del</code> takes <strong>today</strong> — <code>src/parser.rs</code> documents <code>program := 'del' '(' pipeline ')'</code> and <code>parse_del</code> calls <code>parse_pipeline</code>, so <code>del(.a | .b)</code>
+parses and deletes (verified on the shipped binary). Narrowing it to <code>path</code>
+would be a silent regression; this document adds an alternative to <code>del</code>’s
+argument and changes nothing about the existing one.</p>
+<p>Two checks run <strong>after</strong> the target is built, not in the grammar, because the
+grammar admits both forms:</p>
+<ul>
+<li><code>del</code> refuses a <code>Key</code> target — a key cannot outlive its entry.</li>
+<li><code>foot_comment</code> refuses in every position. It is in the productions solely so
+that the error can name the reason (§8) instead of being a generic
+unexpected-token report.</li>
+</ul>
+<p><code>+=</code> keeps a bare <code>pipeline</code> by grammar, so no selector reaches it.</p>
+<p>One new token, <code>;</code>. No new reserved words: like <code>del</code> today, each word is
+recognized <strong>only in function position</strong> — an identifier immediately followed
+by <code>(</code>, in a position where a program or a target may begin. That is the
+shipped rule (<code>src/parser.rs</code>: <code>peek() == Ident &amp;&amp; peek_at(1) == LParen</code>)
+generalized from “at the start of a program” to “at the start of a program or
+immediately after <code>del(</code>”, which is what <code>del(line_comment(.a))</code> needs. In
+every other position — after <code>.</code>, as a mapping key, anywhere inside a path —
+the word is an ordinary identifier.</p>
+<p>Verified on the shipped binary, not assumed, against the words this document
+actually spends: <code>.line_comment</code>, <code>.head_comment</code>, <code>.foot_comment</code>, <code>.key</code>,
+<code>.swap</code>, <code>.move</code> and <code>.del</code> all read their fields today and continue to.
+<code>swap</code> and <code>move</code> are ordinary YAML field names, so this is the check that
+matters most.</p>
+<p><code>;</code> is the argument separator because that is jq’s (<code>sub("a";"b")</code>, verified on
+jq 1.8.2), and because <code>,</code> is spoken for: the comma stream operator is an M1
+roadmap item (<code>yqr-r001</code> §5 table). Spending <code>,</code> here would cost that later.</p>
+<h3 id="2-4-the-surface-end-to-end">2.4 The surface, end to end<a class="heading-anchor" href="#2-4-the-surface-end-to-end" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Intent</th><th>Filter</th></tr></thead><tbody>
+<tr><td>Set the trailing comment</td><td><code>line_comment(.spec.replicas) = "tuned for peak"</code></td></tr>
+<tr><td>Change it</td><td>same form; the body is replaced in place</td></tr>
+<tr><td>Remove it</td><td><code>del(line_comment(.spec.replicas))</code></td></tr>
+<tr><td>Read it</td><td><code>line_comment(.spec.replicas)</code></td></tr>
+<tr><td>Set the comment block above an entry</td><td><code>head_comment(.spec) = "why this exists"</code></td></tr>
+<tr><td>Multi-line block</td><td><code>head_comment(.spec) = "line one\nline two"</code></td></tr>
+<tr><td>Remove it</td><td><code>del(head_comment(.spec))</code></td></tr>
+<tr><td>Rename a key</td><td><code>key(.metadata.labels.app) = "application"</code></td></tr>
+<tr><td>Read a key</td><td><code>key(.metadata.name)</code></td></tr>
+<tr><td>Swap two list items</td><td><code>swap(.spec.containers; 0; 2)</code></td></tr>
+<tr><td>Move a list item</td><td><code>move(.spec.containers; 0; 2)</code></td></tr>
+</tbody></table>
+<h2 id="3-why-a-naming-function-and-not-the-alternatives">3. Why a naming function, and not the alternatives<a class="heading-anchor" href="#3-why-a-naming-function-and-not-the-alternatives" aria-label="Link to this section"></a></h2>
+<h3 id="3-1-rejected-yq-s-operator-forms">3.1 Rejected: yq’s operator forms<a class="heading-anchor" href="#3-1-rejected-yq-s-operator-forms" aria-label="Link to this section"></a></h3>
+<p>yq is the only real precedent, and the closest neighbour in the market, so it
+got measured rather than recalled. Everything below is yq <strong>v4.53.3</strong>, run
+locally.</p>
+<p>It offers postfix operators for comments and a pipe-into-<code>key</code> form for rename:</p>
+<pre><code class="language-console">$ yq '.a line_comment="hi"' y.yaml          # a: 1 # hi          works
+$ yq '(.a | key) = "z"' y.yaml              # z: 1               works
+</code></pre>
+<p>Three measured problems make it the wrong thing to copy.</p>
+<p><strong>The two families are inconsistent, in opposite directions.</strong> The spelling
+that works for comments fails for keys, and vice versa:</p>
+<pre><code class="language-console">$ yq '(.a | line_comment) = "piped"' y.yaml
+a: 1
+b: 2                     # exit 0, comment silently not set
+$ yq '.a key = "z"' y.yaml
+Error: bad expression, please check expression syntax
+</code></pre>
+<p>A user who learns one form and applies it to the other gets a parse error in
+one direction and a <strong>silent no-op</strong> in the other.</p>
+<p><strong><code>head_comment</code> attaches to the wrong side of the entry.</strong> On <code>a: 1\nb: 2</code>:</p>
+<pre><code class="language-console">$ yq '.a head_comment="above"' y.yaml
+a: 1
+# above
+b: 2
+</code></pre>
+<p>The comment lands <em>below</em> the entry it was addressed to — which, in a file with
+siblings, means it now documents the next one. Exit 0. This is the same
+silent-re-attribution failure yqr refused to inherit from upstream <code>remove</code>
+(<code>yqr-f007</code> §5.1), arriving from the other direction: <code>head_comment</code> addressed
+the <em>value node</em> where the user meant the <em>entry</em>.</p>
+<p><strong>The <code>|</code> overload does not fit yqr’s evaluator.</strong> In yqr a pipe stage receives
+a value and produces values; <code>Ast::Pipe</code> is threaded with a <code>Path</code> so the read
+seam can resolve a span. A comment is not in the value model at all, so
+<code>.a | line_comment</code> would have to make <code>|</code> mean something different on its
+right-hand side depending on the word there. The function form keeps <code>|</code>
+meaning exactly one thing.</p>
+<p>What yqr does keep from yq: <strong>the words</strong>. <code>line_comment</code>, <code>head_comment</code> and
+<code>key</code> are already in the fingers of the population most likely to try yqr, and
+the shape being different is the honest signal that the semantics are too.
+<code>head_comment(.a)</code> puts the block above <code>a</code>, which is what the word says.</p>
+<h3 id="3-2-rejected-path-suffix-pseudo-fields">3.2 Rejected: path-suffix pseudo-fields<a class="heading-anchor" href="#3-2-rejected-path-suffix-pseudo-fields" aria-label="Link to this section"></a></h3>
+<p><code>.spec.replicas.@comment</code>, or a <code>#</code>-sigil equivalent. Attractive because it is
+purely additive to the path grammar and composes wherever a path does.</p>
+<p>It is ambiguous, and ambiguous in a way YAML makes real: <code>@comment</code> is a legal
+mapping key, so <code>.a.@comment</code> cannot be told from a document that actually has
+one. Every sigil has this problem — YAML keys are arbitrary strings. Escaping
+out of it (<code>.a.["@comment"]</code> for the literal key) puts the <em>common</em> case behind
+the escape and the rare one in the plain spelling, which is backwards. And it
+does nothing for reorder, which has no node to suffix.</p>
+<h3 id="3-3-rejected-cli-subcommands">3.3 Rejected: CLI subcommands<a class="heading-anchor" href="#3-3-rejected-cli-subcommands" aria-label="Link to this section"></a></h3>
+<p><code>yqr comment set .a.b "text"</code>, alongside <code>validate</code>. No grammar change at all,
+and the argument list makes <code>swap</code>’s two indices trivial.</p>
+<p>It forks the mutation surface in two. Today every edit is a filter, which means
+every edit composes with <code>-i</code>, with stdin, with multi-document streams, and with
+the same exit-code contract, because there is exactly one code path. A
+subcommand family would have to re-earn each of those, and “is this edit a
+filter or a subcommand?” becomes a thing users have to remember. <code>validate</code> is
+not a counterexample: it evaluates no filter and mutates nothing.</p>
+<h3 id="3-4-why-the-function-form-wins">3.4 Why the function form wins<a class="heading-anchor" href="#3-4-why-the-function-form-wins" aria-label="Link to this section"></a></h3>
+<ul>
+<li>It is <strong>already in the language</strong>. <code>del(&lt;path&gt;)</code> is a function of a path that
+is not itself a path. The three selectors are the same move; <code>swap</code>/<code>move</code>
+are the same move with arguments.</li>
+<li>It <strong>scales to reorder</strong>, which neither 3.1 nor 3.2 does. One shape covers
+five operations rather than three plus a fork.</li>
+<li>Reads come out <strong>free and streaming</strong>: <code>line_comment(.items[])</code> yields one
+comment per item, because the path inside the parentheses is an ordinary path
+and iterates like one. Under a postfix operator this would need a second rule
+about how the pipe interacts with the operator.</li>
+<li>It <strong>cannot be spelled ambiguously</strong>, so there is no silent no-op to have.
+<code>line_comment</code> outside function position is a field access; inside it, the
+parser knows what it is.</li>
+</ul>
+<h2 id="4-semantics">4. Semantics<a class="heading-anchor" href="#4-semantics" aria-label="Link to this section"></a></h2>
+<p>Each form lowers to one noyalib 0.0.22 call. yqr adds the path resolution, the
+refusals, and the read normalization; it does not add byte arithmetic.
+(<code>yqr-f007</code> §2’s “own the arithmetic” route stays the route of last resort, and
+none of these take it.)</p>
+<table><thead><tr><th>Form</th><th>Upstream call</th></tr></thead><tbody>
+<tr><td><code>line_comment(p) = t</code></td><td><code>Document::set_inline_comment(path, text)</code></td></tr>
+<tr><td><code>del(line_comment(p))</code></td><td><code>Document::remove_inline_comment(path)</code></td></tr>
+<tr><td><code>head_comment(p) = t</code></td><td><code>Document::set_leading_comment(path, text)</code></td></tr>
+<tr><td><code>del(head_comment(p))</code></td><td><code>Document::remove_leading_comment(path)</code></td></tr>
+<tr><td><code>key(p) = k</code></td><td><code>Document::rename_key(path, new_key)</code></td></tr>
+<tr><td><code>swap(p; i; j)</code></td><td><code>Document::swap_items(path, i, j)</code></td></tr>
+<tr><td><code>move(p; f; t)</code></td><td><code>Document::move_item(path, from, to)</code></td></tr>
+<tr><td><code>line_comment(p)</code> / <code>head_comment(p)</code> read</td><td><code>Document::comments_at(path)</code></td></tr>
+<tr><td><code>key(p)</code> read</td><td><code>Document::key_span(path)</code>, emitted through the read seam</td></tr>
+</tbody></table>
+<p>“Guarded” is load-bearing in both directions. Upstream’s own guard covers the
+<em>set</em> direction only: the four comment mutators and <code>rename_key</code> re-parse and
+require the typed value to be unchanged. The two <strong>removers do not refuse at
+all</strong> — <code>remove_inline_comment</code> and <code>remove_leading_comment</code> return <code>Ok(())</code>
+on an unresolved path, on a missing comment, and on every shape the setters
+reject (measured; the source is a <code>let … else { return Ok(()) }</code> in each).
+So every <code>del(...)</code> refusal in §5 is a yqr-side pre-check, not a forwarded
+upstream error, and it has to be written even where the matching <code>=</code> form
+needs nothing.</p>
+<h3 id="4-1-the-comment-forms-address-the-entry-not-the-value-node">4.1 The comment forms address the <em>entry</em>, not the value node<a class="heading-anchor" href="#4-1-the-comment-forms-address-the-entry-not-the-value-node" aria-label="Link to this section"></a></h3>
+<p><code>head_comment(.a)</code> writes above the line that begins <code>a:</code>. Measured on 0.0.22:</p>
+<pre><code class="language-text">in:   a: 1\nb: 2
+out:  # above\na: 1\nb: 2
+</code></pre>
+<p>which is the opposite of yq’s placement in §3.1. Nested keys are indented to
+the key’s own column (<code>top.a</code> puts <code>  # note</code> inside <code>top:</code>), and a CRLF
+document gets CRLF-terminated comment lines.</p>
+<p>yqr adopts that <strong>placement</strong>. It does not adopt upstream’s definition of
+which comment block belongs to the entry, and the difference is not cosmetic.</p>
+<p><strong>4.1.1 A blank-detached block is absorbed upstream.</strong> <code>comments_at().before</code>
+walks upward from the entry’s line collecting comment-only lines and
+<em>skipping blank ones</em> — documented as “an interleaved blank line does not
+break the run — only another content node does” — and both leading mutators
+edit exactly that range. Measured:</p>
+<pre><code class="language-text">in                 set_leading_comment("a","new")   remove_leading_comment("a")
+------------       -----------------------------    ---------------------------
+# detached         # new                            (blank line)
+(blank line)       (blank line)                     a: 1
+a: 1               a: 1
+</code></pre>
+<p>The set <strong>replaces</strong> a comment that visually documents whatever came before,
+and the remove <strong>deletes</strong> it and leaves a stray blank line. Both at exit 0.</p>
+<p>yqr’s own <code>delete_entry</code> (<code>src/fidelity/write/delete.rs</code>) already draws the
+line the other way: the entry owns the <em>contiguous same-indent run
+immediately above it</em>, and a blank-detached comment is deliberately excluded
+(<code>yqr-b006</code>). §6 leans on that arithmetic as the reference implementation for
+reorder; the comment slice cannot then quietly adopt the opposite rule for
+the same question.</p>
+<p>So yqr pre-checks: when <code>comments_at(p).before</code> is non-empty and a blank line
+separates it from the entry, <code>head_comment(p)</code> reads <code>null</code>, and both
+<code>head_comment(p) = t</code> and <code>del(head_comment(p))</code> <strong>refuse (exit 5)</strong> naming
+the detached block, rather than letting upstream rewrite it. This is a
+divergence in a documented upstream choice, not an upstream defect, so it is
+not routed anywhere — it is the third clause of the <code>yqr-f007</code> §5.1 reminder
+(“upstream has yqr’s semantics”) applied prospectively for once, before
+adoption rather than after.</p>
+<p><strong>4.1.2 An entry whose value starts on the next line is not commentable
+inline.</strong> <code>line_comment</code> guards on whether the <em>value span</em> contains a
+newline, and a nested entry with a single child has a single-line value span.
+So the guard does not fire, and the comment lands on the <strong>child’s</strong> line:</p>
+<pre><code class="language-text">in                 set_inline_comment("a","X")
+----------         ---------------------------
+a:                 a:
+  b: 1               b: 1  # X
+</code></pre>
+<p><code>Ok</code>, exit 0, and the comment now documents <code>a.b</code> rather than <code>a</code>. The
+removal direction is the same defect: <code>remove_inline_comment("a")</code> on
+<code>a:\n  b: 1  # child\n</code> deletes the child’s comment. Both measured on 0.0.22.</p>
+<p>yqr refuses (exit 5) whenever the value span does not begin on the key’s own
+line — one comparison between <code>key_span(p)</code> and <code>span_at(p)</code>, both already
+in the seam. A sequence item is unaffected: <code>xs[0]</code> sits on its own line, and
+<code>line_comment(.xs[0])</code> is supported and correct (measured).</p>
+<h3 id="4-2-an-empty-comment-is-a-bare-not-a-removal">4.2 An empty comment is a bare <code>#</code>, not a removal<a class="heading-anchor" href="#4-2-an-empty-comment-is-a-bare-not-a-removal" aria-label="Link to this section"></a></h3>
+<p><code>line_comment(.a) = ""</code> writes <code>a: 1  #</code>. Removal is <code>del(line_comment(.a))</code>.</p>
+<p>This diverges from yq, where <code>line_comment=""</code> removes (measured). The
+divergence is deliberate: upstream distinguishes the two, a bare <code>#</code> is a thing
+people write, and yqr already owns an unambiguous removal spelling. Conflating
+them would make one of the two unreachable to buy a keystroke.</p>
+<h3 id="4-3-comment-text-is-normalized-on-read-so-the-surface-round-trips">4.3 Comment text is normalized on read so the surface round-trips<a class="heading-anchor" href="#4-3-comment-text-is-normalized-on-read-so-the-surface-round-trips" aria-label="Link to this section"></a></h3>
+<p><code>comments_at</code> reports the comment body with its leading space intact —
+<code>a: 1  # the note</code> reads back as <code>" the note"</code>. Writing that value back would
+render <code>#  the note</code> and grow a space per cycle. yqr therefore strips <strong>one</strong>
+leading space on read, which makes this a falsifiable property in the <code>a001</code>
+tradition:</p>
+<pre><code class="language-text">yqr 'line_comment(.a) = T' f.yaml | yqr 'line_comment(.a)'   ==   T
+</code></pre>
+<p>for every single-line <code>T</code>, and the same for <code>head_comment</code> with <code>\n</code>-joined
+lines. This is an acceptance criterion, not a note (§9).</p>
+<h3 id="4-4-reads-are-total-mutations-are-loud">4.4 Reads are total; mutations are loud<a class="heading-anchor" href="#4-4-reads-are-total-mutations-are-loud" aria-label="Link to this section"></a></h3>
+<p>A read yields <code>null</code> where there is nothing to report — no comment, or a <code>key(...)</code>
+on a sequence item — matching <code>.missing</code>, which yields <code>null</code> today. A read must
+never fail a batch.</p>
+<p><strong>This holds even where the matching write refuses</strong>, and §5 is a catalog of
+writes, not of reads. <code>key(.xs[0])</code> is <code>null</code>, not an error, though
+<code>key(.xs[0]) = "k"</code> refuses; <code>head_comment(.xs[0])</code> reports the block above
+the item, though nothing can set or remove it. Every §5 row is read as “in
+this direction, for this case” — the table says which.</p>
+<p>A mutation refuses (exit 5) rather than no-op, with one exception yqr already
+has: a <em>document</em> in a multi-document stream whose target does not resolve is
+skipped, exactly as <code>del</code> behaves now. Selecting more than one node stays the
+existing hard error (“a mutation must target exactly one node, but the filter
+selected N”).</p>
+<p><code>del(...)</code> is a mutation for this purpose, which is the whole reason §4’s note
+about the unguarded removers matters: upstream’s <code>Ok(())</code>-on-anything is a
+no-op, and this rule forbids one.</p>
+<h3 id="4-5-indices">4.5 Indices<a class="heading-anchor" href="#4-5-indices" aria-label="Link to this section"></a></h3>
+<p><code>swap</code>/<code>move</code> take yqr indices, not upstream’s <code>usize</code>: negatives count from the
+end, as <code>.[-1]</code> does. yqr resolves them against the sequence before the call, so
+<code>swap(.xs; 0; -1)</code> swaps first and last.</p>
+<h2 id="5-what-is-refused">5. What is refused<a class="heading-anchor" href="#5-what-is-refused" aria-label="Link to this section"></a></h2>
+<p>Measured against noyalib 0.0.22 by driving each call directly, not read off its
+docs, which several rows below contradict: §5.4’s three outright, and §5.1 /
+§5.2 wherever “multi-line” or “nested” in the docs turns out to mean “the
+<strong>value span</strong> contains a newline” — which an entry can fail to do while its
+own entry plainly spans two lines.</p>
+<p><strong>Every row is a direction</strong>, because upstream’s behaviour is not symmetric:
+the setters are guarded and the removers are not (§4), so a case can refuse
+under <code>=</code> and silently no-op under <code>del(...)</code>. Reads are total by §4.4 and
+appear here only where the interesting answer is not “the obvious one”.</p>
+<h3 id="5-1-line-comment">5.1 <code>line_comment</code><a class="heading-anchor" href="#5-1-line-comment" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Case</th><th>Direction</th><th>noyalib 0.0.22</th><th>What yqr does</th></tr></thead><tbody>
+<tr><td>value span covers 2+ lines (<code>a:\n  b: 1\n  c: 2</code>, <code>a: |\n  text</code>)</td><td><code>=</code></td><td>refuses</td><td>forwards: the node has no line of its own; comment its entries</td></tr>
+<tr><td>same</td><td><code>del</code></td><td><strong><code>Ok</code>, no-op</strong></td><td>yqr pre-checks and refuses with that message</td></tr>
+<tr><td>same</td><td>read</td><td><code>inline</code> is <code>None</code></td><td><code>null</code></td></tr>
+<tr><td>value starts on the line <em>below</em> the key (<code>a:\n  b: 1</code>)</td><td><code>=</code>, <code>del</code></td><td><strong><code>Ok</code>, and wrong</strong> — edits the child’s line (§4.1.2)</td><td>yqr refuses: compare <code>key_span</code> against <code>span_at</code></td></tr>
+<tr><td>same</td><td>read</td><td>reports the <em>child’s</em> comment</td><td><code>null</code>, on the same test</td></tr>
+<tr><td>single-line sequence item</td><td>all</td><td><strong>supported and correct</strong></td><td>—</td></tr>
+</tbody></table>
+<h3 id="5-2-head-comment">5.2 <code>head_comment</code><a class="heading-anchor" href="#5-2-head-comment" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Case</th><th>Direction</th><th>noyalib 0.0.22</th><th>What yqr does</th></tr></thead><tbody>
+<tr><td>sequence item</td><td><code>=</code></td><td>refuses</td><td>forwards: leading comments attach to mapping keys only</td></tr>
+<tr><td>same</td><td><code>del</code></td><td><strong><code>Ok</code>, no-op</strong></td><td>yqr pre-checks and refuses with that message</td></tr>
+<tr><td>same</td><td>read</td><td>reports the block above the item</td><td>reports it — reads are total (§4.4)</td></tr>
+<tr><td>value span covers 2+ lines</td><td><code>=</code></td><td>refuses</td><td>forwards</td></tr>
+<tr><td>same</td><td><code>del</code></td><td><strong><code>Ok</code>, no-op</strong></td><td>yqr pre-checks and refuses</td></tr>
+<tr><td>nested entry whose value fits one line (<code>a:\n  b: 1</code>)</td><td><code>=</code>, <code>del</code></td><td><strong>supported and correct</strong> — the block lands above <code>a:</code> at its indent</td><td>—</td></tr>
+<tr><td>the block above is blank-detached</td><td><code>=</code></td><td><strong><code>Ok</code></strong> — replaces it (§4.1.1)</td><td>yqr refuses</td></tr>
+<tr><td>same</td><td><code>del</code></td><td><strong><code>Ok</code></strong> — deletes it, leaving a stray blank line</td><td>yqr refuses</td></tr>
+<tr><td>same</td><td>read</td><td>reports it</td><td><code>null</code> — it is not this entry’s block</td></tr>
+</tbody></table>
+<h3 id="5-3-key">5.3 <code>key</code><a class="heading-anchor" href="#5-3-key" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Case</th><th>Direction</th><th>noyalib 0.0.22</th><th>What yqr does</th></tr></thead><tbody>
+<tr><td>sequence item</td><td><code>=</code></td><td>refuses</td><td>forwards: a sequence item has no key</td></tr>
+<tr><td>same</td><td>read</td><td><code>key_span</code> is <code>None</code></td><td><code>null</code></td></tr>
+<tr><td>key produced by a <code>&lt;&lt;</code> merge</td><td><code>=</code></td><td>refuses (its own message — the entry lives at the anchor)</td><td>forwards</td></tr>
+<tr><td>same</td><td>read</td><td><code>key_span</code> is <code>None</code></td><td><code>null</code></td></tr>
+<tr><td>key reached through an alias (<code>*name</code> site)</td><td><code>=</code></td><td>refuses</td><td>forwards: rename the anchor’s own entry</td></tr>
+<tr><td>new key collides with an existing sibling</td><td><code>=</code></td><td>refuses</td><td>forwards: the rename would create a duplicate</td></tr>
+<tr><td>new key is <code>&lt;&lt;</code></td><td><code>=</code></td><td>refuses</td><td>forwards: it would become a merge directive</td></tr>
+<tr><td>new key holds a non-printable character (<code>\n</code> included)</td><td><code>=</code></td><td>refuses, naming the code point</td><td>forwards</td></tr>
+<tr><td>new key is <strong>empty</strong></td><td><code>=</code></td><td><strong><code>Ok</code></strong> — writes <code>"": 1</code></td><td>yqr refuses: <code>key_is_plain</code> rejects it, so yqr could never address the result again (§7.3)</td></tr>
+</tbody></table>
+<p><code>rename_key</code> also refuses a bracket segment that is not a non-negative integer
+(<code>servers[web]</code>), which is unreachable from yqr: the evaluator resolves every
+segment before lowering, so <code>to_noyalib_path</code> emits <code>[i]</code> for a <code>usize</code> only.
+Recorded so the seam does not grow a hand-built path string later.</p>
+<h3 id="5-4-swap-move">5.4 <code>swap</code> / <code>move</code><a class="heading-anchor" href="#5-4-swap-move" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Case</th><th>noyalib 0.0.22</th><th>What yqr does</th></tr></thead><tbody>
+<tr><td><strong>flow</strong> sequence</td><td><strong>succeeds</strong> (<code>[one, two, three]</code> -&gt; <code>[three, two, one]</code>) — doc comment lists it as an error</td><td>—</td></tr>
+<tr><td>multi-line items</td><td><strong>succeeds</strong> — doc comment lists it as an error</td><td>—</td></tr>
+<tr><td>differently-indented items (<code>- a\n-   b</code>)</td><td><strong>succeeds</strong> — doc comment lists it as an error</td><td>—</td></tr>
+<tr><td>either item carries a comment</td><td>succeeds, and is <strong>wrong</strong> — <code>yqr-b010</code></td><td>yqr must refuse; §6</td></tr>
+<tr><td>index out of range</td><td>refuses, naming the length</td><td>forwards</td></tr>
+</tbody></table>
+<h3 id="5-5-refused-by-yqr-before-any-call">5.5 Refused by yqr before any call<a class="heading-anchor" href="#5-5-refused-by-yqr-before-any-call" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Case</th><th>What yqr does</th></tr></thead><tbody>
+<tr><td>any form, key containing <code>.</code>, <code>[</code>, <code>]</code>, <code>*</code>, or empty</td><td>inherited refusal, §7.3</td></tr>
+<tr><td><code>foot_comment(...)</code></td><td>refused when the target is built; no upstream mutator exists (§8)</td></tr>
+<tr><td><code>del(key(.a))</code></td><td>refused when the target is built (§2.3): a key cannot outlive its entry; use <code>del(.a)</code></td></tr>
+<tr><td><code>key(...) += ...</code>, <code>line_comment(...) += ...</code></td><td>refused at parse: <code>+=</code> takes a value path</td></tr>
+<tr><td>a selector over more than one node</td><td>the existing multi-target refusal (§4.4)</td></tr>
+</tbody></table>
+<p>Three documented upstream refusals turn out to be stale, all in §5.4:
+<code>swap_items</code>’ own doc comment lists a flow sequence, multi-line items <strong>and</strong>
+differently-indented items among its errors, and 0.0.22 refuses none of the
+three. Nothing yqr plans depends on them.</p>
+<p>They are recorded because <code>yqr-f007</code> §5.1’s standing reminder has three clauses
+now — “upstream has the call”, “upstream does what its docs say” and “upstream
+has yqr’s semantics” are three different questions. §5.4 is the second clause
+answered “no” three times. The third clause is answered “no” in <strong>nine rows</strong>
+of §5.1–§5.3: every row whose right-hand column is a yqr pre-check rather than
+a forward. That is the real cost estimate for the comment slice, and none of it
+was visible from the docs.</p>
+<h2 id="6-sequence-reorder-is-blocked-upstream-moves-values-not-entries">6. Sequence reorder is blocked: upstream moves values, not entries<a class="heading-anchor" href="#6-sequence-reorder-is-blocked-upstream-moves-values-not-entries" aria-label="Link to this section"></a></h2>
+<p>The grammar for reorder is settled. The slice is not shippable on 0.0.22, and
+this was found by measuring rather than by review.</p>
+<p><code>swap_items</code> and <code>move_item</code> exchange <strong>value bytes</strong> and nothing else, so
+every comment stays attached to the position rather than to the item it
+documents — at <code>Ok</code> and exit 0, and past upstream’s own integrity guard by
+construction, since that guard compares typed values and a comment is not in
+one. <code>-i</code> would write it to the user’s file.</p>
+<p><strong>The measurement, the guard argument and the route are recorded once, in
+<code>yqr-b010</code></strong>, which is the open bug the upstream filing will hang on. They are
+not restated here; what belongs in this document is the consequence for the
+grammar it settles.</p>
+<p>That consequence is: the reorder verb is designed and staged, and it does not
+ship on 0.0.22. This is the <code>yqr-b006</code> failure class and the exact defect yqr
+already refused to inherit once — <code>yqr-f007</code> §5.1 declines upstream <code>remove</code>
+because a head comment “survives, silently re-attributed to the next sibling”.
+Reorder re-attributes every comment in the affected range. It is also the case
+that most needs the fix: a commented list item is the normal shape of the files
+yqr targets (<code>spec.containers</code>, GitHub Actions <code>steps</code>, Ansible tasks).</p>
+<p>Until <code>yqr-b010</code> lands, <code>swap</code>/<code>move</code> either stay unimplemented or ship with a
+yqr-side refusal when either item carries a comment. The refusal is honest and
+small, but it declines the common case, which is why §9 sequences this slice
+last rather than shipping a stub.</p>
+<h2 id="7-compiler-surface">7. Compiler surface<a class="heading-anchor" href="#7-compiler-surface" aria-label="Link to this section"></a></h2>
+<h3 id="7-1-ast">7.1 AST<a class="heading-anchor" href="#7-1-ast" aria-label="Link to this section"></a></h3>
+<p>The two shapes in §2 are the two shapes in the AST — the type carries the
+argument:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#65737e;">/// What a mutation addresses: a value node, or something attached to one.
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">Target {
+</span><span style="color:#c0c5ce;">    Value(Ast),
+</span><span style="color:#c0c5ce;">    LineComment(Ast),
+</span><span style="color:#c0c5ce;">    HeadComment(Ast),
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">/// Parsed only so the refusal can name a reason (§8); never lowered.
+</span><span style="color:#c0c5ce;">    FootComment(Ast),
+</span><span style="color:#c0c5ce;">    Key(Ast),
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">Mutation {
+</span><span style="color:#c0c5ce;">    Assign { target: Target, rhs: Rhs },   </span><span style="color:#65737e;">// was `path: Ast`
+</span><span style="color:#c0c5ce;">    Append { path: Ast, rhs: Rhs },        </span><span style="color:#65737e;">// value-only, unchanged
+</span><span style="color:#c0c5ce;">    Delete { target: Target },             </span><span style="color:#65737e;">// was `path: Ast`
+</span><span style="color:#c0c5ce;">    Reorder { path: Ast, op: ReorderOp, from: </span><span style="color:#b48ead;">i64</span><span style="color:#c0c5ce;">, to: </span><span style="color:#b48ead;">i64 </span><span style="color:#c0c5ce;">},
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">pub enum </span><span style="color:#c0c5ce;">ReorderOp { Swap, Move }
+</span></pre>
+<p><code>Assign</code> and <code>Delete</code> taking a <code>Target</code> is what makes <code>del(line_comment(.a))</code>
+fall out of the existing <code>del</code> production instead of needing a rule of its own —
+<code>Target::Value</code> carries the pipeline <code>del</code> already accepted, so the existing
+form is the <code>Value</code> arm and nothing about it changes. <code>Append</code> keeps a bare path
+because there is nothing to append to a comment or a key.</p>
+<p>The two target-kind checks of §2.3 live here: <code>Delete</code> refuses <code>Target::Key</code>,
+and every form refuses <code>Target::FootComment</code>.</p>
+<p>This is a breaking change to the public <code>Mutation</code> enum, so it bumps the minor
+pre-1.0 (<code>yqr-m001</code> §3).</p>
+<h3 id="7-2-seam">7.2 Seam<a class="heading-anchor" href="#7-2-seam" aria-label="Link to this section"></a></h3>
+<p><code>FidelityWriter</code> (<code>src/fidelity/write.rs</code>) gains one method per row of §4’s
+table; each is a path lowering plus one upstream call plus an error map, in the
+shape <code>set_value</code> already has, plus the pre-checks §5 assigns to yqr.</p>
+<p>Reads add two methods to <code>FidelityEngine</code>: one for the comment bundle, one for
+the key span.</p>
+<p><code>key(...)</code> must <strong>not</strong> be answered from the resolved <code>Path</code>’s last segment,
+which is the obvious shortcut and is wrong. <code>PathSeg::Key(String)</code> is
+documented (<code>src/fidelity/mod.rs</code>) as “stored decoded (no quotes, escapes
+resolved)” — it is the string the <em>filter</em> named, not the bytes the <em>document</em>
+holds. Reading it back would make <code>key(.a)</code> echo the query: a document
+authoring the key as <code>"a"</code> or <code>'a'</code> would report <code>a</code>, and a key reached
+through a <code>&lt;&lt;</code> merge would report a key that has no token in the file at all
+(the same path <code>rename_key</code> refuses for exactly that reason). That contradicts
+§1’s own framing — a path names a value, a value has bytes, print those bytes —
+for the one selector whose entire subject <em>is</em> a token.</p>
+<p>So the read goes through <code>Document::key_span</code> and the existing read seam, like
+every other read: it emits the key token verbatim, quotes included, and yields
+<code>null</code> where there is no token (<code>None</code> for a sequence item and for a
+merge-produced key, both measured). <code>key_span</code> is the API <code>yqr-b004</code> §2.2 had
+added upstream and shipped in 0.0.18 for precisely this; the shortcut would
+have left it unused.</p>
+<p>Comment and rename writes are guarded upstream (<code>set_inline_comment</code> and
+friends re-parse and require the typed value to be unchanged; <code>rename_key</code>
+re-parses and compares against an expected value) — in the <strong>set</strong> direction
+only; §4 covers the unguarded removers. Reorder’s guard is the one §6 shows to
+be insufficient, and is the reason that slice is not simply a call.</p>
+<h3 id="7-3-inherited-limitation">7.3 Inherited limitation<a class="heading-anchor" href="#7-3-inherited-limitation" aria-label="Link to this section"></a></h3>
+<p>Every form here lowers through <code>to_noyalib_path</code>, so every form inherits yqr’s
+existing refusal for keys that <code>PathSeg::key_is_plain</code> rejects — a key
+containing <code>.</code>, <code>[</code>, <code>]</code>, or <code>*</code>, <strong>or an empty key</strong>. The first four are the
+Kubernetes label case, which is the <em>other</em> open item in <code>yqr-f007</code> §6 and is
+orthogonal to this document: <code>line_comment(.metadata.labels["app.kubernetes.io/name"])</code>
+will report the unaddressable-key error until that is settled. Worth knowing
+before the comment slice is demoed on a Kubernetes manifest.</p>
+<p>The empty key is what makes this a constraint on <code>key(...) = k</code> and not only
+on the path: upstream accepts <code>key(.a) = ""</code> and writes <code>"": 1</code> (measured),
+after which no yqr path can address the entry again. §5.3 refuses it on the
+same predicate the path lowering already uses, so the addressable set is
+closed under rename.</p>
+<h2 id="8-what-this-does-not-decide">8. What this does not decide<a class="heading-anchor" href="#8-what-this-does-not-decide" aria-label="Link to this section"></a></h2>
+<ul>
+<li><strong>The <code>.</code>/<code>[</code> key-addressing escape</strong> (§7.3). Orthogonal; noyalib’s
+<code>parse_query_path</code> has no escape form at all, so it is an upstream grammar
+question, not a yqr one.</li>
+<li><strong><code>foot_comment</code>.</strong> It is a production in §2.3 and a <code>Target</code> variant, so the
+parser builds it and then refuses it with a reason instead of reporting an
+unexpected token. There is no upstream mutator and no design here.</li>
+<li><strong>Bulk forms.</strong> <code>line_comment(.items[]) = "x"</code> stays a
+targets-more-than-one-node refusal. Lifting it is a general mutation question
+(it applies equally to <code>.items[].a = 5</code>), not a comment question.</li>
+<li><strong><code>|=</code> on any of these.</strong> Computed update is <code>yqr-f008</code>, gated on M2.</li>
+<li><strong>Collection right-hand sides</strong> for <code>+=</code> / new-key assignment — the third open
+<code>yqr-f007</code> §6 item, unrelated to addressing.</li>
+</ul>
+<h2 id="9-staging-and-acceptance-criteria">9. Staging and acceptance criteria<a class="heading-anchor" href="#9-staging-and-acceptance-criteria" aria-label="Link to this section"></a></h2>
+<p>Three slices, ordered so the grammar lands under the simplest semantics.</p>
+<p><strong>Slice 1 — <code>key(...)</code> rename.</strong> The whole new grammar path (selector, <code>Target</code>,
+one upstream call) under the operation with the fewest cases and the
+best-guarded upstream mutator.</p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>key(&lt;path&gt;) = "new"</code> renames in place; value, inline comment, and head
+comment stay byte-identical, and every other byte in the file does.</li>
+<li><input disabled="" type="checkbox"/>
+<code>key(&lt;path&gt;)</code> reads the key <strong>token from the document</strong> via <code>key_span</code>
+(§7.2): a key authored <code>"a"</code> reads back <code>"a"</code> with its quotes, not <code>a</code>.</li>
+<li><input disabled="" type="checkbox"/>
+Each §5.3 <code>key</code> row refuses with exit 5 and a message naming the reason;
+<code>-i</code> leaves the file untouched on refusal. The empty-key row is yqr’s own
+pre-check, not a forwarded error.</li>
+<li><input disabled="" type="checkbox"/>
+<code>key(.xs[0])</code> and a merge-produced key read <code>null</code> and do not fail the
+batch (§4.4), though the matching <code>=</code> refuses.</li>
+<li><input disabled="" type="checkbox"/>
+<code>.key</code>, <code>.swap</code> and <code>.move</code> still parse as field accesses.</li>
+<li><input disabled="" type="checkbox"/>
+<code>del(.a | .b)</code> still parses and deletes (§2.3 keeps <code>del</code>’s existing
+argument), and <code>del(key(.a))</code> refuses with the §5.5 message.</li>
+</ul>
+<p><strong>Slice 2 — <code>line_comment</code> / <code>head_comment</code>.</strong> Adds the second and third
+selectors, <code>del(...)</code> composition, and the read path.</p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Set, change, and remove, for both kinds, byte-exact elsewhere.</li>
+<li><input disabled="" type="checkbox"/>
+<code>head_comment</code> places the block <strong>above</strong> the addressed entry, at the
+entry’s own indent, with the document’s line terminator.</li>
+<li><input disabled="" type="checkbox"/>
+The §4.3 round-trip property holds, including for a <code>\n</code>-joined
+<code>head_comment</code> and for a comment body with leading spaces of its own.</li>
+<li><input disabled="" type="checkbox"/>
+<code>= ""</code> writes a bare <code>#</code>; only <code>del(...)</code> removes (§4.2).</li>
+<li><input disabled="" type="checkbox"/>
+Each §5.1 / §5.2 row behaves as its <strong>direction</strong> column says. In
+particular every <code>del(...)</code> row refuses (exit 5) rather than inheriting
+upstream’s <code>Ok</code>-and-no-op, and <code>-i</code> leaves the file untouched.</li>
+<li><input disabled="" type="checkbox"/>
+<code>line_comment</code> on an entry whose value starts on the next line refuses in
+both directions and never touches the child’s line (§4.1.2) — the read on
+that entry is <code>null</code>, not the child’s comment.</li>
+<li><input disabled="" type="checkbox"/>
+A blank-detached comment block above the entry is never replaced, deleted
+or reported (§4.1.1); all three directions refuse or read <code>null</code>, and the
+<code>delete_entry</code> case it mirrors keeps its existing behaviour.</li>
+<li><input disabled="" type="checkbox"/>
+Reads yield <code>null</code>, never an error, where there is no comment — including
+where the matching write refuses (§4.4).</li>
+<li><input disabled="" type="checkbox"/>
+<code>.line_comment</code>, <code>.head_comment</code> and <code>.foot_comment</code> still parse as field
+accesses; <code>foot_comment(.a)</code> refuses with the §8 reason, not a generic
+parse error.</li>
+</ul>
+<p><strong>Slice 3 — <code>swap</code> / <code>move</code>.</strong> Blocked on <code>yqr-b010</code> (§6). Ships when the
+upstream reorder moves an entry’s trivia with it, or with an explicit
+refusal-when-commented and that limit documented.</p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>swap</code>/<code>move</code> on an uncommented block sequence, byte-exact elsewhere.</li>
+<li><input disabled="" type="checkbox"/>
+An item’s inline and head comments travel with the item.</li>
+<li><input disabled="" type="checkbox"/>
+Negative indices resolve as <code>.[-1]</code> does (§4.5).</li>
+<li><input disabled="" type="checkbox"/>
+Out-of-range indices refuse with exit 5.</li>
+</ul>
+<p>Each slice updates <code>docs/content/guide/</code> (CLAUDE.md rule 15) and the yq
+comparison page, whose “not in the released grammar yet” note for renames and
+comment edits is what these slices retire.</p>
+<h2 id="10-provenance">10. Provenance<a class="heading-anchor" href="#10-provenance" aria-label="Link to this section"></a></h2>
+<p>Every behavioural claim here was measured on 2026-08-15, not recalled:</p>
+<ul>
+<li><strong>yq v4.53.3</strong> (§3.1) — the postfix/pipe asymmetry, the silent no-op on
+<code>(.a | line_comment) = "..."</code>, the <code>head_comment</code> misplacement below the
+entry, <code>line_comment=""</code> removing, and the absence of any <code>swap</code>/<code>move</code>/
+<code>reorder</code> builtin.</li>
+<li><strong>jq 1.8.2</strong> (§2.3) — <code>;</code> as the argument separator, <code>,</code> as the stream
+operator.</li>
+<li><strong>noyalib 0.0.22</strong> (§4, §5, §6) — the pinned crate driven directly through a
+throwaway integration test: the §5 catalog probed <strong>per direction</strong> (set,
+<code>del</code>, read) rather than per case, which is what turned up the unguarded
+removers and the nested-node misattribution; then the reorder trivia
+behaviour isolated across inline comments, head comments, one-sided comments,
+<code>move_item</code>, anchors, quote styles, blank lines and block scalars.</li>
+<li><strong>yqr at <code>41041d4</code></strong> (§2.3, §4.4) — <code>.del</code>, <code>.key</code>, <code>.line_comment</code>,
+<code>.head_comment</code>, <code>.foot_comment</code>, <code>.swap</code> and <code>.move</code> all parsing as field
+accesses; <code>del(.a | .b)</code> parsing and deleting; <code>.missing</code> yielding <code>null</code>;
+<code>del(.absent)</code> being a no-op; and the exact multi-target refusal text.</li>
+</ul>
+<p>Re-measured 2026-08-16 under review, which corrected §4.1, §5 and §7.2. The
+correction that matters is methodological: the first pass probed each case in
+the direction its <em>setter</em> takes and generalized the answer to the form, and
+upstream is not symmetric — the removers refuse nothing, and one guard fires on
+the value span where the user named the entry. §5’s direction column exists so
+that a later reader cannot repeat it.</p>
+
+        </div>
+        </accent-island>
+
+        
+        
+
+        
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Architecture a001 — Fidelity-First, Surgical-Edit Model</span>
+    </a>
+    
+    
+</nav>
+
+    </article>
+
+    
+    <aside class="docs-toc" aria-label="Table of contents">
+        <h4>On this page</h4>
+        <ul>
+        
+            <li class="toc-level-2">
+                <a href="#1-the-problem-the-three-slices-share">1. The problem the three slices share</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#2-decision">2. Decision</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#2-3-grammar">2.3 Grammar</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#2-4-the-surface-end-to-end">2.4 The surface, end to end</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#3-why-a-naming-function-and-not-the-alternatives">3. Why a naming function, and not the alternatives</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-1-rejected-yq-s-operator-forms">3.1 Rejected: yq’s operator forms</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-2-rejected-path-suffix-pseudo-fields">3.2 Rejected: path-suffix pseudo-fields</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-3-rejected-cli-subcommands">3.3 Rejected: CLI subcommands</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#3-4-why-the-function-form-wins">3.4 Why the function form wins</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#4-semantics">4. Semantics</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-1-the-comment-forms-address-the-entry-not-the-value-node">4.1 The comment forms address the entry, not the value node</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-2-an-empty-comment-is-a-bare-not-a-removal">4.2 An empty comment is a bare #, not a removal</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-3-comment-text-is-normalized-on-read-so-the-surface-round-trips">4.3 Comment text is normalized on read so the surface round-trips</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-4-reads-are-total-mutations-are-loud">4.4 Reads are total; mutations are loud</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-5-indices">4.5 Indices</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#5-what-is-refused">5. What is refused</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-1-line-comment">5.1 line_comment</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-2-head-comment">5.2 head_comment</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-3-key">5.3 key</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-4-swap-move">5.4 swap &#x2f; move</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#5-5-refused-by-yqr-before-any-call">5.5 Refused by yqr before any call</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#6-sequence-reorder-is-blocked-upstream-moves-values-not-entries">6. Sequence reorder is blocked: upstream moves values, not entries</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#7-compiler-surface">7. Compiler surface</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-1-ast">7.1 AST</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-2-seam">7.2 Seam</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-3-inherited-limitation">7.3 Inherited limitation</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#8-what-this-does-not-decide">8. What this does not decide</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#9-staging-and-acceptance-criteria">9. Staging and acceptance criteria</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#10-provenance">10. Provenance</a>
+            </li>
+        
+        </ul>
+
+        
+
+
+<aside class="recent-docs" aria-label="Recently updated documents">
+  <h4>Recently updated</h4>
+  <ul class="recent-docs-list">
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
+      
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
+      
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
+      
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
+      
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
+      
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
+    </li>
+    
+  </ul>
+</aside>
+
+    </aside>
+    
+</div>
+
+<button class="sidebar-toggle" type="button" aria-label="Toggle documentation sidebar"
+        onclick="document.querySelector('.docs-sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');">
+    &#9776;
+</button>
+<div class="sidebar-overlay"
+     onclick="document.querySelector('.docs-sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+
+
+
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-08-16</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    <script src="/yqr/theme/assets/js/nav-menu.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

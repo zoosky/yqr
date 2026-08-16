@@ -92,12 +92,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-15",
+  "dateModified": "2026-08-16",
   "description": "Single source of truth for the state of every yqr-fNNN feature spec. Update this file in the same change that advances a feature (CLAUDE.md rule 17).",
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 1253
+  "wordCount": 1409
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,12 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -454,8 +460,20 @@
   
     
     
+  
+    
+    
+  
+    
+    
       
       
+      
+        
+        
+      
+        
+        
       
         
         
@@ -682,6 +700,12 @@
             
               
               
+            
+              
+              
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link active">Feature Status Tracker</a>
               
@@ -866,6 +890,14 @@
       
         
         
+      
+        
+        
+          
+        
+      
+        
+        
           
         
       
@@ -1044,6 +1076,9 @@
             
               
               
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status"
                    class="sidebar-link">Bug Status Tracker</a>
               
@@ -1100,6 +1135,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents"
                    class="sidebar-link">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries"
+                   class="sidebar-link">Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind</a>
               
             
               
@@ -1238,6 +1279,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -1403,6 +1452,15 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar"
+                   class="sidebar-link">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1560,6 +1618,12 @@
     
       
       
+      
+        
+        
+      
+        
+        
       
         
         
@@ -1728,6 +1792,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2008,6 +2078,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2068,6 +2144,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2333,6 +2415,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2394,6 +2482,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2613,7 +2707,7 @@ JSON-only; yq’s edits admit whitespace issues). Split into three features by
 dependency/release timing.</p>
 <table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
 <tr><td><a href="/yqr/specs/features/yqr-f006-fidelity-write-tier">f006</a></td><td>Write tier v1: value assignment and in-place edits (<code>--in-place</code>)</td><td>Done</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f007-write-tier-structural-edits">f007</a></td><td>Write tier: structural edits (the <code>b004</code> gaps)</td><td>In Progress (structural delete shipped; comment/rename/reorder deferred)</td></tr>
+<tr><td><a href="/yqr/specs/features/yqr-f007-write-tier-structural-edits">f007</a></td><td>Write tier: structural edits (the <code>b004</code> gaps)</td><td>In Progress (structural delete shipped; comment/rename grammar settled in <code>yqr-a002</code>, unimplemented; reorder blocked on <code>yqr-b010</code>)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f008-write-tier-computed-updates">f008</a></td><td>Write tier: computed updates (<code>|=</code>)</td><td>Draft (stub — gated on <code>f001</code> M2)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption">f013</a></td><td>Adopt noyalib 0.0.18: pin bump and the released CST mutation API</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption">f014</a></td><td>Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</td><td>Done</td></tr>
@@ -2625,10 +2719,22 @@ dependency/release timing.</p>
 seam (<code>src/fidelity/write.rs</code>), zero upstream work. f007 landed its first slice:
 structural <strong>delete</strong> of multi-line / nested block entries via <code>replace_span</code>
 (<code>src/fidelity/write/delete.rs</code>) behind a re-parse integrity guard yqr enforces
-itself (<code>b004</code> 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
-gaps (comment editing, key rename, sequence reorder) each need new grammar and
-stay deferred — the upstream APIs for all three exist, released in noyalib
-0.0.18, so what is missing is yqr’s grammar, not the backend. f013 <strong>done</strong>: the
+itself (<code>b004</code> 2.4/2.5), sole-entry and flow deletes refused. The remaining f007 gaps
+(comment editing, key rename, sequence reorder) each needed new grammar, and
+<strong>that grammar is now settled in <code>yqr-a002</code></strong> (2026-08-15): one naming function
+wrapping a path — <code>line_comment(p)</code>, <code>head_comment(p)</code>, <code>key(p)</code>, assignable
+with <code>=</code> and removable with <code>del(...)</code> — plus a reorder verb <code>swap(p; i; j)</code> /
+<code>move(p; from; to)</code>, staged as three slices with per-slice acceptance criteria.
+Two of the three are now implementation over a live API. The third is <strong>not</strong>:
+measuring 0.0.22 rather than reading its docs showed the backend <em>is</em> the
+blocker for reorder — <code>swap_items</code>/<code>move_item</code> exchange value bytes only, so a
+reorder silently re-attributes every comment in the range at exit 0, filed as
+<strong><code>yqr-b010</code></strong> (open, unfiled upstream). The same pass corrected three further
+upstream asymmetries the comment slice must pre-check rather than delegate
+(<code>b004</code> §6.6, <code>yqr-a002</code> §4.1/§5): the comment <em>removers</em> refuse nothing,
+<code>set_inline_comment</code>’s guard fires on the value span so a nested entry’s
+comment lands on its child’s line, and the leading mutators absorb a
+blank-detached comment block. f013 <strong>done</strong>: the
 pin is 0.0.18, the lockfile moved that one crate and nothing else, <code>cargo audit</code>
 is clean, and both fidelity harnesses passed untouched. Its one code change was
 to stop calling upstream <code>remove</code> — on the bump it started accepting the shapes
@@ -2689,7 +2795,9 @@ dashboard.</p>
 <ul>
 <li>Total features: 15</li>
 <li>Draft: 1 (f008 — computed updates, gated on <code>f001</code> M2)</li>
-<li>In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)</li>
+<li>In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
+rename / reorder grammar settled in <code>yqr-a002</code> and staged as three slices,
+none implemented, and slice 3 blocked on <code>yqr-b010</code>)</li>
 <li>Done: 9 (f002, f006, f009, f010, f011, f012, f013, f014, f015)</li>
 <li>Superseded: 3 (f003, f004 — single-engine consolidation, <code>yqr-m005</code>; f005 —
 fidelity-by-default flip, <code>yqr-f009</code>)</li>
@@ -2761,31 +2869,31 @@ superseded by f009 which makes fidelity the default)</li>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
+    </li>
+    
+    <li class="recent-docs-item">
+      <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
+      
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
-    </li>
-    
-    <li class="recent-docs-item">
-      <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker">Bug b003 — rust-yaml fork `RoundTripDocument::parse_all` errors on a trailing `...` after a block collection</a>
-      
-      <time class="recent-docs-date" datetime="2026-08-15">2026-08-15</time>
+      <time class="recent-docs-date" datetime="2026-08-16">2026-08-16</time>
     </li>
     
   </ul>
@@ -2816,7 +2924,7 @@ superseded by f009 which makes fidelity the default)</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-15</span>
+        <span>Site last updated: 2026-08-16</span>
         
     </footer>
 

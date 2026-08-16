@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences - yqr</title>
+    <title>Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind - yqr</title>
     
     
 
@@ -12,10 +12,10 @@
 
 
 
-<meta name="description" content="Status: Resolved Severity: High Related: yqr-f007 (structural delete — the shipped code these defects live in), yqr-b004 (the noyalib mutation-API gaps f007 works around), yqr-a001 (byte-fidelity property)">
+<meta name="description" content="Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items &#x2f; cst::Document::move_item (upstream), reached from yqr&#x27;s planned reorder verb Blocks: the swap &#x2f; m...">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries">
 
 
 
@@ -29,10 +29,10 @@
 
 
 
-<meta property="og:title" content="Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences">
-<meta property="og:description" content="Status: Resolved Severity: High Related: yqr-f007 (structural delete — the shipped code these defects live in), yqr-b004 (the noyalib mutation-API gaps f007 works around), yqr-a001 (byte-fidelity property)">
+<meta property="og:title" content="Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind">
+<meta property="og:description" content="Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items &#x2f; cst::Document::move_item (upstream), reached from yqr&#x27;s planned reorder verb Blocks: the swap &#x2f; m...">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -42,8 +42,8 @@
 
 
 
-<meta name="twitter:title" content="Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences">
-<meta name="twitter:description" content="Status: Resolved Severity: High Related: yqr-f007 (structural delete — the shipped code these defects live in), yqr-b004 (the noyalib mutation-API gaps f007 works around), yqr-a001 (byte-fidelity property)">
+<meta name="twitter:title" content="Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind">
+<meta name="twitter:description" content="Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items &#x2f; cst::Document::move_item (upstream), reached from yqr&#x27;s planned reorder verb Blocks: the swap &#x2f; m...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-16",
-  "description": "Status: Resolved Severity: High Related: yqr-f007 (structural delete — the shipped code these defects live in), yqr-b004 (the noyalib mutation-API gaps f007 works around), yqr-a001 (byte-fidelity property)",
+  "description": "Status: Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed upstream) Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Document::swap_items / cst::Document::move_item (upstream), reached from yqr's planned reorder verb Blocks: the swap / m...",
   "inLanguage": "en",
-  "name": "Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences",
-  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b006-structural-delete-trivia-and-fidelity",
-  "wordCount": 652
+  "name": "Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind",
+  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries",
+  "wordCount": 798
 }
 </script>
 <script type="application/ld+json">
@@ -125,8 +125,8 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b006-structural-delete-trivia-and-fidelity",
-      "name": "Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences",
+      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries",
+      "name": "Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind",
       "position": 4
     }
   ]
@@ -1116,7 +1116,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity"
-                   class="sidebar-link active">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</a>
+                   class="sidebar-link">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</a>
               
             
               
@@ -1140,7 +1140,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries"
-                   class="sidebar-link">Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind</a>
+                   class="sidebar-link active">Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind</a>
               
             
               
@@ -2663,104 +2663,100 @@
         <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</span>
+    <span aria-current="page">Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind</span>
 </nav>
 
 
-        <h1>Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</h1>
+        <h1>Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Resolved
-<strong>Severity:</strong> High
-<strong>Related:</strong> <code>yqr-f007</code> (structural delete — the shipped code these defects live
-in), <code>yqr-b004</code> (the noyalib mutation-API gaps <code>f007</code> works around), <code>yqr-a001</code>
-(byte-fidelity property)</p>
-<blockquote>
-<p><strong>Resolved.</strong> The <code>owned_line_span</code> indentation heuristic was replaced by a
-range derived from noyalib’s authoritative value span (<code>span_at</code>), the commit
-now goes through the byte-preserving <code>replace_span</code>, and a contiguous
-same-indent head comment is folded into the delete. All nine defects below are
-fixed with regression tests; the quality gate is green.</p>
-</blockquote>
-<h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
-<p>The <code>f007</code> structural-delete fallback (<code>src/fidelity/write/delete.rs</code>) derived
-the deleted byte range from an indentation walk and backed it only with a
-semantic <code>Value</code>-equality re-parse guard. Because <code>crate::value::Value</code> carries
-no comments or blank lines, the guard is blind to trivia, so several classes of
-edit committed a byte-corruption at exit 0. A separate defect refused a common
-valid layout, and a cluster of lower-severity issues (error messages, a masked
-error, a duplicated walker, a redundant clone) rounded out the review.</p>
-<h2 id="defects">Defects<a class="heading-anchor" href="#defects" aria-label="Link to this section"></a></h2>
-<p>Byte-fidelity (silent corruption at exit 0):</p>
-<ol>
-<li><strong>Following sibling’s comment eaten.</strong> A comment indented deeper than the key
-but belonging to the <em>next</em> sibling was swallowed by the indentation walk
-(<code>del(.outer)</code> on <code>outer:\n  a: 1\n  # note for next\nnext: 2\n</code> dropped the
-comment).</li>
-<li><strong>Head comment silently re-attributed.</strong> A comment on the line directly above
-the entry was left orphaned onto the following sibling
-(<code>del(.database)</code> moved <code># database connection settings</code> onto <code>cache</code>).</li>
-<li><strong>Keep-chomped scalar’s trailing blanks survived.</strong> The blank lines that are
-part of a <code>|+</code> block scalar’s value were not owned by the entry, leaving a
-stray blank (or whitespace-only) line after the delete.</li>
-</ol>
-<p>Functional:</p>
-<ol start="4">
-<li><strong>Block sequence at its key’s own column wrongly refused.</strong> The
-Kubernetes / GitHub Actions / Ansible list style (<code>on:\n- push\n- pull_request</code>)
-was refused with an opaque message because <code>span_at</code> under-reports such a
-sequence to just its first <code>-</code>.</li>
-</ol>
-<p>Robustness / clarity:</p>
-<ol start="5">
-<li>No byte-level backstop: the re-parsed candidate was committed and re-emitted,
-trusting a parse→emit round-trip not to normalize an untouched node.</li>
-<li>The <code>FidelityWriter::delete</code> trait doc still claimed multi-line/nested entries
-error, contradicting the shipped behavior.</li>
-<li>A root-level flow collection got the generic “layout not supported” message
-instead of the flow-collection message.</li>
-<li>The wrapped <code>remove</code> error was discarded (<code>Err(_)</code>), masking a genuine
-noyalib failure behind the fallback’s generic message.</li>
-<li>A duplicated <code>Value</code>-by-path walker, and a full-document clone to build the
-comparison yardstick.</li>
-</ol>
-<h2 id="fix">Fix<a class="heading-anchor" href="#fix" aria-label="Link to this section"></a></h2>
+            <p><strong>Status:</strong> Open (measured 2026-08-15 on the noyalib 0.0.22 pin; not yet filed
+upstream)
+<strong>Severity:</strong> Medium — a silent wrong result at exit 0, not a refusal
+<strong>Component:</strong> noyalib <code>cst::Document::swap_items</code> / <code>cst::Document::move_item</code>
+(upstream), reached from yqr’s planned reorder verb
+<strong>Blocks:</strong> the <code>swap</code> / <code>move</code> slice of <code>yqr-a002</code> §9
+<strong>Related:</strong> <code>yqr-b004</code> §2.3 (the gap whose fix shipped this API) and §6.5 (the
+adoption finding that points here), <code>yqr-b006</code> (the same failure class in
+yqr’s own delete), <code>yqr-a002</code> §6 (the architecture consequence),
+<code>yqr-f007</code> §5.1 (the standing reminder this is the third instance of),
+<code>yqr-f015</code> (the 0.0.22 pin)</p>
+<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
+<p>noyalib’s sequence-reorder mutators exchange the items’ <strong>value bytes</strong> and
+nothing else. Every comment stays attached to the position rather than to the
+item it documents, so a reorder silently re-attributes the file’s
+documentation. Both calls return <code>Ok</code>, the exit code is 0, and <code>yqr -i</code> would
+write the damage to the user’s file.</p>
+<p>This is not a reopened gap — <code>yqr-b004</code> §2.3’s API exists and ships. It is a
+defect <em>inside</em> a shipped mutator, of the same class as <code>b004</code> §6.1 and §6.4.</p>
+<h2 id="2-measurement">2. Measurement<a class="heading-anchor" href="#2-measurement" aria-label="Link to this section"></a></h2>
+<p>Driven directly against the pinned crate, 2026-08-15, re-confirmed 2026-08-16.
+Two separate inputs, one per call:</p>
+<pre><code class="language-text">in                   swap_items("", 0, 1)      in                move_item("", 0, 2)
+- one  # first       - two  # first            - a  # ca         - b  # ca
+- two  # second      - one  # second           - b  # cb         - c  # cb
+                                               - c  # cc         - a  # cc
+</code></pre>
+<p>Head comments behave identically:</p>
+<pre><code class="language-text">in                   swap_items("", 0, 1)
+# about one          # about one
+- one                - two
+# about two          # about two
+- two                - one
+</code></pre>
+<p><code># about one</code> stays above index 0 while the value it described moves away.</p>
+<p>Note that <code>move_item</code> needs the three-item input: <code>move_item(_, 0, 2)</code> on the
+two-item sequence refuses with <code>index out of bounds for the sequence at `` (length 2): from 0, to 2</code>. The out-of-range refusal is correct and is the only
+guard in the neighbourhood that fires.</p>
+<h2 id="3-why-the-guard-does-not-catch-it">3. Why the guard does not catch it<a class="heading-anchor" href="#3-why-the-guard-does-not-catch-it" aria-label="Link to this section"></a></h2>
+<p>Both mutators run upstream’s integrity guard, and both pass it <strong>by
+construction</strong>: the guard re-parses and compares the <em>typed</em> value, and a
+comment is not in the typed value. A guard that compares typed values can
+never observe a comment moving. This is the same reason <code>b004</code> §6.1 and §6.4
+needed an independent implementation to become visible.</p>
+<h2 id="4-two-stale-documented-refusals-three-in-fact">4. Two stale documented refusals — three, in fact<a class="heading-anchor" href="#4-two-stale-documented-refusals-three-in-fact" aria-label="Link to this section"></a></h2>
+<p>While measuring this, three of <code>swap_items</code>’ documented errors turned out not
+to fire on 0.0.22:</p>
+<table><thead><tr><th>Case</th><th>Doc comment</th><th>0.0.22</th></tr></thead><tbody>
+<tr><td>flow sequence</td><td>error</td><td>succeeds: <code>[one, two, three]</code> -&gt; <code>[three, two, one]</code></td></tr>
+<tr><td>multi-line items</td><td>error</td><td>succeeds: <code>- a: 1\n  b: 2\n- c: 3\n  d: 4</code> swaps whole entries</td></tr>
+<tr><td>differently-indented items</td><td>error</td><td>succeeds: <code>- a\n-   b\n</code> -&gt; <code>- b\n-   a\n</code></td></tr>
+</tbody></table>
+<p>Nothing yqr plans depends on any of them, and they are not part of this
+bug’s fix. They are recorded because they are the second half of the same
+lesson: <code>yqr-f007</code> §5.1’s reminder now needs three clauses — “upstream has the
+call”, “upstream does what its docs say” and “upstream has yqr’s semantics”
+are three different questions.</p>
+<h2 id="5-route-upstream-and-yqr-already-owns-the-reference-implementation">5. Route: upstream, and yqr already owns the reference implementation<a class="heading-anchor" href="#5-route-upstream-and-yqr-already-owns-the-reference-implementation" aria-label="Link to this section"></a></h2>
+<p>On the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent. <code>delete_entry</code>
+(<code>src/fidelity/write/delete.rs</code>) computes exactly the range an entry owns —
+value span, continuation lines, and the contiguous same-indent head-comment
+run above it, with a blank-detached comment deliberately excluded. A
+trivia-aware reorder is two of those ranges exchanged. That arithmetic was
+written, argued and tested for delete in <code>yqr-b006</code>; it transfers.</p>
+<p><strong>Not yet filed.</strong> The filing hangs here.</p>
+<h2 id="6-impact-on-yqr">6. Impact on yqr<a class="heading-anchor" href="#6-impact-on-yqr" aria-label="Link to this section"></a></h2>
+<p><code>yqr-a002</code> settles the reorder grammar (<code>swap(&lt;path&gt;; i; j)</code>,
+<code>move(&lt;path&gt;; from; to)</code>) and then stages that slice <strong>last</strong> and blocked, on
+this bug. Until it is fixed, <code>swap</code>/<code>move</code> either stay unimplemented or ship
+with a yqr-side refusal when either item carries a comment — honest and small,
+but it declines the common case, since a commented list item is the normal
+shape of the files yqr targets (<code>spec.containers</code>, GitHub Actions <code>steps</code>,
+Ansible tasks).</p>
+<p>This is the third time an independent yqr implementation has been the thing
+that made an upstream trivia divergence measurable (<code>b004</code> §6.1, §6.4, here).</p>
+<h2 id="7-acceptance">7. Acceptance<a class="heading-anchor" href="#7-acceptance" aria-label="Link to this section"></a></h2>
 <ul>
-<li><strong>Derive the owned range from the value’s span, not indentation.</strong> <code>span_at</code>
-gives an authoritative <code>value_start..value_end</code>; the end is the end of the
-line holding <code>value_end</code>’s last content byte, except when <code>value_end</code> already
-sits at a line boundary (a <code>|+</code> scalar’s kept trailing blanks), which fixes
-defects 1 and 3.</li>
-<li><strong>Recover a same-column sequence’s end from its last item</strong> (<code>path[len-1]</code>),
-fixing defect 4.</li>
-<li><strong>Fold a contiguous same-indent head comment into the delete</strong>, fixing
-defect 2; a blank-detached comment is left in place.</li>
-<li><strong>Commit via <code>replace_span</code></strong> (in-place buffer splice) so surviving bytes are
-the original bytes verbatim, fixing defect 5.</li>
-<li>Trait doc corrected (6); root-level flow detection added (7); the <code>remove</code>
-error is threaded into the fallback’s generic message (8); <code>walk_value</code> is
-shared from <code>noyalib.rs</code> and <code>remove_at_path</code> consumes its input (9).</li>
-</ul>
-<h2 id="acceptance-criteria">Acceptance criteria<a class="heading-anchor" href="#acceptance-criteria" aria-label="Link to this section"></a></h2>
-<ul>
-<li><input disabled="" type="checkbox" checked=""/>
-A following sibling’s comment survives a delete; a head comment is removed
-with its entry; a blank-detached comment stays in place.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-A keep-chomped (<code>|+</code>) block scalar’s trailing blanks are removed with the
-entry — no stray blank line.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-A block sequence written at its key’s own column deletes cleanly
-(top-level and nested).</li>
-<li><input disabled="" type="checkbox" checked=""/>
-The commit preserves every surviving byte verbatim (<code>replace_span</code>).</li>
-<li><input disabled="" type="checkbox" checked=""/>
-A root-level flow collection item is refused with the flow-collection
-message.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-Regression tests cover each case; <code>cargo fmt</code>, <code>cargo clippy -- -D warnings</code>
-(all feature profiles), and <code>cargo test</code> are green.</li>
+<li><input disabled="" type="checkbox"/>
+Filed upstream with the §2 measurement and the §5 reference.</li>
+<li><input disabled="" type="checkbox"/>
+A released noyalib moves an entry’s inline and head comments with the
+item, for both <code>swap_items</code> and <code>move_item</code>.</li>
+<li><input disabled="" type="checkbox"/>
+<code>yqr-a002</code> §9 slice 3’s criteria pass against that release.</li>
+<li><input disabled="" type="checkbox"/>
+<code>yqr-b000</code> and this file move to Resolved in the same change.</li>
 </ul>
 
         </div>
@@ -2773,16 +2769,11 @@ Regression tests cover each case; <code>cargo fmt</code>, <code>cargo clippy -- 
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion" class="nav-prev">
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b009-inserted-lines-break-crlf-documents" class="nav-prev">
         <span class="nav-label">&larr; Previous</span>
-        <span class="nav-title">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</span>
+        <span class="nav-title">Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings</span>
     </a>
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b007-site-links-broken-under-accent-0-23-1" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Bug b007 — Website: two internal links break under accent v0.23.1</span>
-    </a>
     
 </nav>
 
@@ -2794,19 +2785,31 @@ Regression tests cover each case; <code>cargo fmt</code>, <code>cargo clippy -- 
         <ul>
         
             <li class="toc-level-2">
-                <a href="#summary">Summary</a>
+                <a href="#1-summary">1. Summary</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#defects">Defects</a>
+                <a href="#2-measurement">2. Measurement</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#fix">Fix</a>
+                <a href="#3-why-the-guard-does-not-catch-it">3. Why the guard does not catch it</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#acceptance-criteria">Acceptance criteria</a>
+                <a href="#4-two-stale-documented-refusals-three-in-fact">4. Two stale documented refusals — three, in fact</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#5-route-upstream-and-yqr-already-owns-the-reference-implementation">5. Route: upstream, and yqr already owns the reference implementation</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#6-impact-on-yqr">6. Impact on yqr</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#7-acceptance">7. Acceptance</a>
             </li>
         
         </ul>
