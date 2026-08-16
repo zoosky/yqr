@@ -10,7 +10,7 @@ comment editing, key rename, and sequence reorder
 `src/fidelity/write.rs`, `src/fidelity/mod.rs`, `docs/content/guide/`
 **Related:** `yqr-a001` (the fidelity guarantee these edits must not break),
 `yqr-f007` (the three deferred slices this unblocks), `yqr-b004` §2.1–2.3 (the
-original upstream gap catalog), `yqr-b010` (the reorder defect that blocks
+original upstream gap catalog), `yqr-b010` (the reorder trivia disagreement that blocks
 slice 3, measured out of §6), `yqr-f015` (the noyalib 0.0.22 pin every form
 here calls into)
 

@@ -88,8 +88,16 @@ reorder silently re-attributes every comment in the range at exit 0. Verified
 `replace_span`, which are unchanged for them.
 
 So the `yqr-a002` §9 slice 3 block survives this release. With `#221` now
-closed, `yqr-b010` needs its own upstream issue rather than a comment on a
-closed umbrella.
+closed, it went upstream as its own issue —
+[noyalib#269](https://github.com/sebastienrousseau/noyalib/issues/269), with a
+fix offered as [noyalib#270](https://github.com/sebastienrousseau/noyalib/pull/270).
+
+That PR is worth noting *here* rather than only in `yqr-b010`, because it is a
+second-order consequence of this release: `#268` added `owned_entry_range` to
+compute the range an entry owns, which is precisely what a trivia-aware reorder
+needs. The extended `remove` shipped the arithmetic; the reorder fix is mostly
+composition over it. Adopting 0.0.23 and settling `b010` are still separate
+questions, but they now share a helper.
 
 ## 4. The measurement `yqr-f007` §6 needs re-run
 

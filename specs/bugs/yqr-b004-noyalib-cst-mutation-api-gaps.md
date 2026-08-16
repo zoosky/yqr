@@ -17,9 +17,9 @@ after the fixes existed. §6 records what adoption actually consumed:
 2.1 / 2.2 / 2.3 / 2.5 are now available APIs awaiting `yqr-f007`
 grammar, and 2.4 stays yqr's own code by decision rather than by
 necessity (§6.1). The gaps this bug tracked are closed and it stays
-Resolved; a **defect found inside** one of the shipped APIs is tracked
-separately as **`yqr-b010`** (open) rather than reopening this one — see
-§6.5.
+Resolved. A **disagreement about one of the shipped APIs' trivia
+semantics** is tracked separately as **`yqr-b010`** (open) rather than
+reopening this one — see §6.5.
 **Reported upstream (2026-07-29):** umbrella issue
 [noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221)
 covers all five gaps and was **closed 2026-08-16**, when its last open
@@ -58,7 +58,7 @@ maintainer on the same branch on 2026-07-31.
 **Last updated:** 2026-08-16 (umbrella `#221` closed — §7)
 **Affects:** the planned fidelity write/edit tier (`yqr-m002` §4/§6.2, `yqr-f002` §5). Irrelevant to the read path and the default pipeline.
 **Component:** noyalib 0.0.14 (unchanged through 0.0.17, yqr's pin; fixed in the released 0.0.18) — `cst::Document` (`document.rs`), `cst::Entry` (`entry.rs`), `cst::annotated` (`annotated.rs`), `cst::emit` (`emit.rs`, new in 0.0.18)
-**Related:** `yqr-b002` (noyalib CST span/key-model deficiencies — resolved in 0.0.14), `yqr-f013` (the 0.0.18 adoption feature this bug now hands off to), `yqr-b006` (the structural-delete trivia fixes that §6.1 shows upstream `remove` does *not* reproduce), `yqr-r002` (noyalib fidelity evaluation), `yqr-m002` §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue, **closed 2026-08-16** — §7), noyalib#222 (rename_key PR, merged), noyalib#223 (Emit tier PR, merged). Follow-ons: `yqr-b010` (the reorder defect inside §2.3's shipped API, open) and `yqr-f016` (adopting the 0.0.23 that closed §2.4).
+**Related:** `yqr-b002` (noyalib CST span/key-model deficiencies — resolved in 0.0.14), `yqr-f013` (the 0.0.18 adoption feature this bug now hands off to), `yqr-b006` (the structural-delete trivia fixes that §6.1 shows upstream `remove` does *not* reproduce), `yqr-r002` (noyalib fidelity evaluation), `yqr-m002` §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue, **closed 2026-08-16** — §7), noyalib#222 (rename_key PR, merged), noyalib#223 (Emit tier PR, merged). Follow-ons: `yqr-b010` (the reorder trivia disagreement over §2.3's shipped API, open) and `yqr-f016` (adopting the 0.0.23 that closed §2.4).
 
 ## 1. Summary
 
@@ -426,11 +426,18 @@ implementations is a materially different trade from deleting redundancy
 
 ### 6.5 Reorder moves values, not entries — split out as `yqr-b010` (open)
 
-Not a reopened gap — §2.3's API exists and ships. A **defect inside it**,
-found while settling the reorder grammar (`yqr-a002` §6), of the same class as
-§6.1 and §6.4: a silent wrong result at exit 0, not a refusal. `swap_items`
-and `move_item` exchange the items' **value bytes** and nothing else, so every
-comment stays attached to the position rather than to the item it documents.
+Not a reopened gap — §2.3's API exists and ships. `swap_items` and
+`move_item` exchange the items' **value bytes** and nothing else, so every
+comment stays attached to the position rather than to the item it documents,
+at `Ok` and exit 0.
+
+Found while settling the reorder grammar (`yqr-a002` §6) and first recorded
+here as a defect "of the same class as §6.1 and §6.4". **That was wrong**, and
+the correction is on the record upstream: §6.1/§6.4 were cases where the code
+diverged from its own documentation, whereas this behaviour is deliberate,
+documented and pinned by a test whose comment states the rationale. yqr's
+position is a disagreement with a stated design, and the argument for it is
+that `remove` decides the same question the other way for the same bytes.
 
 Because it is open, unfiled, and blocks a staged slice, it is tracked as its
 own bug rather than as a subsection of a resolved one: **`yqr-b010` holds the
@@ -486,7 +493,7 @@ state, from the maintainer's close-out comment:
 |---|---|---|---|
 | 1 | §2.1 comment mutation | Comment mutation | v0.0.21 |
 | 2 | §2.2 key rename | `rename_key` + key spans | v0.0.18 |
-| 3 | §2.3 sequence reorder | `swap_items` / `move_item` | v0.0.18 — API present, **defective**: `yqr-b010` |
+| 3 | §2.3 sequence reorder | `swap_items` / `move_item` | v0.0.18 — API present; its trivia semantics are disputed: `yqr-b010` |
 | 4 | §2.4 extended `remove` | Extended `remove` | v0.0.23 |
 | 5 | §2.5 fragment containment | Fragment containment | v0.0.21 |
 
