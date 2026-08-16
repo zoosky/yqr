@@ -16,7 +16,10 @@ republish), which is why the gaps stayed real for shipped code long
 after the fixes existed. §6 records what adoption actually consumed:
 2.1 / 2.2 / 2.3 / 2.5 are now available APIs awaiting `yqr-f007`
 grammar, and 2.4 stays yqr's own code by decision rather than by
-necessity (§6.1).
+necessity (§6.1). The gaps this bug tracked are closed and it stays
+Resolved; a **defect found inside** one of the shipped APIs is tracked
+separately as **`yqr-b010`** (open) rather than reopening this one — see
+§6.5.
 **Reported upstream (2026-07-29):** umbrella issue
 [noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221)
 covers all five gaps and is **still open** even though the release
@@ -418,3 +421,54 @@ is that an independent implementation is the oracle that made those divergences
 *measurable* (this issue and noyalib#226 exist because of it), and that swapping
 implementations is a materially different trade from deleting redundancy
 (`yqr-f015`). No longer an open item; the full record is in `yqr-f007` §6.
+
+### 6.5 Reorder moves values, not entries — split out as `yqr-b010` (open)
+
+Not a reopened gap — §2.3's API exists and ships. A **defect inside it**,
+found while settling the reorder grammar (`yqr-a002` §6), of the same class as
+§6.1 and §6.4: a silent wrong result at exit 0, not a refusal. `swap_items`
+and `move_item` exchange the items' **value bytes** and nothing else, so every
+comment stays attached to the position rather than to the item it documents.
+
+Because it is open, unfiled, and blocks a staged slice, it is tracked as its
+own bug rather than as a subsection of a resolved one: **`yqr-b010` holds the
+measurement, the guard argument, the three stale documented refusals, and the
+route.** It is not restated here, so the two cannot drift apart.
+
+What belongs in this document is only the adoption finding: §2.3's gap was
+closed upstream and shipped, and the shipped call still does not have yqr's
+semantics. That is the third instance of `yqr-f007` §5.1's reminder, and the
+third time an independent yqr implementation is what made an upstream trivia
+divergence measurable (§6.1, §6.4, `yqr-b010`).
+
+### 6.6 Leading comments: upstream absorbs a blank-detached block (no defect; yqr declines)
+
+Measured 2026-08-16 on the 0.0.22 pin, while reviewing `yqr-a002`. Recorded
+here because it is an adoption finding about §2.1's shipped API, but it is
+**not** a bug and is not routed anywhere: upstream documents the behaviour and
+means it.
+
+`comments_at().before` walks upward from the entry's line collecting
+comment-only lines and skipping blank ones — "an interleaved blank line does
+not break the run — only another content node does" — and both leading
+mutators edit exactly that range. So on `# detached\n\na: 1\n`,
+`set_leading_comment("a", "new")` **replaces** the detached block and
+`remove_leading_comment("a")` **deletes** it, leaving a stray blank line. Both
+`Ok`.
+
+yqr's own `delete_entry` draws the line the other way — the entry owns the
+contiguous same-indent run immediately above it, blank-detached excluded
+(`yqr-b006`) — and `yqr-b010` §5 leans on that same arithmetic. So the comment
+slice cannot adopt the opposite rule for the same question. `yqr-a002` §4.1.1
+makes it a yqr-side refusal, and §5.2 catalogs the three directions.
+
+Two related upstream asymmetries measured in the same pass, both handled in
+`yqr-a002` §4 / §5 rather than filed:
+
+- `remove_inline_comment` and `remove_leading_comment` return `Ok(())` on an
+  unresolved path, on a missing comment, and on every shape the matching
+  setter refuses. The setters are guarded; the removers are not.
+- `set_inline_comment` guards on whether the *value span* is multi-line, so an
+  entry whose value starts on the next line (`a:\n  b: 1`) passes the guard and
+  the comment lands on the **child's** line. The removal direction deletes the
+  child's comment for the same reason.
