@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-16T08:11:49Z",
+  "timestamp": "2026-08-16T12:05:44Z",
   "pages": {
     "/": {
       "content_hash": "0069f998b82fa6e5",
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "c0e971b9089111ea",
+      "content_hash": "0a65a1c0fa75de16",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -88,7 +88,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps": {
-      "content_hash": "3c13b4ee45faf18a",
+      "content_hash": "8b426297d3c2d0d4",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -118,7 +118,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b010-reorder-moves-values-not-entries": {
-      "content_hash": "3597b83e85c306ea",
+      "content_hash": "7bd31a1d9baca853",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -128,7 +128,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "bf4992dc4a774950",
+      "content_hash": "2e2ca5cfc1dffec2",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -163,7 +163,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "750695db98831512",
+      "content_hash": "e49d38c6687efacd",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -204,6 +204,11 @@
     },
     "/specs/features/yqr-f015-noyalib-0-0-22-adoption": {
       "content_hash": "0a5fc42086854ec6",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
+    "/specs/features/yqr-f016-noyalib-0-0-23-adoption": {
+      "content_hash": "5cb1a4390fcb6298",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

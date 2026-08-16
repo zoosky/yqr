@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps",
-  "wordCount": 4185
+  "wordCount": 4558
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -466,6 +469,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -506,6 +512,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -802,6 +813,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f016-noyalib-0-0-23-adoption"
+                   class="sidebar-link">Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses</a>
+              
+            
+              
+              
             
               
               
@@ -944,6 +961,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1260,6 +1280,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1284,6 +1307,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1606,6 +1632,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1618,6 +1647,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1792,6 +1824,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2084,6 +2119,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2144,6 +2182,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2421,6 +2462,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2482,6 +2526,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2693,9 +2740,11 @@ separately as <strong><code>yqr-b010</code></strong> (open) rather than reopenin
 §6.5.
 <strong>Reported upstream (2026-07-29):</strong> umbrella issue
 <a href="https://github.com/sebastienrousseau/noyalib/issues/221">noyalib#221</a>
-covers all five gaps and is <strong>still open</strong> even though the release
-shipped. The earlier note here that issues are disabled upstream is
-stale — they are enabled. A follow-up to #221 §4,
+covers all five gaps and was <strong>closed 2026-08-16</strong>, when its last open
+sub-ask (4, the extended <code>remove</code>) shipped via noyalib#268 — see §7 and
+<code>yqr-f016</code>. It stayed open long after the other four shipped. The earlier
+note here that issues are disabled upstream is stale — they are enabled. A
+follow-up to #221 §4,
 <a href="https://github.com/sebastienrousseau/noyalib/issues/225">noyalib#225</a>,
 was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
 the released <code>remove</code> (§6.4); it was <strong>closed 2026-08-05</strong> by the merge of
@@ -2724,10 +2773,10 @@ three gaps — §2.1, §2.3, §2.4 — were implemented upstream by the
 maintainer on the same branch on 2026-07-31.
 <strong>Severity:</strong> Medium — roadmap-gating for yqr’s core goal (surgical editing of YAML: values, keys, structures, comments). No current code path depends on these (the fidelity engines are read-only today, <code>yqr-m002</code> §9), and each has a raw-<code>replace_span</code> workaround — but that workaround forfeits the indent/quote synthesis and the “reject if the result re-parses differently” guard that the first-class mutators provide.
 <strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-08-02
+<strong>Last updated:</strong> 2026-08-16 (umbrella <code>#221</code> closed — §7)
 <strong>Affects:</strong> the planned fidelity write/edit tier (<code>yqr-m002</code> §4/§6.2, <code>yqr-f002</code> §5). Irrelevant to the read path and the default pipeline.
 <strong>Component:</strong> noyalib 0.0.14 (unchanged through 0.0.17, yqr’s pin; fixed in the released 0.0.18) — <code>cst::Document</code> (<code>document.rs</code>), <code>cst::Entry</code> (<code>entry.rs</code>), <code>cst::annotated</code> (<code>annotated.rs</code>), <code>cst::emit</code> (<code>emit.rs</code>, new in 0.0.18)
-<strong>Related:</strong> <code>yqr-b002</code> (noyalib CST span/key-model deficiencies — resolved in 0.0.14), <code>yqr-f013</code> (the 0.0.18 adoption feature this bug now hands off to), <code>yqr-b006</code> (the structural-delete trivia fixes that §6.1 shows upstream <code>remove</code> does <em>not</em> reproduce), <code>yqr-r002</code> (noyalib fidelity evaluation), <code>yqr-m002</code> §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue, still open), noyalib#222 (rename_key PR, merged), noyalib#223 (Emit tier PR, merged).</p>
+<strong>Related:</strong> <code>yqr-b002</code> (noyalib CST span/key-model deficiencies — resolved in 0.0.14), <code>yqr-f013</code> (the 0.0.18 adoption feature this bug now hands off to), <code>yqr-b006</code> (the structural-delete trivia fixes that §6.1 shows upstream <code>remove</code> does <em>not</em> reproduce), <code>yqr-r002</code> (noyalib fidelity evaluation), <code>yqr-m002</code> §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue, <strong>closed 2026-08-16</strong> — §7), noyalib#222 (rename_key PR, merged), noyalib#223 (Emit tier PR, merged). Follow-ons: <code>yqr-b010</code> (the reorder defect inside §2.3’s shipped API, open) and <code>yqr-f016</code> (adopting the 0.0.23 that closed §2.4).</p>
 <h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
 <p>noyalib 0.0.14 already provides first-class, re-parse-guarded mutators for the
 <strong>common</strong> surgical edits, and preserves unedited bytes via <code>Arc</code> structural
@@ -3072,6 +3121,38 @@ entry whose value starts on the next line (<code>a:\n  b: 1</code>) passes the g
 the comment lands on the <strong>child’s</strong> line. The removal direction deletes the
 child’s comment for the same reason.</li>
 </ul>
+<h2 id="7-umbrella-close-out-2026-08-16">7. Umbrella close-out (2026-08-16)<a class="heading-anchor" href="#7-umbrella-close-out-2026-08-16" aria-label="Link to this section"></a></h2>
+<p><code>#221</code> is <strong>closed</strong>. Its last open sub-ask — 4, the extended <code>remove</code> — shipped
+via <a href="https://github.com/sebastienrousseau/noyalib/pull/268">noyalib#268</a>,
+merged 2026-08-16T05:45:07Z, with the issue closed two seconds later. Final
+state, from the maintainer’s close-out comment:</p>
+<table><thead><tr><th>#</th><th>This spec’s gap</th><th>Ask</th><th>Shipped</th></tr></thead><tbody>
+<tr><td>1</td><td>§2.1 comment mutation</td><td>Comment mutation</td><td>v0.0.21</td></tr>
+<tr><td>2</td><td>§2.2 key rename</td><td><code>rename_key</code> + key spans</td><td>v0.0.18</td></tr>
+<tr><td>3</td><td>§2.3 sequence reorder</td><td><code>swap_items</code> / <code>move_item</code></td><td>v0.0.18 — API present, <strong>defective</strong>: <code>yqr-b010</code></td></tr>
+<tr><td>4</td><td>§2.4 extended <code>remove</code></td><td>Extended <code>remove</code></td><td>v0.0.23</td></tr>
+<tr><td>5</td><td>§2.5 fragment containment</td><td>Fragment containment</td><td>v0.0.21</td></tr>
+</tbody></table>
+<p>This bug stays <strong>Resolved</strong>: it tracked the gaps, and the gaps are closed. Two
+things follow from the close-out and are tracked elsewhere:</p>
+<ul>
+<li><strong>0.0.23 is not published yet.</strong> The changelog and <code>Cargo.toml</code> on <code>main</code> say
+<code>0.0.23</code>, but there is no git tag, no GitHub release, and nothing on the
+crates.io index (verified 2026-08-16). Adoption is <code>yqr-f016</code>, Draft and
+blocked on the release.</li>
+<li><strong><code>remove</code> now covers flow members and sole entries</strong> — the two classes
+<code>delete_entry</code> refuses (<code>yqr-f007</code> §5). That makes §6.4’s “delegation is cheap
+to revisit” live again for a <em>new</em> reason: the measurement <code>yqr-f007</code> §6
+recorded on the 0.0.22 pin found its only two failures to be flow cases where
+“upstream also refuses, and only the diagnostic differs”, and that premise no
+longer holds. Re-run and decision are <code>yqr-f016</code> §4/§5.</li>
+</ul>
+<p>Upstream declined to add <code>remove_subtree</code>, deliberately — <code>remove</code> was extended
+instead, so a second entry point would be a synonym rather than a capability —
+and offers to add one if yqr’s path needs a distinct entry point for a reason
+the extended <code>remove</code> does not cover. Nothing in yqr currently needs it.</p>
+<p>The standing offer to port yqr’s <code>replace_span</code> approach and tests upstream is
+renewed in the same comment. <code>yqr-f007</code> §5.1 holds yqr’s side of that.</p>
 
         </div>
         </accent-island>
@@ -3169,6 +3250,10 @@ child’s comment for the same reason.</li>
         
             <li class="toc-level-3">
                 <a href="#6-6-leading-comments-upstream-absorbs-a-blank-detached-block-no-defect-yqr-declines">6.6 Leading comments: upstream absorbs a blank-detached block (no defect; yqr declines)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#7-umbrella-close-out-2026-08-16">7. Umbrella close-out (2026-08-16)</a>
             </li>
         
         </ul>

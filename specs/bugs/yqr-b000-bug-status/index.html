@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Bug Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 1326
+  "wordCount": 1363
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -466,6 +469,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -506,6 +512,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -802,6 +813,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f016-noyalib-0-0-23-adoption"
+                   class="sidebar-link">Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses</a>
+              
+            
+              
+              
             
               
               
@@ -944,6 +961,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1260,6 +1280,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1284,6 +1307,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1606,6 +1632,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1618,6 +1647,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1792,6 +1824,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2084,6 +2119,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2144,6 +2182,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2421,6 +2462,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2482,6 +2526,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2677,7 +2724,7 @@ status tracker convention).</p>
 <p><strong>Status legend:</strong> Open · In Progress · Fixed · Resolved · Won’t Fix · Duplicate</p>
 <h2 id="open">Open<a class="heading-anchor" href="#open" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
-<tr><td><a href="/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries">b010</a></td><td><code>swap_items</code> / <code>move_item</code> move values, not entries: every comment stays behind</td><td>Medium</td><td>Open — noyalib’s sequence-reorder mutators exchange the items’ <strong>value bytes</strong> and nothing else, so a reorder silently re-attributes every comment in the affected range, at <strong>exit 0</strong>, and <code>-i</code> would write it. Both calls pass upstream’s integrity guard <em>by construction</em>: that guard compares typed values and a comment is not in one. Not a reopened <code>b004</code> gap — §2.3’s API ships — but a defect inside it, of the <code>b004</code> §6.1/§6.4 class, split out of <code>b004</code> §6.5 because it is open, unfiled and blocks a staged slice. Three of <code>swap_items</code>’ documented refusals (flow sequence, multi-line items, differently-indented items) are also stale on 0.0.22. <strong>Route:</strong> upstream on the <code>b004</code> §5 <code>PR-with-fix</code> precedent — <code>delete_entry</code>’s entry-range arithmetic (<code>yqr-b006</code>) is the reference implementation. <strong>Not yet filed.</strong> Blocks the <code>swap</code>/<code>move</code> slice of <code>yqr-a002</code> §9</td><td><code>yqr-b004</code>, <code>yqr-b006</code>, <code>yqr-a002</code>, <code>yqr-f007</code>, <code>yqr-f015</code></td></tr>
+<tr><td><a href="/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries">b010</a></td><td><code>swap_items</code> / <code>move_item</code> move values, not entries: every comment stays behind</td><td>Medium</td><td>Open — noyalib’s sequence-reorder mutators exchange the items’ <strong>value bytes</strong> and nothing else, so a reorder silently re-attributes every comment in the affected range, at <strong>exit 0</strong>, and <code>-i</code> would write it. Both calls pass upstream’s integrity guard <em>by construction</em>: that guard compares typed values and a comment is not in one. Not a reopened <code>b004</code> gap — §2.3’s API ships — but a defect inside it, of the <code>b004</code> §6.1/§6.4 class, split out of <code>b004</code> §6.5 because it is open, unfiled and blocks a staged slice. Three of <code>swap_items</code>’ documented refusals (flow sequence, multi-line items, differently-indented items) are also stale on 0.0.22. <strong>Route:</strong> upstream on the <code>b004</code> §5 <code>PR-with-fix</code> precedent — <code>delete_entry</code>’s entry-range arithmetic (<code>yqr-b006</code>) is the reference implementation. <strong>Not yet filed</strong>, and now needs its own issue: the <code>b004</code> umbrella <code>#221</code> was closed 2026-08-16 and this survives the 0.0.23 that closed it (§4.1 — the <code>v0.0.22...main</code> diff touches <code>remove</code> only, and neither reorder call appears in it). Blocks the <code>swap</code>/<code>move</code> slice of <code>yqr-a002</code> §9</td><td><code>yqr-b004</code>, <code>yqr-b006</code>, <code>yqr-a002</code>, <code>yqr-f007</code>, <code>yqr-f015</code>, <code>yqr-f016</code></td></tr>
 </tbody></table>
 <h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>

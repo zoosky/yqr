@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries",
-  "wordCount": 798
+  "wordCount": 908
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -466,6 +469,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -506,6 +512,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -802,6 +813,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f016-noyalib-0-0-23-adoption"
+                   class="sidebar-link">Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses</a>
+              
+            
+              
+              
             
               
               
@@ -944,6 +961,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1260,6 +1280,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1284,6 +1307,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1606,6 +1632,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1618,6 +1647,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1792,6 +1824,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2084,6 +2119,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2144,6 +2182,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2421,6 +2462,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2482,6 +2526,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2728,6 +2775,17 @@ bug’s fix. They are recorded because they are the second half of the same
 lesson: <code>yqr-f007</code> §5.1’s reminder now needs three clauses — “upstream has the
 call”, “upstream does what its docs say” and “upstream has yqr’s semantics”
 are three different questions.</p>
+<h2 id="4-1-not-fixed-by-0-0-23">4.1 Not fixed by 0.0.23<a class="heading-anchor" href="#4-1-not-fixed-by-0-0-23" aria-label="Link to this section"></a></h2>
+<p>Verified 2026-08-16 against <code>v0.0.22...main</code>, after upstream closed <code>#221</code>
+with the extended <code>remove</code> (<code>yqr-f016</code> §2). The only source file the diff
+touches is <code>crates/noyalib/src/cst/document.rs</code>, and its hunks are <code>remove</code>
+plus a new <code>Removal</code> enum and <code>flow_member_range</code> helper. Neither
+<code>swap_items</code> nor <code>move_item</code> appears in the diff, and both resolve through
+<code>span_at</code> + <code>replace_span</code>, unchanged for them. This bug survives 0.0.23.</p>
+<p><code>#221</code> covered reorder as its sub-ask 3 and considers it shipped in 0.0.18 —
+correctly, since the API exists; this is a defect inside it. With the umbrella
+now closed, the filing in §5 must be <strong>its own issue</strong>, not a comment on a
+closed thread.</p>
 <h2 id="5-route-upstream-and-yqr-already-owns-the-reference-implementation">5. Route: upstream, and yqr already owns the reference implementation<a class="heading-anchor" href="#5-route-upstream-and-yqr-already-owns-the-reference-implementation" aria-label="Link to this section"></a></h2>
 <p>On the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent. <code>delete_entry</code>
 (<code>src/fidelity/write/delete.rs</code>) computes exactly the range an entry owns —
@@ -2798,6 +2856,10 @@ item, for both <code>swap_items</code> and <code>move_item</code>.</li>
         
             <li class="toc-level-2">
                 <a href="#4-two-stale-documented-refusals-three-in-fact">4. Two stale documented refusals — three, in fact</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#4-1-not-fixed-by-0-0-23">4.1 Not fixed by 0.0.23</a>
             </li>
         
             <li class="toc-level-2">

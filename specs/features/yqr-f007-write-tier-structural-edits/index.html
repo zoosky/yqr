@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 2958
+  "wordCount": 3229
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -466,6 +469,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -506,6 +512,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -802,6 +813,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f016-noyalib-0-0-23-adoption"
+                   class="sidebar-link">Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses</a>
+              
+            
+              
+              
             
               
               
@@ -944,6 +961,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1260,6 +1280,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1284,6 +1307,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1606,6 +1632,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1618,6 +1647,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1792,6 +1824,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2084,6 +2119,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2144,6 +2182,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2421,6 +2462,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2482,6 +2526,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2783,16 +2830,19 @@ and it is what produced noyalib#225/#226 in the first place. Full reasoning in
 <p>For the target entry (final path segment <code>last</code>, resolved value byte span
 <code>value_start..value_end</code> from <code>Document::span_at</code>):</p>
 <ol>
-<li><strong>Locate the entry’s first line.</strong> Walk back from <code>value_start</code> over
+<li>
+<p><strong>Locate the entry’s first line.</strong> Walk back from <code>value_start</code> over
 insignificant whitespace/newlines to the entry marker (<code>:</code> for a mapping key,
 <code>-</code> for a sequence index), stepping over a trailing line comment on the key
-line (<code>key:  # note</code>). The marker’s line start is the entry’s first line.</li>
-<li><strong>Derive the owned range from the value’s own span, not an indentation
+line (<code>key:  # note</code>). The marker’s line start is the entry’s first line.</p>
+</li>
+<li>
+<p><strong>Derive the owned range from the value’s own span, not an indentation
 heuristic.</strong> The end is the end of the line holding <code>value_end</code>’s last content
 byte — except when <code>value_end</code> already sits at a line boundary, which happens
 only for a keep-chomped (<code>|+</code> / <code>&gt;+</code>) block scalar whose trailing blank lines
 are content (<code>span_at</code> keeps them); extending then would swallow the next
-sibling’s line. This is exact where an indentation walk errs:
+sibling’s line. This is exact where an indentation walk errs:</p>
 <ul>
 <li>a <strong>keep-chomped scalar</strong>’s kept trailing blanks are owned (removed with the
 entry), leaving no stray blank line;</li>
@@ -2808,19 +2858,30 @@ its head comment and is folded into the range, so a delete never silently
 re-attributes the comment to the following sibling.</li>
 </ul>
 </li>
-<li><strong>Refuse the unsupported shapes</strong> with a clear message: the <strong>sole entry</strong> of
+<li>
+<p><strong>Refuse the unsupported shapes</strong> with a clear message: the <strong>sole entry</strong> of
 a block (removing it would empty the block, which re-parses as <code>null</code>), and an
 item of a <strong>flow</strong> collection (<code>[a, b]</code> / <code>{a: 1}</code>, detected from the parent’s
 own bytes — including a root-level flow collection, whose parent is the
-document itself).</li>
-<li><strong>Splice, guard, and commit byte-preservingly.</strong> Re-parse the spliced source
+document itself).</p>
+<p>Both refusals became <strong>optional</strong> on 2026-08-16: noyalib 0.0.23 covers both
+classes, taking exactly one separator with a flow member and writing the
+collection out explicitly (<code>a:</code>/<code>  {}</code>) for a sole entry — which is the same
+<code>null</code>-not-removal argument this step makes, answered rather than refused.
+Whether yqr delegates the two, implements them, or keeps refusing is
+<code>yqr-f016</code> §5, decided on that feature’s measurement. Nothing has moved:
+0.0.23 is unpublished, and this step is unchanged until it does.</p>
+</li>
+<li>
+<p><strong>Splice, guard, and commit byte-preservingly.</strong> Re-parse the spliced source
 and require it to lower to the original document value with the target removed
 (mapping key order preserved, sequence indices shifted); a dangling alias
 (deleting a referenced anchor), an over-broad span, or a flow mis-edit all
 diverge here and are refused with the document untouched. The commit itself
 goes through <code>Document::replace_span</code>, which splices the source buffer in
 place: every surviving byte is the original byte verbatim, so no parse→emit
-round-trip can normalize an untouched node.</li>
+round-trip can normalize an untouched node.</p>
+</li>
 </ol>
 <h3 id="5-3-why-this-is-safe">5.3 Why this is safe<a class="heading-anchor" href="#5-3-why-this-is-safe" aria-label="Link to this section"></a></h3>
 <p>The deletion range is derived from the target value’s authoritative source span,
@@ -2946,6 +3007,23 @@ regardless: the flow pre-check has to stay for the diagnostic, which
 </ul>
 <p>Reopen only on a <em>new</em> argument — not on upstream improving further, which is
 already accounted for above.</p>
+<p><strong>Reopened 2026-08-16 on a new argument, and it is not the pre-declined
+one.</strong> noyalib closed <code>#221</code> by extending <code>remove</code> to cover <strong>flow members
+and sole entries</strong> — the two classes §5 refuses — shipping in 0.0.23
+(<code>yqr-f016</code> §2; not published yet, so nothing has moved). That invalidates
+this measurement’s premise, not just its age: the record above says the only
+two failures were flow cases where “upstream <em>also</em> refuses … and both fail
+only the assertion that the message names the flow collection”. Upstream no
+longer refuses either class, so those two tests now measure yqr <strong>declining
+what the backend can do</strong>, which is a different fact from a diagnostic
+difference.</p>
+<p>The three reasons above are untouched by this and still stand; what changed
+is that the “and yqr loses nothing by keeping its own path” half is now “and
+yqr forgoes two delete classes”. Upstream also asked directly for the
+measurement — point yqr at 0.0.23 with the fallback disabled and report what
+breaks — which is the same check that made noyalib#261 obviously correct
+rather than merely plausible. Re-run and decision: <code>yqr-f016</code> §4/§5. No
+decision is recorded here in advance of it.</p>
 </li>
 <li>
 <p><strong>Collection right-hand sides for <code>+=</code> / new-key assignment.</strong> Since
