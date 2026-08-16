@@ -22,9 +22,11 @@ separately as **`yqr-b010`** (open) rather than reopening this one — see
 §6.5.
 **Reported upstream (2026-07-29):** umbrella issue
 [noyalib#221](https://github.com/sebastienrousseau/noyalib/issues/221)
-covers all five gaps and is **still open** even though the release
-shipped. The earlier note here that issues are disabled upstream is
-stale — they are enabled. A follow-up to #221 §4,
+covers all five gaps and was **closed 2026-08-16**, when its last open
+sub-ask (4, the extended `remove`) shipped via noyalib#268 — see §7 and
+`yqr-f016`. It stayed open long after the other four shipped. The earlier
+note here that issues are disabled upstream is stale — they are enabled. A
+follow-up to #221 §4,
 [noyalib#225](https://github.com/sebastienrousseau/noyalib/issues/225),
 was filed 2026-08-02 for the delete-trivia divergences §6.1 measured in
 the released `remove` (§6.4); it was **closed 2026-08-05** by the merge of
@@ -53,10 +55,10 @@ three gaps — §2.1, §2.3, §2.4 — were implemented upstream by the
 maintainer on the same branch on 2026-07-31.
 **Severity:** Medium — roadmap-gating for yqr's core goal (surgical editing of YAML: values, keys, structures, comments). No current code path depends on these (the fidelity engines are read-only today, `yqr-m002` §9), and each has a raw-`replace_span` workaround — but that workaround forfeits the indent/quote synthesis and the "reject if the result re-parses differently" guard that the first-class mutators provide.
 **Owner:** yqr maintainers
-**Last updated:** 2026-08-02
+**Last updated:** 2026-08-16 (umbrella `#221` closed — §7)
 **Affects:** the planned fidelity write/edit tier (`yqr-m002` §4/§6.2, `yqr-f002` §5). Irrelevant to the read path and the default pipeline.
 **Component:** noyalib 0.0.14 (unchanged through 0.0.17, yqr's pin; fixed in the released 0.0.18) — `cst::Document` (`document.rs`), `cst::Entry` (`entry.rs`), `cst::annotated` (`annotated.rs`), `cst::emit` (`emit.rs`, new in 0.0.18)
-**Related:** `yqr-b002` (noyalib CST span/key-model deficiencies — resolved in 0.0.14), `yqr-f013` (the 0.0.18 adoption feature this bug now hands off to), `yqr-b006` (the structural-delete trivia fixes that §6.1 shows upstream `remove` does *not* reproduce), `yqr-r002` (noyalib fidelity evaluation), `yqr-m002` §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue, still open), noyalib#222 (rename_key PR, merged), noyalib#223 (Emit tier PR, merged).
+**Related:** `yqr-b002` (noyalib CST span/key-model deficiencies — resolved in 0.0.14), `yqr-f013` (the 0.0.18 adoption feature this bug now hands off to), `yqr-b006` (the structural-delete trivia fixes that §6.1 shows upstream `remove` does *not* reproduce), `yqr-r002` (noyalib fidelity evaluation), `yqr-m002` §4/§6.2 (engine seam / write-tier design), and the noyalib-vs-rust-yaml backend comparison. Upstream precedent: noyalib#118/#123 (BOM fix, PR-with-fix) and the b002 fix series. Upstream reports for this bug: noyalib#221 (umbrella issue, **closed 2026-08-16** — §7), noyalib#222 (rename_key PR, merged), noyalib#223 (Emit tier PR, merged). Follow-ons: `yqr-b010` (the reorder defect inside §2.3's shipped API, open) and `yqr-f016` (adopting the 0.0.23 that closed §2.4).
 
 ## 1. Summary
 
@@ -472,3 +474,40 @@ Two related upstream asymmetries measured in the same pass, both handled in
   entry whose value starts on the next line (`a:\n  b: 1`) passes the guard and
   the comment lands on the **child's** line. The removal direction deletes the
   child's comment for the same reason.
+
+## 7. Umbrella close-out (2026-08-16)
+
+`#221` is **closed**. Its last open sub-ask — 4, the extended `remove` — shipped
+via [noyalib#268](https://github.com/sebastienrousseau/noyalib/pull/268),
+merged 2026-08-16T05:45:07Z, with the issue closed two seconds later. Final
+state, from the maintainer's close-out comment:
+
+| # | This spec's gap | Ask | Shipped |
+|---|---|---|---|
+| 1 | §2.1 comment mutation | Comment mutation | v0.0.21 |
+| 2 | §2.2 key rename | `rename_key` + key spans | v0.0.18 |
+| 3 | §2.3 sequence reorder | `swap_items` / `move_item` | v0.0.18 — API present, **defective**: `yqr-b010` |
+| 4 | §2.4 extended `remove` | Extended `remove` | v0.0.23 |
+| 5 | §2.5 fragment containment | Fragment containment | v0.0.21 |
+
+This bug stays **Resolved**: it tracked the gaps, and the gaps are closed. Two
+things follow from the close-out and are tracked elsewhere:
+
+- **0.0.23 is not published yet.** The changelog and `Cargo.toml` on `main` say
+  `0.0.23`, but there is no git tag, no GitHub release, and nothing on the
+  crates.io index (verified 2026-08-16). Adoption is `yqr-f016`, Draft and
+  blocked on the release.
+- **`remove` now covers flow members and sole entries** — the two classes
+  `delete_entry` refuses (`yqr-f007` §5). That makes §6.4's "delegation is cheap
+  to revisit" live again for a *new* reason: the measurement `yqr-f007` §6
+  recorded on the 0.0.22 pin found its only two failures to be flow cases where
+  "upstream also refuses, and only the diagnostic differs", and that premise no
+  longer holds. Re-run and decision are `yqr-f016` §4/§5.
+
+Upstream declined to add `remove_subtree`, deliberately — `remove` was extended
+instead, so a second entry point would be a synonym rather than a capability —
+and offers to add one if yqr's path needs a distinct entry point for a reason
+the extended `remove` does not cover. Nothing in yqr currently needs it.
+
+The standing offer to port yqr's `replace_span` approach and tests upstream is
+renewed in the same comment. `yqr-f007` §5.1 holds yqr's side of that.
