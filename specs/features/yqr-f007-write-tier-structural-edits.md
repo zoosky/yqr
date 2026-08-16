@@ -152,6 +152,14 @@ For the target entry (final path segment `last`, resolved value byte span
    item of a **flow** collection (`[a, b]` / `{a: 1}`, detected from the parent's
    own bytes — including a root-level flow collection, whose parent is the
    document itself).
+
+   Both refusals became **optional** on 2026-08-16: noyalib 0.0.23 covers both
+   classes, taking exactly one separator with a flow member and writing the
+   collection out explicitly (`a:`/`  {}`) for a sole entry — which is the same
+   `null`-not-removal argument this step makes, answered rather than refused.
+   Whether yqr delegates the two, implements them, or keeps refusing is
+   `yqr-f016` §5, decided on that feature's measurement. Nothing has moved:
+   0.0.23 is unpublished, and this step is unchanged until it does.
 4. **Splice, guard, and commit byte-preservingly.** Re-parse the spliced source
    and require it to lower to the original document value with the target removed
    (mapping key order preserved, sequence indices shifted); a dangling alias
@@ -295,6 +303,25 @@ first is settled; the other three are open:
 
   Reopen only on a *new* argument — not on upstream improving further, which is
   already accounted for above.
+
+  **Reopened 2026-08-16 on a new argument, and it is not the pre-declined
+  one.** noyalib closed `#221` by extending `remove` to cover **flow members
+  and sole entries** — the two classes §5 refuses — shipping in 0.0.23
+  (`yqr-f016` §2; not published yet, so nothing has moved). That invalidates
+  this measurement's premise, not just its age: the record above says the only
+  two failures were flow cases where "upstream *also* refuses ... and both fail
+  only the assertion that the message names the flow collection". Upstream no
+  longer refuses either class, so those two tests now measure yqr **declining
+  what the backend can do**, which is a different fact from a diagnostic
+  difference.
+
+  The three reasons above are untouched by this and still stand; what changed
+  is that the "and yqr loses nothing by keeping its own path" half is now "and
+  yqr forgoes two delete classes". Upstream also asked directly for the
+  measurement — point yqr at 0.0.23 with the fallback disabled and report what
+  breaks — which is the same check that made noyalib#261 obviously correct
+  rather than merely plausible. Re-run and decision: `yqr-f016` §4/§5. No
+  decision is recorded here in advance of it.
 - **Collection right-hand sides for `+=` / new-key assignment.** Since
   `yqr-b008` these route through the typed `Emit` tier, which can spell a
   nested collection — so the "collections are not yet supported" refusal is now

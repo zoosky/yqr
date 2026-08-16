@@ -52,6 +52,7 @@ dependency/release timing.
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
+| [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses | Draft (blocked — 0.0.23 unpublished) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -97,10 +98,18 @@ plus a **deletion**, retiring the `b009` CRLF restore from `emit` now that the
 engine derives an inserted line's terminator from the document the same way it
 already derived the indentation. The control is what makes that safe rather than
 plausible: with the workaround removed, the same three tests fail against a
-temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f008 (`|=` computed
+temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f016 **draft and blocked**:
+noyalib closed the `b004` umbrella (`#221`) on 2026-08-16 by extending `remove`
+to cover flow members and sole entries — the two classes `f007` §5 refuses — but
+0.0.23 has no tag, no release and nothing on the crates.io index, so the pin
+cannot move. It also does **not** fix `b010`. The interesting part is not the
+bump: it invalidates the premise of `f007` §6's "delegate delete: no", whose
+measurement recorded its only two failures as flow cases where upstream also
+refused and only the diagnostic differed. Re-run and decision are `f016` §4/§5,
+and no decision is recorded ahead of the measurement. f008 (`|=` computed
 updates) is gated on `f001` M2 (arithmetic/builtins). Priority order: f006
-(done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f007
-remainder → M2 → f008.
+(done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f016
+(blocked on the release) → f007 remainder → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -140,8 +149,9 @@ dashboard.
 
 ## Summary
 
-- Total features: 15
-- Draft: 1 (f008 — computed updates, gated on `f001` M2)
+- Total features: 16
+- Draft: 2 (f008 — computed updates, gated on `f001` M2; f016 — noyalib 0.0.23
+  adoption, blocked on the release, and owing the `f007` §6 re-measurement)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
   rename / reorder grammar settled in `yqr-a002` and staged as three slices,
   none implemented, and slice 3 blocked on `yqr-b010`)

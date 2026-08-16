@@ -77,6 +77,20 @@ lesson: `yqr-f007` §5.1's reminder now needs three clauses — "upstream has th
 call", "upstream does what its docs say" and "upstream has yqr's semantics"
 are three different questions.
 
+## 4.1 Not fixed by 0.0.23
+
+Verified 2026-08-16 against `v0.0.22...main`, after upstream closed `#221`
+with the extended `remove` (`yqr-f016` §2). The only source file the diff
+touches is `crates/noyalib/src/cst/document.rs`, and its hunks are `remove`
+plus a new `Removal` enum and `flow_member_range` helper. Neither
+`swap_items` nor `move_item` appears in the diff, and both resolve through
+`span_at` + `replace_span`, unchanged for them. This bug survives 0.0.23.
+
+`#221` covered reorder as its sub-ask 3 and considers it shipped in 0.0.18 —
+correctly, since the API exists; this is a defect inside it. With the umbrella
+now closed, the filing in §5 must be **its own issue**, not a comment on a
+closed thread.
+
 ## 5. Route: upstream, and yqr already owns the reference implementation
 
 On the `yqr-b004` §5 `PR-with-fix` precedent. `delete_entry`
