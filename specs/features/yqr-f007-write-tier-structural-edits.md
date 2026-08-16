@@ -8,9 +8,9 @@ of `yqr-a002` and staged in §6)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
 on), `yqr-a002` (the addressing grammar for the three deferred slices),
-`yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog) and its §6.5 (the
-reorder trivia defect that blocks one slice), `yqr-m002` §4/§6.2 (write-tier
-seam)
+`yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog) and its §6.6 (the
+comment-mutator asymmetries the slice must pre-check), `yqr-b010` (the reorder
+trivia defect that blocks one slice), `yqr-m002` §4/§6.2 (write-tier seam)
 
 ## 1. Scope
 
@@ -64,10 +64,14 @@ the document untouched.
       where still unsupported (sole-entry, flow).
 - [x] Every `replace_span` edit is guarded and covered by a byte-exact test.
 - [ ] `line_comment(<path>)` / `head_comment(<path>)` set and remove
-      (`yqr-a002` §2.4), byte-exact elsewhere.
-- [ ] `key(<path>) = "new"` renames a key, preserving value + trailing comment.
+      (`yqr-a002` §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
+      set does, rather than inheriting upstream's `Ok`-and-no-op.
+- [ ] `key(<path>) = "new"` renames a key, preserving value + trailing comment;
+      `key(<path>)` reads the document's key token, not the filter's path
+      segment (`yqr-a002` §7.2).
 - [ ] `swap(<path>; i; j)` / `move(<path>; from; to)` reorder by index,
-      re-parse-guarded, with each item's comments travelling with the item.
+      re-parse-guarded, with each item's comments travelling with the item
+      (blocked on `yqr-b010`).
 
 ## 5. Structural delete (shipped)
 
@@ -207,26 +211,42 @@ for each, so with the grammar settled two of the three are a call, not a splice
 
 - **Comment editing** (`b004` 2.1) — `yqr-a002` §2.4. Upstream:
   `set_inline_comment` / `remove_inline_comment`, `set_leading_comment` /
-  `remove_leading_comment`, single-line nodes only. Measured on 0.0.22, upstream
-  places a leading block **above** the addressed entry — the correct side, and
-  the opposite of yq — so the call is adoptable as-is.
+  `remove_leading_comment`, single-line nodes only. Measured on 0.0.22,
+  upstream places a leading block **above** the addressed entry — the correct
+  side, and the opposite of yq. The *placement* is therefore adoptable; the
+  calls are not adoptable bare. Three asymmetries need a yqr-side pre-check
+  first, catalogued per direction in `yqr-a002` §5.1/§5.2 and recorded as
+  adoption findings in `b004` §6.6: the two removers return `Ok(())` on
+  everything their setters refuse, `set_inline_comment` guards on the value
+  span so a nested entry's comment lands on its **child's** line, and the
+  leading mutators absorb a blank-detached comment block that this module's own
+  `delete_entry` deliberately excludes.
 - **Key rename** (`b004` 2.2) — `key(<path>) = "new"`. Upstream: `rename_key`
   with style-matched quoting and sibling-duplicate refusal, plus `key_span`
-  for the key-token range `span_at` never exposed.
-- **Sequence reorder** (`b004` 2.3) — grammar settled, **slice blocked**.
-  `swap_items` / `move_item` exchange value bytes only, leaving every comment
-  attached to the position rather than to the item it documents, at exit 0 and
-  past upstream's own guard (which compares typed values, where comments do not
-  exist). That is §5.1's failure class exactly, and this module's entry-range
-  arithmetic is the reference implementation for the fix. Measured and routed in
-  `yqr-a002` §6 / `yqr-b004` §6.5.
+  for the key-token range `span_at` never exposed — which is also what the
+  `key(<path>)` **read** must go through (`yqr-a002` §7.2), rather than
+  echoing the filter's own resolved path segment back at the user.
+- **Sequence reorder** (`b004` 2.3) — grammar settled, **slice blocked** on
+  `yqr-b010`: `swap_items` / `move_item` exchange value bytes only, so a
+  reorder silently re-attributes every comment in the range at exit 0 and past
+  upstream's own guard. That is §5.1's failure class exactly, and this module's
+  entry-range arithmetic is the reference implementation for the fix. The
+  measurement and the route live in `yqr-b010`; the consequence for the
+  grammar is `yqr-a002` §6.
 
 The upstream `PR-with-fix` path (§2) already ran its course for all three, and
 0.0.22 is pinned (`yqr-f015`), so comment editing and key rename are now
-implementation over a live API. Raw `replace_span` is the route of last resort
-rather than the expected one — and §5.1's reminder earned a third clause along
-the way: "upstream has the call", "upstream does what its docs say", and
-"upstream has yqr's semantics" are three different questions.
+implementation over a live API — with the pre-checks above, which is the part
+"two of the three are a call, not a splice" understates. Raw `replace_span`
+stays the route of last resort rather than the expected one.
+
+§5.1's reminder earned a third clause along the way: "upstream has the call",
+"upstream does what its docs say", and "upstream has yqr's semantics" are three
+different questions. The measuring pass answered the second "no" three times
+(`yqr-b010` §4, the stale `swap_items` refusals) and the third "no" in nine
+rows of `yqr-a002` §5.1–§5.3. Both counts came from probing each call in
+**every** direction — set, remove, read — rather than only in the one its
+setter takes.
 
 Four further items are recorded here, none gated on the `yqr-a002` grammar. The
 first is settled; the other three are open:

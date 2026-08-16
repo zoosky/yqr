@@ -47,7 +47,7 @@ dependency/release timing.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
-| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename/reorder deferred) |
+| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename grammar settled in `yqr-a002`, unimplemented; reorder blocked on `yqr-b010`) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
@@ -59,10 +59,22 @@ Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutator
 seam (`src/fidelity/write.rs`), zero upstream work. f007 landed its first slice:
 structural **delete** of multi-line / nested block entries via `replace_span`
 (`src/fidelity/write/delete.rs`) behind a re-parse integrity guard yqr enforces
-itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
-gaps (comment editing, key rename, sequence reorder) each need new grammar and
-stay deferred — the upstream APIs for all three exist, released in noyalib
-0.0.18, so what is missing is yqr's grammar, not the backend. f013 **done**: the
+itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007 gaps
+(comment editing, key rename, sequence reorder) each needed new grammar, and
+**that grammar is now settled in `yqr-a002`** (2026-08-15): one naming function
+wrapping a path — `line_comment(p)`, `head_comment(p)`, `key(p)`, assignable
+with `=` and removable with `del(...)` — plus a reorder verb `swap(p; i; j)` /
+`move(p; from; to)`, staged as three slices with per-slice acceptance criteria.
+Two of the three are now implementation over a live API. The third is **not**:
+measuring 0.0.22 rather than reading its docs showed the backend *is* the
+blocker for reorder — `swap_items`/`move_item` exchange value bytes only, so a
+reorder silently re-attributes every comment in the range at exit 0, filed as
+**`yqr-b010`** (open, unfiled upstream). The same pass corrected three further
+upstream asymmetries the comment slice must pre-check rather than delegate
+(`b004` §6.6, `yqr-a002` §4.1/§5): the comment *removers* refuse nothing,
+`set_inline_comment`'s guard fires on the value span so a nested entry's
+comment lands on its child's line, and the leading mutators absorb a
+blank-detached comment block. f013 **done**: the
 pin is 0.0.18, the lockfile moved that one crate and nothing else, `cargo audit`
 is clean, and both fidelity harnesses passed untouched. Its one code change was
 to stop calling upstream `remove` — on the bump it started accepting the shapes
@@ -130,7 +142,9 @@ dashboard.
 
 - Total features: 15
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
-- In Progress: 2 (f001 M0; f007 — structural delete shipped, rest deferred)
+- In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
+  rename / reorder grammar settled in `yqr-a002` and staged as three slices,
+  none implemented, and slice 3 blocked on `yqr-b010`)
 - Done: 9 (f002, f006, f009, f010, f011, f012, f013, f014, f015)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
