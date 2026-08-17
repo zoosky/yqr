@@ -4,9 +4,16 @@
 //! splices it out with the raw byte-preserving
 //! [`replace_span`](noyalib::cst::Document::replace_span) escape hatch, and
 //! **commits only when the result re-parses to exactly the original document
-//! minus the target** — the structural-integrity guard. Deleting the sole entry
-//! of a block, or an item of a flow collection, stays refused with a clear
-//! message.
+//! minus the target** — the structural-integrity guard.
+//!
+//! Two shapes do not take that path. An item of a **flow** collection is
+//! delegated to noyalib's `remove`, which owns the separator arithmetic and is
+//! measured correct; this module has no flow implementation of its own, so
+//! duplicating it would buy a second copy rather than a second opinion. The
+//! **sole entry** of a block is handled here rather than delegated, because
+//! deleting its bytes would leave a dangling `a:` that re-parses as *null*, and
+//! because the range that has to be replaced includes the entry's head comment
+//! — which is exactly what upstream's own sole-entry path misses.
 //!
 //! noyalib's first-class [`remove`](noyalib::cst::Document::remove) is not used,
 //! and the reason is a deliberate difference in what an entry *is* rather than a
@@ -52,11 +59,14 @@ impl NoyalibWriter {
     /// byte-identical; otherwise the document is left untouched and a clear
     /// error is returned.
     ///
+    /// The sole entry of a block leaves its collection spelled out (`{}` /
+    /// `[]`), since removing the bytes would leave a dangling key. An item of a
+    /// flow collection is delegated to noyalib's `remove`.
+    ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, is the sole entry of its block,
-    /// is an item of a flow collection, uses a source layout this path cannot
-    /// map, or the edit would restructure the document.
+    /// Errors when the path is unaddressable, uses a source layout this path
+    /// cannot map, or the edit would restructure the document.
     pub(super) fn delete_entry(&mut self, doc: usize, path: &Path) -> Result<()> {
         // Fail early on a key the string-path grammar cannot express (the same
         // honest gap the assign path declares); this also names the target in
@@ -71,15 +81,55 @@ impl NoyalibWriter {
 
         let doc_value = self.value(doc)?;
 
-        // Removing the only entry would leave an empty block, which re-parses as
-        // `null` — a structural change the caller must ask for explicitly.
-        if parent_len(&doc_value, parent_segs) == Some(1) {
-            return Err(YqrError::eval(format!(
-                "cannot delete {path_str}: it is the only entry of its {}; removing it \
-                 would leave an empty block (a structural change) and is not supported",
-                collection_noun(last),
-            )));
+        // A flow collection (`[a, b]` / `{a: 1}`) is line-shaped differently:
+        // whole-line deletion cannot express removing one of its items, and
+        // the separator arithmetic that can — take exactly one comma, from the
+        // correct side — is upstream's, measured clean in `yqr-f016` §4.3.
+        //
+        // Delegated rather than duplicated, which is the opposite call from the
+        // block path below, and for the reason that decides it: this module is
+        // a differential oracle only where it has an implementation to
+        // disagree with. It has none for flow, so re-deriving the arithmetic
+        // would buy a second copy rather than a second opinion.
+        // Feature f007 / f016 §5.
+        let parent_is_flow = {
+            let d = self.doc_ref(doc)?;
+            if parent_segs.is_empty() {
+                d.source().trim_start().starts_with(['[', '{'])
+            } else {
+                segs_to_noyalib_path(parent_segs)
+                    .and_then(|parent_str| d.get(&parent_str))
+                    .is_some_and(|bytes| bytes.trim_start().starts_with(['[', '{']))
+            }
+        };
+        if parent_is_flow {
+            return self
+                .doc_mut(doc)?
+                .remove(&path_str)
+                .map_err(|e| YqrError::eval(format!("cannot delete {path_str}: {e}")));
         }
+
+        // Removing the only entry of a block cannot delete its bytes outright:
+        // that would leave a dangling `a:`, which re-parses as `null` — a type
+        // change rather than a removal. The collection is written out
+        // explicitly instead, which is the only spelling an empty block
+        // collection has.
+        //
+        // yqr does this itself rather than delegating, and the head comment is
+        // why: upstream's sole-entry path replaces the *collection's* span,
+        // which begins below the entry's comment run, stranding a comment that
+        // described the entry above an empty `{}` (`yqr-f016` §4.4, filed as
+        // noyalib#280). This module already computes the range that includes
+        // that run, so it gets the case right by construction.
+        // Feature f007 / f016 §5.
+        let empty_collection = if parent_len(&doc_value, parent_segs) == Some(1) {
+            Some(match last {
+                PathSeg::Key(_) => "{}",
+                PathSeg::Index(_) => "[]",
+            })
+        } else {
+            None
+        };
 
         // Whether the target's own value is a non-empty block sequence, and how
         // many items it has: noyalib's span resolver under-reports a sequence
@@ -103,27 +153,9 @@ impl NoyalibWriter {
         // Read spans and source bytes, then compute the spliced source and the
         // exact byte range removed. All shared borrows of the document end
         // before the mutating commit below.
-        let (start, end, new_source) = {
+        let (start, end, replacement, new_source) = {
             let d = self.doc_ref(doc)?;
             let src = d.source();
-
-            // A flow collection (`[a, b]` / `{a: 1}`) is line-shaped
-            // differently; whole-line deletion cannot express removing one of
-            // its items. Detect it — including a root-level flow collection,
-            // whose parent is the document itself — for a clear message (the
-            // guard would otherwise refuse with a generic one).
-            let parent_is_flow = if parent_segs.is_empty() {
-                src.trim_start().starts_with(['[', '{'])
-            } else {
-                segs_to_noyalib_path(parent_segs)
-                    .and_then(|parent_str| d.get(&parent_str))
-                    .is_some_and(|bytes| bytes.trim_start().starts_with(['[', '{']))
-            };
-            if parent_is_flow {
-                return Err(YqrError::eval(format!(
-                    "cannot delete {path_str}: removing an item from a flow collection is not supported"
-                )));
-            }
 
             let (value_start, value_end) = d.span_at(&path_str).ok_or_else(|| {
                 YqrError::eval(format!("cannot delete {path_str}: cannot locate its bytes"))
@@ -146,10 +178,32 @@ impl NoyalibWriter {
                     ))
                 })?;
 
-            let mut out = String::with_capacity(src.len() - (end - start));
+            // A sole entry leaves its collection's spelling behind; every other
+            // delete leaves nothing. The empty collection takes the entry's own
+            // indentation and the line terminator the removed range carried, so
+            // a CRLF document stays CRLF and a file with no final newline gains
+            // none.
+            let replacement = match empty_collection {
+                None => String::new(),
+                Some(empty) => {
+                    let indent = indent_width(&src[start..]);
+                    let removed = &src[start..end];
+                    let nl = if removed.ends_with("\r\n") {
+                        "\r\n"
+                    } else if removed.ends_with('\n') {
+                        "\n"
+                    } else {
+                        ""
+                    };
+                    format!("{:indent$}{empty}{nl}", "")
+                }
+            };
+
+            let mut out = String::with_capacity(src.len() - (end - start) + replacement.len());
             out.push_str(&src[..start]);
+            out.push_str(&replacement);
             out.push_str(&src[end..]);
-            (start, end, out)
+            (start, end, replacement, out)
         };
 
         // `replace_span` guarantees only *valid YAML*, not structure
@@ -174,7 +228,7 @@ impl NoyalibWriter {
         // parse→emit round-trip. The guard above already proved this range
         // re-parses to `expected`, so this cannot fail in practice.
         self.doc_mut(doc)?
-            .replace_span(start, end, "")
+            .replace_span(start, end, &replacement)
             .map_err(|e| YqrError::eval(format!("cannot delete {path_str}: {e}")))?;
         Ok(())
     }
@@ -334,14 +388,6 @@ fn segs_to_noyalib_path(segs: &[PathSeg]) -> Option<String> {
     noyalib_path(&path).ok()
 }
 
-/// The noun naming the parent collection kind, for the sole-entry message.
-fn collection_noun(last: &PathSeg) -> &'static str {
-    match last {
-        PathSeg::Key(_) => "mapping",
-        PathSeg::Index(_) => "sequence",
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::super::apply;
@@ -471,12 +517,11 @@ mod tests {
     }
 
     #[test]
-    fn refuses_a_root_flow_collection_item_with_a_clear_message() {
-        // A root-level flow sequence item cannot be removed by whole-line
-        // deletion; the message must name the flow collection, not fall through
-        // to the generic "layout not supported" text.
-        let err = del(".[0]", "[80, 443, 8080]\n").unwrap_err();
-        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("flow collection")));
+    fn removes_a_root_flow_collection_item() {
+        // A root-level flow sequence has no parent entry, so the flow check has
+        // to look at the document's own bytes to route this upstream.
+        let out = del(".[0]", "[80, 443, 8080]\n").unwrap();
+        assert_eq!(out, "[443, 8080]\n");
     }
 
     #[test]
@@ -494,21 +539,81 @@ mod tests {
     }
 
     #[test]
-    fn refuses_the_sole_entry_of_a_block() {
-        let err = del(".only", "only:\n  a: 1\n  b: 2\n").unwrap_err();
-        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("only entry")));
+    fn removes_a_flow_collection_item() {
+        // Delegated to upstream, which takes exactly one separator with the
+        // member — neither `[, 443]` nor `[80, ]` can result.
+        assert_eq!(
+            del(".ports[0]", "ports: [80, 443]\n").unwrap(),
+            "ports: [443]\n"
+        );
+        assert_eq!(
+            del(".ports[1]", "ports: [80, 443]\n").unwrap(),
+            "ports: [80]\n"
+        );
+        assert_eq!(
+            del(".ports[1]", "ports: [80, 443, 8080]\n").unwrap(),
+            "ports: [80, 8080]\n"
+        );
+    }
+
+    // -- Sole entry: the collection is spelled out rather than left dangling ---
+
+    #[test]
+    fn sole_entry_of_a_block_leaves_an_empty_mapping() {
+        // Deleting the bytes would leave `only:`, which re-parses as null — a
+        // type change, not a removal. `{}` is the only spelling an empty block
+        // mapping has.
+        let out = del(".only.a", "only:\n  a: 1\nother: 2\n").unwrap();
+        assert_eq!(out, "only:\n  {}\nother: 2\n");
     }
 
     #[test]
-    fn refuses_the_sole_top_level_entry() {
-        let err = del(".root", "root:\n  a: 1\n").unwrap_err();
-        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("only entry")));
+    fn sole_sequence_item_leaves_an_empty_sequence() {
+        let out = del(".xs[0]", "xs:\n  - one\nother: 2\n").unwrap();
+        assert_eq!(out, "xs:\n  []\nother: 2\n");
     }
 
     #[test]
-    fn refuses_a_flow_collection_item() {
-        let err = del(".ports[0]", "ports: [80, 443]\n").unwrap_err();
-        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("flow collection")));
+    fn sole_entry_of_the_document_leaves_an_empty_mapping() {
+        assert_eq!(del(".root", "root: 1\n").unwrap(), "{}\n");
+    }
+
+    #[test]
+    fn sole_entry_takes_its_head_comment_with_it() {
+        // The case upstream's own sole-entry path gets wrong (noyalib#280): it
+        // replaces the *collection's* span, which begins below the comment, so
+        // a comment describing the removed entry survives above an empty `{}`.
+        // This module computes the range that includes the run, so the comment
+        // goes with the entry it documented.
+        let out = del(".a.x", "a:\n  # documents x\n  x: 1\nb: 2\n").unwrap();
+        assert_eq!(out, "a:\n  {}\nb: 2\n");
+    }
+
+    #[test]
+    fn sole_entry_leaves_a_blank_detached_comment_alone() {
+        // A blank line detaches the run, so that comment is not the entry's and
+        // must survive — the same rule the ordinary delete path applies.
+        let out = del(".a.x", "a:\n  # detached\n\n  x: 1\nb: 2\n").unwrap();
+        assert_eq!(out, "a:\n  # detached\n\n  {}\nb: 2\n");
+    }
+
+    #[test]
+    fn sole_entry_keeps_the_documents_line_terminator() {
+        let out = del(".a.x", "a:\r\n  x: 1\r\nb: 2\r\n").unwrap();
+        assert_eq!(out, "a:\r\n  {}\r\nb: 2\r\n");
+    }
+
+    #[test]
+    fn sole_entry_without_a_final_newline_gains_none() {
+        let out = del(".a.x", "b: 2\na:\n  x: 1").unwrap();
+        assert_eq!(out, "b: 2\na:\n  {}");
+    }
+
+    #[test]
+    fn flow_collections_sole_member_is_delegated_too() {
+        // Both classes at once: the flow check runs first, so upstream's
+        // separator/empty handling owns this rather than the block path.
+        assert_eq!(del(".a.x", "a: {x: 1}\nb: 2\n").unwrap(), "a: {}\nb: 2\n");
     }
 
     #[test]

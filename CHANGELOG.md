@@ -30,6 +30,21 @@ All notable changes to `yqr` are documented here. The format is based on
   named `key` -- along with `.swap`, `.move`, `.del` and the comment words
   reserved for later.
 
+### Added
+
+- **`del` now handles the last entry of a block, and items of inline
+  collections.** Both used to be refused with a message explaining why.
+
+  Removing the last entry writes the collection out as empty rather than
+  leaving the key with nothing under it -- `spec:` on its own reads back as
+  *null*, which is a type change rather than a removal, so `spec:` / `  {}`
+  is what you get. A comment that documented the removed entry goes with it
+  instead of being left behind describing an empty collection.
+
+  For an inline collection like `ports: [80, 443]`, removing an item takes
+  exactly one separator with it, so the result is never `[, 443]` or
+  `[80, ]`.
+
 ### Changed
 
 - **YAML engine upgraded to noyalib 0.0.23.** Reordering a list now moves each

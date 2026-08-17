@@ -18,8 +18,8 @@ seam)
 The surgical edits that have **no first-class API** in noyalib 0.0.14 and so are
 excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 
-- **Structural delete** — multi-line, nested, sole-entry, and flow deletes that
-  `Document::remove` rejects (`b004` 2.4). **Shipped** (§5).
+- **Structural delete** — multi-line, nested, sole-entry, and flow deletes
+  (`b004` 2.4). **Shipped** (§5); the last two classes since `yqr-f016` §5.
 - **Comment editing** — add / change / remove a comment attached to a node
   (`b004` 2.1; comments were read-only in 0.0.14). **Deferred** (§6).
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
@@ -61,8 +61,9 @@ the document untouched.
 
 ## 4. Acceptance criteria
 
-- [x] Delete of a multi-line / nested node, byte-exact elsewhere; a clear error
-      where still unsupported (sole-entry, flow).
+- [x] Delete of a multi-line / nested node, byte-exact elsewhere. Sole-entry
+      and flow deletes are supported as of `yqr-f016` §5, so the "clear error
+      where still unsupported" half of this criterion no longer has a subject.
 - [x] Every `replace_span` edit is guarded and covered by a byte-exact test.
 - [ ] `line_comment(<path>)` / `head_comment(<path>)` set and remove
       (`yqr-a002` §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
@@ -148,19 +149,24 @@ For the target entry (final path segment `last`, resolved value byte span
    A contiguous run of same-indent comment lines **directly above** the entry is
    its head comment and is folded into the range, so a delete never silently
    re-attributes the comment to the following sibling.
-3. **Refuse the unsupported shapes** with a clear message: the **sole entry** of
-   a block (removing it would empty the block, which re-parses as `null`), and an
-   item of a **flow** collection (`[a, b]` / `{a: 1}`, detected from the parent's
-   own bytes — including a root-level flow collection, whose parent is the
-   document itself).
+3. **Route the two shapes that do not own whole lines**, both supported since
+   `yqr-f016` §5 (2026-08-17) and each by a different implementation:
 
-   Both refusals became **optional** on 2026-08-16: noyalib 0.0.23 covers both
-   classes, taking exactly one separator with a flow member and writing the
-   collection out explicitly (`a:`/`  {}`) for a sole entry — which is the same
-   `null`-not-removal argument this step makes, answered rather than refused.
-   Whether yqr delegates the two, implements them, or keeps refusing is
-   `yqr-f016` §5, decided on that feature's measurement. Nothing has moved:
-   0.0.23 is unpublished, and this step is unchanged until it does.
+   - An item of a **flow** collection (`[a, b]` / `{a: 1}`, detected from the
+     parent's own bytes — including a root-level flow collection, whose parent
+     is the document itself) is **delegated** to noyalib's `remove`. Upstream
+     owns the separator arithmetic; this module has none, so re-deriving it
+     would produce a second copy rather than a second opinion.
+   - The **sole entry** of a block is **implemented here**: the collection is
+     written out explicitly (`{}` / `[]`) at the entry's own indentation and
+     line terminator, since deleting the bytes would leave a dangling key that
+     re-parses as `null` — a type change, not a removal. Kept in this module
+     because the range to replace includes the entry's head-comment run, which
+     upstream's own sole-entry path misses (`yqr-f016` §4.4, noyalib#280).
+
+   The oracle argument decides the split in both directions: keep an
+   independent implementation where it can disagree with something, skip it
+   where it cannot.
 4. **Splice, guard, and commit byte-preservingly.** Re-parse the spliced source
    and require it to lower to the original document value with the target removed
    (mapping key order preserved, sequence indices shifted); a dangling alias

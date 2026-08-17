@@ -547,12 +547,13 @@ fn in_place_with_read_only_filter_is_an_error() {
 
 #[test]
 fn refused_edit_leaves_the_file_unchanged_under_in_place() {
-    // Deleting the only entry of a block would empty it (a structural change);
-    // the write is refused (exit 5) and the file on disk must be byte-identical.
-    let original = "only:\n  inner: 1\n";
+    // Deleting the anchor definition would leave `*base` dangling, so the edit
+    // does not re-parse to the expected document; the write is refused (exit 5)
+    // and the file on disk must be byte-identical.
+    let original = "defaults: &base\n  timeout: 30\nservice:\n  <<: *base\n  name: web\n";
     let file = temp_yaml(original);
     let path = file.to_str().unwrap();
-    let out = run(&["-i", "del(.only)", path], "");
+    let out = run(&["-i", "del(.defaults)", path], "");
     assert_eq!(out.status, 5, "stderr: {}", out.stderr);
     assert_eq!(
         read_back(&file),
@@ -706,4 +707,23 @@ fn key_selector_is_refused_under_normalize() {
     let out = run(&["--normalize", "key(.a)"], "a: 1\n");
     assert_eq!(out.status, 5, "stderr: {}", out.stderr);
     assert!(out.stderr.contains("--normalize"), "{}", out.stderr);
+}
+
+#[test]
+fn sole_entry_delete_empties_the_collection_in_place() {
+    // The class yqr used to refuse. `{}` is the only spelling an empty block
+    // mapping has, and the entry's head comment goes with it.
+    let file = temp_yaml("a:\n  # documents x\n  x: 1\nb: 2\n");
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "del(.a.x)", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&file), "a:\n  {}\nb: 2\n");
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn flow_collection_item_delete_works() {
+    let out = run(&["del(.ports[0])"], "ports: [80, 443]\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "ports: [443]\n");
 }

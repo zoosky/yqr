@@ -1,8 +1,7 @@
 # Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses
 
-**Status:** In Progress — 0.0.23 published 2026-08-17 and **the pin has
-moved**; §4's measurement is run and recorded; §5's decision is the one thing
-still open
+**Status:** Done — 0.0.23 adopted, §4 measured, §5 decided and implemented
+(2026-08-17)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f015` (the 0.0.22 adoption this succeeds), `yqr-b004` (the
@@ -178,48 +177,52 @@ same way each time: by having a second implementation that disagrees.
 `only: 1\n` -> `remove("only")` -> `{}\n`, and `a:`/`  x: 1` -> `a:`/`  {}`,
 both terminated. The defect upstream found while building this release does not
 reach yqr.
-## 5. The decision this feature owes — open
+## 5. The decision, taken
 
-`yqr-f007` §5 refuses two delete classes. §4 measured what delegating each
-would actually buy and cost, so the options can now be weighed on evidence
-rather than on principle. **Not decided here**; recorded for a decision.
+Both classes are now supported, and **each half went to whichever
+implementation was already correct for it** — the option §4's asymmetry
+suggested and the original three-way framing did not have.
 
-| | Flow member | Sole entry |
+| | Route | Why |
 |---|---|---|
-| Upstream output | correct (§4.3) | correct *value*, strands the head comment (§4.4) |
-| yqr today | refuses, with its own clearer message | refuses |
-| Cost of delegating | none found | a `yqr-b006`-class regression |
+| Flow member | **delegated** to `Document::remove` | upstream owns the separator arithmetic and measured clean (§4.3); yqr has no flow implementation, so a second copy would not be a second opinion |
+| Sole entry | **implemented** in `delete_entry` | yqr already computes the range including the entry's head-comment run, which is exactly what upstream's path misses (§4.4) |
 
-That asymmetry is the new information, and it cuts across all three options as
-they were originally framed:
+The differential-oracle argument from `yqr-f007` §6 is what decides the split,
+and it decides it *both ways*: an independent implementation is worth keeping
+where it can disagree with something, and worth skipping where it cannot.
 
-1. **Delegate the two classes.** §4 says these are not one decision. The flow
-   half is clean; the sole-entry half is not, unless yqr pre-passes the head
-   comment itself — at which point it is doing the arithmetic anyway.
-2. **Delegate delete entirely.** Now worse than it looked. It buys the flow
-   class and takes the §4.4 regression, on the mutator yqr has already had to
-   fix twice.
-3. **Implement both classes in `delete_entry`.** The one option §4 makes more
-   attractive rather than less: yqr already owns the head-comment arithmetic
-   that §4.4 shows upstream lacks here, so the sole-entry case is a spelling
-   question (`{}` / `[]`) on top of a range it already computes. The flow case
-   is the separator arithmetic, which is genuinely new.
+### 5.1 The scope question, answered
 
-A fourth shape §4 suggests and the original framing did not: **delegate the
-flow class only, implement the sole-entry class.** Each half goes to whichever
-implementation is already correct for it.
+**Yes — `del` of a sole entry writes `{}` / `[]`.** The objection this section
+raised was that it injects flow syntax into a block document. That does not
+survive scrutiny: an empty block collection *has no block spelling*, so `{}` is
+not a style yqr is choosing, it is the only thing that can be written. jq and yq
+both do it. Refusing was a capability gap with no fidelity justification behind
+it — the refusal protected the user from nothing.
 
-Also worth settling alongside it, because it is a user-visible policy and not
-just an implementation choice: **should `del` of a sole entry write `{}` at
-all?** Upstream's `a:`/`  {}` is semantically right and introduces flow syntax
-into a block document; `del(.only)` on a single-key document rewrites the whole
-file to `{}`. Refusing, as yqr does today, is defensible for a tool whose
-selling point is not surprising you. This is a scope question, not a backend
-one, and it survives whichever option above is taken.
+The cost stands and is accepted: `del(.only)` on a single-key document rewrites
+the file to `{}`. That is a large effect from a small command, but it is the
+correct one, and it is what the other tools do.
 
-**Route.** §4.4 is worth reporting upstream regardless of what yqr does — it is
-a real trivia defect in a shipped mutator, of the class upstream has taken a
-fix for three times. Filing it does not depend on this decision.
+### 5.2 What yqr gets right that upstream does not
+
+The sole-entry implementation is not merely a re-derivation. Because the range
+comes from `owned_line_span`, the entry's head comment goes with it:
+
+```text
+in                      yqr                    upstream (noyalib#280)
+a:                      a:                     a:
+  # documents x           {}                     # documents x
+  x: 1                  b: 2                     {}
+b: 2                                           b: 2
+```
+
+A blank-detached comment is correctly left in place by both. This is the fourth
+time an independent implementation has been the thing that made an upstream
+trivia divergence visible, and the first time yqr has kept a *capability*
+rather than a refusal because of it.
+
 ## 6. Upstream close-out
 
 `#221` is closed. Its five sub-asks all shipped, and four of the merged fixes
@@ -245,11 +248,13 @@ tests upstream — is recorded in `yqr-f007` §5.1 and is not taken up here.
 - [x] 0.0.23 published to crates.io; the pin moves and `Cargo.lock` shows that
       one crate moving and nothing else.
 - [x] §4's measurement run and recorded per test, not in aggregate.
-- [ ] §5's decision taken, recorded here and reflected in `yqr-f007` §5/§6.
+- [x] §5's decision taken, recorded here and reflected in `yqr-f007` §5.
 - [x] `cargo audit` clean; both fidelity harnesses pass; the byte-exact
       `EngineCase` tier passes untouched.
-- [ ] If a delete class is delegated or implemented, it gains a byte-exact test
-      per shape (flow member first/middle/last, sole mapping entry, sole
-      sequence item, single-key document) and the trailing newline is asserted.
+- [x] Each delete class gained a byte-exact test per shape: flow member
+      first/middle/last and a root-level flow sequence; sole mapping entry, sole
+      sequence item, single-key document, sole member of a *flow* collection;
+      plus head-comment travel, blank-detached comment survival, CRLF, and a
+      document with no final newline.
 - [x] `yqr-b010` fixed upstream and verified against the published crate (§3).
-- [ ] §4.4 filed upstream.
+- [x] §4.4 filed upstream as noyalib#280.
