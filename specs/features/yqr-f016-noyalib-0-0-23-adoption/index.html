@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Draft (blocked on the release — 0.0.23 is tagged in upstream&#x27;s changelog and Cargo.toml but is not published; see §2.1) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation-API gap catalog whose umb...">
+<meta name="description" content="Status: In Progress — 0.0.23 published 2026-08-17 and the pin has moved; §4&#x27;s measurement is run and recorded; §5&#x27;s decision is the one thing still open Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f016-noyalib-0-0-23-adoption">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses">
-<meta property="og:description" content="Status: Draft (blocked on the release — 0.0.23 is tagged in upstream&#x27;s changelog and Cargo.toml but is not published; see §2.1) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation-API gap catalog whose umb...">
+<meta property="og:description" content="Status: In Progress — 0.0.23 published 2026-08-17 and the pin has moved; §4&#x27;s measurement is run and recorded; §5&#x27;s decision is the one thing still open Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f016-noyalib-0-0-23-adoption">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses">
-<meta name="twitter:description" content="Status: Draft (blocked on the release — 0.0.23 is tagged in upstream&#x27;s changelog and Cargo.toml but is not published; see §2.1) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation-API gap catalog whose umb...">
+<meta name="twitter:description" content="Status: In Progress — 0.0.23 published 2026-08-17 and the pin has moved; §4&#x27;s measurement is run and recorded; §5&#x27;s decision is the one thing still open Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-17",
-  "description": "Status: Draft (blocked on the release — 0.0.23 is tagged in upstream's changelog and Cargo.toml but is not published; see §2.1) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation-API gap catalog whose umb...",
+  "description": "Status: In Progress — 0.0.23 published 2026-08-17 and the pin has moved; §4's measurement is run and recorded; §5's decision is the one thing still open Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f015 (the 0.0.22 adoption this succeeds), yqr-b004 (the mutation...",
   "inLanguage": "en",
   "name": "Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f016-noyalib-0-0-23-adoption",
-  "wordCount": 1524
+  "wordCount": 1973
 }
 </script>
 <script type="application/ld+json">
@@ -2812,8 +2812,9 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Draft (blocked on the release — 0.0.23 is tagged in upstream’s
-changelog and <code>Cargo.toml</code> but is not published; see §2.1)
+            <p><strong>Status:</strong> In Progress — 0.0.23 published 2026-08-17 and <strong>the pin has
+moved</strong>; §4’s measurement is run and recorded; §5’s decision is the one thing
+still open
 <strong>Epic:</strong> Fidelity write tier (<code>f006</code>–<code>f008</code>)
 <strong>Owner:</strong> yqr maintainers
 <strong>Related:</strong> <code>yqr-f015</code> (the 0.0.22 adoption this succeeds), <code>yqr-b004</code> (the
@@ -2863,93 +2864,133 @@ instead, so a second entry point would be a synonym rather than a
 capability. Upstream offers to add one if yqr’s fallback needs a distinct
 entry point for a reason the extended <code>remove</code> does not cover.</li>
 </ul>
-<h3 id="2-1-the-release-does-not-exist-yet">2.1 The release does not exist yet<a class="heading-anchor" href="#2-1-the-release-does-not-exist-yet" aria-label="Link to this section"></a></h3>
-<p>Verified 2026-08-16, and this is what blocks the feature:</p>
+<h3 id="2-1-released-2026-08-17">2.1 Released 2026-08-17<a class="heading-anchor" href="#2-1-released-2026-08-17" aria-label="Link to this section"></a></h3>
+<p>The blocker this section recorded is gone. Verified rather than assumed:</p>
 <table><thead><tr><th>Signal</th><th>State</th></tr></thead><tbody>
-<tr><td>PR <a href="https://github.com/sebastienrousseau/noyalib/pull/268">#268</a></td><td>merged 2026-08-16T05:45:07Z</td></tr>
-<tr><td>Issue <a href="https://github.com/sebastienrousseau/noyalib/issues/221">#221</a></td><td>closed 2026-08-16T05:45:09Z</td></tr>
-<tr><td><code>crates/noyalib/Cargo.toml</code> on <code>main</code></td><td><code>version = "0.0.23"</code></td></tr>
-<tr><td><code>CHANGELOG.md</code> on <code>main</code></td><td><code>## [v0.0.23] - 2026-08-16</code></td></tr>
-<tr><td>git tag <code>v0.0.23</code></td><td><strong>absent</strong> (latest is <code>v0.0.22</code>)</td></tr>
-<tr><td>GitHub release</td><td><strong>absent</strong> (latest is <code>v0.0.22</code>, 2026-08-14)</td></tr>
-<tr><td>crates.io sparse index</td><td><strong>absent</strong> (latest published is <code>0.0.22</code>)</td></tr>
+<tr><td>crates.io</td><td><code>0.0.23</code> on the sparse index</td></tr>
+<tr><td>git tag / GitHub release</td><td><code>v0.0.23</code>, published 2026-08-17T00:49:54Z</td></tr>
+<tr><td>yqr’s pin</td><td>moved <code>0.0.22</code> -&gt; <code>0.0.23</code>; <code>Cargo.lock</code> shows that one crate and nothing else</td></tr>
+<tr><td>yqr’s suite on the new pin, untouched</td><td><strong>green</strong> — 189 lib, 56 cli, and every other suite</td></tr>
 </tbody></table>
-<p>So “ships in v0.0.23” is forward-looking. The pin cannot move until the crate
-is published. Everything in §4 can be measured before then against a temporary
-git dependency — the route <code>yqr-b002</code> used before 0.0.14 — but the git dep must
-not be committed as the pin (<code>yqr-m004</code>: a published yqr cannot depend on a git
-source).</p>
-<h2 id="3-what-this-release-does-not-fix">3. What this release does <strong>not</strong> fix<a class="heading-anchor" href="#3-what-this-release-does-not-fix" aria-label="Link to this section"></a></h2>
-<p><code>yqr-b010</code> — <code>swap_items</code> / <code>move_item</code> exchange value bytes only, so a
-reorder silently re-attributes every comment in the range at exit 0. Verified
-2026-08-16 against <code>v0.0.22...main</code>: the only source file the diff touches is
-<code>crates/noyalib/src/cst/document.rs</code>, and its hunks are <code>remove</code> plus a new
-<code>Removal</code> enum and <code>flow_member_range</code> helper. Neither <code>swap_items</code> nor
-<code>move_item</code> appears in the diff, and both resolve through <code>span_at</code> +
-<code>replace_span</code>, which are unchanged for them.</p>
-<p>So the <code>yqr-a002</code> §9 slice 3 block survives this release. With <code>#221</code> now
-closed, it went upstream as its own issue —
-<a href="https://github.com/sebastienrousseau/noyalib/issues/269">noyalib#269</a>, with a
-fix offered as <a href="https://github.com/sebastienrousseau/noyalib/pull/270">noyalib#270</a>.</p>
-<p>That PR is worth noting <em>here</em> rather than only in <code>yqr-b010</code>, because it is a
-second-order consequence of this release: <code>#268</code> added <code>owned_entry_range</code> to
-compute the range an entry owns, which is precisely what a trivia-aware reorder
-needs. The extended <code>remove</code> shipped the arithmetic; the reorder fix is mostly
-composition over it. Adopting 0.0.23 and settling <code>b010</code> are still separate
-questions, but they now share a helper.</p>
-<h2 id="4-the-measurement-yqr-f007-6-needs-re-run">4. The measurement <code>yqr-f007</code> §6 needs re-run<a class="heading-anchor" href="#4-the-measurement-yqr-f007-6-needs-re-run" aria-label="Link to this section"></a></h2>
+<p>The bump itself is therefore a non-event, which is the expected shape for a
+release yqr contributed to. What the release changes is §4 and §5.</p>
+<h2 id="3-what-this-release-fixes-for-yqr">3. What this release fixes for yqr<a class="heading-anchor" href="#3-what-this-release-fixes-for-yqr" aria-label="Link to this section"></a></h2>
+<p><strong><code>yqr-b010</code> is fixed.</strong> The reorder trivia change landed as yqr’s own
+contribution (<code>d397330</code>, upstream #271) and ships here. Verified against the
+published crate, not the branch:</p>
+<table><thead><tr><th>Case</th><th>0.0.23</th></tr></thead><tbody>
+<tr><td>inline comments, <code>swap_items</code></td><td>travel with the item</td></tr>
+<tr><td>inline comments, <code>move_item(_, 0, 2)</code></td><td>travel</td></tr>
+<tr><td>head comments, swap</td><td>travel</td></tr>
+<tr><td><code>- a\n- b</code>, no final newline</td><td><code>- b\n- a</code>, not <code>- b- a</code></td></tr>
+<tr><td>flow sequence</td><td>value-span swap kept, as designed</td></tr>
+<tr><td>multi-line items</td><td>now supported</td></tr>
+<tr><td>blank-detached header</td><td>stays put</td></tr>
+</tbody></table>
+<p>So the <code>yqr-a002</code> §9 slice 3 block is lifted: <code>swap</code>/<code>move</code> can ship against
+this release with the trivia criterion met by the backend rather than worked
+around. That is now the only slice of <code>yqr-a002</code> still unimplemented.</p>
+<h2 id="4-the-measurement-run-2026-08-17">4. The measurement, run 2026-08-17<a class="heading-anchor" href="#4-the-measurement-run-2026-08-17" aria-label="Link to this section"></a></h2>
 <p><code>yqr-f007</code> §6 settled “delegate <code>delete</code> to upstream <code>remove</code>: <strong>no</strong>” on the
-0.0.22 pin, and closed with “reopen only on a <em>new</em> argument — not on upstream
-improving further, which is already accounted for above.”</p>
-<p>This is a new argument, and not the pre-declined one. The recorded measurement
-says its only two failures were <code>refuses_a_flow_collection_item</code> and
-<code>refuses_a_root_flow_collection_item_with_a_clear_message</code>, and that neither is
-a behaviour difference because “upstream <em>also</em> refuses, returning
-<code>YqrError::Eval</code>, and both fail only the assertion that the message names the
-flow collection.”</p>
-<p><strong>That premise is now false.</strong> Upstream no longer refuses either class. So the
-two tests no longer measure a diagnostic difference; they measure yqr refusing
-what the backend can do.</p>
-<p>Re-run on 0.0.23, recording per test rather than in aggregate:</p>
-<ul>
-<li><input disabled="" type="checkbox"/>
-<code>delete</code> routed to <code>Document::remove</code>, whole suite, against the published
-0.0.23.</li>
-<li><input disabled="" type="checkbox"/>
-The two flow tests classified: does upstream now <em>succeed</em> where yqr
-refuses, and is upstream’s output the one <code>yqr-a001</code> would require?</li>
-<li><input disabled="" type="checkbox"/>
-The <code>yqr-b006</code> trivia cases re-checked, since <code>resolve_span</code> and
-<code>entry_line_span</code> both changed in this release. §6.1’s four divergences
-were fixed by yqr’s own noyalib#226; this is the first release since to
-touch that code.</li>
-<li><input disabled="" type="checkbox"/>
-The trailing-newline fix confirmed against yqr’s byte-exact suite — it is
-an <code>a001</code> property, and yqr’s fidelity harness is the natural oracle.</li>
-</ul>
-<h2 id="5-the-decision-this-feature-owes">5. The decision this feature owes<a class="heading-anchor" href="#5-the-decision-this-feature-owes" aria-label="Link to this section"></a></h2>
-<p><code>yqr-f007</code> §5 refuses two delete classes — an item of a flow collection, and
-the sole entry of a block — with <code>delete_entry</code> naming each. Both are now
-supported upstream. Three options, and this feature picks one on §4’s evidence:</p>
+0.0.22 pin and closed with “reopen only on a <em>new</em> argument”. 0.0.23 supplies
+one, and the measurement is re-run here per test rather than in aggregate,
+because the aggregate is what hid the shape last time.</p>
+<p><strong>Method.</strong> <code>delete</code> routed to <code>Document::remove</code> on this branch, whole suite
+run, patch reverted. The tree as committed contains only the pin bump.</p>
+<h3 id="4-1-seven-failures-one-shape">4.1 Seven failures, one shape<a class="heading-anchor" href="#4-1-seven-failures-one-shape" aria-label="Link to this section"></a></h3>
+<table><thead><tr><th>Failing test</th><th>Family</th></tr></thead><tbody>
+<tr><td><code>refuses_a_flow_collection_item</code></td><td>flow member</td></tr>
+<tr><td><code>refuses_a_root_flow_collection_item_with_a_clear_message</code></td><td>flow member</td></tr>
+<tr><td><code>refuses_the_sole_entry_of_a_block</code></td><td>sole entry</td></tr>
+<tr><td><code>refuses_the_sole_top_level_entry</code></td><td>sole entry</td></tr>
+<tr><td><code>write::tests::sole_entry_delete_is_refused</code></td><td>sole entry</td></tr>
+<tr><td><code>cli::refused_edit_leaves_the_file_unchanged_under_in_place</code></td><td>sole entry</td></tr>
+<tr><td><code>integration::sole_entry_delete_is_still_refused</code></td><td>sole entry</td></tr>
+</tbody></table>
+<p>Every other test passes, in every suite. <strong>Not one failure is a trivia or
+fidelity divergence</strong> — each is “yqr refuses, and upstream now succeeds”.</p>
+<p>This is the fact that makes the argument new. The 0.0.22 record said the only
+two failures were flow cases where “upstream <em>also</em> refuses … and both fail
+only the assertion that the message names the flow collection”. That premise
+is gone.</p>
+<h3 id="4-2-the-yqr-b006-trivia-cases-still-agree">4.2 The <code>yqr-b006</code> trivia cases still agree<a class="heading-anchor" href="#4-2-the-yqr-b006-trivia-cases-still-agree" aria-label="Link to this section"></a></h3>
+<p>Re-checked because <code>resolve_span</code> and <code>entry_line_span</code> both changed in this
+release, and they are the code yqr’s own noyalib#226 fixed. All six agree with
+<code>delete_entry</code>: a head comment above the entry goes with it, multiple
+contiguous head comments go, a <strong>blank-detached</strong> comment is correctly left,
+the next sibling’s comment is not eaten, a keep-chomped scalar’s kept blanks go,
+and same-column block sequences close up correctly.</p>
+<h3 id="4-3-the-flow-member-output-is-what-yqr-a001-would-want">4.3 The flow-member output is what <code>yqr-a001</code> would want<a class="heading-anchor" href="#4-3-the-flow-member-output-is-what-yqr-a001-would-want" aria-label="Link to this section"></a></h3>
+<pre><code class="language-text">a: {x: 1, y: 2}   remove("a.x")   -&gt;   a: {y: 2}
+a: [1, 2, 3]      remove("a[1]")  -&gt;   a: [1, 3]
+a: {x: 1, y: 2}   remove("a.y")   -&gt;   a: {x: 1}
+</code></pre>
+<p>Exactly one separator goes with the member, from the correct side. Nothing to
+object to.</p>
+<h3 id="4-4-the-sole-entry-output-strands-the-entry-s-head-comment">4.4 The sole-entry output strands the entry’s head comment<a class="heading-anchor" href="#4-4-the-sole-entry-output-strands-the-entry-s-head-comment" aria-label="Link to this section"></a></h3>
+<p>This is the finding, and it is not in the release notes.</p>
+<p>Removing the last entry of a collection writes the collection out explicitly,
+which is right — deleting the bytes would leave a dangling <code>a:</code> that re-parses
+as null. But the span it replaces <strong>begins below the entry’s head comment</strong>, so
+the comment survives and now documents an empty collection:</p>
+<pre><code class="language-text">in                    del(.a.x) via upstream remove
+a:                    a:
+  # documents x         # documents x
+  x: 1                  {}
+b: 2                  b: 2
+</code></pre>
+<p>Measured in every shape: a single comment, a run of contiguous comments, and a
+document-level comment above a single-key document all survive the same way.
+An <em>inline</em> comment on the entry is correctly removed, since it sits inside the
+collection span.</p>
+<p><code>yqr-b006</code> is the bug that says an entry owns the comment run directly above
+it, and <code>delete_entry</code> implements exactly that. Upstream’s sole-entry path does
+not, so a delegated <code>del(.a.x)</code> would leave a comment describing something that
+is no longer there — at exit 0, and invisible to the typed oracle, because a
+comment is not in the typed value.</p>
+<p>That is the <code>yqr-b006</code> / <code>yqr-b010</code> failure class for the third time, found the
+same way each time: by having a second implementation that disagrees.</p>
+<h3 id="4-5-the-trailing-newline-fix-holds">4.5 The trailing-newline fix holds<a class="heading-anchor" href="#4-5-the-trailing-newline-fix-holds" aria-label="Link to this section"></a></h3>
+<p><code>only: 1\n</code> -&gt; <code>remove("only")</code> -&gt; <code>{}\n</code>, and <code>a:</code>/<code>  x: 1</code> -&gt; <code>a:</code>/<code>  {}</code>,
+both terminated. The defect upstream found while building this release does not
+reach yqr.</p>
+<h2 id="5-the-decision-this-feature-owes-open">5. The decision this feature owes — open<a class="heading-anchor" href="#5-the-decision-this-feature-owes-open" aria-label="Link to this section"></a></h2>
+<p><code>yqr-f007</code> §5 refuses two delete classes. §4 measured what delegating each
+would actually buy and cost, so the options can now be weighed on evidence
+rather than on principle. <strong>Not decided here</strong>; recorded for a decision.</p>
+<table><thead><tr><th></th><th>Flow member</th><th>Sole entry</th></tr></thead><tbody>
+<tr><td>Upstream output</td><td>correct (§4.3)</td><td>correct <em>value</em>, strands the head comment (§4.4)</td></tr>
+<tr><td>yqr today</td><td>refuses, with its own clearer message</td><td>refuses</td></tr>
+<tr><td>Cost of delegating</td><td>none found</td><td>a <code>yqr-b006</code>-class regression</td></tr>
+</tbody></table>
+<p>That asymmetry is the new information, and it cuts across all three options as
+they were originally framed:</p>
 <ol>
-<li><strong>Delegate the two classes only.</strong> Keep <code>delete_entry</code> for what it already
-does; route flow members and sole entries to upstream <code>remove</code>. Smallest
-change, and it keeps the differential oracle for the common path — but it
-makes the delete surface two implementations with one seam.</li>
-<li><strong>Delegate delete entirely</strong>, reversing <code>yqr-f007</code> §6. The trade §6 recorded
-still applies (an independent implementation is what made noyalib#225/#226
-measurable), but its “and yqr loses nothing” half is now “and yqr gains two
-classes”.</li>
-<li><strong>Implement both classes in <code>delete_entry</code>.</strong> Keeps one implementation and
-the oracle, at the cost of writing separator arithmetic yqr does not have —
-the exact “own the arithmetic” route <code>yqr-f007</code> §2 calls the last resort.</li>
+<li><strong>Delegate the two classes.</strong> §4 says these are not one decision. The flow
+half is clean; the sole-entry half is not, unless yqr pre-passes the head
+comment itself — at which point it is doing the arithmetic anyway.</li>
+<li><strong>Delegate delete entirely.</strong> Now worse than it looked. It buys the flow
+class and takes the §4.4 regression, on the mutator yqr has already had to
+fix twice.</li>
+<li><strong>Implement both classes in <code>delete_entry</code>.</strong> The one option §4 makes more
+attractive rather than less: yqr already owns the head-comment arithmetic
+that §4.4 shows upstream lacks here, so the sole-entry case is a spelling
+question (<code>{}</code> / <code>[]</code>) on top of a range it already computes. The flow case
+is the separator arithmetic, which is genuinely new.</li>
 </ol>
-<p>Option 3’s cost is not hypothetical: upstream’s own note that a multi-line flow
-collection still refuses, and that the sole-entry case is a <em>type</em> question
-(<code>a:</code> re-parsing as null) rather than a byte question, is the shape of the
-problem yqr would be taking on.</p>
-<p><strong>Not decided here.</strong> §4 runs first; a decision recorded before the measurement
-would be the thing <code>yqr-f007</code> §6 was careful not to do.</p>
+<p>A fourth shape §4 suggests and the original framing did not: <strong>delegate the
+flow class only, implement the sole-entry class.</strong> Each half goes to whichever
+implementation is already correct for it.</p>
+<p>Also worth settling alongside it, because it is a user-visible policy and not
+just an implementation choice: <strong>should <code>del</code> of a sole entry write <code>{}</code> at
+all?</strong> Upstream’s <code>a:</code>/<code>  {}</code> is semantically right and introduces flow syntax
+into a block document; <code>del(.only)</code> on a single-key document rewrites the whole
+file to <code>{}</code>. Refusing, as yqr does today, is defensible for a tool whose
+selling point is not surprising you. This is a scope question, not a backend
+one, and it survives whichever option above is taken.</p>
+<p><strong>Route.</strong> §4.4 is worth reporting upstream regardless of what yqr does — it is
+a real trivia defect in a shipped mutator, of the class upstream has taken a
+fix for three times. Filing it does not depend on this decision.</p>
 <h2 id="6-upstream-close-out">6. Upstream close-out<a class="heading-anchor" href="#6-upstream-close-out" aria-label="Link to this section"></a></h2>
 <p><code>#221</code> is closed. Its five sub-asks all shipped, and four of the merged fixes
 came from this collaboration:</p>
@@ -2967,22 +3008,24 @@ adoption findings are unchanged by the close-out, except that §6.4’s
 tests upstream — is recorded in <code>yqr-f007</code> §5.1 and is not taken up here.</p>
 <h2 id="7-acceptance-criteria">7. Acceptance criteria<a class="heading-anchor" href="#7-acceptance-criteria" aria-label="Link to this section"></a></h2>
 <ul>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 0.0.23 published to crates.io; the pin moves and <code>Cargo.lock</code> shows that
 one crate moving and nothing else.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 §4’s measurement run and recorded per test, not in aggregate.</li>
 <li><input disabled="" type="checkbox"/>
 §5’s decision taken, recorded here and reflected in <code>yqr-f007</code> §5/§6.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>cargo audit</code> clean; both fidelity harnesses pass; the byte-exact
 <code>EngineCase</code> tier passes untouched.</li>
 <li><input disabled="" type="checkbox"/>
 If a delete class is delegated or implemented, it gains a byte-exact test
 per shape (flow member first/middle/last, sole mapping entry, sole
 sequence item, single-key document) and the trailing newline is asserted.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>yqr-b010</code> fixed upstream and verified against the published crate (§3).</li>
 <li><input disabled="" type="checkbox"/>
-<code>yqr-b010</code> filed upstream as its own issue, since <code>#221</code> is closed.</li>
+§4.4 filed upstream.</li>
 </ul>
 
         </div>
@@ -3024,19 +3067,39 @@ sequence item, single-key document) and the trailing newline is asserted.</li>
             </li>
         
             <li class="toc-level-3">
-                <a href="#2-1-the-release-does-not-exist-yet">2.1 The release does not exist yet</a>
+                <a href="#2-1-released-2026-08-17">2.1 Released 2026-08-17</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#3-what-this-release-does-not-fix">3. What this release does not fix</a>
+                <a href="#3-what-this-release-fixes-for-yqr">3. What this release fixes for yqr</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-the-measurement-yqr-f007-6-needs-re-run">4. The measurement yqr-f007 §6 needs re-run</a>
+                <a href="#4-the-measurement-run-2026-08-17">4. The measurement, run 2026-08-17</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-1-seven-failures-one-shape">4.1 Seven failures, one shape</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-2-the-yqr-b006-trivia-cases-still-agree">4.2 The yqr-b006 trivia cases still agree</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-3-the-flow-member-output-is-what-yqr-a001-would-want">4.3 The flow-member output is what yqr-a001 would want</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-4-the-sole-entry-output-strands-the-entry-s-head-comment">4.4 The sole-entry output strands the entry’s head comment</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-5-the-trailing-newline-fix-holds">4.5 The trailing-newline fix holds</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#5-the-decision-this-feature-owes">5. The decision this feature owes</a>
+                <a href="#5-the-decision-this-feature-owes-open">5. The decision this feature owes — open</a>
             </li>
         
             <li class="toc-level-2">

@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 1725
+  "wordCount": 1738
 }
 </script>
 <script type="application/ld+json">
@@ -2860,7 +2860,7 @@ dependency/release timing.</p>
 <tr><td><a href="/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption">f013</a></td><td>Adopt noyalib 0.0.18: pin bump and the released CST mutation API</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption">f014</a></td><td>Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f015-noyalib-0-0-22-adoption">f015</a></td><td>Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes</td><td>Done</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f016-noyalib-0-0-23-adoption">f016</a></td><td>Adopt noyalib 0.0.23: the extended <code>remove</code>, and the two deletes yqr still refuses</td><td>Draft (blocked — 0.0.23 unpublished)</td></tr>
+<tr><td><a href="/yqr/specs/features/yqr-f016-noyalib-0-0-23-adoption">f016</a></td><td>Adopt noyalib 0.0.23: the extended <code>remove</code>, and the two deletes yqr still refuses</td><td>In Progress (pin moved; §4 measured; §5 decision open)</td></tr>
 </tbody></table>
 <p>Progress: f006 shipped on noyalib 0.0.14’s first-class, re-parse-guarded mutators
 (<code>set_value</code>/<code>insert_entry</code>/<code>push_back</code>/<code>remove</code>) — <code>=</code>, <code>+=</code>, new-key assign,
@@ -2910,15 +2910,17 @@ plus a <strong>deletion</strong>, retiring the <code>b009</code> CRLF restore fr
 engine derives an inserted line’s terminator from the document the same way it
 already derived the indentation. The control is what makes that safe rather than
 plausible: with the workaround removed, the same three tests fail against a
-temporary 0.0.21 pin and pass on 0.0.22 (<code>f015</code> §4). f016 <strong>draft and blocked</strong>:
-noyalib closed the <code>b004</code> umbrella (<code>#221</code>) on 2026-08-16 by extending <code>remove</code>
-to cover flow members and sole entries — the two classes <code>f007</code> §5 refuses — but
-0.0.23 has no tag, no release and nothing on the crates.io index, so the pin
-cannot move. It also does <strong>not</strong> fix <code>b010</code>. The interesting part is not the
-bump: it invalidates the premise of <code>f007</code> §6’s “delegate delete: no”, whose
-measurement recorded its only two failures as flow cases where upstream also
-refused and only the diagnostic differed. Re-run and decision are <code>f016</code> §4/§5,
-and no decision is recorded ahead of the measurement. f008 (<code>|=</code> computed
+temporary 0.0.21 pin and pass on 0.0.22 (<code>f015</code> §4). f016 <strong>in progress</strong>: 0.0.23 published 2026-08-17 and the pin has moved, with
+the suite green untouched. Two things came out of it. <strong><code>b010</code> is fixed</strong> —
+yqr’s own reorder commit ships in this release, so an item’s comments travel
+with it and <code>a002</code> slice 3 is unblocked, leaving slices 2 and 3 as
+implementation with nothing waiting on upstream. And the <code>f007</code> §6 delegation
+question was re-measured per test: <strong>seven failures, all “yqr refuses and
+upstream now succeeds”</strong>, none of them a trivia divergence — but the
+sole-entry half of that strands the removed entry’s head comment above an empty
+<code>{}</code>, which is the <code>b006</code>/<code>b010</code> failure class a third time. The flow half is
+clean. That asymmetry is new information and §5’s decision is deliberately
+still open on it. f008 (<code>|=</code> computed
 updates) is gated on <code>f001</code> M2 (arithmetic/builtins). Priority order: f006
 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f016
 (blocked on the release) → f007 remainder → M2 → f008.</p>
@@ -2955,9 +2957,8 @@ dashboard.</p>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
 <li>Total features: 17</li>
-<li>Draft: 3 (f008 — computed updates, gated on <code>f001</code> M2; f016 — noyalib 0.0.23
-adoption, blocked on the release, and owing the <code>f007</code> §6 re-measurement;
-f017 — <code>to_entries</code>, scoped from the <code>yqr-r003</code> usage report)</li>
+<li>Draft: 2 (f008 — computed updates, gated on <code>f001</code> M2; f017 — <code>to_entries</code>,
+scoped from the <code>yqr-r003</code> usage report)</li>
 <li>In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
 rename / reorder grammar settled in <code>yqr-a002</code> and staged as three slices,
 none implemented, and slice 3 blocked on <code>yqr-b010</code>)</li>

@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...">
+<meta name="description" content="Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, an...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
-<meta property="og:description" content="Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...">
+<meta property="og:description" content="Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, an...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
-<meta name="twitter:description" content="Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...">
+<meta name="twitter:description" content="Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, an...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-17",
-  "description": "Status: Accepted (grammar settled; the three slices are staged in §9, and one of them is blocked on an upstream defect — yqr-b010, §6) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the \"final syntax TBD\" left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequenc...",
+  "description": "Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the \"final syntax TBD\" left open by yqr-f007 §4 and §6 for comment editing, key rename, an...",
   "inLanguage": "en",
   "name": "Architecture a002 — Addressing what is not a value: comments, keys, and sequence order",
   "url": "https://zoosky.github.io/yqr/specs/architecture/yqr-a002-non-value-addressing-grammar",
-  "wordCount": 5760
+  "wordCount": 5778
 }
 </script>
 <script type="application/ld+json">
@@ -2812,8 +2812,8 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Accepted (grammar settled; the three slices are staged in §9, and
-one of them is blocked on an upstream defect — <code>yqr-b010</code>, §6)
+            <p><strong>Status:</strong> Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are
+staged in §9 and <strong>both unblocked</strong> as of noyalib 0.0.23 — <code>yqr-b010</code> is fixed)
 <strong>Owner:</strong> yqr maintainers
 <strong>Last updated:</strong> 2026-08-16
 <strong>Decides:</strong> the “final syntax TBD” left open by <code>yqr-f007</code> §4 and §6 for
@@ -3181,29 +3181,27 @@ answered “no” three times. The third clause is answered “no” in <strong>
 of §5.1–§5.3: every row whose right-hand column is a yqr pre-check rather than
 a forward. That is the real cost estimate for the comment slice, and none of it
 was visible from the docs.</p>
-<h2 id="6-sequence-reorder-is-blocked-upstream-moves-values-not-entries">6. Sequence reorder is blocked: upstream moves values, not entries<a class="heading-anchor" href="#6-sequence-reorder-is-blocked-upstream-moves-values-not-entries" aria-label="Link to this section"></a></h2>
-<p>The grammar for reorder is settled. The slice is not shippable on 0.0.22, and
-this was found by measuring rather than by review.</p>
-<p><code>swap_items</code> and <code>move_item</code> exchange <strong>value bytes</strong> and nothing else, so
-every comment stays attached to the position rather than to the item it
-documents — at <code>Ok</code> and exit 0, and past upstream’s own integrity guard by
+<h2 id="6-sequence-reorder-blocked-then-unblocked">6. Sequence reorder: blocked, then unblocked<a class="heading-anchor" href="#6-sequence-reorder-blocked-then-unblocked" aria-label="Link to this section"></a></h2>
+<p>Kept as written history, because the sequence of events is the point.</p>
+<p><code>swap_items</code> and <code>move_item</code> exchanged <strong>value bytes</strong> and nothing else, so
+every comment stayed attached to the position rather than to the item it
+documented — at <code>Ok</code> and exit 0, and past upstream’s own integrity guard by
 construction, since that guard compares typed values and a comment is not in
-one. <code>-i</code> would write it to the user’s file.</p>
-<p><strong>The measurement, the guard argument and the route are recorded once, in
-<code>yqr-b010</code></strong>, which is the open bug the upstream filing will hang on. They are
-not restated here; what belongs in this document is the consequence for the
-grammar it settles.</p>
-<p>That consequence is: the reorder verb is designed and staged, and it does not
-ship on 0.0.22. This is the <code>yqr-b006</code> failure class and the exact defect yqr
-already refused to inherit once — <code>yqr-f007</code> §5.1 declines upstream <code>remove</code>
-because a head comment “survives, silently re-attributed to the next sibling”.
-Reorder re-attributes every comment in the affected range. It is also the case
-that most needs the fix: a commented list item is the normal shape of the files
-yqr targets (<code>spec.containers</code>, GitHub Actions <code>steps</code>, Ansible tasks).</p>
-<p>Until <code>yqr-b010</code> lands, <code>swap</code>/<code>move</code> either stay unimplemented or ship with a
-yqr-side refusal when either item carries a comment. The refusal is honest and
-small, but it declines the common case, which is why §9 sequences this slice
-last rather than shipping a stub.</p>
+one. Found by measuring while settling this grammar, and it is why §9 staged
+this slice last.</p>
+<p><strong>Resolved in noyalib 0.0.23</strong> (<code>yqr-b010</code>, <code>yqr-f016</code> §3). The measurement,
+the correction of its framing — upstream’s behaviour was deliberate and tested,
+so this was a semantics disagreement rather than a defect — and the argument
+that settled it are all recorded there, once.</p>
+<p>The argument is worth restating here because it is the same one this document
+makes elsewhere: <code>remove</code> already treats the contiguous same-indent comment run
+above an entry as <em>owned by that entry</em>, and a reorder that left it behind
+would have two mutators in one crate holding opposite views of who owns the
+same bytes. That is <code>yqr-f007</code> §5.1’s failure class, and §4.1.1 declines
+upstream’s leading-comment block definition on exactly the same grounds.</p>
+<p>So the slice is unblocked. What remains is implementation, and slice 3’s
+trivia criterion is now met by the backend rather than needing a yqr-side
+refusal.</p>
 <h2 id="7-compiler-surface">7. Compiler surface<a class="heading-anchor" href="#7-compiler-surface" aria-label="Link to this section"></a></h2>
 <h3 id="7-1-ast">7.1 AST<a class="heading-anchor" href="#7-1-ast" aria-label="Link to this section"></a></h3>
 <p>The two shapes in §2 are the two shapes in the AST — the type carries the
@@ -3368,14 +3366,19 @@ where the matching write refuses (§4.4).</li>
 accesses; <code>foot_comment(.a)</code> refuses with the §8 reason, not a generic
 parse error.</li>
 </ul>
-<p><strong>Slice 3 — <code>swap</code> / <code>move</code>.</strong> Blocked on <code>yqr-b010</code> (§6). Ships when the
-upstream reorder moves an entry’s trivia with it, or with an explicit
-refusal-when-commented and that limit documented.</p>
+<p><strong>Slice 3 — <code>swap</code> / <code>move</code>. Unblocked 2026-08-17</strong> (§6): noyalib 0.0.23 moves
+an entry’s trivia with it, so this ships as a call rather than as a refusal.
+The <code>refusal-when-commented</code> fallback this section reserved is no longer
+needed and is withdrawn.</p>
 <ul>
 <li><input disabled="" type="checkbox"/>
 <code>swap</code>/<code>move</code> on an uncommented block sequence, byte-exact elsewhere.</li>
 <li><input disabled="" type="checkbox"/>
-An item’s inline and head comments travel with the item.</li>
+An item’s inline and head comments travel with the item — met by the
+backend as of 0.0.23; the test pins it against future engine drift, which
+is the whole reason it is a criterion rather than an assumption.</li>
+<li><input disabled="" type="checkbox"/>
+A flow sequence keeps upstream’s value-span exchange and is not refused.</li>
 <li><input disabled="" type="checkbox"/>
 Negative indices resolve as <code>.[-1]</code> does (§4.5).</li>
 <li><input disabled="" type="checkbox"/>
@@ -3521,7 +3524,7 @@ that a later reader cannot repeat it.</p>
             </li>
         
             <li class="toc-level-2">
-                <a href="#6-sequence-reorder-is-blocked-upstream-moves-values-not-entries">6. Sequence reorder is blocked: upstream moves values, not entries</a>
+                <a href="#6-sequence-reorder-blocked-then-unblocked">6. Sequence reorder: blocked, then unblocked</a>
             </li>
         
             <li class="toc-level-2">

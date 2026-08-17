@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer&#x27;s decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...">
+<meta name="description" content="Status: Resolved (2026-08-17) — the maintainer took the semantics yqr argued for; the fix is yqr&#x27;s own commit d397330, landed via upstream #271 and released in noyalib 0.0.23. Adopted by yqr-f016, which verified it against the published crate. noyalib#269 closed 2026-08-16 Severity: Medium — ...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind">
-<meta property="og:description" content="Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer&#x27;s decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...">
+<meta property="og:description" content="Status: Resolved (2026-08-17) — the maintainer took the semantics yqr argued for; the fix is yqr&#x27;s own commit d397330, landed via upstream #271 and released in noyalib 0.0.23. Adopted by yqr-f016, which verified it against the published crate. noyalib#269 closed 2026-08-16 Severity: Medium — ...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind">
-<meta name="twitter:description" content="Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer&#x27;s decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...">
+<meta name="twitter:description" content="Status: Resolved (2026-08-17) — the maintainer took the semantics yqr argued for; the fix is yqr&#x27;s own commit d397330, landed via upstream #271 and released in noyalib 0.0.23. Adopted by yqr-f016, which verified it against the published crate. noyalib#269 closed 2026-08-16 Severity: Medium — ...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-17",
-  "description": "Status: Open — filed upstream 2026-08-16 as noyalib#269, with a fix offered as noyalib#270. Awaiting the maintainer's decision, which is a semantics call rather than a defect triage — see §1.1 Severity: Medium — a silent wrong result at exit 0, not a refusal Component: noyalib cst::Documen...",
+  "description": "Status: Resolved (2026-08-17) — the maintainer took the semantics yqr argued for; the fix is yqr's own commit d397330, landed via upstream #271 and released in noyalib 0.0.23. Adopted by yqr-f016, which verified it against the published crate. noyalib#269 closed 2026-08-16 Severity: Medium — ...",
   "inLanguage": "en",
   "name": "Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries",
-  "wordCount": 1540
+  "wordCount": 1761
 }
 </script>
 <script type="application/ld+json">
@@ -2812,11 +2812,10 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open — filed upstream 2026-08-16 as
-<a href="https://github.com/sebastienrousseau/noyalib/issues/269">noyalib#269</a>, with a
-fix offered as <a href="https://github.com/sebastienrousseau/noyalib/pull/270">noyalib#270</a>.
-Awaiting the maintainer’s decision, which is a <strong>semantics</strong> call rather than a
-defect triage — see §1.1
+            <p><strong>Status:</strong> Resolved (2026-08-17) — the maintainer took the semantics yqr
+argued for; the fix is yqr’s own commit <code>d397330</code>, landed via upstream #271 and
+<strong>released in noyalib 0.0.23</strong>. Adopted by <code>yqr-f016</code>, which verified it
+against the published crate. <code>noyalib#269</code> closed 2026-08-16
 <strong>Severity:</strong> Medium — a silent wrong result at exit 0, not a refusal
 <strong>Component:</strong> noyalib <code>cst::Document::swap_items</code> / <code>cst::Document::move_item</code>
 (upstream), reached from yqr’s planned reorder verb
@@ -2968,17 +2967,39 @@ noyalib#269, 2026-08-16.</li>
 Framing corrected upstream once the pinning test was found (§1.1).</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Fix offered as a PR — noyalib#270.</li>
-<li><input disabled="" type="checkbox"/>
-Maintainer’s decision on the semantics.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
+Maintainer’s decision on the semantics — taken, in yqr’s favour, with
+the re-framing explicitly endorsed.</li>
+<li><input disabled="" type="checkbox" checked=""/>
 A released noyalib moves an entry’s inline and head comments with the
-item, for both <code>swap_items</code> and <code>move_item</code>.</li>
+item, for both <code>swap_items</code> and <code>move_item</code> — 0.0.23, verified against
+the published crate (<code>yqr-f016</code> §3).</li>
 <li><input disabled="" type="checkbox"/>
-<code>yqr-a002</code> §9 slice 3’s criteria pass against that release.</li>
-<li><input disabled="" type="checkbox"/>
-<code>yqr-b000</code> and this file move to Resolved (or Won’t Fix, §6) in the same
-change.</li>
+<code>yqr-a002</code> §9 slice 3’s criteria pass against that release — the slice is
+unblocked but not implemented.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>yqr-b000</code> and this file moved to Resolved in the same change.</li>
 </ul>
+<h2 id="8-close-out">8. Close-out<a class="heading-anchor" href="#8-close-out" aria-label="Link to this section"></a></h2>
+<p>Two things worth keeping from how this went, both about the <em>report</em> rather
+than the fix:</p>
+<ul>
+<li><strong>The §1.1 correction was the load-bearing move.</strong> Filing it as a defect was
+wrong, and saying so before the maintainer spent time on it is what the
+close-out singled out: <em>“‘Defect’ would have been the wrong word, you caught
+it before we spent time on it, and you re-put it as the design question it
+actually was. That saved a round trip.”</em></li>
+<li><strong>The argument that won was internal consistency</strong>, not correctness in the
+abstract — <code>remove</code> and reorder cannot hold opposite views of who owns a
+comment. Conceding the inline-comment half, and declining to split head from
+inline, were both endorsed as correct.</li>
+</ul>
+<p>Two defects in yqr’s PR were fixed by the maintainer on top, both yqr’s and
+both documentation-only: a public doc comment linked a private item (rejected
+under <code>-D rustdoc::private_intra_doc_links</code>, a gate yqr’s own <code>local-ci.sh</code>
+does not have), and a new function inserted above an existing one landed
+<em>between</em> that function and its doc comment, silently leaving it undocumented.
+Neither is caught by clippy or by any test.</p>
 
         </div>
         </accent-island>
@@ -3039,6 +3060,10 @@ change.</li>
         
             <li class="toc-level-2">
                 <a href="#7-acceptance">7. Acceptance</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#8-close-out">8. Close-out</a>
             </li>
         
         </ul>

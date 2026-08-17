@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-17T20:34:40Z",
+  "timestamp": "2026-08-17T20:55:34Z",
   "pages": {
     "/": {
       "content_hash": "0069f998b82fa6e5",
@@ -58,7 +58,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/architecture/yqr-a002-non-value-addressing-grammar": {
-      "content_hash": "0229636ab03b2d11",
+      "content_hash": "f64a4e245530c4c9",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "538abfc55a433ef2",
+      "content_hash": "400ed9318b8314dd",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -118,7 +118,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b010-reorder-moves-values-not-entries": {
-      "content_hash": "434a0dd796ebd782",
+      "content_hash": "d7f72c1309a63747",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -128,7 +128,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "e31090dd346d8654",
+      "content_hash": "d540dcf3695166e8",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -163,7 +163,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "63bad7479a55e824",
+      "content_hash": "660619f11d3e37d3",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -208,7 +208,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f016-noyalib-0-0-23-adoption": {
-      "content_hash": "5e0532392296d235",
+      "content_hash": "2a03490d503c76a3",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

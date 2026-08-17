@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 3739
+  "wordCount": 3764
 }
 </script>
 <script type="application/ld+json">
@@ -3033,8 +3033,10 @@ leading mutators absorb a blank-detached comment block that this module’s own
 <code>delete_entry</code> deliberately excludes.</li>
 <li><strong>Key rename</strong> (<code>b004</code> 2.2) — <strong>shipped 2026-08-16</strong>; the record moved to
 §7 and this bullet is kept only so the three-gap list stays readable.</li>
-<li><strong>Sequence reorder</strong> (<code>b004</code> 2.3) — grammar settled, <strong>slice blocked</strong> on
-<code>yqr-b010</code>: <code>swap_items</code> / <code>move_item</code> exchange value bytes only, so a
+<li><strong>Sequence reorder</strong> (<code>b004</code> 2.3) — grammar settled, <strong>unblocked
+2026-08-17</strong>: <code>yqr-b010</code> is fixed in noyalib 0.0.23 by yqr’s own commit, so
+an item’s comments now travel with it and the slice is a call. Was blocked
+because: <code>swap_items</code> / <code>move_item</code> exchange value bytes only, so a
 reorder silently re-attributes every comment in the range at exit 0 and past
 upstream’s own guard. That is §5.1’s failure class exactly, and this module’s
 entry-range arithmetic is the reference implementation for the fix. The
