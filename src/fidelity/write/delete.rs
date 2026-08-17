@@ -92,15 +92,18 @@ impl NoyalibWriter {
         // disagree with. It has none for flow, so re-deriving the arithmetic
         // would buy a second copy rather than a second opinion.
         // Feature f007 / f016 §5.
+        //
+        // The test asks the *parsed* document for the parent node's bytes, root
+        // included (`get("")`), rather than sniffing the raw source. Sniffing
+        // reads a leading `---` or comment line as the start of the document
+        // and misses the flow collection under it, which sent an ordinary
+        // explicit-start document down the block path to be refused with a
+        // misleading message.
         let parent_is_flow = {
             let d = self.doc_ref(doc)?;
-            if parent_segs.is_empty() {
-                d.source().trim_start().starts_with(['[', '{'])
-            } else {
-                segs_to_noyalib_path(parent_segs)
-                    .and_then(|parent_str| d.get(&parent_str))
-                    .is_some_and(|bytes| bytes.trim_start().starts_with(['[', '{']))
-            }
+            segs_to_noyalib_path(parent_segs)
+                .and_then(|parent_str| d.get(&parent_str))
+                .is_some_and(|bytes| bytes.trim_start().starts_with(['[', '{']))
         };
         if parent_is_flow {
             return self
@@ -186,7 +189,22 @@ impl NoyalibWriter {
             let replacement = match empty_collection {
                 None => String::new(),
                 Some(empty) => {
-                    let indent = indent_width(&src[start..]);
+                    // The empty collection is a block-mapping *value*, so it
+                    // must sit strictly deeper than its key. The deleted
+                    // entry's own indent is usually already that — but a block
+                    // sequence written at its key's own column (`on:` /
+                    // `- push`, the GitHub Actions idiom) is not, and taking
+                    // its indent there emits `on:` / `[]`, which noyalib
+                    // accepts and a spec-conformant parser rejects. The
+                    // re-parse guard cannot catch it for the same reason.
+                    let key_col = segs_to_noyalib_path(parent_segs)
+                        .and_then(|parent| d.key_span(&parent))
+                        .map(|(ks, _)| ks - src[..ks].rfind('\n').map_or(0, |n| n + 1));
+                    let own_indent = indent_width(&src[start..]);
+                    let indent = match key_col {
+                        Some(col) if own_indent <= col => col + 2,
+                        _ => own_indent,
+                    };
                     let removed = &src[start..end];
                     let nl = if removed.ends_with("\r\n") {
                         "\r\n"
@@ -607,6 +625,32 @@ mod tests {
     fn sole_entry_without_a_final_newline_gains_none() {
         let out = del(".a.x", "b: 2\na:\n  x: 1").unwrap();
         assert_eq!(out, "b: 2\na:\n  {}");
+    }
+
+    #[test]
+    fn sole_item_of_a_same_column_sequence_is_indented_under_its_key() {
+        // `on:` / `- push` is the GitHub Actions idiom: the sequence sits at
+        // its key's own column, so the item's indent is *not* deeper than the
+        // key. Emitting `[]` there produces `on:` / `[]`, which noyalib parses
+        // and a spec-conformant parser rejects — so the re-parse guard cannot
+        // catch it and `-i` would write an unreadable file at exit 0.
+        let out = del(".on[0]", "on:\n- push\njobs: {}\n").unwrap();
+        assert_eq!(out, "on:\n  []\njobs: {}\n");
+    }
+
+    #[test]
+    fn sole_item_of_a_nested_same_column_sequence_clears_its_key() {
+        let out = del(".steps.on[0]", "steps:\n  on:\n  - a\nx: 1\n").unwrap();
+        assert_eq!(out, "steps:\n  on:\n    []\nx: 1\n");
+    }
+
+    #[test]
+    fn root_flow_collection_is_detected_through_a_document_marker() {
+        // The flow test asks the parsed document for the root node's bytes; a
+        // raw-source prefix check reads `---` (or a comment) as the start of
+        // the document and misses the flow collection under it.
+        assert_eq!(del(".[0]", "---\n[80, 443]\n").unwrap(), "---\n[443]\n");
+        assert_eq!(del(".[0]", "# c\n[80, 443]\n").unwrap(), "# c\n[443]\n");
     }
 
     #[test]

@@ -8,7 +8,9 @@ status tracker convention).
 
 ## Open
 
-_None._
+| Bug | Title | Severity | Status | Related |
+|-----|-------|----------|--------|---------|
+| [b011](yqr-b011-multiline-flow-collection-fails-to-parse.md) | A multi-line flow collection is valid YAML that yqr cannot read at all | Medium | Open — noyalib refuses to parse a flow collection spread over several lines (`ports: [` / `  80,` / `]`), which PyYAML and the YAML spec both accept; the message names the right indentation rule and applies it to the closing indicator. Loud rather than silent (exit 5, no damage), but it is a **whole-file read** refusal, so `a001`'s guarantee is vacuous for these files and `validate` calls them unreadable. Found while reviewing the `yqr-f016` §5 flow-delete work — the "flow deletes only work on single-line collections" limitation is a symptom of this. **Not yet filed upstream**; the fix is in noyalib's parser, a part yqr has not contributed to before | `yqr-a001`, `yqr-b004`, `yqr-f016` |
 
 ## Resolved
 
@@ -27,8 +29,9 @@ _None._
 
 ## Summary
 
-- Total bugs: 10
-- Open: 0
+- Total bugs: 11
+- Open: 1 (b011 — noyalib cannot parse a multi-line flow collection, so yqr
+  cannot read the file at all; loud, not silent, and not yet filed upstream)
 - Resolved: 10 (b010 — noyalib's reorder exchanged value bytes only, so every
   comment stayed with the slot; filed as noyalib#269, re-framed from "defect"
   to a semantics disagreement once its pinning test turned up, argued on

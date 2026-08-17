@@ -351,8 +351,9 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()> {
-        // Deliberately not noyalib's `remove`, and the gap has closed rather
-        // than narrowed: measured on 0.0.22, upstream agrees with this path on
+        // Block entries are deliberately not routed to noyalib's `remove`
+        // (an item of a *flow* collection is — see `delete_entry`), and the gap
+        // has closed rather than narrowed: measured on 0.0.22, upstream agrees with this path on
         // every case the b006 tests pin, differing only in how it words the
         // flow-item refusal. Keeping this path is therefore not a claim that
         // upstream is behind. It is that two implementations are what make

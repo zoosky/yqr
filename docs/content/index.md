@@ -137,8 +137,10 @@ spec:
 <span class="prompt">$</span> yqr <span class="filter">'del(.spec.template)'</span> deploy.yaml   <span class="filter"># a nested block, closed up cleanly</span></pre>
       <code>del</code> removes multi-line and nested block entries as well as
       single-line ones, closing up the gap and leaving every surviving byte
-      identical; deleting the only entry of a block, or an item of a flow
-      collection (<code>[a, b]</code>), is refused with a clear message.
+      identical; removing the last entry of a block leaves the collection
+      spelled out (<code>{}</code>), since a key with nothing under it reads
+      back as null, and removing an item of an inline collection
+      (<code>[a, b]</code>) takes exactly one separator with it.
       Add <code>-i</code> (<code>--in-place</code>) and the file is rewritten
       atomically — a <code>git diff</code> touches only the line you
       changed. An edit that would restructure the document is refused (exit 5)

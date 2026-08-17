@@ -30,8 +30,6 @@ All notable changes to `yqr` are documented here. The format is based on
   named `key` -- along with `.swap`, `.move`, `.del` and the comment words
   reserved for later.
 
-### Added
-
 - **`del` now handles the last entry of a block, and items of inline
   collections.** Both used to be refused with a message explaining why.
 
