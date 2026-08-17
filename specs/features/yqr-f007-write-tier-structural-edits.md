@@ -1,9 +1,9 @@
 # Feature f007 — Write tier: structural edits (the `b004` gaps)
 
 **Status:** In Progress (structural **delete** shipped, and since `yqr-f013`
-it is yqr's whole delete path rather than a fallback; comment editing, key
-rename, and sequence reorder remain deferred, but their grammar is settled as
-of `yqr-a002` and staged in §6)
+it is yqr's whole delete path rather than a fallback; **key rename** shipped
+2026-08-16 as `yqr-a002` slice 1 — §7; comment editing and sequence reorder
+remain deferred, their grammar settled in `yqr-a002` and staged in §6)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
@@ -23,7 +23,7 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 - **Comment editing** — add / change / remove a comment attached to a node
   (`b004` 2.1; comments were read-only in 0.0.14). **Deferred** (§6).
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
-  (`b004` 2.2). **Deferred** (§6).
+  (`b004` 2.2). **Shipped** (§7).
 - **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
   **Deferred** (§6).
 
@@ -67,7 +67,7 @@ the document untouched.
 - [ ] `line_comment(<path>)` / `head_comment(<path>)` set and remove
       (`yqr-a002` §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
       set does, rather than inheriting upstream's `Ok`-and-no-op.
-- [ ] `key(<path>) = "new"` renames a key, preserving value + trailing comment;
+- [x] `key(<path>) = "new"` renames a key, preserving value + trailing comment;
       `key(<path>)` reads the document's key token, not the filter's path
       segment (`yqr-a002` §7.2).
 - [ ] `swap(<path>; i; j)` / `move(<path>; from; to)` reorder by index,
@@ -230,11 +230,8 @@ for each, so with the grammar settled two of the three are a call, not a splice
   span so a nested entry's comment lands on its **child's** line, and the
   leading mutators absorb a blank-detached comment block that this module's own
   `delete_entry` deliberately excludes.
-- **Key rename** (`b004` 2.2) — `key(<path>) = "new"`. Upstream: `rename_key`
-  with style-matched quoting and sibling-duplicate refusal, plus `key_span`
-  for the key-token range `span_at` never exposed — which is also what the
-  `key(<path>)` **read** must go through (`yqr-a002` §7.2), rather than
-  echoing the filter's own resolved path segment back at the user.
+- **Key rename** (`b004` 2.2) — **shipped 2026-08-16**; the record moved to
+  §7 and this bullet is kept only so the three-gap list stays readable.
 - **Sequence reorder** (`b004` 2.3) — grammar settled, **slice blocked** on
   `yqr-b010`: `swap_items` / `move_item` exchange value bytes only, so a
   reorder silently re-attributes every comment in the range at exit 0 and past
@@ -358,3 +355,71 @@ first is settled; the other three are open:
 _(The grammar and the upstream API surface are now both known; the per-slice
 criteria live in `yqr-a002` §9. What stays open here is the scope and
 addressing work above, which `yqr-a002` §8 explicitly does not decide.)_
+
+## 7. Key rename (shipped)
+
+`yqr-a002` slice 1, and the first use of its addressing grammar. Landed
+2026-08-16.
+
+### 7.1 Surface
+
+```text
+key(<path>)             read the entry's key token
+key(<path>) = "new"     rename it in place
+```
+
+`key` is recognised only in **function position** — an identifier immediately
+followed by `(`. `.key` is still a field access, and so are `.swap`, `.move`,
+`.del`, `.line_comment`, `.head_comment` and `.foot_comment`; one test covers
+all seven, because `swap` and `move` are ordinary YAML field names and a
+regression there would break read-only queries.
+
+`del`'s argument is unchanged: it still takes a pipeline, so `del(.a | .b)`
+parses and deletes exactly as before. What is new is that it takes a *target*,
+of which a pipeline is one kind — which is what makes `del(key(...))`
+expressible, and therefore refusable with a reason instead of a syntax error.
+
+### 7.2 What it is not
+
+Three near-misses, each refused rather than guessed:
+
+| Form | Result |
+|---|---|
+| `del(key(.a))` | parse error: a key cannot outlive its entry; use `del(.a)` |
+| `key(.a) += 1` | parse error: `+=` appends to a sequence |
+| `key(<absent>) = "x"` | no-op, **not** a new key |
+
+The last one is the trap worth naming. Value assignment resolves through
+`resolve_assign_target`, whose absent-leaf branch *creates* a mapping key —
+correct for `.a.b = 1`, wrong for a rename, where an absent path means there is
+no key to rename. The rename uses the plain resolver and skips the document, as
+`del` does. The comment slice will meet the same fork.
+
+### 7.3 The read comes from the document
+
+`key(<path>)` goes through `Document::key_span` and the existing read seam, not
+through the resolved `Path`'s last segment. `PathSeg::Key` is stored *decoded*,
+so the shortcut would echo the filter back: a key authored `"a"` would read as
+`a`, and a key reached through a `<<` merge would read as a token that appears
+nowhere in the file. Reading the document keeps `key(...)` on the same footing
+as every other read — print the bytes that are there — and `key_span` returning
+`None` is both the source of the bytes and the test for whether there are any
+(a sequence item, an absent path, a merge or alias site).
+
+One edge is documented rather than solved: a key holding `.` or `[` is
+unaddressable (§6, `yqr-a002` §7.3), so `key(...)` on one reads `null` — the
+same answer as "this node has no key". Reads are total (`yqr-a002` §4.4) and
+there is no correct typed fallback, so the honest move was to say so in the
+guide. It resolves when the dotted-key item does.
+
+### 7.4 Coverage
+
+Thirteen unit tests on the write path (byte-exactness with a head comment, an
+inline comment and odd spacing all preserved; key order kept; quote style
+matched; multi-line values untouched; the absent no-op; multi-document skip;
+and one per refusal), four on the engine's `key_bytes` (verbatim token,
+document-relative offsets in a stream, and `None` for each keyless shape),
+nine on the grammar, ten black-box CLI tests including `-i` and the
+refusal-leaves-the-file-untouched contract, and three shared-corpus
+`EngineCase`s — one of which is a merge-produced key, the case that separates
+a document read from an echo.

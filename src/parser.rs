@@ -3,8 +3,13 @@
 //! Grammar implemented for milestone M0 plus the write tier's top-level forms:
 //!
 //! ```text
-//! program  := 'del' '(' pipeline ')'          ; delete mutation
-//!           | pipeline (('=' | '+=') rhs)?     ; assignment/append, else query
+//! program  := 'del' '(' target ')'            ; delete mutation
+//!           | target '=' rhs                   ; assignment / rename
+//!           | pipeline '+=' rhs                ; append (value-only)
+//!           | target                           ; read-only query
+//! target   := selector
+//!           | pipeline                         ; a value node
+//! selector := 'key' '(' pipeline ')'          ; the entry's key token
 //! rhs      := number | Str | 'true' | 'false' | 'null'   ; scalar literal
 //!           | pipeline                         ; a '.'-rooted path
 //! pipeline := term ('|' term)*
@@ -19,7 +24,7 @@
 //! ```
 
 use crate::Value;
-use crate::ast::{Ast, Mutation, Program, Rhs};
+use crate::ast::{Ast, Mutation, Program, Rhs, Target};
 use crate::error::{Result, YqrError};
 use crate::lexer::{Token, lex};
 
@@ -31,7 +36,14 @@ use crate::lexer::{Token, lex};
 /// [`parse_program`].
 pub fn parse(src: &str) -> Result<Ast> {
     match parse_program(src)? {
-        Program::Query(ast) => Ok(ast),
+        Program::Query(Target::Value(ast)) => Ok(ast),
+        Program::Query(target) => Err(YqrError::parse(format!(
+            "'{}(...)' reads from the document's own bytes, so it is not available \
+             in the re-serializing pipeline; drop --normalize",
+            target
+                .selector_name()
+                .expect("a non-Value target has a selector name")
+        ))),
         Program::Mutate(_) => Err(YqrError::parse(
             "this filter performs a mutation; run it without a read-only pipeline \
              (mutations are handled by the write path)"
@@ -47,7 +59,7 @@ pub fn parse_program(src: &str) -> Result<Program> {
     let tokens = lex(src)?;
     if tokens.is_empty() {
         // An empty program is treated as identity, which is friendlier than jq.
-        return Ok(Program::Query(Ast::Identity));
+        return Ok(Program::Query(Target::Value(Ast::Identity)));
     }
     let mut p = Parser { tokens, pos: 0 };
     let program = p.parse_program()?;
@@ -97,44 +109,109 @@ impl Parser {
     /// bare read-only query.
     // Feature f006.
     fn parse_program(&mut self) -> Result<Program> {
-        // `del(...)` is the only form that starts with a bare identifier; every
-        // query starts with '.'.
-        if matches!(self.peek(), Some(Token::Ident(name)) if name == "del")
-            && matches!(self.peek_at(1), Some(Token::LParen))
-        {
+        // `del(...)` is the only *mutation* that starts with a bare
+        // identifier; every value query starts with '.'.
+        if self.at_function("del") {
             return self.parse_del();
         }
 
-        let lhs = self.parse_pipeline()?;
+        let target = self.parse_target()?;
         match self.peek() {
             Some(Token::Eq) => {
                 self.advance();
                 let rhs = self.parse_rhs()?;
-                Ok(Program::Mutate(Mutation::Assign { path: lhs, rhs }))
+                Ok(Program::Mutate(Mutation::Assign { target, rhs }))
             }
             Some(Token::PlusEq) => {
                 self.advance();
+                // `+=` appends to a sequence, and a key is not one. Refused
+                // here rather than at eval so the message names the operator
+                // the user reached for.
+                let Target::Value(path) = target else {
+                    return Err(YqrError::parse(format!(
+                        "'+=' appends an item to a sequence, so its left side must be a \
+                         path to one; '{}(...)' does not name a sequence",
+                        target
+                            .selector_name()
+                            .expect("a non-Value target has a selector name")
+                    )));
+                };
                 let rhs = self.parse_rhs()?;
-                Ok(Program::Mutate(Mutation::Append { path: lhs, rhs }))
+                Ok(Program::Mutate(Mutation::Append { path, rhs }))
             }
             Some(Token::PipeEq) => Err(YqrError::parse(
                 "the '|=' computed-update operator is not yet supported \
                  (planned for a future release); use '=' with a literal or path"
                     .to_string(),
             )),
-            _ => Ok(Program::Query(lhs)),
+            _ => Ok(Program::Query(target)),
         }
     }
 
-    /// Parse a `del(<path>)` mutation. The opening `del` identifier and `(`
-    /// have been confirmed by the caller but not yet consumed.
-    // Feature f006.
-    fn parse_del(&mut self) -> Result<Program> {
-        self.advance(); // `del`
+    /// Whether the cursor sits on `name` used as a function — an identifier
+    /// immediately followed by `(`.
+    ///
+    /// Function position is the whole reason these words cost no reserved
+    /// identifiers: `.key` is a field access because the `(` is missing, and
+    /// a mapping whose key is `key` keeps reading exactly as before.
+    // Feature f007.
+    fn at_function(&self, name: &str) -> bool {
+        matches!(self.peek(), Some(Token::Ident(got)) if got == name)
+            && matches!(self.peek_at(1), Some(Token::LParen))
+    }
+
+    /// Parse a target: a selector wrapping a path, or a bare path.
+    // Feature f007.
+    fn parse_target(&mut self) -> Result<Target> {
+        if self.at_function("key") {
+            return Ok(Target::Key(self.parse_selector_arg()?));
+        }
+        // Words the addressing grammar spells but this release does not
+        // implement. Recognised only to say so: without this they reach the
+        // path parser and report an unexpected token, which tells the user
+        // nothing about why their filter is not supported yet.
+        for pending in ["line_comment", "head_comment", "foot_comment"] {
+            if self.at_function(pending) {
+                return Err(YqrError::parse(format!(
+                    "'{pending}(...)' is not supported yet — comment editing is a \
+                     planned slice of the write tier; 'key(...)' is available today"
+                )));
+            }
+        }
+        Ok(Target::Value(self.parse_pipeline()?))
+    }
+
+    /// Consume `name '(' pipeline ')'`, returning the wrapped path. The
+    /// identifier and `(` have been confirmed by the caller but not consumed.
+    // Feature f007.
+    fn parse_selector_arg(&mut self) -> Result<Ast> {
+        self.advance(); // the selector word
         self.expect(&Token::LParen)?;
         let path = self.parse_pipeline()?;
         self.expect(&Token::RParen)?;
-        Ok(Program::Mutate(Mutation::Delete { path }))
+        Ok(path)
+    }
+
+    /// Parse a `del(<target>)` mutation. The opening `del` identifier and `(`
+    /// have been confirmed by the caller but not yet consumed.
+    // Feature f006, extended for f007's targets.
+    fn parse_del(&mut self) -> Result<Program> {
+        self.advance(); // `del`
+        self.expect(&Token::LParen)?;
+        let target = self.parse_target()?;
+        self.expect(&Token::RParen)?;
+        // A key has no existence apart from its entry, so there is no edit
+        // "delete the key" could mean that `del(<path>)` does not already
+        // spell. The grammar admits the form, so the refusal lives here.
+        if let Target::Key(_) = target {
+            return Err(YqrError::parse(
+                "del(key(...)) is not an edit: a key cannot outlive its entry. \
+                 Use del(<path>) to remove the whole entry, or key(<path>) = \"new\" \
+                 to rename it"
+                    .to_string(),
+            ));
+        }
+        Ok(Program::Mutate(Mutation::Delete { target }))
     }
 
     /// Parse the right-hand side of an assignment or append: a scalar literal
@@ -350,7 +427,10 @@ mod tests {
     fn plain_query_is_a_query_program() {
         assert_eq!(
             parse_program(".a.b").unwrap(),
-            Program::Query(Ast::pipe(Ast::Field("a".into()), Ast::Field("b".into())))
+            Program::Query(Target::Value(Ast::pipe(
+                Ast::Field("a".into()),
+                Ast::Field("b".into())
+            )))
         );
     }
 
@@ -359,7 +439,10 @@ mod tests {
         assert_eq!(
             parse_program(".spec.replicas = 5").unwrap(),
             Program::Mutate(Mutation::Assign {
-                path: Ast::pipe(Ast::Field("spec".into()), Ast::Field("replicas".into())),
+                target: Target::Value(Ast::pipe(
+                    Ast::Field("spec".into()),
+                    Ast::Field("replicas".into())
+                )),
                 rhs: Rhs::Literal(Value::Int(5)),
             })
         );
@@ -388,7 +471,7 @@ mod tests {
         assert_eq!(
             parse_program(".a = .b.c").unwrap(),
             Program::Mutate(Mutation::Assign {
-                path: Ast::Field("a".into()),
+                target: Target::Value(Ast::Field("a".into())),
                 rhs: Rhs::Path(Ast::pipe(Ast::Field("b".into()), Ast::Field("c".into()))),
             })
         );
@@ -410,7 +493,10 @@ mod tests {
         assert_eq!(
             parse_program("del(.metadata.labels)").unwrap(),
             Program::Mutate(Mutation::Delete {
-                path: Ast::pipe(Ast::Field("metadata".into()), Ast::Field("labels".into())),
+                target: Target::Value(Ast::pipe(
+                    Ast::Field("metadata".into()),
+                    Ast::Field("labels".into())
+                )),
             })
         );
     }
@@ -437,5 +523,114 @@ mod tests {
     fn del_without_parens_is_a_parse_error() {
         // `del` alone (no call parens) is not a valid query start.
         assert!(parse_program("del").is_err());
+    }
+
+    // -- Feature f007: the key selector -----------------------------------
+
+    #[test]
+    fn parses_a_key_read() {
+        assert_eq!(
+            parse_program("key(.metadata.name)").unwrap(),
+            Program::Query(Target::Key(Ast::pipe(
+                Ast::Field("metadata".into()),
+                Ast::Field("name".into())
+            )))
+        );
+    }
+
+    #[test]
+    fn parses_a_key_rename() {
+        let Program::Mutate(Mutation::Assign { target, rhs }) =
+            parse_program("key(.a) = \"b\"").unwrap()
+        else {
+            panic!("expected an assignment");
+        };
+        assert_eq!(target, Target::Key(Ast::Field("a".into())));
+        assert_eq!(rhs, Rhs::Literal(Value::String("b".into())));
+    }
+
+    #[test]
+    fn selector_words_stay_field_accesses_outside_function_position() {
+        // The whole "no new reserved words" claim, checked against the words
+        // this grammar actually spends. `swap` and `move` are ordinary YAML
+        // field names, so a regression here would break read-only queries.
+        for word in [
+            "key",
+            "del",
+            "swap",
+            "move",
+            "line_comment",
+            "head_comment",
+            "foot_comment",
+        ] {
+            let src = format!(".{word}");
+            assert_eq!(
+                parse_program(&src).unwrap(),
+                Program::Query(Target::Value(Ast::Field(word.into()))),
+                "{src} should parse as a field access"
+            );
+        }
+    }
+
+    #[test]
+    fn a_key_selector_iterates_like_the_path_it_wraps() {
+        assert_eq!(
+            parse_program("key(.items[])").unwrap(),
+            Program::Query(Target::Key(Ast::pipe(
+                Ast::Field("items".into()),
+                Ast::Iterate
+            )))
+        );
+    }
+
+    #[test]
+    fn del_still_takes_a_pipeline() {
+        // a002 2.3 keeps `del`'s existing argument rather than narrowing it to
+        // a bare path; this is the regression that narrowing would cause.
+        let Program::Mutate(Mutation::Delete { target }) = parse_program("del(.a | .b)").unwrap()
+        else {
+            panic!("expected a delete");
+        };
+        assert_eq!(
+            target,
+            Target::Value(Ast::pipe(Ast::Field("a".into()), Ast::Field("b".into())))
+        );
+    }
+
+    #[test]
+    fn del_of_a_key_is_refused_with_a_reason() {
+        let err = parse_program("del(key(.a))").unwrap_err();
+        let text = format!("{err}");
+        assert!(text.contains("cannot outlive its entry"), "got: {text}");
+        assert!(
+            text.contains("key(<path>) = "),
+            "should suggest rename: {text}"
+        );
+    }
+
+    #[test]
+    fn append_to_a_key_is_refused_with_a_reason() {
+        let err = parse_program("key(.a) += 1").unwrap_err();
+        assert!(
+            format!("{err}").contains("does not name a sequence"),
+            "got: {err}"
+        );
+    }
+
+    #[test]
+    fn unimplemented_selectors_name_themselves() {
+        for word in ["line_comment", "head_comment", "foot_comment"] {
+            let err = parse_program(&format!("{word}(.a)")).unwrap_err();
+            let text = format!("{err}");
+            assert!(text.contains(word), "message should name {word}: {text}");
+            assert!(text.contains("not supported yet"), "got: {text}");
+        }
+    }
+
+    #[test]
+    fn the_read_only_entry_point_rejects_a_selector() {
+        // `parse` feeds the classic pipeline, which has no document bytes.
+        let err = parse("key(.a)").unwrap_err();
+        assert!(format!("{err}").contains("normalize"), "got: {err}");
     }
 }

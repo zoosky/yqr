@@ -26,7 +26,7 @@
 // `noyalib` below is the local backend module; reach the crate's `Value`
 // re-export through `crate::` to avoid shadowing.
 use crate::Value;
-use crate::ast::Ast;
+use crate::ast::{Ast, Target};
 use crate::error::Result;
 
 mod noyalib;
@@ -214,6 +214,27 @@ pub trait FidelityEngine {
     ///
     /// Returns an error when `doc` is out of range.
     fn resolve(&self, doc: usize, path: &Path) -> Result<Resolved<'_>>;
+
+    /// The original bytes of the *key token* of the mapping entry at `path`.
+    ///
+    /// This is deliberately not answered from the resolved [`Path`]'s last
+    /// segment, which is the obvious shortcut and reports the wrong thing:
+    /// [`PathSeg::Key`] holds the key *decoded*, so it is the string the
+    /// filter named rather than the bytes the document holds. A key authored
+    /// `"a"` would read back as `a`, and a key reached through a `<<` merge
+    /// would read back a token that appears nowhere in the file. Reading the
+    /// document keeps `key(...)` on the same footing as every other read —
+    /// print the bytes that are there.
+    ///
+    /// `None` where the entry has no key token of its own: a sequence item,
+    /// an absent path, a merge-produced or alias-expanded key. Reads are
+    /// total, so the caller renders `null` rather than failing.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when `doc` is out of range.
+    // Feature f007.
+    fn key_bytes(&self, doc: usize, path: &Path) -> Result<Option<&str>>;
 }
 
 /// Parse `input` with the noyalib engine, keeping its bytes verbatim.
@@ -244,8 +265,76 @@ pub fn open(input: &str) -> Result<Box<dyn FidelityEngine>> {
 /// Returns an error when the filter does not parse, the engine rejects the
 /// input, or evaluation fails.
 pub fn run(filter: &str, input: &str, raw: bool) -> Result<String> {
-    let ast = crate::parser::parse(filter)?;
-    run_ast(&ast, input, raw)
+    match crate::parser::parse_program(filter)? {
+        crate::ast::Program::Query(target) => run_target(&target, input, raw),
+        crate::ast::Program::Mutate(_) => Err(crate::error::YqrError::parse(
+            "this filter performs a mutation; apply it through the write path \
+             (fidelity::write::apply)"
+                .to_string(),
+        )),
+    }
+}
+
+/// Like [`run_ast`], but over a whole read [`Target`] — a value path, or a
+/// selector naming something attached to the nodes a path selects.
+///
+/// A selector read iterates exactly as its inner path does, so
+/// `key(.items[])` yields one key per item, and yields `null` wherever there
+/// is nothing to report rather than failing the batch.
+///
+/// # Errors
+///
+/// Returns an error when the engine rejects the input or evaluation fails.
+// Feature f007.
+pub fn run_target(target: &Target, input: &str, raw: bool) -> Result<String> {
+    let Target::Key(path_ast) = target else {
+        return run_ast(target.path(), input, raw);
+    };
+    let engine = open(input)?;
+    let mut out = String::new();
+
+    for doc in 0..engine.doc_count() {
+        let value = engine.value(doc)?;
+        for (_, path) in crate::eval::eval_traced(path_ast, &value, Some(&Path::root()))? {
+            // A computed value has no path and therefore no entry, so there
+            // is no key to report — `null`, like every other empty read.
+            let bytes = match path {
+                Some(p) => engine.key_bytes(doc, &p)?,
+                None => None,
+            };
+            match bytes {
+                // The key token verbatim, quotes and all: a key authored
+                // `"a"` reads back `"a"`. `raw` unquotes it, matching how a
+                // string *value* prints under `-r`.
+                Some(bytes) => {
+                    out.push_str(&render_key(bytes, raw)?);
+                    out.push('\n');
+                }
+                None => out.push_str(&crate::render(&[Value::Null], raw)?),
+            }
+        }
+    }
+
+    Ok(out)
+}
+
+/// Render a key token for output: verbatim by default, or its decoded string
+/// value under `--raw-output`.
+///
+/// Decoding under `raw` goes through the same YAML load the read path uses
+/// elsewhere, so `'it''s'` prints `it's` rather than yqr re-implementing
+/// unescaping. A token that does not load as a scalar string keeps its bytes.
+fn render_key(bytes: &str, raw: bool) -> Result<String> {
+    if !raw {
+        return Ok(bytes.to_string());
+    }
+    match ::noyalib::cst::parse_document(bytes)
+        .ok()
+        .map(|d| Value::from(&*d.as_value()))
+    {
+        Some(Value::String(s)) => Ok(s),
+        _ => Ok(bytes.to_string()),
+    }
 }
 
 /// Like [`run`], but over an already-compiled read-only [`Ast`], so a caller

@@ -93,12 +93,65 @@ one-line diffs, which is a review someone can actually do.
 $ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
 $ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
 $ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
+$ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 ```
 
 `del` handles nested blocks and multi-line values, not just single lines,
 and closes the gap cleanly afterwards. Two cases are refused with a clear
 message rather than guessed at: removing the only entry of a block, and
 removing an item from a flow collection like `[a, b, c]`.
+
+## Renaming a key
+
+<!-- Feature f007 -->
+
+A path names a *value*, so there is no path that means "the key of this
+entry". `key(...)` wraps one and names the key instead:
+
+```console
+$ yqr 'key(.metadata.name)' deploy.yaml
+name
+$ yqr -i 'key(.metadata.name) = "title"' deploy.yaml
+```
+
+The rename rewrites the key token and nothing else. The value keeps its
+spelling, the entry keeps its position in the mapping -- a rename is not a
+delete followed by an insert -- and the comments stay where they were:
+
+```console
+$ cat deploy.yaml
+metadata:
+  # names the app
+  name: web  # required
+$ yqr -i 'key(.metadata.name) = "title"' deploy.yaml
+$ cat deploy.yaml
+metadata:
+  # names the app
+  title: web  # required
+```
+
+Reading a key gives you the token as the file spells it, quotes included,
+because the read slices the document rather than echoing back the path you
+typed. `-r` unquotes it, the same way it unquotes a string value:
+
+```console
+$ yqr 'key(.["retry count"])' config.yaml
+"retry count"
+$ yqr -r 'key(.["retry count"])' config.yaml
+retry count
+```
+
+`key(...)` reads are total: a sequence item has no key, and neither does a
+key that arrived through a `<<` merge, so both read `null` rather than
+failing a batch. Writing to those is refused with the reason, as is a
+rename that would collide with an existing sibling, or one to a name the
+path syntax could not address afterwards.
+
+One edge worth knowing, because it reads as a wrong answer rather than an
+error: a key containing `.` or `[` -- the `app.kubernetes.io/name` style --
+cannot be addressed by the path syntax at all, so `key(...)` on one reports
+`null` like any other keyless node. That limitation is not specific to
+renames; it is the same one listed below.
 
 ## Piping from kubectl
 
@@ -115,8 +168,8 @@ stdin. That is deliberate; there is nothing to write back to.
 
 Being straight about the edges, because finding them yourself is annoying:
 
-- **Renaming a key** or **editing a comment** is not in the released
-  grammar. Values, new keys, appends, and deletes are.
+- **Editing a comment** is not in the released grammar. Values, new keys,
+  appends, deletes, and key renames are.
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
 - **Keys containing `.` or `[`** -- the Kubernetes

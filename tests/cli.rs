@@ -608,3 +608,102 @@ fn multi_document_edit_leaves_other_documents_byte_identical() {
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "spec:\n  replicas: 9\n---\nkind: Service\n");
 }
+
+// -- Feature f007: the key selector ---------------------------------------
+
+#[test]
+fn key_read_prints_the_document_s_own_token() {
+    // Not the filter's path segment: a key authored with quotes reads back
+    // with them, because the read slices source bytes like every other read.
+    let out = run(&["key(.[\"a b\"])"], "\"a b\": 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "\"a b\"\n");
+}
+
+#[test]
+fn key_read_under_raw_output_unquotes() {
+    let out = run(&["-r", "key(.[\"a b\"])"], "\"a b\": 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a b\n");
+}
+
+#[test]
+fn key_read_streams_one_result_per_selected_node() {
+    let out = run(&["key(.items[])"], "items:\n  - a: 1\n  - b: 2\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    // Each item is a mapping, so each *item* has no key of its own: reads are
+    // total and report null rather than failing the batch.
+    assert_eq!(out.stdout, "null\nnull\n");
+}
+
+#[test]
+fn key_read_of_a_sequence_item_is_null_not_an_error() {
+    let out = run(&["key(.xs[0])"], "xs:\n  - one\n  - two\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "null\n");
+}
+
+#[test]
+fn key_read_of_a_merge_produced_key_is_null() {
+    // The key exists in the typed view but has no token in the file, which is
+    // exactly the case answering from the path segment would get wrong.
+    let input = "base: &b\n  x: 1\nuse:\n  <<: *b\n  y: 2\n";
+    let out = run(&["key(.use.x)"], input);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "null\n");
+}
+
+#[test]
+fn key_rename_in_place_rewrites_only_the_key_token() {
+    let original = "# app\nmetadata:\n  # names it\n  name: web  # why\n  tier: edge\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "key(.metadata.name) = \"title\"", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert!(out.stdout.is_empty(), "-i must not print to stdout");
+    assert_eq!(
+        read_back(&file),
+        "# app\nmetadata:\n  # names it\n  title: web  # why\n  tier: edge\n"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn refused_rename_leaves_the_file_unchanged_under_in_place() {
+    let original = "a: 1\nb: 2\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "key(.a) = \"b\"", path], "");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert_eq!(
+        read_back(&file),
+        original,
+        "refused edit must not touch file"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn del_of_a_key_is_a_parse_error() {
+    let out = run(&["del(key(.a))"], "a: 1\n");
+    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("cannot outlive its entry"),
+        "{}",
+        out.stderr
+    );
+}
+
+#[test]
+fn a_field_named_key_still_reads() {
+    let out = run(&[".key"], "key: value\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "value\n");
+}
+
+#[test]
+fn key_selector_is_refused_under_normalize() {
+    let out = run(&["--normalize", "key(.a)"], "a: 1\n");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("--normalize"), "{}", out.stderr);
+}

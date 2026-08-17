@@ -606,22 +606,40 @@ closed under rename.
 
 Three slices, ordered so the grammar lands under the simplest semantics.
 
-**Slice 1 — `key(...)` rename.** The whole new grammar path (selector, `Target`,
-one upstream call) under the operation with the fewest cases and the
-best-guarded upstream mutator.
+**Slice 1 — `key(...)` rename. Shipped 2026-08-16 (`yqr-f007`).** The whole new
+grammar path (selector, `Target`, one upstream call) under the operation with
+the fewest cases and the best-guarded upstream mutator.
 
-- [ ] `key(<path>) = "new"` renames in place; value, inline comment, and head
+- [x] `key(<path>) = "new"` renames in place; value, inline comment, and head
       comment stay byte-identical, and every other byte in the file does.
-- [ ] `key(<path>)` reads the key **token from the document** via `key_span`
+- [x] `key(<path>)` reads the key **token from the document** via `key_span`
       (§7.2): a key authored `"a"` reads back `"a"` with its quotes, not `a`.
-- [ ] Each §5.3 `key` row refuses with exit 5 and a message naming the reason;
+- [x] Each §5.3 `key` row refuses with exit 5 and a message naming the reason;
       `-i` leaves the file untouched on refusal. The empty-key row is yqr's own
       pre-check, not a forwarded error.
-- [ ] `key(.xs[0])` and a merge-produced key read `null` and do not fail the
+- [x] `key(.xs[0])` and a merge-produced key read `null` and do not fail the
       batch (§4.4), though the matching `=` refuses.
-- [ ] `.key`, `.swap` and `.move` still parse as field accesses.
-- [ ] `del(.a | .b)` still parses and deletes (§2.3 keeps `del`'s existing
+- [x] `.key`, `.swap` and `.move` still parse as field accesses — with
+      `.del`, `.line_comment`, `.head_comment` and `.foot_comment`, all seven
+      in one test.
+- [x] `del(.a | .b)` still parses and deletes (§2.3 keeps `del`'s existing
       argument), and `del(key(.a))` refuses with the §5.5 message.
+
+Two things the slice settled that this section had not anticipated:
+
+- **`key(<absent>) = "x"` is a no-op, not a new key.** The value assignment
+  path resolves through `resolve_assign_target`, whose absent-leaf branch
+  *creates* a mapping key. That is the wrong answer for a rename — there is no
+  key to rename — so the rename uses the plain resolver and skips the document,
+  as `del` does. §4.4's skip rule covers it, but the create-a-key branch is a
+  live trap for the comment slice too.
+- **An unaddressable key reads `null`, which is indistinguishable from
+  "keyless".** `key(.metadata.labels["app.kubernetes.io/name"])` reports `null`
+  rather than the §7.3 refusal, because §4.4 makes reads total and there is no
+  correct typed fallback (the path segment is what §7.2 exists to reject).
+  Documented in the guide rather than papered over. The value read has the same
+  shape — `Unaddressable` degrades to typed rendering — so this is the existing
+  contract rather than a new wrinkle, and it resolves when §7.3 does.
 
 **Slice 2 — `line_comment` / `head_comment`.** Adds the second and third
 selectors, `del(...)` composition, and the read path.

@@ -9,7 +9,7 @@ use std::io::{self, Read, Write};
 use std::process::ExitCode;
 
 use cli::Cli;
-use yqr::ast::Program;
+use yqr::ast::{Program, Target};
 use yqr::fidelity;
 use yqr::{YqrError, render};
 
@@ -93,10 +93,11 @@ fn run(args: &Cli, filter: &str) -> Result<String, YqrError> {
                 None => Ok(output),
             }
         }
-        Program::Query(ast) => {
+        Program::Query(target) => {
             if args.in_place {
                 return Err(YqrError::io(
-                    "--in-place requires a mutating filter (e.g. '.a = 5', '.xs += 1', 'del(.a)')"
+                    "--in-place requires a mutating filter (e.g. '.a = 5', '.xs += 1', \
+                     'del(.a)', 'key(.a) = \"b\"')"
                         .to_string(),
                 ));
             }
@@ -105,13 +106,27 @@ fn run(args: &Cli, filter: &str) -> Result<String, YqrError> {
                 // Opt-in classic pipeline: re-serialize from the typed value,
                 // normalizing formatting (comments dropped, scalars
                 // canonicalized).
-                let values = yqr::eval_ast_str(&ast, &input)?;
+                //
+                // A selector reads the document's own bytes, which the classic
+                // pipeline has thrown away by this point, so it is refused
+                // rather than silently answered from the typed view.
+                // Feature f007.
+                let Target::Value(ast) = &target else {
+                    return Err(YqrError::eval(format!(
+                        "'{}(...)' reads the document's own bytes, which --normalize \
+                         discards; run the same filter without --normalize",
+                        target
+                            .selector_name()
+                            .expect("a non-Value target has a selector name")
+                    )));
+                };
+                let values = yqr::eval_ast_str(ast, &input)?;
                 return render(&values, args.raw_output);
             }
             // Default: byte-preserving fidelity read. Untouched nodes are emitted
             // as their original source bytes; computed, absent, and unaddressable
             // nodes fall back to typed rendering per node.
-            fidelity::run_ast(&ast, &input, args.raw_output)
+            fidelity::run_target(&target, &input, args.raw_output)
         }
     }
 }
