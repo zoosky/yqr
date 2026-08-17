@@ -10,8 +10,15 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
+| [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Draft (scoped, not started) |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
+f017 is the one builtin **pulled forward** out of that queue, on field evidence
+rather than on the gap table: `yqr-r003` records an agent session that hit the
+"iterate a mapping and keep the keys" wall on a real file and left for a Python
+script. `key(...)` (`f007` §7) closed half of it after the fact; `to_entries`
+closes the other half, and turns out not to be gated on M1 object construction
+the way the queue assumed (`f017` §3).
 
 ## Epic: Fidelity-first architecture (a001)
 
@@ -149,9 +156,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 16
-- Draft: 2 (f008 — computed updates, gated on `f001` M2; f016 — noyalib 0.0.23
-  adoption, blocked on the release, and owing the `f007` §6 re-measurement)
+- Total features: 17
+- Draft: 3 (f008 — computed updates, gated on `f001` M2; f016 — noyalib 0.0.23
+  adoption, blocked on the release, and owing the `f007` §6 re-measurement;
+  f017 — `to_entries`, scoped from the `yqr-r003` usage report)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
   rename / reorder grammar settled in `yqr-a002` and staged as three slices,
   none implemented, and slice 3 blocked on `yqr-b010`)
