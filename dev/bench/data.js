@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786998941004,
+  "lastUpdate": 1787000208679,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1091,6 +1091,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 199418,
             "range": "± 718",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c827984ca4d01ae4d0de79fe3d930b6e913d4d4",
+          "message": "chore(deps): adopt noyalib 0.0.23; measure the delete-delegation question (#69)\n\n0.0.23 published 2026-08-17. The pin moves, the lockfile shows that one\ncrate and nothing else, and the whole suite passes untouched.\n\nb010 is fixed, and it is yqr's own commit: the reorder trivia change\nlanded as d397330 via upstream #271 and ships here, so an item's inline\nand head comments now travel with it. Verified against the published\ncrate rather than the branch, across all seven shapes including the\nno-final-newline case. That unblocks a002 slice 3, which leaves slices 2\nand 3 as implementation with nothing waiting on upstream.\n\nThe measurement f007 6 has owed since it settled \"delegate delete to\nupstream remove: no\" is run here, per test rather than in aggregate,\nbecause the aggregate is what hid the shape last time. Delete was routed\nto Document::remove on this branch, the suite run, and the patch\nreverted; the tree contains only the pin bump.\n\nSeven failures, all one shape: yqr refuses, upstream now succeeds. Five\nsole-entry, two flow-member. Not one is a trivia or fidelity divergence,\nand every other test in every suite passes. That kills the premise the\n0.0.22 record rested on -- it said the only two failures were flow cases\nwhere upstream also refused and only the diagnostic differed.\n\nBut the two halves are not one decision, which is the new information.\nThe flow-member output is exactly what a001 would want: one separator\ngoes with the member, from the correct side. The sole-entry output is\ncorrect in value and wrong in trivia -- the span it replaces begins below\nthe entry's head comment, so a comment that documented the removed entry\nsurvives and now documents an empty `{}`. Measured in every shape:\nsingle comment, contiguous run, and a document-level comment above a\nsingle-key document. An inline comment is correctly removed. That is the\nb006/b010 failure class a third time, found the same way each time.\n\nSo 5 stays open deliberately, with the evidence in front of it and a\nfourth option the original framing did not have: delegate the flow class,\nimplement the sole-entry class, each half going to whichever\nimplementation is already correct for it. Also flagged there as a scope\nquestion that survives any of them: whether `del` of a sole entry should\nwrite `{}` at all, given it turns a single-key document into `{}`.\n\nRe-checked because resolve_span and entry_line_span both changed in this\nrelease: all six b006 trivia cases still agree with delete_entry,\nblank-detached comment included. The trailing-newline defect upstream\nfound while building 0.0.23 does not reach yqr.\n\nb010 and b000 move to Resolved; the Open section is empty again. 4.4 is\nworth filing upstream regardless of what yqr decides, and is tracked in\n7's criteria.",
+          "timestamp": "2026-08-17T22:55:21+02:00",
+          "tree_id": "76f8adae5f193592f162d8ad0e03db333735a528",
+          "url": "https://github.com/zoosky/yqr/commit/4c827984ca4d01ae4d0de79fe3d930b6e913d4d4"
+        },
+        "date": 1787000206107,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 527,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5178,
+            "range": "± 88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 251520,
+            "range": "± 1482",
             "unit": "ns/iter"
           }
         ]
