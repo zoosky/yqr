@@ -2,214 +2,222 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://zoosky.github.io/yqr/</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/compare</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/compare/yq</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/demo</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/guide</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/guide/fidelity</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/guide/kubernetes</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/guide/validate</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/architecture</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/architecture/yqr-a001-fidelity-surgical-edit</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/architecture/yqr-a002-non-value-addressing-grammar</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b001-roundtrip-discards-whitespace-and-formatting</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b002-noyalib-cst-span-and-key-model-deficiencies</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b003-rustyaml-roundtrip-trailing-doc-end-marker</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b004-noyalib-cst-mutation-api-gaps</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b005-crossbeam-epoch-advisory-via-criterion</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b006-structural-delete-trivia-and-fidelity</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b007-site-links-broken-under-accent-0-23-1</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b008-fragment-splice-corrupts-multiline-inserts</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b009-inserted-lines-break-crlf-documents</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f001-yaml-jq-m0</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f002-fidelity-read-floor</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f003-fidelity-backend-a-rustyaml</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f004-engine-parity-runtime-switch</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f005-preserve-flag-decouple</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f006-fidelity-write-tier</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f008-write-tier-computed-updates</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f009-fidelity-default-normalize</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f010-accent-website</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f011-remove-engine-flag</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f012-validate-command</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f015-noyalib-0-0-22-adoption</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/features/yqr-f016-noyalib-0-0-23-adoption</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/specs/features/yqr-f017-to-entries</loc>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/implementation</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/implementation/yqr-m001-ci-release-process</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/implementation/yqr-m002-fidelity-engine-adapter</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/implementation/yqr-m003-shared-corpus</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/implementation/yqr-m004-crates-io-release-posture</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/implementation/yqr-m005-single-engine-noyalib</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/marketing</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/marketing/yqr-k001-content-plan</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/research</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/research/yqr-r001-jq-feature-gap</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/research/yqr-r002-noyalib-fidelity-evaluation</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/specs/research/yqr-r003-agent-usage-report-query-gaps</loc>
+    <lastmod>2026-08-17</lastmod>
   </url>
 </urlset>

@@ -3780,8 +3780,15 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
+| [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Draft (scoped, not started) |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
+f017 is the one builtin **pulled forward** out of that queue, on field evidence
+rather than on the gap table: `yqr-r003` records an agent session that hit the
+"iterate a mapping and keep the keys" wall on a real file and left for a Python
+script. `key(...)` (`f007` §7) closed half of it after the fact; `to_entries`
+closes the other half, and turns out not to be gated on M1 object construction
+the way the queue assumed (`f017` §3).
 
 ## Epic: Fidelity-first architecture (a001)
 
@@ -3919,9 +3926,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 16
-- Draft: 2 (f008 — computed updates, gated on `f001` M2; f016 — noyalib 0.0.23
-  adoption, blocked on the release, and owing the `f007` §6 re-measurement)
+- Total features: 17
+- Draft: 3 (f008 — computed updates, gated on `f001` M2; f016 — noyalib 0.0.23
+  adoption, blocked on the release, and owing the `f007` §6 re-measurement;
+  f017 — `to_entries`, scoped from the `yqr-r003` usage report)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
   rename / reorder grammar settled in `yqr-a002` and staged as three slices,
   none implemented, and slice 3 blocked on `yqr-b010`)
@@ -6911,6 +6919,196 @@ tests upstream — is recorded in `yqr-f007` §5.1 and is not taken up here.
 
 ---
 
+# Feature f017 — `to_entries`: enumerate a mapping without losing the keys
+
+URL: /yqr/specs/features/yqr-f017-to-entries
+
+# Feature f017 — `to_entries`: enumerate a mapping without losing the keys
+
+**Status:** Draft (scoped; not started)
+**Epic:** jq-style YAML processor (`f001`) — promoted out of the M2 builtin core
+**Owner:** yqr maintainers
+**Related:** `yqr-r003` (the usage report that promoted this), `yqr-r001` §5
+(the builtin gap table this is the first entry pulled from), `yqr-f007` §7 /
+`yqr-a002` (the `key(...)` selector that proves the plumbing), `yqr-a001` (the
+fidelity contract this deliberately steps outside of), `yqr-f001` (the M1/M2
+roadmap this jumps the queue of)
+
+## 1. Scope
+
+One builtin: `to_entries`, which turns a mapping into a sequence of key/value
+pairs so a filter can act on both halves at once.
+
+**In scope:** the builtin, its grammar position, its fidelity semantics, and
+`from_entries`' deliberate exclusion.
+
+**Out of scope, and each stays queued behind M1/M2 as `yqr-r001` has it:**
+`select`, `map`, `with_entries`, `keys`, string concatenation and
+interpolation. This feature makes the pairing *available*; making it
+*transformable* is the language work, and pulling one builtin forward is not an
+argument for pulling the rest.
+
+## 2. The problem
+
+`.services[]` iterates a mapping's **values**, so the keys are gone by the time
+anything downstream can use them. On the most ordinary YAML layout there is —
+a mapping of named things — yqr can produce the data and cannot say what it is
+about. `yqr-r003` records a real session that hit exactly this and left for a
+Python script.
+
+`key(...)` (`yqr-f007` §7) closes half of it: `key(.services[])` enumerates the
+names, and because a missing field yields `null` rather than skipping, the
+names and the values stay index-aligned, so `paste` pairs them
+(`yqr-r003` §5).
+
+Two aligned streams are not pairs, though. Nothing *inside* yqr can act on a
+key and its value together, which is what a single filter needs in order to
+grow `select` or string building later.
+
+## 3. Why this is not blocked on M1 construction
+
+The assumption that kept `to_entries` queued: jq's version returns objects
+(`[{"key": k, "value": v}]`), yqr has no object-construction syntax, therefore
+`to_entries` waits for M1.
+
+**The gate is imaginary.** Object *construction syntax* is what M1 owes —
+`{a: .x}` written by a user. A builtin does not need it: it constructs a
+`Value` in Rust, and yqr's renderer already emits any `Value`, mappings
+included. Verified on the shipped binary, which renders a mapping value
+through exactly that path today:
+
+```console
+$ yqr --normalize '.a' f.yaml
+x: 1
+y: two
+```
+
+So the only genuinely new machinery is the builtin itself.
+
+## 4. Surface
+
+```console
+$ yqr '.services | to_entries'
+- key: alpha
+  value:
+    domain: alpha.example.com
+    tier: edge
+- key: beta
+  value:
+    domain: beta.example.com
+    tier: core
+
+$ yqr -r '.services | to_entries[] | .key'
+alpha
+beta
+```
+
+`key` / `value` are jq's field names, kept deliberately: the shape is worth
+nothing if it does not transfer.
+
+Order is the mapping's **document order**, not sorted. yqr's value model is
+order-preserving (`indexmap`), the read path is order-preserving, and a
+`to_entries` that sorted would silently break the §2 pairing against
+`.services[].domain`. jq sorts object keys; yqr does not, and this is one of
+the places that difference is load-bearing rather than cosmetic.
+
+## 5. Grammar
+
+`to_entries` is a **bare identifier in term position**, matching jq, and it
+costs no reserved word — the same argument `yqr-a002` §2.3 makes for `key`,
+reached from the other side:
+
+```text
+term := path ('?')*
+      | builtin ('?')*          ; new
+builtin := 'to_entries'
+```
+
+Every yqr path starts with `.`, so an identifier at the start of a term cannot
+be one. `.to_entries` keeps reading a field named `to_entries`, exactly as
+`.key` and `.del` still do — and that is the property to pin with a test, not
+to assume.
+
+Note the difference from `key(...)`: a *selector* wraps a path and is
+recognised by the `(` that follows it; a *builtin* takes its input from the
+pipe and is recognised by being an identifier where a path was expected. Both
+avoid reserving the word. The AST gains an `Ast::Builtin` variant rather than
+overloading `Ast::Field`.
+
+`to_entries[]` must parse as "the builtin, then iterate", so the postfix
+bracket suffix has to apply to a builtin term as well as a path term. This is
+the one place the grammar change is more than additive, and it is worth getting
+right in the first slice rather than discovering it in the second.
+
+## 6. Fidelity semantics
+
+`to_entries` produces a **computed** value: it has no single node in the source
+document, so it has no path and no byte span. That is not a gap, it is the
+existing contract — `yqr-a001` §4 and `fidelity::run_ast`'s `None` arm already
+render computed results through the typed renderer.
+
+Two consequences worth stating so nobody reads them as bugs:
+
+- **Output is normalized, not byte-preserved.** Comments, quote styles and
+  scalar spellings inside the emitted pairs are the renderer's, not the file's.
+  `to_entries` is a *query* form; the fidelity guarantee is about reads that
+  name a node and about edits, and this names no node.
+- **It is read-only.** `to_entries` cannot appear on the left of `=`, `+=` or
+  inside `del(...)`. There is nothing to write back to — the pairs are a view
+  yqr invented. Refused at parse, with a message that says so rather than a
+  generic one (the `yqr-a002` §8 pattern).
+
+## 7. What is refused
+
+| Case | Result |
+|---|---|
+| `to_entries` on a sequence | error naming the type: jq refuses this too |
+| `to_entries` on a scalar or `null` | same |
+| `to_entries = ...`, `del(to_entries)` | parse error: it names no node to write |
+| `.to_entries` | **unchanged** — a field access |
+
+## 8. `from_entries` is deliberately excluded
+
+The inverse looks like the natural pair, and it is not, for this release:
+`from_entries` is only useful once a filter can *build* the pairs it consumes,
+which needs object construction and `map` — both M1/M2. Shipping it now would
+add an operation whose only possible input is `to_entries`' unmodified output,
+i.e. the identity function spelled in two builtins.
+
+Recorded so it does not read as an oversight, on the precedent of upstream
+declining `remove_subtree` for the same reason (`yqr-b004` §7).
+
+## 9. Acceptance criteria
+
+- [ ] `.m | to_entries` yields one `{key, value}` mapping per entry, in
+      document order.
+- [ ] `to_entries[]` parses and streams the pairs.
+- [ ] `.to_entries` still parses as a field access, with a test that would fail
+      if the word were reserved.
+- [ ] Non-mapping input is refused with a message naming the actual type.
+- [ ] Every write form (`=`, `+=`, `del`) is refused at parse with a reason.
+- [ ] The order property is pinned against a mapping whose keys are not in
+      sorted order, so a future sort cannot land silently.
+- [ ] The `yqr-r003` §2 task is a single yqr invocation, and that invocation is
+      a corpus case.
+- [ ] `docs/content/guide/` gains the enumeration idiom (CLAUDE.md rule 15),
+      alongside the `key(...)` two-stream form, with the difference stated.
+
+## 10. Open question
+
+**Whether `key(...)` and `to_entries` should stay two ways to enumerate.**
+After this ships, `key(.m[])` and `.m | to_entries[] | .key` both produce a
+mapping's keys. That is one more way than a small tool wants.
+
+They are not redundant: `key(...)` reads the document's own key **token**
+(quotes included — `yqr-a002` §7.2), while `to_entries` yields the decoded
+string, because its output is a computed value with no bytes. So they differ
+exactly where fidelity does. That is a real distinction and also a subtle one,
+and it should be settled and documented in this feature rather than discovered
+by a user comparing two outputs that differ by a pair of quotes.
+
+---
+
 # Implementation Specs
 
 URL: /yqr/specs/implementation
@@ -7998,8 +8196,15 @@ URL: /yqr/specs/research
 
 # Research Notes
 
-Evaluations and investigations (`yqr-rNNN-*`), such as the jq feature-gap
-analysis and the noyalib fidelity evaluation.
+Evaluations and investigations (`yqr-rNNN-*`).
+
+- **r001** — the jq feature-gap analysis: what yqr's filter language does not
+  have, feature by feature, and where each sits on the roadmap.
+- **r002** — the noyalib fidelity evaluation: whether the CST round-trips
+  byte-for-byte, which is the bet `yqr-a001` rests on.
+- **r003** — the first external agent usage report: which gap a real session
+  hit first, and what it did next. Field evidence for r001's table, and the
+  reason `yqr-f017` jumped the builtin queue.
 
 ---
 
@@ -8683,6 +8888,191 @@ green-tree-of-lengths + `Arc<str>` source + splice design (§6) as the blueprint
 source by an adversarial review pass; the `b001`-corpus round-trip, surgical edit,
 multi-doc, and BOM results were obtained by running `noyalib` over the corpus in a
 path-dependency harness; crates.io metadata was fetched directly.*
+
+---
+
+# Research r003 — First external agent usage report: where yqr sends people back to a script
+
+URL: /yqr/specs/research/yqr-r003-agent-usage-report-query-gaps
+
+# Research r003 — First external agent usage report: where yqr sends people back to a script
+
+**Status:** Accepted (the report is recorded and its claims re-measured; the
+one actionable item is scoped as `yqr-f017`)
+**Owner:** yqr maintainers
+**Last updated:** 2026-08-17
+**Measured against:** yqr **0.5.1** (the released binary the session used) and
+`yqr-f007` §7's `key(...)`, which landed after it
+**Related:** `yqr-r001` (the jq feature-gap table this report is field evidence
+for), `yqr-f001` (the M1/M2 roadmap that owns most of the gaps),
+`yqr-f017` (the one gap this report promotes), `yqr-a002` (the addressing
+grammar whose slice 1 closes half of the headline complaint)
+
+## 1. Why this is worth a spec
+
+`yqr-r001` catalogues yqr's distance from jq feature by feature, from the
+outside in. This is the first record of someone **hitting** that distance while
+doing real work, and it is a different kind of evidence: it says which gap was
+reached first, what the user did next, and how far they got before giving up.
+
+The session was an agent (Copilot, Opus-class model) asked to extract a value
+from every entry of a Helm values file and report it alongside the entry it
+belonged to. It reached for yqr, hit a wall, and **fell back to a Python
+script**. The report it wrote afterwards is the primary source for §3.
+
+**Source data is not reproduced here.** The file lived in a private repository;
+every transcript below was re-measured against a synthetic fixture of the same
+*shape*, and that fixture is what the spec quotes.
+
+```yaml
+services:
+  alpha:
+    domain: "alpha.example.com"
+    tier: edge
+  beta:
+    domain: "beta.example.com"
+    tier: core
+  gamma:            # deliberately missing `domain` — see §5
+    tier: core
+```
+
+The real file was that shape at a couple of dozen entries, inside a deeper
+tree, with anchors, aliases and a merge key.
+
+## 2. The task, and how far yqr got
+
+**Task:** for each named entry, output the entry's name and its `domain`.
+
+The value half is a one-liner and always was:
+
+```console
+$ yqr -r '.services[].domain'
+alpha.example.com
+beta.example.com
+null
+```
+
+The name half is what failed. `.services[]` iterates the mapping's *values*, so
+the keys are gone by the time the filter can act on them. That is the whole
+report in one sentence: **yqr could produce the data but not say what it was
+about.**
+
+## 3. The report's claims, re-measured
+
+All five reproduce exactly as reported on 0.5.1. Nothing below is disputed.
+
+| # | Claim | Measured on 0.5.1 |
+|---|---|---|
+| 1 | no `keys` / `to_entries` | `keys` -> `parse error: expected Dot but found Ident("keys")`; same for `to_entries` |
+| 2 | no string `+` | `.a + .b` -> `lex error: unexpected character '+' (did you mean '+=' ?)` |
+| 3 | no `select` / `map` / `\|=` | `select` and `map` fail as unknown identifiers; `\|=` reports its own "not yet supported" |
+| 4 | filter is mandatory, jq-subset only | correct |
+| 5 | `-i` needs a mutating filter and a real file | correct, and deliberate (`yqr-f006`) |
+
+Claim 2's error message is worth noting as a small success: the lexer's
+`did you mean '+='?` hint is what let the reporter conclude, correctly, that
+`+` exists only as a compound-assignment operator rather than being unlexable.
+A generic "unexpected character" would have left that ambiguous.
+
+## 4. Claim 1 is already half wrong, one day later
+
+`yqr-a002` slice 1 shipped `key(...)` (`yqr-f007` §7) after the session ran. It
+was designed for renaming a key, and it answers `keys` as a side effect,
+because the selector wraps an ordinary path and therefore iterates like one:
+
+```console
+$ yqr -r 'key(.services[])'
+alpha
+beta
+gamma
+```
+
+That is the enumeration the report calls impossible. Paired with the value
+half, the task no longer needs a script:
+
+```console
+$ paste <(yqr -r 'key(.services[])' f.yaml) <(yqr -r '.services[].domain' f.yaml)
+alpha   alpha.example.com
+beta    beta.example.com
+gamma   null
+```
+
+**What it does not give is `to_entries`.** Two aligned streams are not pairs:
+nothing downstream of yqr can filter, reshape, or build a string from them
+without leaving yqr. The reporter's own framing — *"`.services[].domain` gives
+you values but throws away which entry they belong to"* — is now half-answered,
+and the remaining half is the one §6 promotes.
+
+## 5. The alignment is a property, not a coincidence
+
+The `paste` idiom above is only trustworthy if the two streams cannot drift out
+of step. They cannot, and the fixture's `gamma` is why it is in the fixture: a
+missing field yields `null` rather than being skipped, so both streams emit
+exactly one line per entry.
+
+```text
+keys:    alpha  beta  gamma
+domains: alpha.example.com  beta.example.com  null
+```
+
+This follows from `.a` on a mapping without `a` yielding `null` (jq's rule,
+`yqr-f001` M0), and it is worth stating because the obvious alternative — a
+filter that silently skipped keyless entries — would make the idiom produce
+*plausible, wrongly-paired output*, which is the failure class yqr exists to
+refuse. Recorded as a property to keep, not an accident to rely on.
+
+## 6. What this changes, and what it does not
+
+**Most of the report is the roadmap working as designed.** `r001` already
+classes `keys`/`select`/`map` as M2 builtins and string interpolation as M1
+construction; `f001` sequences them. Nothing here argues for reordering M1 and
+M2 wholesale, and the report's own conclusion — that yqr is for surgical
+format-preserving edits and jq/yq are for querying — is the conclusion yqr's
+own documentation reaches.
+
+**One item is promoted out of that queue: `to_entries`.** Three reasons, none
+of which apply to the rest of the M2 builtin core:
+
+1. **It is the shape that actually defeated a real user**, and it defeated them
+   on the single most common YAML layout there is — a mapping of named things.
+2. **The path plumbing already exists.** `key(...)` proves the evaluator can
+   recover an entry's key at read time; `to_entries` needs no new addressing
+   work, only a value to hand back.
+3. **It is not gated on M1 construction**, which is the assumption that would
+   have kept it queued. jq's `to_entries` returns objects, and yqr has no
+   object-construction *syntax* — but a builtin constructs a `Value` in Rust,
+   and `render` already emits any `Value` including mappings. The gate is
+   imaginary. See `yqr-f017` §3.
+
+Scoped as **`yqr-f017`**.
+
+**Explicitly not promoted:** `select`, `map`, string concatenation and
+interpolation. Each is genuinely M1/M2, each is a bigger language commitment
+than one builtin, and the report reached them only *after* `to_entries` had
+already sent it to Python — so they are evidence of where the wall is, not of
+what to build next.
+
+## 7. The compliment is load-bearing too
+
+The report's positive half was not measured by its author, so it was measured
+here, against the same private file:
+
+- `yqr '.'` on the real file is **byte-identical** to the input — anchors,
+  aliases, merge keys, comment blocks and trailing comments all intact.
+- A targeted edit changed exactly one line of the file and nothing else.
+
+Both held. That is the property `yqr-a001` exists for, confirmed on a real
+document yqr had never seen, which is worth recording precisely because the
+rest of this spec is about gaps.
+
+## 8. Provenance
+
+- The agent session and its written report, 2026-08-17. Not reproduced;
+  §3 restates its claims and §1 describes the input's shape.
+- yqr **0.5.1** (`cargo install`ed release) for every §3 transcript, re-run
+  against the synthetic fixture on 2026-08-17.
+- `yqr-f007` §7's `key(...)` for §4, from the feature branch, since it is not
+  in 0.5.1.
 
 ---
 

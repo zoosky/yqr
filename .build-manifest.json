@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-16T14:58:53Z",
+  "timestamp": "2026-08-17T20:28:54Z",
   "pages": {
     "/": {
       "content_hash": "0069f998b82fa6e5",
@@ -128,7 +128,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "2e2ca5cfc1dffec2",
+      "content_hash": "a3dd27ef58f5fffb",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -212,6 +212,11 @@
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
+    "/specs/features/yqr-f017-to-entries": {
+      "content_hash": "3007740c34c11fd9",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
     "/specs/implementation": {
       "content_hash": "143f803bc7ff1d07",
       "template": "docs.html.jinja",
@@ -253,7 +258,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/research": {
-      "content_hash": "990875d63bf31b23",
+      "content_hash": "7ee9a41c79727d16",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -264,6 +269,11 @@
     },
     "/specs/research/yqr-r002-noyalib-fidelity-evaluation": {
       "content_hash": "a0d878c2520dc856",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
+    "/specs/research/yqr-r003-agent-usage-report-query-gaps": {
+      "content_hash": "8788488a411dc1ea",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     }
