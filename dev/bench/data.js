@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786828346784,
+  "lastUpdate": 1786998941004,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1049,6 +1049,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 263671,
             "range": "± 1314",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dfaf994c6d790b33e407095ddebaebb86881cd4c",
+          "message": "feat(write): rename a key with key(<path>) = \"new\" (a002 slice 1) (#67)\n\nyqr's path grammar addresses value nodes and only value nodes, so until now\nthere was no filter that could say \"the key of this entry\". Renaming meant\ndeleting the entry and writing it back, which loses its position in the\nmapping and its comments. a002 settled the grammar; this is its first\nslice, and the whole new path -- selector, Target, one upstream call --\nlands under the operation with the fewest cases.\n\n    key(.metadata.name)              read the key token\n    key(.metadata.name) = \"title\"    rename it in place\n\nThe rename rewrites the key token and nothing else: the value keeps its\nspelling, the entry keeps its position, and the head and inline comments\nstay put. Routed to noyalib's rename_key, which matches the neighbouring\nquote style and carries a re-parse guard.\n\nThe read deliberately does *not* come from the resolved Path's last\nsegment, which is the obvious shortcut and reports the wrong thing.\nPathSeg::Key is stored decoded, so it is the string the filter named rather\nthan the bytes the document holds: a key authored \"a\" would read back a,\nand a key reached through a << merge would read back a token that appears\nnowhere in the file. It goes through Document::key_span and the existing\nread seam instead, so key(...) prints the bytes that are there like every\nother read -- and key_span returning None is both the source of the bytes\nand the test for whether there are any.\n\nReads stay total (a002 4.4): a sequence item, a merge-produced key, an\nalias site and an absent path all read null rather than failing a batch,\neven where the matching `=` refuses.\n\nGrammar notes. `key` is recognised only in function position, so .key is\nstill a field access -- along with .swap, .move, .del and the three comment\nwords, all seven in one test, because swap and move are ordinary YAML field\nnames. del's argument is unchanged and still takes a pipeline, so\ndel(.a | .b) parses and deletes as before; what is new is that it takes a\nTarget, which is what makes del(key(...)) expressible and therefore\nrefusable with a reason rather than a syntax error. The unimplemented\ncomment selectors are recognised too, only so the error names them.\n\nOne trap found while building it, recorded in a002 9 and f007 7.2: value\nassignment resolves through resolve_assign_target, whose absent-leaf branch\n*creates* a mapping key. That is right for .a.b = 1 and wrong for a rename,\nwhere an absent path means there is no key to rename -- so the rename uses\nthe plain resolver and skips the document, as del does. The comment slice\nmeets the same fork.\n\nOne edge documented rather than solved: a key holding `.` or `[` is\nunaddressable, so key(...) on one reads null -- the same answer as \"no\nkey\". Reads are total and there is no correct typed fallback, so the guide\nsays so plainly. It resolves when the dotted-key item does.\n\nCoverage: 13 write-path unit tests, 4 on key_bytes, 9 on the grammar, 10\nblack-box CLI tests including -i and the refusal-leaves-the-file-untouched\ncontract, and 3 shared-corpus EngineCases -- one a merge-produced key, the\ncase that separates a document read from an echo. Local CI green.\n\nPublic API: Program::Query and Mutation::Assign/Delete now carry a Target,\na breaking change to the library surface (minor bump pre-1.0, m001 3).",
+          "timestamp": "2026-08-17T22:34:28+02:00",
+          "tree_id": "4d4a427bd43e6b268966b4b87b8b345432818e8d",
+          "url": "https://github.com/zoosky/yqr/commit/dfaf994c6d790b33e407095ddebaebb86881cd4c"
+        },
+        "date": 1786998939286,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 393,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4012,
+            "range": "± 49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 199418,
+            "range": "± 718",
             "unit": "ns/iter"
           }
         ]
