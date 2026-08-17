@@ -1,10 +1,9 @@
 # Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind
 
-**Status:** Open — filed upstream 2026-08-16 as
-[noyalib#269](https://github.com/sebastienrousseau/noyalib/issues/269), with a
-fix offered as [noyalib#270](https://github.com/sebastienrousseau/noyalib/pull/270).
-Awaiting the maintainer's decision, which is a **semantics** call rather than a
-defect triage — see §1.1
+**Status:** Resolved (2026-08-17) — the maintainer took the semantics yqr
+argued for; the fix is yqr's own commit `d397330`, landed via upstream #271 and
+**released in noyalib 0.0.23**. Adopted by `yqr-f016`, which verified it
+against the published crate. `noyalib#269` closed 2026-08-16
 **Severity:** Medium — a silent wrong result at exit 0, not a refusal
 **Component:** noyalib `cst::Document::swap_items` / `cst::Document::move_item`
 (upstream), reached from yqr's planned reorder verb
@@ -188,9 +187,33 @@ only if it happens.
       noyalib#269, 2026-08-16.
 - [x] Framing corrected upstream once the pinning test was found (§1.1).
 - [x] Fix offered as a PR — noyalib#270.
-- [ ] Maintainer's decision on the semantics.
-- [ ] A released noyalib moves an entry's inline and head comments with the
-      item, for both `swap_items` and `move_item`.
-- [ ] `yqr-a002` §9 slice 3's criteria pass against that release.
-- [ ] `yqr-b000` and this file move to Resolved (or Won't Fix, §6) in the same
-      change.
+- [x] Maintainer's decision on the semantics — taken, in yqr's favour, with
+      the re-framing explicitly endorsed.
+- [x] A released noyalib moves an entry's inline and head comments with the
+      item, for both `swap_items` and `move_item` — 0.0.23, verified against
+      the published crate (`yqr-f016` §3).
+- [ ] `yqr-a002` §9 slice 3's criteria pass against that release — the slice is
+      unblocked but not implemented.
+- [x] `yqr-b000` and this file moved to Resolved in the same change.
+
+## 8. Close-out
+
+Two things worth keeping from how this went, both about the *report* rather
+than the fix:
+
+- **The §1.1 correction was the load-bearing move.** Filing it as a defect was
+  wrong, and saying so before the maintainer spent time on it is what the
+  close-out singled out: *"'Defect' would have been the wrong word, you caught
+  it before we spent time on it, and you re-put it as the design question it
+  actually was. That saved a round trip."*
+- **The argument that won was internal consistency**, not correctness in the
+  abstract — `remove` and reorder cannot hold opposite views of who owns a
+  comment. Conceding the inline-comment half, and declining to split head from
+  inline, were both endorsed as correct.
+
+Two defects in yqr's PR were fixed by the maintainer on top, both yqr's and
+both documentation-only: a public doc comment linked a private item (rejected
+under `-D rustdoc::private_intra_doc_links`, a gate yqr's own `local-ci.sh`
+does not have), and a new function inserted above an existing one landed
+*between* that function and its doc comment, silently leaving it undocumented.
+Neither is caught by clippy or by any test.

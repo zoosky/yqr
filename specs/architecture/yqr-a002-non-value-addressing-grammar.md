@@ -1,7 +1,7 @@
 # Architecture a002 — Addressing what is not a value: comments, keys, and sequence order
 
-**Status:** Accepted (grammar settled; the three slices are staged in §9, and
-one of them is blocked on an upstream defect — `yqr-b010`, §6)
+**Status:** Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are
+staged in §9 and **both unblocked** as of noyalib 0.0.23 — `yqr-b010` is fixed)
 **Owner:** yqr maintainers
 **Last updated:** 2026-08-16
 **Decides:** the "final syntax TBD" left open by `yqr-f007` §4 and §6 for
@@ -469,34 +469,32 @@ of §5.1–§5.3: every row whose right-hand column is a yqr pre-check rather th
 a forward. That is the real cost estimate for the comment slice, and none of it
 was visible from the docs.
 
-## 6. Sequence reorder is blocked: upstream moves values, not entries
+## 6. Sequence reorder: blocked, then unblocked
 
-The grammar for reorder is settled. The slice is not shippable on 0.0.22, and
-this was found by measuring rather than by review.
+Kept as written history, because the sequence of events is the point.
 
-`swap_items` and `move_item` exchange **value bytes** and nothing else, so
-every comment stays attached to the position rather than to the item it
-documents — at `Ok` and exit 0, and past upstream's own integrity guard by
+`swap_items` and `move_item` exchanged **value bytes** and nothing else, so
+every comment stayed attached to the position rather than to the item it
+documented — at `Ok` and exit 0, and past upstream's own integrity guard by
 construction, since that guard compares typed values and a comment is not in
-one. `-i` would write it to the user's file.
+one. Found by measuring while settling this grammar, and it is why §9 staged
+this slice last.
 
-**The measurement, the guard argument and the route are recorded once, in
-`yqr-b010`**, which is the open bug the upstream filing will hang on. They are
-not restated here; what belongs in this document is the consequence for the
-grammar it settles.
+**Resolved in noyalib 0.0.23** (`yqr-b010`, `yqr-f016` §3). The measurement,
+the correction of its framing — upstream's behaviour was deliberate and tested,
+so this was a semantics disagreement rather than a defect — and the argument
+that settled it are all recorded there, once.
 
-That consequence is: the reorder verb is designed and staged, and it does not
-ship on 0.0.22. This is the `yqr-b006` failure class and the exact defect yqr
-already refused to inherit once — `yqr-f007` §5.1 declines upstream `remove`
-because a head comment "survives, silently re-attributed to the next sibling".
-Reorder re-attributes every comment in the affected range. It is also the case
-that most needs the fix: a commented list item is the normal shape of the files
-yqr targets (`spec.containers`, GitHub Actions `steps`, Ansible tasks).
+The argument is worth restating here because it is the same one this document
+makes elsewhere: `remove` already treats the contiguous same-indent comment run
+above an entry as *owned by that entry*, and a reorder that left it behind
+would have two mutators in one crate holding opposite views of who owns the
+same bytes. That is `yqr-f007` §5.1's failure class, and §4.1.1 declines
+upstream's leading-comment block definition on exactly the same grounds.
 
-Until `yqr-b010` lands, `swap`/`move` either stay unimplemented or ship with a
-yqr-side refusal when either item carries a comment. The refusal is honest and
-small, but it declines the common case, which is why §9 sequences this slice
-last rather than shipping a stub.
+So the slice is unblocked. What remains is implementation, and slice 3's
+trivia criterion is now met by the backend rather than needing a yqr-side
+refusal.
 
 ## 7. Compiler surface
 
@@ -665,12 +663,16 @@ selectors, `del(...)` composition, and the read path.
       accesses; `foot_comment(.a)` refuses with the §8 reason, not a generic
       parse error.
 
-**Slice 3 — `swap` / `move`.** Blocked on `yqr-b010` (§6). Ships when the
-upstream reorder moves an entry's trivia with it, or with an explicit
-refusal-when-commented and that limit documented.
+**Slice 3 — `swap` / `move`. Unblocked 2026-08-17** (§6): noyalib 0.0.23 moves
+an entry's trivia with it, so this ships as a call rather than as a refusal.
+The `refusal-when-commented` fallback this section reserved is no longer
+needed and is withdrawn.
 
 - [ ] `swap`/`move` on an uncommented block sequence, byte-exact elsewhere.
-- [ ] An item's inline and head comments travel with the item.
+- [ ] An item's inline and head comments travel with the item — met by the
+      backend as of 0.0.23; the test pins it against future engine drift, which
+      is the whole reason it is a criterion rather than an assumption.
+- [ ] A flow sequence keeps upstream's value-span exchange and is not refused.
 - [ ] Negative indices resolve as `.[-1]` does (§4.5).
 - [ ] Out-of-range indices refuse with exit 5.
 

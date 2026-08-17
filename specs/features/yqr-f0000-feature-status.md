@@ -59,7 +59,7 @@ dependency/release timing.
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
-| [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses | Draft (blocked — 0.0.23 unpublished) |
+| [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses | In Progress (pin moved; §4 measured; §5 decision open) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -110,15 +110,17 @@ plus a **deletion**, retiring the `b009` CRLF restore from `emit` now that the
 engine derives an inserted line's terminator from the document the same way it
 already derived the indentation. The control is what makes that safe rather than
 plausible: with the workaround removed, the same three tests fail against a
-temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f016 **draft and blocked**:
-noyalib closed the `b004` umbrella (`#221`) on 2026-08-16 by extending `remove`
-to cover flow members and sole entries — the two classes `f007` §5 refuses — but
-0.0.23 has no tag, no release and nothing on the crates.io index, so the pin
-cannot move. It also does **not** fix `b010`. The interesting part is not the
-bump: it invalidates the premise of `f007` §6's "delegate delete: no", whose
-measurement recorded its only two failures as flow cases where upstream also
-refused and only the diagnostic differed. Re-run and decision are `f016` §4/§5,
-and no decision is recorded ahead of the measurement. f008 (`|=` computed
+temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f016 **in progress**: 0.0.23 published 2026-08-17 and the pin has moved, with
+the suite green untouched. Two things came out of it. **`b010` is fixed** —
+yqr's own reorder commit ships in this release, so an item's comments travel
+with it and `a002` slice 3 is unblocked, leaving slices 2 and 3 as
+implementation with nothing waiting on upstream. And the `f007` §6 delegation
+question was re-measured per test: **seven failures, all "yqr refuses and
+upstream now succeeds"**, none of them a trivia divergence — but the
+sole-entry half of that strands the removed entry's head comment above an empty
+`{}`, which is the `b006`/`b010` failure class a third time. The flow half is
+clean. That asymmetry is new information and §5's decision is deliberately
+still open on it. f008 (`|=` computed
 updates) is gated on `f001` M2 (arithmetic/builtins). Priority order: f006
 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f016
 (blocked on the release) → f007 remainder → M2 → f008.
@@ -162,9 +164,8 @@ dashboard.
 ## Summary
 
 - Total features: 17
-- Draft: 3 (f008 — computed updates, gated on `f001` M2; f016 — noyalib 0.0.23
-  adoption, blocked on the release, and owing the `f007` §6 re-measurement;
-  f017 — `to_entries`, scoped from the `yqr-r003` usage report)
+- Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
+  scoped from the `yqr-r003` usage report)
 - In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
   rename / reorder grammar settled in `yqr-a002` and staged as three slices,
   none implemented, and slice 3 blocked on `yqr-b010`)

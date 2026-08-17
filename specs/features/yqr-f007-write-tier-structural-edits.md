@@ -232,8 +232,10 @@ for each, so with the grammar settled two of the three are a call, not a splice
   `delete_entry` deliberately excludes.
 - **Key rename** (`b004` 2.2) — **shipped 2026-08-16**; the record moved to
   §7 and this bullet is kept only so the three-gap list stays readable.
-- **Sequence reorder** (`b004` 2.3) — grammar settled, **slice blocked** on
-  `yqr-b010`: `swap_items` / `move_item` exchange value bytes only, so a
+- **Sequence reorder** (`b004` 2.3) — grammar settled, **unblocked
+  2026-08-17**: `yqr-b010` is fixed in noyalib 0.0.23 by yqr's own commit, so
+  an item's comments now travel with it and the slice is a call. Was blocked
+  because: `swap_items` / `move_item` exchange value bytes only, so a
   reorder silently re-attributes every comment in the range at exit 0 and past
   upstream's own guard. That is §5.1's failure class exactly, and this module's
   entry-range arithmetic is the reference implementation for the fix. The

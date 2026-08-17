@@ -32,6 +32,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- **YAML engine upgraded to noyalib 0.0.23.** Reordering a list now moves each
+  item's comments with it. Before, a swap exchanged the values and left every
+  comment where it was, so a comment ended up describing whichever item landed
+  beneath it -- silently, and reported as success. The fix is yqr's own,
+  contributed upstream. yqr does not expose reordering yet, so nothing in the
+  tool changes today; this is the engine being right before the feature that
+  uses it ships.
+
 - **YAML engine upgraded from noyalib 0.0.22.** The one functional change in
   that release is yqr's own contribution: an edit that adds a line now takes
   the file's own line ending instead of always writing a Unix one. 0.5.1 fixed
