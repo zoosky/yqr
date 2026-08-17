@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; comment editing, key rename, and sequence reorder remain deferred, but their grammar is settled as of yqr-a002 and staged in §6) Epic: Fidelity write tier (f006–f008) Owner:...">
+<meta name="description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Feature f007 — Write tier: structural edits (the `b004` gaps)">
-<meta property="og:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; comment editing, key rename, and sequence reorder remain deferred, but their grammar is settled as of yqr-a002 and staged in §6) Epic: Fidelity write tier (f006–f008) Owner:...">
+<meta property="og:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Feature f007 — Write tier: structural edits (the `b004` gaps)">
-<meta name="twitter:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; comment editing, key rename, and sequence reorder remain deferred, but their grammar is settled as of yqr-a002 and staged in §6) Epic: Fidelity write tier (f006–f008) Owner:...">
+<meta name="twitter:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-17",
-  "description": "Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr's whole delete path rather than a fallback; comment editing, key rename, and sequence reorder remain deferred, but their grammar is settled as of yqr-a002 and staged in §6) Epic: Fidelity write tier (f006–f008) Owner:...",
+  "description": "Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr's whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...",
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 3229
+  "wordCount": 3739
 }
 </script>
 <script type="application/ld+json">
@@ -2813,9 +2813,9 @@
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
             <p><strong>Status:</strong> In Progress (structural <strong>delete</strong> shipped, and since <code>yqr-f013</code>
-it is yqr’s whole delete path rather than a fallback; comment editing, key
-rename, and sequence reorder remain deferred, but their grammar is settled as
-of <code>yqr-a002</code> and staged in §6)
+it is yqr’s whole delete path rather than a fallback; <strong>key rename</strong> shipped
+2026-08-16 as <code>yqr-a002</code> slice 1 — §7; comment editing and sequence reorder
+remain deferred, their grammar settled in <code>yqr-a002</code> and staged in §6)
 <strong>Epic:</strong> Fidelity write tier (<code>f006</code>–<code>f008</code>)
 <strong>Owner:</strong> yqr maintainers
 <strong>Related:</strong> <code>yqr-f006</code> (write tier v1 — the value-replacement core this builds
@@ -2833,7 +2833,7 @@ excluded from <code>f006</code>. Each is cataloged in <code>yqr-b004</code> §2:
 <li><strong>Comment editing</strong> — add / change / remove a comment attached to a node
 (<code>b004</code> 2.1; comments were read-only in 0.0.14). <strong>Deferred</strong> (§6).</li>
 <li><strong>Key rename</strong> — <code>.a.b</code> key renamed in place, preserving <code>:</code> and value
-(<code>b004</code> 2.2). <strong>Deferred</strong> (§6).</li>
+(<code>b004</code> 2.2). <strong>Shipped</strong> (§7).</li>
 <li><strong>Sequence reorder / move / swap</strong> — reorder block-sequence items (<code>b004</code> 2.3).
 <strong>Deferred</strong> (§6).</li>
 </ul>
@@ -2878,7 +2878,7 @@ Every <code>replace_span</code> edit is guarded and covered by a byte-exact test
 <code>line_comment(&lt;path&gt;)</code> / <code>head_comment(&lt;path&gt;)</code> set and remove
 (<code>yqr-a002</code> §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
 set does, rather than inheriting upstream’s <code>Ok</code>-and-no-op.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>key(&lt;path&gt;) = "new"</code> renames a key, preserving value + trailing comment;
 <code>key(&lt;path&gt;)</code> reads the document’s key token, not the filter’s path
 segment (<code>yqr-a002</code> §7.2).</li>
@@ -3031,11 +3031,8 @@ everything their setters refuse, <code>set_inline_comment</code> guards on the v
 span so a nested entry’s comment lands on its <strong>child’s</strong> line, and the
 leading mutators absorb a blank-detached comment block that this module’s own
 <code>delete_entry</code> deliberately excludes.</li>
-<li><strong>Key rename</strong> (<code>b004</code> 2.2) — <code>key(&lt;path&gt;) = "new"</code>. Upstream: <code>rename_key</code>
-with style-matched quoting and sibling-duplicate refusal, plus <code>key_span</code>
-for the key-token range <code>span_at</code> never exposed — which is also what the
-<code>key(&lt;path&gt;)</code> <strong>read</strong> must go through (<code>yqr-a002</code> §7.2), rather than
-echoing the filter’s own resolved path segment back at the user.</li>
+<li><strong>Key rename</strong> (<code>b004</code> 2.2) — <strong>shipped 2026-08-16</strong>; the record moved to
+§7 and this bullet is kept only so the three-gap list stays readable.</li>
 <li><strong>Sequence reorder</strong> (<code>b004</code> 2.3) — grammar settled, <strong>slice blocked</strong> on
 <code>yqr-b010</code>: <code>swap_items</code> / <code>move_item</code> exchange value bytes only, so a
 reorder silently re-attributes every comment in the range at exit 0 and past
@@ -3161,6 +3158,58 @@ without failing <code>tests/corpus_validation.rs</code>.</p>
 <p><em>(The grammar and the upstream API surface are now both known; the per-slice
 criteria live in <code>yqr-a002</code> §9. What stays open here is the scope and
 addressing work above, which <code>yqr-a002</code> §8 explicitly does not decide.)</em></p>
+<h2 id="7-key-rename-shipped">7. Key rename (shipped)<a class="heading-anchor" href="#7-key-rename-shipped" aria-label="Link to this section"></a></h2>
+<p><code>yqr-a002</code> slice 1, and the first use of its addressing grammar. Landed
+2026-08-16.</p>
+<h3 id="7-1-surface">7.1 Surface<a class="heading-anchor" href="#7-1-surface" aria-label="Link to this section"></a></h3>
+<pre><code class="language-text">key(&lt;path&gt;)             read the entry's key token
+key(&lt;path&gt;) = "new"     rename it in place
+</code></pre>
+<p><code>key</code> is recognised only in <strong>function position</strong> — an identifier immediately
+followed by <code>(</code>. <code>.key</code> is still a field access, and so are <code>.swap</code>, <code>.move</code>,
+<code>.del</code>, <code>.line_comment</code>, <code>.head_comment</code> and <code>.foot_comment</code>; one test covers
+all seven, because <code>swap</code> and <code>move</code> are ordinary YAML field names and a
+regression there would break read-only queries.</p>
+<p><code>del</code>’s argument is unchanged: it still takes a pipeline, so <code>del(.a | .b)</code>
+parses and deletes exactly as before. What is new is that it takes a <em>target</em>,
+of which a pipeline is one kind — which is what makes <code>del(key(...))</code>
+expressible, and therefore refusable with a reason instead of a syntax error.</p>
+<h3 id="7-2-what-it-is-not">7.2 What it is not<a class="heading-anchor" href="#7-2-what-it-is-not" aria-label="Link to this section"></a></h3>
+<p>Three near-misses, each refused rather than guessed:</p>
+<table><thead><tr><th>Form</th><th>Result</th></tr></thead><tbody>
+<tr><td><code>del(key(.a))</code></td><td>parse error: a key cannot outlive its entry; use <code>del(.a)</code></td></tr>
+<tr><td><code>key(.a) += 1</code></td><td>parse error: <code>+=</code> appends to a sequence</td></tr>
+<tr><td><code>key(&lt;absent&gt;) = "x"</code></td><td>no-op, <strong>not</strong> a new key</td></tr>
+</tbody></table>
+<p>The last one is the trap worth naming. Value assignment resolves through
+<code>resolve_assign_target</code>, whose absent-leaf branch <em>creates</em> a mapping key —
+correct for <code>.a.b = 1</code>, wrong for a rename, where an absent path means there is
+no key to rename. The rename uses the plain resolver and skips the document, as
+<code>del</code> does. The comment slice will meet the same fork.</p>
+<h3 id="7-3-the-read-comes-from-the-document">7.3 The read comes from the document<a class="heading-anchor" href="#7-3-the-read-comes-from-the-document" aria-label="Link to this section"></a></h3>
+<p><code>key(&lt;path&gt;)</code> goes through <code>Document::key_span</code> and the existing read seam, not
+through the resolved <code>Path</code>’s last segment. <code>PathSeg::Key</code> is stored <em>decoded</em>,
+so the shortcut would echo the filter back: a key authored <code>"a"</code> would read as
+<code>a</code>, and a key reached through a <code>&lt;&lt;</code> merge would read as a token that appears
+nowhere in the file. Reading the document keeps <code>key(...)</code> on the same footing
+as every other read — print the bytes that are there — and <code>key_span</code> returning
+<code>None</code> is both the source of the bytes and the test for whether there are any
+(a sequence item, an absent path, a merge or alias site).</p>
+<p>One edge is documented rather than solved: a key holding <code>.</code> or <code>[</code> is
+unaddressable (§6, <code>yqr-a002</code> §7.3), so <code>key(...)</code> on one reads <code>null</code> — the
+same answer as “this node has no key”. Reads are total (<code>yqr-a002</code> §4.4) and
+there is no correct typed fallback, so the honest move was to say so in the
+guide. It resolves when the dotted-key item does.</p>
+<h3 id="7-4-coverage">7.4 Coverage<a class="heading-anchor" href="#7-4-coverage" aria-label="Link to this section"></a></h3>
+<p>Thirteen unit tests on the write path (byte-exactness with a head comment, an
+inline comment and odd spacing all preserved; key order kept; quote style
+matched; multi-line values untouched; the absent no-op; multi-document skip;
+and one per refusal), four on the engine’s <code>key_bytes</code> (verbatim token,
+document-relative offsets in a stream, and <code>None</code> for each keyless shape),
+nine on the grammar, ten black-box CLI tests including <code>-i</code> and the
+refusal-leaves-the-file-untouched contract, and three shared-corpus
+<code>EngineCase</code>s — one of which is a merge-produced key, the case that separates
+a document read from an echo.</p>
 
         </div>
         </accent-island>
@@ -3230,6 +3279,26 @@ addressing work above, which <code>yqr-a002</code> §8 explicitly does not decid
         
             <li class="toc-level-2">
                 <a href="#6-deferred-gaps-roadmap">6. Deferred gaps (roadmap)</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#7-key-rename-shipped">7. Key rename (shipped)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-1-surface">7.1 Surface</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-2-what-it-is-not">7.2 What it is not</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-3-the-read-comes-from-the-document">7.3 The read comes from the document</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#7-4-coverage">7.4 Coverage</a>
             </li>
         
         </ul>

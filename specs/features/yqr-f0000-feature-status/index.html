@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 1663
+  "wordCount": 1725
 }
 </script>
 <script type="application/ld+json">
@@ -2855,7 +2855,7 @@ JSON-only; yq’s edits admit whitespace issues). Split into three features by
 dependency/release timing.</p>
 <table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
 <tr><td><a href="/yqr/specs/features/yqr-f006-fidelity-write-tier">f006</a></td><td>Write tier v1: value assignment and in-place edits (<code>--in-place</code>)</td><td>Done</td></tr>
-<tr><td><a href="/yqr/specs/features/yqr-f007-write-tier-structural-edits">f007</a></td><td>Write tier: structural edits (the <code>b004</code> gaps)</td><td>In Progress (structural delete shipped; comment/rename grammar settled in <code>yqr-a002</code>, unimplemented; reorder blocked on <code>yqr-b010</code>)</td></tr>
+<tr><td><a href="/yqr/specs/features/yqr-f007-write-tier-structural-edits">f007</a></td><td>Write tier: structural edits (the <code>b004</code> gaps)</td><td>In Progress (structural delete and <strong>key rename</strong> shipped; comment editing settled in <code>yqr-a002</code> but unimplemented; reorder blocked on <code>yqr-b010</code>)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f008-write-tier-computed-updates">f008</a></td><td>Write tier: computed updates (<code>|=</code>)</td><td>Draft (stub — gated on <code>f001</code> M2)</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f013-noyalib-0-0-18-adoption">f013</a></td><td>Adopt noyalib 0.0.18: pin bump and the released CST mutation API</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f014-noyalib-0-0-21-adoption">f014</a></td><td>Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier</td><td>Done</td></tr>
@@ -2874,7 +2874,11 @@ itself (<code>b004</code> 2.4/2.5), sole-entry and flow deletes refused. The rem
 wrapping a path — <code>line_comment(p)</code>, <code>head_comment(p)</code>, <code>key(p)</code>, assignable
 with <code>=</code> and removable with <code>del(...)</code> — plus a reorder verb <code>swap(p; i; j)</code> /
 <code>move(p; from; to)</code>, staged as three slices with per-slice acceptance criteria.
-Two of the three are now implementation over a live API. The third is <strong>not</strong>:
+Two of the three are now implementation over a live API, and the <strong>first has
+shipped</strong>: <code>yqr-a002</code> slice 1 landed 2026-08-16 as <code>key(&lt;path&gt;)</code> / <code>key(&lt;path&gt;) = "new"</code> (<code>f007</code> §7) — the whole new grammar path under the operation with the
+fewest cases. Its read goes through <code>key_span</code> rather than the filter’s own
+resolved path segment, which is what keeps <code>key(...)</code> printing the document’s
+bytes instead of echoing the query. The third is <strong>not</strong>:
 measuring 0.0.22 rather than reading its docs showed the backend <em>is</em> the
 blocker for reorder — <code>swap_items</code>/<code>move_item</code> exchange value bytes only, so a
 reorder silently re-attributes every comment in the range at exit 0, filed as

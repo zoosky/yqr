@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-17T20:28:54Z",
+  "timestamp": "2026-08-17T20:34:40Z",
   "pages": {
     "/": {
       "content_hash": "0069f998b82fa6e5",
@@ -13,7 +13,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/compare/yq": {
-      "content_hash": "717aeb53665188c1",
+      "content_hash": "332b98765c422226",
       "template": "yq.html.jinja",
       "template_hash": "30406ea523c53def"
     },
@@ -33,7 +33,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/kubernetes": {
-      "content_hash": "1fab236d7cdd6930",
+      "content_hash": "c26c548ed9e36de5",
       "template": "kubernetes.html.jinja",
       "template_hash": "30406ea523c53def"
     },
@@ -58,7 +58,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/architecture/yqr-a002-non-value-addressing-grammar": {
-      "content_hash": "d60eb30cf3483641",
+      "content_hash": "0229636ab03b2d11",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -128,7 +128,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "a3dd27ef58f5fffb",
+      "content_hash": "e31090dd346d8654",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -163,7 +163,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "765f62354b9ab544",
+      "content_hash": "63bad7479a55e824",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

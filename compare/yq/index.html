@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "yqr and yq -- what actually changes in your file",
   "url": "https://zoosky.github.io/yqr/compare/yq",
-  "wordCount": 878
+  "wordCount": 939
 }
 </script>
 <script type="application/ld+json">
@@ -525,14 +525,26 @@ only one being made here.</p>
 <h2 id="what-yq-does-that-yqr-does-not">What yq does that yqr does not<a class="heading-anchor" href="#what-yq-does-that-yqr-does-not" aria-label="Link to this section"></a></h2>
 <p>Plenty, and it is worth knowing before you switch:</p>
 <ul>
-<li><strong>Building new documents.</strong> yqr has no object or array construction, no
+<li>
+<p><strong>Building new documents.</strong> yqr has no object or array construction, no
 string interpolation, and no comma operator. It walks and edits documents
-that already exist.</li>
-<li><strong>Builtins and arithmetic.</strong> No <code>map</code>, <code>select</code>, <code>length</code>, <code>+</code> on values.</li>
-<li><strong>Format conversion.</strong> No JSON, XML, TOML, or properties in or out.</li>
-<li><strong>Comment, key-name, and ordering edits.</strong> yqr can change values, add
-keys, append to sequences, and delete entries. Renaming a key or
-rewriting a comment is not in the released grammar yet.</li>
+that already exist.</p>
+</li>
+<li>
+<p><strong>Builtins and arithmetic.</strong> No <code>map</code>, <code>select</code>, <code>length</code>, <code>+</code> on values.</p>
+</li>
+<li>
+<p><strong>Format conversion.</strong> No JSON, XML, TOML, or properties in or out.</p>
+</li>
+<li>
+<p><strong>Comment and ordering edits.</strong> yqr can change values, add keys, append
+to sequences, delete entries, and rename keys with <code>key(...)</code>. Rewriting
+a comment and reordering a sequence are not in the released grammar yet.</p>
+<p>Where yqr does have the operation, the shape differs on purpose. yq
+spells a rename <code>(.a | key) = "z"</code> and a comment edit <code>.a line_comment="hi"</code> – two different shapes, and the one that works for
+comments is a <strong>silent no-op</strong> for keys. yqr uses one shape for both,
+<code>key(.a) = "z"</code>, so learning either teaches the other.</p>
+</li>
 </ul>
 <p>If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.</p>

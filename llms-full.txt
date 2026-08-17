@@ -168,9 +168,15 @@ Plenty, and it is worth knowing before you switch:
   that already exist.
 - **Builtins and arithmetic.** No `map`, `select`, `length`, `+` on values.
 - **Format conversion.** No JSON, XML, TOML, or properties in or out.
-- **Comment, key-name, and ordering edits.** yqr can change values, add
-  keys, append to sequences, and delete entries. Renaming a key or
-  rewriting a comment is not in the released grammar yet.
+- **Comment and ordering edits.** yqr can change values, add keys, append
+  to sequences, delete entries, and rename keys with `key(...)`. Rewriting
+  a comment and reordering a sequence are not in the released grammar yet.
+
+  Where yqr does have the operation, the shape differs on purpose. yq
+  spells a rename `(.a | key) = "z"` and a comment edit `.a
+  line_comment="hi"` -- two different shapes, and the one that works for
+  comments is a **silent no-op** for keys. yqr uses one shape for both,
+  `key(.a) = "z"`, so learning either teaches the other.
 
 If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.
@@ -462,12 +468,65 @@ one-line diffs, which is a review someone can actually do.
 $ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
 $ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
 $ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
+$ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 ```
 
 `del` handles nested blocks and multi-line values, not just single lines,
 and closes the gap cleanly afterwards. Two cases are refused with a clear
 message rather than guessed at: removing the only entry of a block, and
 removing an item from a flow collection like `[a, b, c]`.
+
+## Renaming a key
+
+<!-- Feature f007 -->
+
+A path names a *value*, so there is no path that means "the key of this
+entry". `key(...)` wraps one and names the key instead:
+
+```console
+$ yqr 'key(.metadata.name)' deploy.yaml
+name
+$ yqr -i 'key(.metadata.name) = "title"' deploy.yaml
+```
+
+The rename rewrites the key token and nothing else. The value keeps its
+spelling, the entry keeps its position in the mapping -- a rename is not a
+delete followed by an insert -- and the comments stay where they were:
+
+```console
+$ cat deploy.yaml
+metadata:
+  # names the app
+  name: web  # required
+$ yqr -i 'key(.metadata.name) = "title"' deploy.yaml
+$ cat deploy.yaml
+metadata:
+  # names the app
+  title: web  # required
+```
+
+Reading a key gives you the token as the file spells it, quotes included,
+because the read slices the document rather than echoing back the path you
+typed. `-r` unquotes it, the same way it unquotes a string value:
+
+```console
+$ yqr 'key(.["retry count"])' config.yaml
+"retry count"
+$ yqr -r 'key(.["retry count"])' config.yaml
+retry count
+```
+
+`key(...)` reads are total: a sequence item has no key, and neither does a
+key that arrived through a `<<` merge, so both read `null` rather than
+failing a batch. Writing to those is refused with the reason, as is a
+rename that would collide with an existing sibling, or one to a name the
+path syntax could not address afterwards.
+
+One edge worth knowing, because it reads as a wrong answer rather than an
+error: a key containing `.` or `[` -- the `app.kubernetes.io/name` style --
+cannot be addressed by the path syntax at all, so `key(...)` on one reports
+`null` like any other keyless node. That limitation is not specific to
+renames; it is the same one listed below.
 
 ## Piping from kubectl
 
@@ -484,8 +543,8 @@ stdin. That is deliberate; there is nothing to write back to.
 
 Being straight about the edges, because finding them yourself is annoying:
 
-- **Renaming a key** or **editing a comment** is not in the released
-  grammar. Values, new keys, appends, and deletes are.
+- **Editing a comment** is not in the released grammar. Values, new keys,
+  appends, deletes, and key renames are.
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
 - **Keys containing `.` or `[`** -- the Kubernetes
@@ -1449,22 +1508,40 @@ closed under rename.
 
 Three slices, ordered so the grammar lands under the simplest semantics.
 
-**Slice 1 — `key(...)` rename.** The whole new grammar path (selector, `Target`,
-one upstream call) under the operation with the fewest cases and the
-best-guarded upstream mutator.
+**Slice 1 — `key(...)` rename. Shipped 2026-08-16 (`yqr-f007`).** The whole new
+grammar path (selector, `Target`, one upstream call) under the operation with
+the fewest cases and the best-guarded upstream mutator.
 
-- [ ] `key(<path>) = "new"` renames in place; value, inline comment, and head
+- [x] `key(<path>) = "new"` renames in place; value, inline comment, and head
       comment stay byte-identical, and every other byte in the file does.
-- [ ] `key(<path>)` reads the key **token from the document** via `key_span`
+- [x] `key(<path>)` reads the key **token from the document** via `key_span`
       (§7.2): a key authored `"a"` reads back `"a"` with its quotes, not `a`.
-- [ ] Each §5.3 `key` row refuses with exit 5 and a message naming the reason;
+- [x] Each §5.3 `key` row refuses with exit 5 and a message naming the reason;
       `-i` leaves the file untouched on refusal. The empty-key row is yqr's own
       pre-check, not a forwarded error.
-- [ ] `key(.xs[0])` and a merge-produced key read `null` and do not fail the
+- [x] `key(.xs[0])` and a merge-produced key read `null` and do not fail the
       batch (§4.4), though the matching `=` refuses.
-- [ ] `.key`, `.swap` and `.move` still parse as field accesses.
-- [ ] `del(.a | .b)` still parses and deletes (§2.3 keeps `del`'s existing
+- [x] `.key`, `.swap` and `.move` still parse as field accesses — with
+      `.del`, `.line_comment`, `.head_comment` and `.foot_comment`, all seven
+      in one test.
+- [x] `del(.a | .b)` still parses and deletes (§2.3 keeps `del`'s existing
       argument), and `del(key(.a))` refuses with the §5.5 message.
+
+Two things the slice settled that this section had not anticipated:
+
+- **`key(<absent>) = "x"` is a no-op, not a new key.** The value assignment
+  path resolves through `resolve_assign_target`, whose absent-leaf branch
+  *creates* a mapping key. That is the wrong answer for a rename — there is no
+  key to rename — so the rename uses the plain resolver and skips the document,
+  as `del` does. §4.4's skip rule covers it, but the create-a-key branch is a
+  live trap for the comment slice too.
+- **An unaddressable key reads `null`, which is indistinguishable from
+  "keyless".** `key(.metadata.labels["app.kubernetes.io/name"])` reports `null`
+  rather than the §7.3 refusal, because §4.4 makes reads total and there is no
+  correct typed fallback (the path segment is what §7.2 exists to reject).
+  Documented in the guide rather than papered over. The value read has the same
+  shape — `Unaddressable` degrades to typed rendering — so this is the existing
+  contract rather than a new wrinkle, and it resolves when §7.3 does.
 
 **Slice 2 — `line_comment` / `head_comment`.** Adds the second and third
 selectors, `del(...)` composition, and the read path.
@@ -3824,7 +3901,7 @@ dependency/release timing.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
-| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete shipped; comment/rename grammar settled in `yqr-a002`, unimplemented; reorder blocked on `yqr-b010`) |
+| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete and **key rename** shipped; comment editing settled in `yqr-a002` but unimplemented; reorder blocked on `yqr-b010`) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
@@ -3843,7 +3920,12 @@ itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
 wrapping a path — `line_comment(p)`, `head_comment(p)`, `key(p)`, assignable
 with `=` and removable with `del(...)` — plus a reorder verb `swap(p; i; j)` /
 `move(p; from; to)`, staged as three slices with per-slice acceptance criteria.
-Two of the three are now implementation over a live API. The third is **not**:
+Two of the three are now implementation over a live API, and the **first has
+shipped**: `yqr-a002` slice 1 landed 2026-08-16 as `key(<path>)` / `key(<path>)
+= "new"` (`f007` §7) — the whole new grammar path under the operation with the
+fewest cases. Its read goes through `key_span` rather than the filter's own
+resolved path segment, which is what keeps `key(...)` printing the document's
+bytes instead of echoing the query. The third is **not**:
 measuring 0.0.22 rather than reading its docs showed the backend *is* the
 blocker for reorder — `swap_items`/`move_item` exchange value bytes only, so a
 reorder silently re-attributes every comment in the range at exit 0, filed as
@@ -4912,9 +4994,9 @@ URL: /yqr/specs/features/yqr-f007-write-tier-structural-edits
 # Feature f007 — Write tier: structural edits (the `b004` gaps)
 
 **Status:** In Progress (structural **delete** shipped, and since `yqr-f013`
-it is yqr's whole delete path rather than a fallback; comment editing, key
-rename, and sequence reorder remain deferred, but their grammar is settled as
-of `yqr-a002` and staged in §6)
+it is yqr's whole delete path rather than a fallback; **key rename** shipped
+2026-08-16 as `yqr-a002` slice 1 — §7; comment editing and sequence reorder
+remain deferred, their grammar settled in `yqr-a002` and staged in §6)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
@@ -4934,7 +5016,7 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 - **Comment editing** — add / change / remove a comment attached to a node
   (`b004` 2.1; comments were read-only in 0.0.14). **Deferred** (§6).
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
-  (`b004` 2.2). **Deferred** (§6).
+  (`b004` 2.2). **Shipped** (§7).
 - **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
   **Deferred** (§6).
 
@@ -4978,7 +5060,7 @@ the document untouched.
 - [ ] `line_comment(<path>)` / `head_comment(<path>)` set and remove
       (`yqr-a002` §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
       set does, rather than inheriting upstream's `Ok`-and-no-op.
-- [ ] `key(<path>) = "new"` renames a key, preserving value + trailing comment;
+- [x] `key(<path>) = "new"` renames a key, preserving value + trailing comment;
       `key(<path>)` reads the document's key token, not the filter's path
       segment (`yqr-a002` §7.2).
 - [ ] `swap(<path>; i; j)` / `move(<path>; from; to)` reorder by index,
@@ -5141,11 +5223,8 @@ for each, so with the grammar settled two of the three are a call, not a splice
   span so a nested entry's comment lands on its **child's** line, and the
   leading mutators absorb a blank-detached comment block that this module's own
   `delete_entry` deliberately excludes.
-- **Key rename** (`b004` 2.2) — `key(<path>) = "new"`. Upstream: `rename_key`
-  with style-matched quoting and sibling-duplicate refusal, plus `key_span`
-  for the key-token range `span_at` never exposed — which is also what the
-  `key(<path>)` **read** must go through (`yqr-a002` §7.2), rather than
-  echoing the filter's own resolved path segment back at the user.
+- **Key rename** (`b004` 2.2) — **shipped 2026-08-16**; the record moved to
+  §7 and this bullet is kept only so the three-gap list stays readable.
 - **Sequence reorder** (`b004` 2.3) — grammar settled, **slice blocked** on
   `yqr-b010`: `swap_items` / `move_item` exchange value bytes only, so a
   reorder silently re-attributes every comment in the range at exit 0 and past
@@ -5269,6 +5348,74 @@ first is settled; the other three are open:
 _(The grammar and the upstream API surface are now both known; the per-slice
 criteria live in `yqr-a002` §9. What stays open here is the scope and
 addressing work above, which `yqr-a002` §8 explicitly does not decide.)_
+
+## 7. Key rename (shipped)
+
+`yqr-a002` slice 1, and the first use of its addressing grammar. Landed
+2026-08-16.
+
+### 7.1 Surface
+
+```text
+key(<path>)             read the entry's key token
+key(<path>) = "new"     rename it in place
+```
+
+`key` is recognised only in **function position** — an identifier immediately
+followed by `(`. `.key` is still a field access, and so are `.swap`, `.move`,
+`.del`, `.line_comment`, `.head_comment` and `.foot_comment`; one test covers
+all seven, because `swap` and `move` are ordinary YAML field names and a
+regression there would break read-only queries.
+
+`del`'s argument is unchanged: it still takes a pipeline, so `del(.a | .b)`
+parses and deletes exactly as before. What is new is that it takes a *target*,
+of which a pipeline is one kind — which is what makes `del(key(...))`
+expressible, and therefore refusable with a reason instead of a syntax error.
+
+### 7.2 What it is not
+
+Three near-misses, each refused rather than guessed:
+
+| Form | Result |
+|---|---|
+| `del(key(.a))` | parse error: a key cannot outlive its entry; use `del(.a)` |
+| `key(.a) += 1` | parse error: `+=` appends to a sequence |
+| `key(<absent>) = "x"` | no-op, **not** a new key |
+
+The last one is the trap worth naming. Value assignment resolves through
+`resolve_assign_target`, whose absent-leaf branch *creates* a mapping key —
+correct for `.a.b = 1`, wrong for a rename, where an absent path means there is
+no key to rename. The rename uses the plain resolver and skips the document, as
+`del` does. The comment slice will meet the same fork.
+
+### 7.3 The read comes from the document
+
+`key(<path>)` goes through `Document::key_span` and the existing read seam, not
+through the resolved `Path`'s last segment. `PathSeg::Key` is stored *decoded*,
+so the shortcut would echo the filter back: a key authored `"a"` would read as
+`a`, and a key reached through a `<<` merge would read as a token that appears
+nowhere in the file. Reading the document keeps `key(...)` on the same footing
+as every other read — print the bytes that are there — and `key_span` returning
+`None` is both the source of the bytes and the test for whether there are any
+(a sequence item, an absent path, a merge or alias site).
+
+One edge is documented rather than solved: a key holding `.` or `[` is
+unaddressable (§6, `yqr-a002` §7.3), so `key(...)` on one reads `null` — the
+same answer as "this node has no key". Reads are total (`yqr-a002` §4.4) and
+there is no correct typed fallback, so the honest move was to say so in the
+guide. It resolves when the dotted-key item does.
+
+### 7.4 Coverage
+
+Thirteen unit tests on the write path (byte-exactness with a head comment, an
+inline comment and odd spacing all preserved; key order kept; quote style
+matched; multi-line values untouched; the absent no-op; multi-document skip;
+and one per refusal), four on the engine's `key_bytes` (verbatim token,
+document-relative offsets in a stream, and `None` for each keyless shape),
+nine on the grammar, ten black-box CLI tests including `-i` and the
+refusal-leaves-the-file-untouched contract, and three shared-corpus
+`EngineCase`s — one of which is a merge-produced key, the case that separates
+a document read from an echo.
 
 ---
 

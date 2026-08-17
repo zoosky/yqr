@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Architecture a002 — Addressing what is not a value: comments, keys, and sequence order",
   "url": "https://zoosky.github.io/yqr/specs/architecture/yqr-a002-non-value-addressing-grammar",
-  "wordCount": 5588
+  "wordCount": 5760
 }
 </script>
 <script type="application/ld+json">
@@ -3294,28 +3294,46 @@ targets-more-than-one-node refusal. Lifting it is a general mutation question
 </ul>
 <h2 id="9-staging-and-acceptance-criteria">9. Staging and acceptance criteria<a class="heading-anchor" href="#9-staging-and-acceptance-criteria" aria-label="Link to this section"></a></h2>
 <p>Three slices, ordered so the grammar lands under the simplest semantics.</p>
-<p><strong>Slice 1 — <code>key(...)</code> rename.</strong> The whole new grammar path (selector, <code>Target</code>,
-one upstream call) under the operation with the fewest cases and the
-best-guarded upstream mutator.</p>
+<p><strong>Slice 1 — <code>key(...)</code> rename. Shipped 2026-08-16 (<code>yqr-f007</code>).</strong> The whole new
+grammar path (selector, <code>Target</code>, one upstream call) under the operation with
+the fewest cases and the best-guarded upstream mutator.</p>
 <ul>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>key(&lt;path&gt;) = "new"</code> renames in place; value, inline comment, and head
 comment stay byte-identical, and every other byte in the file does.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>key(&lt;path&gt;)</code> reads the key <strong>token from the document</strong> via <code>key_span</code>
 (§7.2): a key authored <code>"a"</code> reads back <code>"a"</code> with its quotes, not <code>a</code>.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 Each §5.3 <code>key</code> row refuses with exit 5 and a message naming the reason;
 <code>-i</code> leaves the file untouched on refusal. The empty-key row is yqr’s own
 pre-check, not a forwarded error.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>key(.xs[0])</code> and a merge-produced key read <code>null</code> and do not fail the
 batch (§4.4), though the matching <code>=</code> refuses.</li>
-<li><input disabled="" type="checkbox"/>
-<code>.key</code>, <code>.swap</code> and <code>.move</code> still parse as field accesses.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>.key</code>, <code>.swap</code> and <code>.move</code> still parse as field accesses — with
+<code>.del</code>, <code>.line_comment</code>, <code>.head_comment</code> and <code>.foot_comment</code>, all seven
+in one test.</li>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>del(.a | .b)</code> still parses and deletes (§2.3 keeps <code>del</code>’s existing
 argument), and <code>del(key(.a))</code> refuses with the §5.5 message.</li>
+</ul>
+<p>Two things the slice settled that this section had not anticipated:</p>
+<ul>
+<li><strong><code>key(&lt;absent&gt;) = "x"</code> is a no-op, not a new key.</strong> The value assignment
+path resolves through <code>resolve_assign_target</code>, whose absent-leaf branch
+<em>creates</em> a mapping key. That is the wrong answer for a rename — there is no
+key to rename — so the rename uses the plain resolver and skips the document,
+as <code>del</code> does. §4.4’s skip rule covers it, but the create-a-key branch is a
+live trap for the comment slice too.</li>
+<li><strong>An unaddressable key reads <code>null</code>, which is indistinguishable from
+“keyless”.</strong> <code>key(.metadata.labels["app.kubernetes.io/name"])</code> reports <code>null</code>
+rather than the §7.3 refusal, because §4.4 makes reads total and there is no
+correct typed fallback (the path segment is what §7.2 exists to reject).
+Documented in the guide rather than papered over. The value read has the same
+shape — <code>Unaddressable</code> degrades to typed rendering — so this is the existing
+contract rather than a new wrinkle, and it resolves when §7.3 does.</li>
 </ul>
 <p><strong>Slice 2 — <code>line_comment</code> / <code>head_comment</code>.</strong> Adds the second and third
 selectors, <code>del(...)</code> composition, and the read path.</p>
