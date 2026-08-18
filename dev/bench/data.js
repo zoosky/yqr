@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787000208679,
+  "lastUpdate": 1787077107228,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1133,6 +1133,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 251520,
             "range": "± 1482",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e21a9dc34d52e1a8e3090eff7f527420b13b9d6a",
+          "message": "feat(write): support sole-entry and flow-collection deletes (f016 §5) (#70)\n\n* feat(write): support sole-entry and flow-collection deletes (f016 5)\n\nThe two classes delete refused. f016 4 measured what delegating each\nwould buy, and the answer differed per class, so each half goes to\nwhichever implementation was already correct for it.\n\nFlow members are delegated to noyalib's `remove`. Upstream owns the\nseparator arithmetic -- exactly one comma, from the correct side -- and\nit measured clean. yqr has no flow implementation of its own, so\nre-deriving it would produce a second copy rather than a second opinion.\nThat is f007 6's differential-oracle argument applied in the direction it\nusually is not.\n\nSole entries are implemented here. Deleting the bytes would leave a\ndangling `a:`, which re-parses as null -- a type change, not a removal --\nso the collection is written out explicitly at the entry's own\nindentation and line terminator. Kept in this module because the range\nthat has to be replaced includes the entry's head-comment run, and\nupstream's own sole-entry path replaces the *collection's* span, which\nbegins below it. Delegating would have stranded a comment describing the\nremoved entry above an empty `{}`. Filed upstream as noyalib#280; yqr\ngets it right by construction, since owned_line_span already computes\nthat range.\n\nThe change turned out to be small because the range was already correct:\nthe same span is spliced, only the replacement text differs -- empty for\nan ordinary delete, `<indent>{}<nl>` for a sole entry. The existing\nre-parse guard needed nothing: remove_at_path already yields an empty\ncollection for this case, so the oracle compares against the right\ndocument unchanged.\n\nOn the scope question, whether `del` of a sole entry should write `{}` at\nall: yes. The objection was that it injects flow syntax into a block\ndocument, and that does not survive scrutiny -- an empty block collection\nhas no block spelling, so `{}` is not a style being chosen, it is the only\nthing that can be written. jq and yq both do it. The refusal was a\ncapability gap protecting the user from nothing. The cost is accepted and\nrecorded: del(.only) on a single-key file rewrites it to `{}`.\n\nFour refusal tests became behaviour tests, and thirteen more cover the\nshapes: flow member first/middle/last, root-level flow sequence, sole\nmember of a flow collection, sole mapping entry, sole sequence item,\nsingle-key document, head-comment travel, blank-detached comment\nsurvival, CRLF, and a file with no final newline. The one CLI test that\nused sole-entry as its example of a refusal now uses the dangling-alias\ncase, which still refuses.\n\nGuide updated, both examples run as printed. Local CI green.\n\n* fix(write): indent the emptied collection under its key; detect root flow properly\n\nReview of the f016 5 work found two real defects in it, one of them the\nfailure class yqr exists to refuse.\n\n**A sole-item delete of a same-column block sequence emitted invalid\nYAML.** The empty collection took its indentation from the deleted entry's\nown line, and a block sequence written at its key's own column -- `on:` /\n`- push`, the GitHub Actions idiom -- has an indent equal to the key's. So\n`del(.on[0])` produced `on:` / `[]`, where `[]` is a block-mapping value at\nits key's column. noyalib accepts that and PyYAML rejects it\n(\"could not find expected ':'\"), which means the re-parse guard could not\ncatch it and `yqr validate` called the result clean. At exit 0, with -i\nwriting a file the rest of the toolchain cannot read.\n\nThe empty collection is a block-mapping value, so it must sit strictly\ndeeper than its key. It now does: the entry's own indent is used when it\nalready qualifies, and otherwise the parent key's column plus a step. Every\nexisting shape is unchanged.\n\n**Root-level flow detection was defeated by `---` or a leading comment.**\nThe check sniffed raw source bytes, so an explicit-start document fell into\nthe block path and refused with a misleading message. It now asks the\nparsed document for the parent node's bytes, root included -- `get(\"\")`\nreturns the root node and skips markers and comments -- which also collapses\nthe special case, since the root is now just the empty parent path.\n\nThree smaller items from the same review: docs/content/index.md still said\nboth classes were refused (rule 15 -- the guide was updated, the landing\npage was not); the changelog had grown a second `### Added` under\n[Unreleased]; and two comments still described delete as never routing to\nupstream `remove`, which stopped being true when flow items were delegated.\n\nOne further finding, filed rather than fixed here: the reviewer noted flow\ndeletes only work on single-line flow collections, and the reason turns out\nto be that noyalib cannot **parse** a multi-line one at all -- valid YAML\nthat PyYAML accepts and yqr refuses to open, identity filter included. That\nis a read-path defect rather than a delete limitation, and it is now b011.\n\nFive regression tests: same-column sequence at root and nested, root flow\nbehind `---` and behind a comment, and the ordinary shapes re-asserted.\nLocal CI green; both new guide examples still print what the docs claim.",
+          "timestamp": "2026-08-18T20:17:05+02:00",
+          "tree_id": "6a620e60f98cb29e61d37ef0c12f587e7a317e27",
+          "url": "https://github.com/zoosky/yqr/commit/e21a9dc34d52e1a8e3090eff7f527420b13b9d6a"
+        },
+        "date": 1787077103787,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 529,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5138,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 261665,
+            "range": "± 1536",
             "unit": "ns/iter"
           }
         ]
