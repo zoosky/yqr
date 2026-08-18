@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787079520825,
+  "lastUpdate": 1787082503233,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1217,6 +1217,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 266611,
             "range": "± 2169",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8f3df0430b7e56061ae62f2c067f3364686a692",
+          "message": "feat(write): reorder a sequence with swap / move (a002 slice 3) (#72)\n\nAn ordering is the one edit a path cannot name -- there is no path that\nmeans \"third\" -- so it ships as a verb with arguments rather than as a\nselector wrapping a path:\n\n    swap(<path>; i; j)        exchange two items\n    move(<path>; from; to)    move one, shifting the rest\n\nCosts the grammar one token, `;` (jq's separator; `,` stays reserved for\nthe stream operator) and no reserved words: `swap` and `move` are only\nverbs directly before `(`, so `.swap` and `.move` still read fields.\nNegative indices resolve through the same function `.[-1]` resolves\nthrough, so the two cannot drift apart.\n\nEach verb is one engine call, and only because of b010: noyalib's\nreorder mutators used to exchange value bytes only, leaving every\ncomment to document whichever item landed beneath it -- at Ok, at exit\n0, and past the engine's guard by construction, since it compares typed\nvalues. yqr argued the semantics, wrote the fix, and it shipped in\n0.0.23. The property is still a yqr test: one yqr sells and does not own\nis the one worth pinning against engine drift.\n\nWhat yqr owns around the call is the sequence length (a negative index\nresolves against it, so it is a precondition rather than something to\nlearn from a refusal), the index resolution, and two refusals -- an\nindex outside the sequence, and a path naming something that is not one.\nDiagnostics spell the path as a filter does, since the engine's root\npath is the empty string.\n\nImplementation in src/fidelity/write/reorder.rs, a sibling of delete.rs\nunder the same rule 9 split; m002 section 8 records the further split\nwrite.rs still owes. Also drops the five internal spec references that\nhad accumulated in Rust doc comments, which rule 19 forbids.",
+          "timestamp": "2026-08-18T21:47:08+02:00",
+          "tree_id": "3f57c77c3f95243c5e45a7c225391b365a4f18c9",
+          "url": "https://github.com/zoosky/yqr/commit/f8f3df0430b7e56061ae62f2c067f3364686a692"
+        },
+        "date": 1787082500169,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 308,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3111,
+            "range": "± 139",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 162054,
+            "range": "± 1610",
             "unit": "ns/iter"
           }
         ]
