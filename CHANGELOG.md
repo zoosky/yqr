@@ -55,6 +55,32 @@ All notable changes to `yqr` are documented here. The format is based on
   not edited. `foot_comment(...)` is refused with an explanation rather than
   a syntax error.
 
+- **Reorder a list: `swap(...)` and `move(...)`.** An ordering is the one thing
+  a path cannot name -- there is no path that means "third" -- so it is a verb
+  with arguments rather than a selector, and the arguments are separated by
+  `;`:
+
+  ```console
+  $ yqr -i 'swap(.jobs.build.steps; 0; 2)' ci.yaml
+  $ yqr -i 'move(.jobs.build.steps; 0; -1)' ci.yaml
+  ```
+
+  `swap` exchanges two items and leaves everything between them alone; `move`
+  takes one out and puts it back at the destination, shifting the rest.
+  Negative indices count from the end, exactly as `.[-1]` does.
+
+  Whole entries move, not just values: a step's comment above it and its
+  comment beside it both travel with the step, so reordering a workflow does
+  not re-document it. Everything outside the two items is byte-identical --
+  including spacing a re-emitting tool would tidy up.
+
+  Inline lists (`ports: [80, 443]`) reorder too. An index outside the sequence
+  and a path that names something other than a sequence are both refused with
+  the reason, and under `-i` the file is left untouched.
+
+  `swap` and `move` are only keywords directly before `(`, so `.swap` and
+  `.move` still read fields of those names.
+
 - **`del` now handles the last entry of a block, and items of inline
   collections.** Both used to be refused with a message explaining why.
 
@@ -68,15 +94,22 @@ All notable changes to `yqr` are documented here. The format is based on
   exactly one separator with it, so the result is never `[, 443]` or
   `[80, ]`.
 
+### Breaking
+
+- **Library API: `ast::Mutation` changed shape** for the new addressing forms.
+  `Assign` and `Delete` now carry a `target: ast::Target` where they carried a
+  path, since a mutation can address a key or a comment as well as a value;
+  `Reorder` is a new variant, alongside the new `ast::ReorderOp` enum. Code
+  that constructs or exhaustively matches `Mutation` needs updating; a value
+  path is now `Target::Value(ast)`. The CLI is unaffected.
+
 ### Changed
 
 - **YAML engine upgraded to noyalib 0.0.23.** Reordering a list now moves each
   item's comments with it. Before, a swap exchanged the values and left every
   comment where it was, so a comment ended up describing whichever item landed
   beneath it -- silently, and reported as success. The fix is yqr's own,
-  contributed upstream. yqr does not expose reordering yet, so nothing in the
-  tool changes today; this is the engine being right before the feature that
-  uses it ships.
+  contributed upstream, and it is what `swap` / `move` above are built on.
 
 - **YAML engine upgraded from noyalib 0.0.22.** The one functional change in
   that release is yqr's own contribution: an edit that adds a line now takes

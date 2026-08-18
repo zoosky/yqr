@@ -4,12 +4,14 @@
 //!
 //! ```text
 //! program  := 'del' '(' target ')'            ; delete mutation
+//!           | reorder                          ; reorder mutation
 //!           | target '=' rhs                   ; assignment / rename
 //!           | pipeline '+=' rhs                ; append (value-only)
 //!           | target                           ; read-only query
 //! target   := selector
 //!           | pipeline                         ; a value node
 //! selector := 'key' '(' pipeline ')'          ; the entry's key token
+//! reorder  := ('swap' | 'move') '(' pipeline ';' Int ';' Int ')'
 //! rhs      := number | Str | 'true' | 'false' | 'null'   ; scalar literal
 //!           | pipeline                         ; a '.'-rooted path
 //! pipeline := term ('|' term)*
@@ -24,7 +26,7 @@
 //! ```
 
 use crate::Value;
-use crate::ast::{Ast, FOOT_COMMENT_REFUSAL, Mutation, Program, Rhs, Target};
+use crate::ast::{Ast, FOOT_COMMENT_REFUSAL, Mutation, Program, ReorderOp, Rhs, Target};
 use crate::error::{Result, YqrError};
 use crate::lexer::{Token, lex};
 
@@ -89,6 +91,14 @@ const SELECTORS: &[(&str, SelectorBuilder)] = &[
     ("foot_comment", Target::FootComment),
 ];
 
+/// Every reorder verb, paired with the operation it performs.
+///
+/// Recognized in function position at the start of a program only, on the
+/// same rule as the selectors: `swap` and `move` are ordinary YAML field
+/// names, so `.swap` keeps reading a field called `swap`.
+// Feature f007.
+const REORDERS: &[(&str, ReorderOp)] = &[("swap", ReorderOp::Swap), ("move", ReorderOp::Move)];
+
 struct Parser {
     tokens: Vec<Token>,
     pos: usize,
@@ -131,6 +141,13 @@ impl Parser {
         // identifier; every value query starts with '.'.
         if self.at_function("del") {
             return self.parse_del();
+        }
+        // A reorder has no target to build — an ordering is not a node — so it
+        // is dispatched here rather than through `parse_target`.
+        for (word, op) in REORDERS {
+            if self.at_function(word) {
+                return self.parse_reorder(*op);
+            }
         }
 
         let target = self.parse_target()?;
@@ -226,6 +243,61 @@ impl Parser {
             ));
         }
         Ok(Program::Mutate(Mutation::Delete { target }))
+    }
+
+    /// Parse a `swap(<path>; i; j)` / `move(<path>; from; to)` mutation. The
+    /// verb and its `(` have been confirmed by the caller but not consumed.
+    ///
+    /// Indices are parsed as plain integers rather than as an [`Rhs`]: an
+    /// ordering is a position, and a path or a string there would have no
+    /// meaning to fall back on.
+    // Feature f007: the reorder verb (a002 slice 3).
+    fn parse_reorder(&mut self, op: ReorderOp) -> Result<Program> {
+        self.advance(); // the verb
+        self.expect(&Token::LParen)?;
+        let path = self.parse_pipeline()?;
+        self.expect_semi(op)?;
+        let from = self.parse_index(op)?;
+        self.expect_semi(op)?;
+        let to = self.parse_index(op)?;
+        self.expect(&Token::RParen)?;
+        Ok(Program::Mutate(Mutation::Reorder { path, op, from, to }))
+    }
+
+    /// Consume the `;` separating a reorder verb's arguments, naming the whole
+    /// form when it is missing — `;` is the one token of this grammar a jq or
+    /// yq user has no reason to expect.
+    // Feature f007.
+    fn expect_semi(&mut self, op: ReorderOp) -> Result<()> {
+        if matches!(self.peek(), Some(Token::Semi)) {
+            self.advance();
+            return Ok(());
+        }
+        Err(YqrError::parse(format!(
+            "expected ';' between the arguments of {0}(...): the form is \
+             {0}(<path>; {1}; {2}), found {3:?}",
+            op.word(),
+            op.arg_name(true),
+            op.arg_name(false),
+            self.peek()
+        )))
+    }
+
+    /// Consume one integer index of a reorder verb.
+    // Feature f007.
+    fn parse_index(&mut self, op: ReorderOp) -> Result<i64> {
+        match self.peek() {
+            Some(Token::Int(n)) => {
+                let n = *n;
+                self.advance();
+                Ok(n)
+            }
+            other => Err(YqrError::parse(format!(
+                "{}(...) takes two integer indices, found {other:?} \
+                 (negative indices count from the end, as '.[-1]' does)",
+                op.word()
+            ))),
+        }
     }
 
     /// Parse the right-hand side of an assignment or append: a scalar literal
@@ -673,5 +745,79 @@ mod tests {
         // `parse` feeds the classic pipeline, which has no document bytes.
         let err = parse("key(.a)").unwrap_err();
         assert!(format!("{err}").contains("normalize"), "got: {err}");
+    }
+
+    // -- Feature f007: the reorder verbs -----------------------------------
+
+    #[test]
+    fn parses_swap_and_move() {
+        assert_eq!(
+            parse_program("swap(.spec.containers; 0; 2)").unwrap(),
+            Program::Mutate(Mutation::Reorder {
+                path: Ast::pipe(Ast::Field("spec".into()), Ast::Field("containers".into())),
+                op: ReorderOp::Swap,
+                from: 0,
+                to: 2,
+            })
+        );
+        assert_eq!(
+            parse_program("move(.; 1; 0)").unwrap(),
+            Program::Mutate(Mutation::Reorder {
+                path: Ast::Identity,
+                op: ReorderOp::Move,
+                from: 1,
+                to: 0,
+            })
+        );
+    }
+
+    #[test]
+    fn a_reorder_index_may_be_negative() {
+        let Program::Mutate(Mutation::Reorder { from, to, .. }) =
+            parse_program("swap(.xs; 0; -1)").unwrap()
+        else {
+            panic!("expected a reorder");
+        };
+        assert_eq!((from, to), (0, -1));
+    }
+
+    #[test]
+    fn a_missing_separator_names_the_whole_form() {
+        // `;` is the one token of this grammar a jq or yq user has no reason
+        // to expect, so the message spells the form rather than the token.
+        let text = format!("{}", parse_program("swap(.xs 0 1)").unwrap_err());
+        assert!(text.contains("swap(<path>; i; j)"), "got: {text}");
+        // `move`'s arguments are not interchangeable, and the message says so.
+        let text = format!("{}", parse_program("move(.xs 0 1)").unwrap_err());
+        assert!(text.contains("move(<path>; from; to)"), "got: {text}");
+    }
+
+    #[test]
+    fn a_reorder_index_must_be_an_integer() {
+        for src in [
+            "swap(.xs; \"a\"; 1)",
+            "swap(.xs; 0; .y)",
+            "move(.xs; 1.5; 0)",
+        ] {
+            let text = format!("{}", parse_program(src).unwrap_err());
+            assert!(
+                text.contains("two integer indices"),
+                "{src} should say so: {text}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_reorder_is_not_a_target() {
+        // There is no node to name, so a reorder composes with neither `del`
+        // nor `=`; both are parse errors rather than silently accepted forms.
+        assert!(parse_program("del(swap(.xs; 0; 1))").is_err());
+        assert!(parse_program("swap(.xs; 0; 1) = 5").is_err());
+    }
+
+    #[test]
+    fn the_read_only_entry_point_rejects_a_reorder() {
+        let text = format!("{}", parse("swap(.xs; 0; 1)").unwrap_err());
+        assert!(text.contains("mutation"), "got: {text}");
     }
 }

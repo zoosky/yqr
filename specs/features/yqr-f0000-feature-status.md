@@ -54,7 +54,7 @@ dependency/release timing.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
-| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete, **key rename** and **comment editing** shipped; reorder unblocked and unimplemented) |
+| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | Done (all four `b004` gaps: structural delete, **key rename**, **comment editing** and **sequence reorder**) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
@@ -73,17 +73,20 @@ itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
 wrapping a path — `line_comment(p)`, `head_comment(p)`, `key(p)`, assignable
 with `=` and removable with `del(...)` — plus a reorder verb `swap(p; i; j)` /
 `move(p; from; to)`, staged as three slices with per-slice acceptance criteria.
-Two of the three are now implementation over a live API, and the **first has
-shipped**: `yqr-a002` slice 1 landed 2026-08-16 as `key(<path>)` / `key(<path>)
-= "new"` (`f007` §7) — the whole new grammar path under the operation with the
-fewest cases. Its read goes through `key_span` rather than the filter's own
-resolved path segment, which is what keeps `key(...)` printing the document's
-bytes instead of echoing the query. The third is **not**:
-measuring 0.0.22 rather than reading its docs showed the backend *is* the
-blocker for reorder — `swap_items`/`move_item` exchange value bytes only, so a
-reorder silently re-attributes every comment in the range at exit 0, filed as
-**`yqr-b010`** (open, unfiled upstream). The same pass corrected three further
-upstream asymmetries the comment slice must pre-check rather than delegate
+**All three have now shipped.** Slice 1 landed 2026-08-16 as `key(<path>)` /
+`key(<path>) = "new"` (`f007` §7) — the whole new grammar path under the
+operation with the fewest cases; its read goes through `key_span` rather than
+the filter's own resolved path segment, which is what keeps `key(...)` printing
+the document's bytes instead of echoing the query. Slices 2 and 3 landed
+2026-08-18: `line_comment` / `head_comment` (`f007` §8) and `swap` / `move`
+(`f007` §9). Reorder was the one whose *backend* was the blocker — measuring
+0.0.22 rather than reading its docs showed `swap_items`/`move_item` exchanging
+value bytes only, so a reorder silently re-attributed every comment in the
+range at exit 0 — filed as **`yqr-b010`**, argued as a semantics disagreement
+rather than a defect, fixed by yqr's own commit, and released in 0.0.23; the
+slice is one call per verb as a result, with the trivia property pinned by a yqr
+test rather than assumed. The same measuring pass corrected three further
+upstream asymmetries the comment slice pre-checks rather than delegates
 (`b004` §6.6, `yqr-a002` §4.1/§5): the comment *removers* refuse nothing,
 `set_inline_comment`'s guard fires on the value span so a nested entry's
 comment lands on its child's line, and the leading mutators absorb a
@@ -110,11 +113,12 @@ plus a **deletion**, retiring the `b009` CRLF restore from `emit` now that the
 engine derives an inserted line's terminator from the document the same way it
 already derived the indentation. The control is what makes that safe rather than
 plausible: with the workaround removed, the same three tests fail against a
-temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f016 **in progress**: 0.0.23 published 2026-08-17 and the pin has moved, with
+temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f016 **done**: 0.0.23 published 2026-08-17 and the pin has moved, with
 the suite green untouched. Two things came out of it. **`b010` is fixed** —
 yqr's own reorder commit ships in this release, so an item's comments travel
-with it and `a002` slice 3 is unblocked, leaving slices 2 and 3 as
-implementation with nothing waiting on upstream. And the `f007` §6 delegation
+with it and `a002` slice 3 was unblocked, leaving slices 2 and 3 as
+implementation with nothing waiting on upstream; both then shipped the next
+day. And the `f007` §6 delegation
 question was re-measured per test: **seven failures, all "yqr refuses and
 upstream now succeeds"**, none of them a trivia divergence — but the
 sole-entry half of that strands the removed entry's head comment above an empty
@@ -122,10 +126,13 @@ sole-entry half of that strands the removed entry's head comment above an empty
 time. The flow half is clean. That asymmetry decided §5: **each half went to
 whichever implementation was already correct** — flow delegated to upstream,
 sole-entry implemented in `delete_entry`, where the head-comment run travels
-with the entry. Both classes now work, so `f007` §5 has no refusals left. f008 (`|=` computed
-updates) is gated on `f001` M2 (arithmetic/builtins). Priority order: f006
-(done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f016
-(blocked on the release) → f007 remainder → M2 → f008.
+with the entry. Both classes now work, so `f007` §5 has no refusals left. With slice 3 in,
+**`f007` is Done**: all four `b004` gaps are closed and the epic's remaining
+items are scope and addressing work `f007` §6 tracks — collection right-hand
+sides, keys holding `.` or `[`, and a write tier for the shared corpus. f008
+(`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
+order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
+(done) → f016 (done) → f007 remainder (done) → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -168,10 +175,8 @@ dashboard.
 - Total features: 17
 - Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
   scoped from the `yqr-r003` usage report)
-- In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
-  rename / reorder grammar settled in `yqr-a002` and staged as three slices,
-  none implemented, and slice 3 blocked on `yqr-b010`)
-- Done: 10 (f002, f006, f009, f010, f011, f012, f013, f014, f015, f016)
+- In Progress: 1 (f001 M0)
+- Done: 11 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

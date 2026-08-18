@@ -155,18 +155,50 @@ Plenty, and it is worth knowing before you switch:
   that already exist.
 - **Builtins and arithmetic.** No `map`, `select`, `length`, `+` on values.
 - **Format conversion.** No JSON, XML, TOML, or properties in or out.
-- **Comment and ordering edits.** yqr can change values, add keys, append
-  to sequences, delete entries, and rename keys with `key(...)`. Rewriting
-  a comment and reordering a sequence are not in the released grammar yet.
-
-  Where yqr does have the operation, the shape differs on purpose. yq
-  spells a rename `(.a | key) = "z"` and a comment edit `.a
-  line_comment="hi"` -- two different shapes, and the one that works for
-  comments is a **silent no-op** for keys. yqr uses one shape for both,
-  `key(.a) = "z"`, so learning either teaches the other.
+- **Everything above, in one expression.** yq composes; yqr applies one edit
+  per run. Chaining, conditionals, and computed right-hand sides all live on
+  the yq side of the line.
 
 If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.
+
+## Where the shapes differ on purpose
+
+<!-- Feature f007 -->
+
+Both tools can rename a key, edit a comment, and reorder a list. The
+spellings are not the same, and the differences are deliberate.
+
+yq spells a rename `(.a | key) = "z"` and a comment edit `.a
+line_comment="hi"` -- two different shapes, and the one that works for
+comments is a **silent no-op** for keys (measured on v4.53.3). yqr uses one
+shape for both, so learning either teaches the other:
+
+```console
+$ yqr 'key(.a) = "z"' y.yaml
+$ yqr 'line_comment(.a) = "hi"' y.yaml
+$ yqr 'head_comment(.a) = "why this exists"' y.yaml
+```
+
+`head_comment` puts the block **above** the entry you addressed. yq's
+`head_comment` puts it below, where in a file with siblings it comes to
+document the next entry instead.
+
+Reordering is the one operation with no yq builtin at all -- there is no
+`swap` or `move` -- so the nearest equivalent rebuilds the sequence, and
+rebuilding re-emits the document:
+
+```console
+$ yq '.jobs.build.steps |= reverse' ci.yaml
+name: ci                      # was 'name:    ci'
+      - uses: actions/checkout@v4 # pinned    # was two spaces before '#'
+$ yqr 'swap(.jobs.build.steps; 0; 1)' ci.yaml
+name:    ci
+      - uses: actions/checkout@v4  # pinned
+```
+
+Same reordering, and in the yqr run every byte outside the two items is the
+byte that was there before.
 
 ## Using both
 

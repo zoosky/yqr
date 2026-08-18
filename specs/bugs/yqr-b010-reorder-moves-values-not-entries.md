@@ -7,7 +7,8 @@ against the published crate. `noyalib#269` closed 2026-08-16
 **Severity:** Medium — a silent wrong result at exit 0, not a refusal
 **Component:** noyalib `cst::Document::swap_items` / `cst::Document::move_item`
 (upstream), reached from yqr's planned reorder verb
-**Blocks:** the `swap` / `move` slice of `yqr-a002` §9
+**Blocked:** the `swap` / `move` slice of `yqr-a002` §9, which shipped
+2026-08-18 once the fix was released (`yqr-f007` §9)
 **Related:** `yqr-b004` §2.3 (the gap whose fix shipped this API) and §6.5 (the
 adoption finding that points here), `yqr-b006` (the same failure class in
 yqr's own delete), `yqr-a002` §6 (the architecture consequence),
@@ -192,8 +193,10 @@ only if it happens.
 - [x] A released noyalib moves an entry's inline and head comments with the
       item, for both `swap_items` and `move_item` — 0.0.23, verified against
       the published crate (`yqr-f016` §3).
-- [ ] `yqr-a002` §9 slice 3's criteria pass against that release — the slice is
-      unblocked but not implemented.
+- [x] `yqr-a002` §9 slice 3's criteria pass against that release — shipped
+      2026-08-18 (`yqr-f007` §9). The §2 measurement is now a yqr regression
+      test (`an_items_comments_travel_with_the_item`), so the property this bug
+      argued for is checked on every run rather than trusted to the pin.
 - [x] `yqr-b000` and this file moved to Resolved in the same change.
 
 ## 8. Close-out

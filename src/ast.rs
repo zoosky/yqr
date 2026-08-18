@@ -122,6 +122,63 @@ pub enum Mutation {
         /// The target selecting what to remove.
         target: Target,
     },
+    /// `swap(<path>; i; j)` / `move(<path>; from; to)` — reorder the items of
+    /// the sequence at `path`.
+    ///
+    /// An ordering is the one edit with no node to name, so it is a verb
+    /// taking arguments rather than a target wrapping a path.
+    Reorder {
+        /// The path selecting the sequence whose items move.
+        path: Ast,
+        /// Which reordering to perform.
+        op: ReorderOp,
+        /// First index: the item to exchange (`swap`) or to move (`move`).
+        /// Negative counts from the end, as `.[-1]` does.
+        from: i64,
+        /// Second index: the item to exchange with (`swap`) or the
+        /// destination (`move`). Negative counts from the end.
+        to: i64,
+    },
+}
+
+/// Which reordering a [`Mutation::Reorder`] performs.
+///
+/// The two differ only in what happens to the items between the indices:
+/// `swap` leaves them alone, `move` shifts them by one.
+// Feature f007: the reorder verb (a002 slice 3).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReorderOp {
+    /// Exchange the two items, leaving every item between them in place.
+    Swap,
+    /// Take the item out at `from` and put it back at `to`, shifting the
+    /// items in between by one.
+    Move,
+}
+
+impl ReorderOp {
+    /// The verb's spelling, for diagnostics.
+    #[must_use]
+    pub fn word(self) -> &'static str {
+        match self {
+            ReorderOp::Swap => "swap",
+            ReorderOp::Move => "move",
+        }
+    }
+
+    /// What the verb calls its first (`first == true`) or second index.
+    ///
+    /// `swap`'s two arguments are interchangeable and are named `i` and `j`;
+    /// `move`'s are not, and a message that called them `i` and `j` would hide
+    /// which one is the destination.
+    #[must_use]
+    pub fn arg_name(self, first: bool) -> &'static str {
+        match (self, first) {
+            (ReorderOp::Swap, true) => "i",
+            (ReorderOp::Swap, false) => "j",
+            (ReorderOp::Move, true) => "from",
+            (ReorderOp::Move, false) => "to",
+        }
+    }
 }
 
 /// The right-hand side of an assignment or append.

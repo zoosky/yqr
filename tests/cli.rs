@@ -838,3 +838,96 @@ fn comment_selector_words_still_read_fields() {
         assert_eq!(out.stdout, want, "{filter}");
     }
 }
+
+// -- Feature f007: sequence reorder (a002 slice 3) -------------------------
+
+#[test]
+fn swap_reorders_a_block_sequence_on_stdout() {
+    let out = run(&["swap(.xs; 0; 2)"], "xs:\n  - a\n  - b\n  - c\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "xs:\n  - c\n  - b\n  - a\n");
+}
+
+#[test]
+fn move_shifts_the_items_between() {
+    let out = run(&["move(.xs; 0; 2)"], "xs:\n  - a\n  - b\n  - c\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "xs:\n  - b\n  - c\n  - a\n");
+}
+
+#[test]
+fn a_reorder_index_may_count_from_the_end() {
+    let out = run(&["swap(.xs; 0; -1)"], "xs:\n  - a\n  - b\n  - c\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "xs:\n  - c\n  - b\n  - a\n");
+}
+
+#[test]
+fn reorder_in_place_moves_each_item_with_its_comments() {
+    // The whole point of the slice, end to end: a commented list is the normal
+    // shape of the files yqr targets, and a reorder that left the comments
+    // behind would re-document every step in the file.
+    let original = "# workflow\nsteps:\n  # check out first\n  - uses: checkout  # pinned\n  - name: test\n    run: cargo test\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "swap(.steps; 0; 1)", path], "");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert!(out.stdout.is_empty(), "-i must not print to stdout");
+    assert_eq!(
+        read_back(&file),
+        "# workflow\nsteps:\n  - name: test\n    run: cargo test\n  # check out first\n  - uses: checkout  # pinned\n"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn a_refused_reorder_leaves_the_file_unchanged() {
+    let original = "xs:\n  - a\n  - b\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "swap(.xs; 0; 7)", path], "");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("-2..=1"), "{}", out.stderr);
+    assert_eq!(
+        read_back(&file),
+        original,
+        "refused edit must not touch file"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn reordering_something_that_is_not_a_sequence_is_a_runtime_error() {
+    let out = run(&["swap(.xs; 0; 1)"], "xs:\n  a: 1\n");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("addresses a sequence"),
+        "{}",
+        out.stderr
+    );
+}
+
+#[test]
+fn a_reorder_verb_needs_semicolons_and_says_so() {
+    let out = run(&["swap(.xs, 0, 1)"], "xs:\n  - a\n  - b\n");
+    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("';'"), "{}", out.stderr);
+}
+
+#[test]
+fn reorder_words_still_read_fields() {
+    // `swap` and `move` are ordinary YAML key names; only the `(` makes them
+    // verbs, so a document that uses them as keys still reads.
+    let doc = "swap: one\nmove: two\n";
+    for (filter, want) in [(".swap", "one\n"), (".move", "two\n")] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{filter}: {}", out.stderr);
+        assert_eq!(out.stdout, want, "{filter}");
+    }
+}
+
+#[test]
+fn a_reorder_needs_a_file_for_in_place_like_every_other_edit() {
+    let out = run(&["-i", "swap(.xs; 0; 1)"], "xs:\n  - a\n  - b\n");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+}

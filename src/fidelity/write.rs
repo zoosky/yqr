@@ -31,7 +31,7 @@
 // Feature f006 (see specs/features/): write tier v1 — value assignment.
 
 use crate::Value;
-use crate::ast::{FOOT_COMMENT_REFUSAL, Mutation, Target};
+use crate::ast::{FOOT_COMMENT_REFUSAL, Mutation, ReorderOp, Target};
 use crate::error::{Result, YqrError};
 use crate::eval::{AssignTarget, resolve_assign_target, resolve_rhs, resolve_target};
 use crate::fidelity::{Path, PathSeg};
@@ -41,6 +41,10 @@ use crate::fidelity::{Path, PathSeg};
 // `delete_entry`, addressing the same private state through Rust's
 // ancestor-module privacy.
 mod delete;
+
+// Sequence reorder is one engine call per verb plus the index arithmetic and
+// refusals yqr owns around it; the same sibling-module split `delete` uses.
+mod reorder;
 
 /// Which comment attached to an entry a mutation addresses.
 ///
@@ -158,7 +162,7 @@ pub(crate) trait FidelityWriter {
     /// Every refusal here is yqr's own. Upstream's two removers return
     /// `Ok(())` on an unresolved path, on a missing comment, and on every
     /// shape their setters reject, so delegating unchecked would turn a
-    /// refusal into a silent no-op — which `yqr-a002` §4.4 forbids.
+    /// refusal into a silent no-op — which a mutation is never allowed to be.
     ///
     /// # Errors
     ///
@@ -178,6 +182,26 @@ pub(crate) trait FidelityWriter {
     /// collide with an existing sibling, and when the entry has no key token
     /// of its own (a `<<` merge or an alias site).
     fn rename_key(&mut self, doc: usize, path: &Path, new_key: &str) -> Result<()>;
+
+    /// Reorder the items of the block sequence at `path`.
+    ///
+    /// `from` and `to` are yqr indices, not the engine's: negative counts from
+    /// the end, exactly as `.[-1]` does, and the implementation resolves them
+    /// against the sequence before addressing anything. Whole entries move —
+    /// each item's own comment lines travel with it — so a reorder never
+    /// re-attributes the file's documentation to whatever landed in the slot.
+    ///
+    /// A **flow** sequence has no per-item lines, so its members exchange
+    /// value spans instead; it is reordered rather than refused.
+    ///
+    /// # Errors
+    ///
+    /// Errors when the path is unaddressable, does not name a sequence, or
+    /// either index falls outside it, and when the engine refuses the splice
+    /// or its result fails the integrity check (which leaves the document
+    /// unchanged).
+    fn reorder(&mut self, doc: usize, path: &Path, op: ReorderOp, from: i64, to: i64)
+    -> Result<()>;
 
     /// Emit the whole document stream: edited documents reflect their edits,
     /// every other document is byte-identical to the input.
@@ -286,6 +310,16 @@ fn apply_to_doc(
         | Mutation::Delete {
             target: Target::FootComment(_),
         } => Err(YqrError::eval(FOOT_COMMENT_REFUSAL.to_string())),
+        // An ordering is not a node, so there is no target to build — the
+        // path names the *sequence* whose items move, and the indices name
+        // positions within it. A document where that path is absent is skipped
+        // like every other mutation's.
+        Mutation::Reorder { path, op, from, to } => {
+            let Some(target) = resolve_target(path, value)? else {
+                return Ok(());
+            };
+            writer.reorder(doc, &target, *op, *from, *to)
+        }
         Mutation::Append { path, rhs } => {
             let Some(target) = resolve_target(path, value)? else {
                 return Ok(());
@@ -411,10 +445,10 @@ impl NoyalibWriter {
     /// The pre-checks a comment mutation runs before it reaches upstream.
     ///
     /// These exist because upstream's guards answer a *different* question
-    /// from the one the filter asked, in two measured ways
-    /// (`yqr-a002` §4.1). Both are silent wrong results rather than
-    /// refusals, so nothing downstream would catch them.
-    // Feature f007.
+    /// from the one the filter asked, in two measured ways. Both are silent
+    /// wrong results rather than refusals, so nothing downstream would catch
+    /// them.
+    // Feature f007; the two cases are catalogued in yqr-a002 §4.1.
     fn check_comment_site(&self, doc: usize, path_str: &str, kind: CommentKind) -> Result<()> {
         let d = self.doc_ref(doc)?;
         if d.span_at(path_str).is_none() {
@@ -614,6 +648,17 @@ impl FidelityWriter for NoyalibWriter {
         self.doc_mut(doc)?
             .rename_key(&path_str, new_key)
             .map_err(|e| YqrError::eval(format!("cannot rename key at {path_str:?}: {e}")))
+    }
+
+    fn reorder(
+        &mut self,
+        doc: usize,
+        path: &Path,
+        op: ReorderOp,
+        from: i64,
+        to: i64,
+    ) -> Result<()> {
+        self.reorder_items(doc, path, op, from, to)
     }
 
     /// Concatenate the document stream, byte-for-byte as each document now

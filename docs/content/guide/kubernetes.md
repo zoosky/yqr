@@ -94,6 +94,7 @@ $ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
 $ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
 $ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
 $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
+$ yqr -i 'swap(.spec.template.spec.containers; 0; 1)' deploy.yaml # reorder a list
 ```
 
 `del` handles nested blocks and multi-line values, not just single lines,
@@ -214,6 +215,61 @@ cannot be addressed by the path syntax at all, so `key(...)` on one reports
 `null` like any other keyless node. That limitation is not specific to
 renames; it is the same one listed below.
 
+## Reordering a list
+
+<!-- Feature f007 -->
+
+An ordering is the one thing here with no node to name -- there is no path
+that means "third". So it is a verb with arguments rather than a selector
+wrapping a path, and the arguments are separated by `;`:
+
+```console
+$ yqr -i 'swap(.jobs.build.steps; 0; 2)' ci.yaml   # exchange two items
+$ yqr -i 'move(.jobs.build.steps; 0; -1)' ci.yaml  # move one, shifting the rest
+```
+
+`swap` exchanges two items and leaves everything between them alone. `move`
+takes one item out and puts it back at the destination, shifting the items
+in between by one. Indices count from zero, and a negative index counts from
+the end -- `-1` is the last item, the same as `.[-1]` in a path.
+
+The reason this is worth having as its own verb is what travels with an
+item. A step in a workflow is usually two or three lines with a comment
+above it and another beside it, and all of that belongs to the step rather
+than to the position:
+
+```console
+$ cat ci.yaml
+jobs:
+  build:
+    steps:
+      # check out first
+      - uses: actions/checkout@v4  # pinned
+      - name: test
+        run:  cargo test
+$ yqr -i 'swap(.jobs.build.steps; 0; 1)' ci.yaml
+$ cat ci.yaml
+jobs:
+  build:
+    steps:
+      - name: test
+        run:  cargo test
+      # check out first
+      - uses: actions/checkout@v4  # pinned
+```
+
+Both comments moved with the item they document, and the odd spacing in
+`run:  cargo test` came through untouched, because nothing was re-emitted.
+
+An inline list (`ports: [80, 443, 8080]`) reorders too. Its items have no
+lines of their own, so there is no comment to carry -- just the values, in
+their new order.
+
+Two refusals, both exit 5 with the file left alone under `-i`: an index
+outside the sequence, and a path that names something other than a
+sequence. There is no partial reorder -- either the whole edit lands or none
+of it does.
+
 ## Piping from kubectl
 
 There is no file argument needed -- yqr reads stdin:
@@ -229,8 +285,6 @@ stdin. That is deliberate; there is nothing to write back to.
 
 Being straight about the edges, because finding them yourself is annoying:
 
-- **Reordering a sequence** is not in the released grammar. Values, new
-  keys, appends, deletes, key renames, and comment edits are.
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
 - **Keys containing `.` or `[`** -- the Kubernetes
