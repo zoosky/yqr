@@ -105,10 +105,13 @@ pub(crate) trait FidelityWriter {
     /// any head comment documenting it) go; every surviving node stays
     /// byte-identical.
     ///
+    /// Removing the last entry of a collection writes that collection out
+    /// explicitly (`{}` / `[]`) rather than leaving a dangling key, which would
+    /// re-parse as `null` — a type change rather than a removal.
+    ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, is the sole entry of its block,
-    /// is an item of a flow collection, or the edit would re-parse to a
+    /// Errors when the path is unaddressable, or the edit would re-parse to a
     /// different document.
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()>;
 
@@ -348,8 +351,9 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()> {
-        // Deliberately not noyalib's `remove`, and the gap has closed rather
-        // than narrowed: measured on 0.0.22, upstream agrees with this path on
+        // Block entries are deliberately not routed to noyalib's `remove`
+        // (an item of a *flow* collection is — see `delete_entry`), and the gap
+        // has closed rather than narrowed: measured on 0.0.22, upstream agrees with this path on
         // every case the b006 tests pin, differing only in how it words the
         // flow-item refusal. Keeping this path is therefore not a claim that
         // upstream is behind. It is that two implementations are what make
@@ -920,17 +924,19 @@ mod tests {
     }
 
     #[test]
-    fn sole_entry_delete_is_refused() {
-        // Removing the only entry of a block would leave an empty collection
-        // (a structural change); it is refused, not silently emptied.
-        let err = apply(
+    fn sole_entry_delete_empties_the_collection() {
+        // Deleting the last entry of a block writes the collection out
+        // explicitly: removing the bytes would leave `only:`, which re-parses
+        // as null — a type change rather than a removal. Routed through the
+        // full mutation surface here, not just `delete_entry`.
+        let out = apply(
             &Mutation::Delete {
-                target: Target::Value(crate::parser::parse(".only").expect("valid")),
+                target: Target::Value(crate::parser::parse(".only.a").expect("valid")),
             },
-            "only:\n  a: 1\n  b: 2\n",
+            "only:\n  a: 1\nother: 2\n",
         )
-        .unwrap_err();
-        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("only entry")));
+        .unwrap();
+        assert_eq!(out, "only:\n  {}\nother: 2\n");
     }
 
     #[test]

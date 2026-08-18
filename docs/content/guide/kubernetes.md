@@ -97,9 +97,25 @@ $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 ```
 
 `del` handles nested blocks and multi-line values, not just single lines,
-and closes the gap cleanly afterwards. Two cases are refused with a clear
-message rather than guessed at: removing the only entry of a block, and
-removing an item from a flow collection like `[a, b, c]`.
+and closes the gap cleanly afterwards. It also handles the two cases that
+used to be refused:
+
+- **The last entry of a block.** The collection is written out explicitly,
+  because deleting the bytes would leave a dangling `spec:` -- and a key
+  with nothing under it reads back as `null`, which is a type change rather
+  than a removal:
+
+  ```console
+  $ yqr 'del(.spec.replicas)' one.yaml
+  spec:
+    {}
+  ```
+
+  A comment documenting the removed entry goes with it, rather than being
+  left behind describing an empty collection.
+
+- **An item of a flow collection** like `ports: [80, 443]`. Exactly one
+  separator goes with the item, so you never get `[, 443]` or `[80, ]`.
 
 ## Renaming a key
 

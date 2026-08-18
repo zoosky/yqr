@@ -152,13 +152,16 @@ fn structural_delete_removes_a_nested_entry() {
 }
 
 #[test]
-fn sole_entry_delete_is_still_refused() {
-    // Emptying a block by deleting its only entry is a structural change; it is
-    // refused rather than emitted.
-    let m = match yqr::parser::parse_program("del(.only)").unwrap() {
-        Program::Mutate(m) => m,
-        Program::Query(_) => unreachable!(),
-    };
-    let refused = write::apply(&m, "only:\n  a: 1\n  b: 2\n");
-    assert!(refused.is_err(), "sole-entry delete must be refused");
+fn sole_entry_delete_empties_the_collection() {
+    // Previously refused. Removing the last entry writes the collection out
+    // explicitly, because deleting its bytes would leave `only:` behind, which
+    // re-parses as null — a type change rather than a removal.
+    let out = yqr::fidelity::write::apply(
+        &yqr::ast::Mutation::Delete {
+            target: yqr::ast::Target::Value(yqr::parser::parse(".only.a").expect("valid")),
+        },
+        "only:\n  a: 1\nother: 2\n",
+    )
+    .expect("sole-entry delete now succeeds");
+    assert_eq!(out, "only:\n  {}\nother: 2\n");
 }

@@ -59,7 +59,7 @@ dependency/release timing.
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
-| [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses | In Progress (pin moved; §4 measured; §5 decision open) |
+| [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr used to refuse | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -118,9 +118,11 @@ implementation with nothing waiting on upstream. And the `f007` §6 delegation
 question was re-measured per test: **seven failures, all "yqr refuses and
 upstream now succeeds"**, none of them a trivia divergence — but the
 sole-entry half of that strands the removed entry's head comment above an empty
-`{}`, which is the `b006`/`b010` failure class a third time. The flow half is
-clean. That asymmetry is new information and §5's decision is deliberately
-still open on it. f008 (`|=` computed
+`{}` (filed as noyalib#280), which is the `b006`/`b010` failure class a third
+time. The flow half is clean. That asymmetry decided §5: **each half went to
+whichever implementation was already correct** — flow delegated to upstream,
+sole-entry implemented in `delete_entry`, where the head-comment run travels
+with the entry. Both classes now work, so `f007` §5 has no refusals left. f008 (`|=` computed
 updates) is gated on `f001` M2 (arithmetic/builtins). Priority order: f006
 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f016
 (blocked on the release) → f007 remainder → M2 → f008.
@@ -169,7 +171,7 @@ dashboard.
 - In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
   rename / reorder grammar settled in `yqr-a002` and staged as three slices,
   none implemented, and slice 3 blocked on `yqr-b010`)
-- Done: 9 (f002, f006, f009, f010, f011, f012, f013, f014, f015)
+- Done: 10 (f002, f006, f009, f010, f011, f012, f013, f014, f015, f016)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
