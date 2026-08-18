@@ -472,9 +472,25 @@ $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 ```
 
 `del` handles nested blocks and multi-line values, not just single lines,
-and closes the gap cleanly afterwards. Two cases are refused with a clear
-message rather than guessed at: removing the only entry of a block, and
-removing an item from a flow collection like `[a, b, c]`.
+and closes the gap cleanly afterwards. It also handles the two cases that
+used to be refused:
+
+- **The last entry of a block.** The collection is written out explicitly,
+  because deleting the bytes would leave a dangling `spec:` -- and a key
+  with nothing under it reads back as `null`, which is a type change rather
+  than a removal:
+
+  ```console
+  $ yqr 'del(.spec.replicas)' one.yaml
+  spec:
+    {}
+  ```
+
+  A comment documenting the removed entry goes with it, rather than being
+  left behind describing an empty collection.
+
+- **An item of a flow collection** like `ports: [80, 443]`. Exactly one
+  separator goes with the item, so you never get `[, 443]` or `[80, ]`.
 
 ## Renaming a key
 
@@ -1637,7 +1653,9 @@ status tracker convention).
 
 ## Open
 
-_None._
+| Bug | Title | Severity | Status | Related |
+|-----|-------|----------|--------|---------|
+| [b011](yqr-b011-multiline-flow-collection-fails-to-parse.md) | A multi-line flow collection is valid YAML that yqr cannot read at all | Medium | Open — noyalib refuses to parse a flow collection spread over several lines (`ports: [` / `  80,` / `]`), which PyYAML and the YAML spec both accept; the message names the right indentation rule and applies it to the closing indicator. Loud rather than silent (exit 5, no damage), but it is a **whole-file read** refusal, so `a001`'s guarantee is vacuous for these files and `validate` calls them unreadable. Found while reviewing the `yqr-f016` §5 flow-delete work — the "flow deletes only work on single-line collections" limitation is a symptom of this. **Not yet filed upstream**; the fix is in noyalib's parser, a part yqr has not contributed to before | `yqr-a001`, `yqr-b004`, `yqr-f016` |
 
 ## Resolved
 
@@ -1656,8 +1674,9 @@ _None._
 
 ## Summary
 
-- Total bugs: 10
-- Open: 0
+- Total bugs: 11
+- Open: 1 (b011 — noyalib cannot parse a multi-line flow collection, so yqr
+  cannot read the file at all; loud, not silent, and not yet filed upstream)
 - Resolved: 10 (b010 — noyalib's reorder exchanged value bytes only, so every
   comment stayed with the slot; filed as noyalib#269, re-framed from "defect"
   to a semantics disagreement once its pinning test turned up, argued on
@@ -3855,6 +3874,96 @@ Neither is caught by clippy or by any test.
 
 ---
 
+# Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all
+
+URL: /yqr/specs/bugs/yqr-b011-multiline-flow-collection-fails-to-parse
+
+# Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all
+
+**Status:** Open (found 2026-08-17, not yet filed upstream)
+**Severity:** Medium — an input yqr refuses outright, on the **read** path, so
+no filter runs; not silent, but a hard "cannot open your file"
+**Component:** noyalib's parser (upstream), reached through every yqr entry
+point — `parse_stream` is the first thing both the read engine and the write
+engine call
+**Related:** `yqr-a001` (the fidelity contract, which presumes yqr can read the
+file), `yqr-f016` §5 (found while reviewing the flow-delete work, which is
+where the shape came up), `yqr-b004` (the upstream gap catalog)
+
+## 1. Summary
+
+A flow collection spread over several lines is ordinary, valid YAML. noyalib
+refuses to parse it, so yqr cannot read such a document, let alone edit one:
+
+```console
+$ cat ports.yaml
+ports: [
+  80,
+  443,
+]
+$ yqr '.' ports.yaml
+yqr: io error: failed to parse YAML input: YAML parse error: flow content must
+be indented more than the surrounding block
+```
+
+The identity filter is enough to trigger it — this is not about any particular
+operation.
+
+## 2. It is valid
+
+PyYAML accepts it, with the closing bracket at column 0 and with it indented:
+
+```console
+$ python3 -c "import yaml; print(yaml.safe_load(open('ports.yaml')))"
+{'ports': [80, 443]}
+```
+
+Per the YAML spec, flow content inside a block context must be more indented
+than the block — which `  80,` and `  443,` are. The closing `]` is an
+indicator rather than content, and every other implementation accepts it at the
+parent's column.
+
+The message names the right rule and applies it to the wrong token.
+
+## 3. Why it matters more than the refusal suggests
+
+It is loud, which is the good half: exit 5 with a message, no damage. But it is
+a **whole-file** refusal on the read path, so:
+
+- The `yqr-a001` promise — "reads never rewrite bytes" — is vacuous for these
+  files, because there is no read.
+- `yqr validate` reports the file as unreadable rather than valid, which is
+  wrong in the one direction a validator must not be wrong.
+- Multi-line flow sequences are common in hand-maintained config (a long
+  `args:` or `ports:` list wrapped for width), so this is not an exotic shape.
+
+## 4. Route
+
+Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent. Not yet filed. The fix
+is a parser indentation check that exempts the closing indicator, so it is
+plausibly small — but this is the parser rather than a mutator, which is a part
+of noyalib yqr has not contributed to before, so the estimate is worth
+treating as a guess.
+
+## 5. Provenance
+
+Found while reviewing the `yqr-f016` §5 flow-delete work: the reviewer noted
+that flow deletes only work on single-line flow collections, and the reason
+turned out to be that yqr cannot open a multi-line one. So the delete
+limitation is a symptom, and this is the defect.
+
+## 6. Acceptance
+
+- [ ] Filed upstream with the §2 evidence.
+- [ ] A released noyalib parses a multi-line flow collection, closing indicator
+      at the parent's column included.
+- [ ] `yqr '.'` round-trips such a file byte-for-byte, pinned in the `a001`
+      fidelity harness.
+- [ ] A corpus case covers a wrapped flow sequence, since the shape is common
+      enough that its absence is why this went unnoticed.
+
+---
+
 # Feature Specs
 
 URL: /yqr/specs/features
@@ -3931,7 +4040,7 @@ dependency/release timing.
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
-| [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses | In Progress (pin moved; §4 measured; §5 decision open) |
+| [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr used to refuse | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -3990,9 +4099,11 @@ implementation with nothing waiting on upstream. And the `f007` §6 delegation
 question was re-measured per test: **seven failures, all "yqr refuses and
 upstream now succeeds"**, none of them a trivia divergence — but the
 sole-entry half of that strands the removed entry's head comment above an empty
-`{}`, which is the `b006`/`b010` failure class a third time. The flow half is
-clean. That asymmetry is new information and §5's decision is deliberately
-still open on it. f008 (`|=` computed
+`{}` (filed as noyalib#280), which is the `b006`/`b010` failure class a third
+time. The flow half is clean. That asymmetry decided §5: **each half went to
+whichever implementation was already correct** — flow delegated to upstream,
+sole-entry implemented in `delete_entry`, where the head-comment run travels
+with the entry. Both classes now work, so `f007` §5 has no refusals left. f008 (`|=` computed
 updates) is gated on `f001` M2 (arithmetic/builtins). Priority order: f006
 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f016
 (blocked on the release) → f007 remainder → M2 → f008.
@@ -4041,7 +4152,7 @@ dashboard.
 - In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
   rename / reorder grammar settled in `yqr-a002` and staged as three slices,
   none implemented, and slice 3 blocked on `yqr-b010`)
-- Done: 9 (f002, f006, f009, f010, f011, f012, f013, f014, f015)
+- Done: 10 (f002, f006, f009, f010, f011, f012, f013, f014, f015, f016)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
@@ -5037,8 +5148,8 @@ seam)
 The surgical edits that have **no first-class API** in noyalib 0.0.14 and so are
 excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 
-- **Structural delete** — multi-line, nested, sole-entry, and flow deletes that
-  `Document::remove` rejects (`b004` 2.4). **Shipped** (§5).
+- **Structural delete** — multi-line, nested, sole-entry, and flow deletes
+  (`b004` 2.4). **Shipped** (§5); the last two classes since `yqr-f016` §5.
 - **Comment editing** — add / change / remove a comment attached to a node
   (`b004` 2.1; comments were read-only in 0.0.14). **Deferred** (§6).
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
@@ -5080,8 +5191,9 @@ the document untouched.
 
 ## 4. Acceptance criteria
 
-- [x] Delete of a multi-line / nested node, byte-exact elsewhere; a clear error
-      where still unsupported (sole-entry, flow).
+- [x] Delete of a multi-line / nested node, byte-exact elsewhere. Sole-entry
+      and flow deletes are supported as of `yqr-f016` §5, so the "clear error
+      where still unsupported" half of this criterion no longer has a subject.
 - [x] Every `replace_span` edit is guarded and covered by a byte-exact test.
 - [ ] `line_comment(<path>)` / `head_comment(<path>)` set and remove
       (`yqr-a002` §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
@@ -5167,19 +5279,24 @@ For the target entry (final path segment `last`, resolved value byte span
    A contiguous run of same-indent comment lines **directly above** the entry is
    its head comment and is folded into the range, so a delete never silently
    re-attributes the comment to the following sibling.
-3. **Refuse the unsupported shapes** with a clear message: the **sole entry** of
-   a block (removing it would empty the block, which re-parses as `null`), and an
-   item of a **flow** collection (`[a, b]` / `{a: 1}`, detected from the parent's
-   own bytes — including a root-level flow collection, whose parent is the
-   document itself).
+3. **Route the two shapes that do not own whole lines**, both supported since
+   `yqr-f016` §5 (2026-08-17) and each by a different implementation:
 
-   Both refusals became **optional** on 2026-08-16: noyalib 0.0.23 covers both
-   classes, taking exactly one separator with a flow member and writing the
-   collection out explicitly (`a:`/`  {}`) for a sole entry — which is the same
-   `null`-not-removal argument this step makes, answered rather than refused.
-   Whether yqr delegates the two, implements them, or keeps refusing is
-   `yqr-f016` §5, decided on that feature's measurement. Nothing has moved:
-   0.0.23 is unpublished, and this step is unchanged until it does.
+   - An item of a **flow** collection (`[a, b]` / `{a: 1}`, detected from the
+     parent's own bytes — including a root-level flow collection, whose parent
+     is the document itself) is **delegated** to noyalib's `remove`. Upstream
+     owns the separator arithmetic; this module has none, so re-deriving it
+     would produce a second copy rather than a second opinion.
+   - The **sole entry** of a block is **implemented here**: the collection is
+     written out explicitly (`{}` / `[]`) at the entry's own indentation and
+     line terminator, since deleting the bytes would leave a dangling key that
+     re-parses as `null` — a type change, not a removal. Kept in this module
+     because the range to replace includes the entry's head-comment run, which
+     upstream's own sole-entry path misses (`yqr-f016` §4.4, noyalib#280).
+
+   The oracle argument decides the split in both directions: keep an
+   independent implementation where it can disagree with something, skip it
+   where it cannot.
 4. **Splice, guard, and commit byte-preservingly.** Re-parse the spliced source
    and require it to lower to the original document value with the target removed
    (mapping key order preserved, sequence indices shifted); a dangling alias
@@ -6904,9 +7021,8 @@ URL: /yqr/specs/features/yqr-f016-noyalib-0-0-23-adoption
 
 # Feature f016 — Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr still refuses
 
-**Status:** In Progress — 0.0.23 published 2026-08-17 and **the pin has
-moved**; §4's measurement is run and recorded; §5's decision is the one thing
-still open
+**Status:** Done — 0.0.23 adopted, §4 measured, §5 decided and implemented
+(2026-08-17)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f015` (the 0.0.22 adoption this succeeds), `yqr-b004` (the
@@ -7082,48 +7198,52 @@ same way each time: by having a second implementation that disagrees.
 `only: 1\n` -> `remove("only")` -> `{}\n`, and `a:`/`  x: 1` -> `a:`/`  {}`,
 both terminated. The defect upstream found while building this release does not
 reach yqr.
-## 5. The decision this feature owes — open
+## 5. The decision, taken
 
-`yqr-f007` §5 refuses two delete classes. §4 measured what delegating each
-would actually buy and cost, so the options can now be weighed on evidence
-rather than on principle. **Not decided here**; recorded for a decision.
+Both classes are now supported, and **each half went to whichever
+implementation was already correct for it** — the option §4's asymmetry
+suggested and the original three-way framing did not have.
 
-| | Flow member | Sole entry |
+| | Route | Why |
 |---|---|---|
-| Upstream output | correct (§4.3) | correct *value*, strands the head comment (§4.4) |
-| yqr today | refuses, with its own clearer message | refuses |
-| Cost of delegating | none found | a `yqr-b006`-class regression |
+| Flow member | **delegated** to `Document::remove` | upstream owns the separator arithmetic and measured clean (§4.3); yqr has no flow implementation, so a second copy would not be a second opinion |
+| Sole entry | **implemented** in `delete_entry` | yqr already computes the range including the entry's head-comment run, which is exactly what upstream's path misses (§4.4) |
 
-That asymmetry is the new information, and it cuts across all three options as
-they were originally framed:
+The differential-oracle argument from `yqr-f007` §6 is what decides the split,
+and it decides it *both ways*: an independent implementation is worth keeping
+where it can disagree with something, and worth skipping where it cannot.
 
-1. **Delegate the two classes.** §4 says these are not one decision. The flow
-   half is clean; the sole-entry half is not, unless yqr pre-passes the head
-   comment itself — at which point it is doing the arithmetic anyway.
-2. **Delegate delete entirely.** Now worse than it looked. It buys the flow
-   class and takes the §4.4 regression, on the mutator yqr has already had to
-   fix twice.
-3. **Implement both classes in `delete_entry`.** The one option §4 makes more
-   attractive rather than less: yqr already owns the head-comment arithmetic
-   that §4.4 shows upstream lacks here, so the sole-entry case is a spelling
-   question (`{}` / `[]`) on top of a range it already computes. The flow case
-   is the separator arithmetic, which is genuinely new.
+### 5.1 The scope question, answered
 
-A fourth shape §4 suggests and the original framing did not: **delegate the
-flow class only, implement the sole-entry class.** Each half goes to whichever
-implementation is already correct for it.
+**Yes — `del` of a sole entry writes `{}` / `[]`.** The objection this section
+raised was that it injects flow syntax into a block document. That does not
+survive scrutiny: an empty block collection *has no block spelling*, so `{}` is
+not a style yqr is choosing, it is the only thing that can be written. jq and yq
+both do it. Refusing was a capability gap with no fidelity justification behind
+it — the refusal protected the user from nothing.
 
-Also worth settling alongside it, because it is a user-visible policy and not
-just an implementation choice: **should `del` of a sole entry write `{}` at
-all?** Upstream's `a:`/`  {}` is semantically right and introduces flow syntax
-into a block document; `del(.only)` on a single-key document rewrites the whole
-file to `{}`. Refusing, as yqr does today, is defensible for a tool whose
-selling point is not surprising you. This is a scope question, not a backend
-one, and it survives whichever option above is taken.
+The cost stands and is accepted: `del(.only)` on a single-key document rewrites
+the file to `{}`. That is a large effect from a small command, but it is the
+correct one, and it is what the other tools do.
 
-**Route.** §4.4 is worth reporting upstream regardless of what yqr does — it is
-a real trivia defect in a shipped mutator, of the class upstream has taken a
-fix for three times. Filing it does not depend on this decision.
+### 5.2 What yqr gets right that upstream does not
+
+The sole-entry implementation is not merely a re-derivation. Because the range
+comes from `owned_line_span`, the entry's head comment goes with it:
+
+```text
+in                      yqr                    upstream (noyalib#280)
+a:                      a:                     a:
+  # documents x           {}                     # documents x
+  x: 1                  b: 2                     {}
+b: 2                                           b: 2
+```
+
+A blank-detached comment is correctly left in place by both. This is the fourth
+time an independent implementation has been the thing that made an upstream
+trivia divergence visible, and the first time yqr has kept a *capability*
+rather than a refusal because of it.
+
 ## 6. Upstream close-out
 
 `#221` is closed. Its five sub-asks all shipped, and four of the merged fixes
@@ -7149,14 +7269,16 @@ tests upstream — is recorded in `yqr-f007` §5.1 and is not taken up here.
 - [x] 0.0.23 published to crates.io; the pin moves and `Cargo.lock` shows that
       one crate moving and nothing else.
 - [x] §4's measurement run and recorded per test, not in aggregate.
-- [ ] §5's decision taken, recorded here and reflected in `yqr-f007` §5/§6.
+- [x] §5's decision taken, recorded here and reflected in `yqr-f007` §5.
 - [x] `cargo audit` clean; both fidelity harnesses pass; the byte-exact
       `EngineCase` tier passes untouched.
-- [ ] If a delete class is delegated or implemented, it gains a byte-exact test
-      per shape (flow member first/middle/last, sole mapping entry, sole
-      sequence item, single-key document) and the trailing newline is asserted.
+- [x] Each delete class gained a byte-exact test per shape: flow member
+      first/middle/last and a root-level flow sequence; sole mapping entry, sole
+      sequence item, single-key document, sole member of a *flow* collection;
+      plus head-comment travel, blank-detached comment survival, CRLF, and a
+      document with no final newline.
 - [x] `yqr-b010` fixed upstream and verified against the published crate (§3).
-- [ ] §4.4 filed upstream.
+- [x] §4.4 filed upstream as noyalib#280.
 
 ---
 

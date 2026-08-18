@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-17",
+  "dateModified": "2026-08-18",
   "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 895
+  "wordCount": 971
 }
 </script>
 <script type="application/ld+json">
@@ -151,6 +151,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -483,9 +486,26 @@ $ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an en
 $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 </code></pre>
 <p><code>del</code> handles nested blocks and multi-line values, not just single lines,
-and closes the gap cleanly afterwards. Two cases are refused with a clear
-message rather than guessed at: removing the only entry of a block, and
-removing an item from a flow collection like <code>[a, b, c]</code>.</p>
+and closes the gap cleanly afterwards. It also handles the two cases that
+used to be refused:</p>
+<ul>
+<li>
+<p><strong>The last entry of a block.</strong> The collection is written out explicitly,
+because deleting the bytes would leave a dangling <code>spec:</code> – and a key
+with nothing under it reads back as <code>null</code>, which is a type change rather
+than a removal:</p>
+<pre><code class="language-console">$ yqr 'del(.spec.replicas)' one.yaml
+spec:
+  {}
+</code></pre>
+<p>A comment documenting the removed entry goes with it, rather than being
+left behind describing an empty collection.</p>
+</li>
+<li>
+<p><strong>An item of a flow collection</strong> like <code>ports: [80, 443]</code>. Exactly one
+separator goes with the item, so you never get <code>[, 443]</code> or <code>[80, ]</code>.</p>
+</li>
+</ul>
 <h2 id="renaming-a-key">Renaming a key<a class="heading-anchor" href="#renaming-a-key" aria-label="Link to this section"></a></h2>
 <!-- Feature f007 -->
 <p>A path names a <em>value</em>, so there is no path that means “the key of this
@@ -611,7 +631,7 @@ count”; you say what it should become.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-17</span>
+        <span>Site last updated: 2026-08-18</span>
         
     </footer>
 

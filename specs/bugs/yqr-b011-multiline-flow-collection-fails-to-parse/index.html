@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature f008 — Write tier: computed updates (`|=`) - yqr</title>
+    <title>Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all - yqr</title>
     
     
 
@@ -12,10 +12,10 @@
 
 
 
-<meta name="description" content="Status: Draft (stub — gated on f001 M2) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f006 (write tier v1 — the assignment&#x2f;-i core this extends), yqr.f001 M2 (arithmetic + builtins — the right-hand evaluator this needs), yqr-m002 §4&#x2f;§6.2 (write-tier seam)">
+<meta name="description" content="Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (upstream), reached through every yqr entry point — parse_stream is the fir...">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse">
 
 
 
@@ -29,10 +29,10 @@
 
 
 
-<meta property="og:title" content="Feature f008 — Write tier: computed updates (`|=`)">
-<meta property="og:description" content="Status: Draft (stub — gated on f001 M2) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f006 (write tier v1 — the assignment&#x2f;-i core this extends), yqr.f001 M2 (arithmetic + builtins — the right-hand evaluator this needs), yqr-m002 §4&#x2f;§6.2 (write-tier seam)">
+<meta property="og:title" content="Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all">
+<meta property="og:description" content="Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (upstream), reached through every yqr entry point — parse_stream is the fir...">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -42,8 +42,8 @@
 
 
 
-<meta name="twitter:title" content="Feature f008 — Write tier: computed updates (`|=`)">
-<meta name="twitter:description" content="Status: Draft (stub — gated on f001 M2) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f006 (write tier v1 — the assignment&#x2f;-i core this extends), yqr.f001 M2 (arithmetic + builtins — the right-hand evaluator this needs), yqr-m002 §4&#x2f;§6.2 (write-tier seam)">
+<meta name="twitter:title" content="Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all">
+<meta name="twitter:description" content="Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (upstream), reached through every yqr entry point — parse_stream is the fir...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-18",
-  "description": "Status: Draft (stub — gated on f001 M2) Epic: Fidelity write tier (f006–f008) Owner: yqr maintainers Related: yqr-f006 (write tier v1 — the assignment/-i core this extends), yqr.f001 M2 (arithmetic + builtins — the right-hand evaluator this needs), yqr-m002 §4/§6.2 (write-tier seam)",
+  "description": "Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard \"cannot open your file\" Component: noyalib's parser (upstream), reached through every yqr entry point — parse_stream is the fir...",
   "inLanguage": "en",
-  "name": "Feature f008 — Write tier: computed updates (`|=`)",
-  "url": "https://zoosky.github.io/yqr/specs/features/yqr-f008-write-tier-computed-updates",
-  "wordCount": 305
+  "name": "Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all",
+  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b011-multiline-flow-collection-fails-to-parse",
+  "wordCount": 561
 }
 </script>
 <script type="application/ld+json">
@@ -119,14 +119,14 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/features",
-      "name": "Feature Specs",
+      "item": "https://zoosky.github.io/yqr/specs/bugs",
+      "name": "Bug Specs",
       "position": 3
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/features/yqr-f008-write-tier-computed-updates",
-      "name": "Feature f008 — Write tier: computed updates (`|=`)",
+      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b011-multiline-flow-collection-fails-to-parse",
+      "name": "Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all",
       "position": 4
     }
   ]
@@ -699,7 +699,7 @@
       
       
         <details class="sidebar-section"
-          open>
+          >
           <summary class="sidebar-section-title">Feature Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
@@ -798,7 +798,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f008-write-tier-computed-updates"
-                   class="sidebar-link active">Feature f008 — Write tier: computed updates (`|=`)</a>
+                   class="sidebar-link">Feature f008 — Write tier: computed updates (`|=`)</a>
               
             
               
@@ -1137,7 +1137,7 @@
       
       
         <details class="sidebar-section"
-          >
+          open>
           <summary class="sidebar-section-title">Bug Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
@@ -1218,7 +1218,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse"
-                   class="sidebar-link">Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all</a>
+                   class="sidebar-link active">Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all</a>
               
             
               
@@ -2848,60 +2848,86 @@
         <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
         <span aria-hidden="true">/</span>
     
-        <a href="&#x2f;yqr&#x2f;specs&#x2f;features">Feature Specs</a>
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Feature f008 — Write tier: computed updates (`|=`)</span>
+    <span aria-current="page">Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all</span>
 </nav>
 
 
-        <h1>Feature f008 — Write tier: computed updates (`|=`)</h1>
+        <h1>Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Draft (stub — gated on <code>f001</code> M2)
-<strong>Epic:</strong> Fidelity write tier (<code>f006</code>–<code>f008</code>)
-<strong>Owner:</strong> yqr maintainers
-<strong>Related:</strong> <code>yqr-f006</code> (write tier v1 — the assignment/<code>-i</code> core this extends),
-<code>yqr.f001</code> M2 (arithmetic + builtins — the right-hand evaluator this needs),
-<code>yqr-m002</code> §4/§6.2 (write-tier seam)</p>
-<blockquote>
-<p><strong>Stub.</strong> This feature cannot be built until the expression evaluator exists,
-so it is a roadmap marker only. It is scoped here to keep the epic’s shape
-complete; detail is deferred until <code>f001</code> M2 lands.</p>
-</blockquote>
-<h2 id="1-scope">1. Scope<a class="heading-anchor" href="#1-scope" aria-label="Link to this section"></a></h2>
-<p>jq’s <strong>update-assignment</strong> operator: <code>p |= f</code>, which sets the node at path <code>p</code>
-to the result of running filter <code>f</code> on its current value — e.g.:</p>
+            <p><strong>Status:</strong> Open (found 2026-08-17, not yet filed upstream)
+<strong>Severity:</strong> Medium — an input yqr refuses outright, on the <strong>read</strong> path, so
+no filter runs; not silent, but a hard “cannot open your file”
+<strong>Component:</strong> noyalib’s parser (upstream), reached through every yqr entry
+point — <code>parse_stream</code> is the first thing both the read engine and the write
+engine call
+<strong>Related:</strong> <code>yqr-a001</code> (the fidelity contract, which presumes yqr can read the
+file), <code>yqr-f016</code> §5 (found while reviewing the flow-delete work, which is
+where the shape came up), <code>yqr-b004</code> (the upstream gap catalog)</p>
+<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
+<p>A flow collection spread over several lines is ordinary, valid YAML. noyalib
+refuses to parse it, so yqr cannot read such a document, let alone edit one:</p>
+<pre><code class="language-console">$ cat ports.yaml
+ports: [
+  80,
+  443,
+]
+$ yqr '.' ports.yaml
+yqr: io error: failed to parse YAML input: YAML parse error: flow content must
+be indented more than the surrounding block
+</code></pre>
+<p>The identity filter is enough to trigger it — this is not about any particular
+operation.</p>
+<h2 id="2-it-is-valid">2. It is valid<a class="heading-anchor" href="#2-it-is-valid" aria-label="Link to this section"></a></h2>
+<p>PyYAML accepts it, with the closing bracket at column 0 and with it indented:</p>
+<pre><code class="language-console">$ python3 -c "import yaml; print(yaml.safe_load(open('ports.yaml')))"
+{'ports': [80, 443]}
+</code></pre>
+<p>Per the YAML spec, flow content inside a block context must be more indented
+than the block — which <code>  80,</code> and <code>  443,</code> are. The closing <code>]</code> is an
+indicator rather than content, and every other implementation accepts it at the
+parent’s column.</p>
+<p>The message names the right rule and applies it to the wrong token.</p>
+<h2 id="3-why-it-matters-more-than-the-refusal-suggests">3. Why it matters more than the refusal suggests<a class="heading-anchor" href="#3-why-it-matters-more-than-the-refusal-suggests" aria-label="Link to this section"></a></h2>
+<p>It is loud, which is the good half: exit 5 with a message, no damage. But it is
+a <strong>whole-file</strong> refusal on the read path, so:</p>
 <ul>
-<li><code>.spec.replicas |= (. + 1)</code> (increment)</li>
-<li><code>.image |= sub("nginx:.*"; "nginx:1.28")</code> (string transform)</li>
-<li><code>.metadata.labels.env |= ascii_upcase</code></li>
+<li>The <code>yqr-a001</code> promise — “reads never rewrite bytes” — is vacuous for these
+files, because there is no read.</li>
+<li><code>yqr validate</code> reports the file as unreadable rather than valid, which is
+wrong in the one direction a validator must not be wrong.</li>
+<li>Multi-line flow sequences are common in hand-maintained config (a long
+<code>args:</code> or <code>ports:</code> list wrapped for width), so this is not an exotic shape.</li>
 </ul>
-<p>Unlike <code>f006</code>’s <code>=</code> (whose RHS is a literal or a copied path), <code>|=</code> computes the
-new value from the old one, so it <strong>requires the expression evaluator</strong> —
-arithmetic, comparisons, and the string/collection builtins delivered by
-<code>f001</code> M2.</p>
-<h2 id="2-dependency">2. Dependency<a class="heading-anchor" href="#2-dependency" aria-label="Link to this section"></a></h2>
-<p>Hard-gated on <strong><code>f001</code> M2</strong> (arithmetic/builtins). Until then, <code>f006</code> rejects
-<code>|=</code> with a “not yet supported” message. Once M2 exists, <code>|=</code> reuses:</p>
-<ul>
-<li><code>f006</code>’s path → span → <code>set_value</code> write path and its re-parse guard, and</li>
-<li>the M2 evaluator to compute the RHS value from the selected node.</li>
-</ul>
-<h2 id="3-structural-integrity-contract">3. Structural-integrity contract<a class="heading-anchor" href="#3-structural-integrity-contract" aria-label="Link to this section"></a></h2>
-<p>Identical to <code>f006</code> §7 — the computed value is written via the guarded
-<code>set_value</code>, so only the target node’s bytes change or the edit is refused.</p>
-<h2 id="4-acceptance-criteria-outline">4. Acceptance criteria (outline)<a class="heading-anchor" href="#4-acceptance-criteria-outline" aria-label="Link to this section"></a></h2>
+<h2 id="4-route">4. Route<a class="heading-anchor" href="#4-route" aria-label="Link to this section"></a></h2>
+<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent. Not yet filed. The fix
+is a parser indentation check that exempts the closing indicator, so it is
+plausibly small — but this is the parser rather than a mutator, which is a part
+of noyalib yqr has not contributed to before, so the estimate is worth
+treating as a guess.</p>
+<h2 id="5-provenance">5. Provenance<a class="heading-anchor" href="#5-provenance" aria-label="Link to this section"></a></h2>
+<p>Found while reviewing the <code>yqr-f016</code> §5 flow-delete work: the reviewer noted
+that flow deletes only work on single-line flow collections, and the reason
+turned out to be that yqr cannot open a multi-line one. So the delete
+limitation is a symptom, and this is the defect.</p>
+<h2 id="6-acceptance">6. Acceptance<a class="heading-anchor" href="#6-acceptance" aria-label="Link to this section"></a></h2>
 <ul>
 <li><input disabled="" type="checkbox"/>
-<code>.n |= (. + 1)</code> rewrites the scalar, byte-exact elsewhere.</li>
+Filed upstream with the §2 evidence.</li>
 <li><input disabled="" type="checkbox"/>
-A <code>|=</code> whose RHS filter errors leaves the document unchanged.</li>
+A released noyalib parses a multi-line flow collection, closing indicator
+at the parent’s column included.</li>
 <li><input disabled="" type="checkbox"/>
-Style-matched quoting via <code>set_value</code> for computed string results.</li>
+<code>yqr '.'</code> round-trips such a file byte-for-byte, pinned in the <code>a001</code>
+fidelity harness.</li>
+<li><input disabled="" type="checkbox"/>
+A corpus case covers a wrapped flow sequence, since the shape is common
+enough that its absence is why this went unnoticed.</li>
 </ul>
-<p><em>(Criteria firm up alongside the <code>f001</code> M2 evaluator.)</em></p>
 
         </div>
         </accent-island>
@@ -2913,16 +2939,11 @@ Style-matched quoting via <code>set_value</code> for computed string results.</l
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits" class="nav-prev">
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b010-reorder-moves-values-not-entries" class="nav-prev">
         <span class="nav-label">&larr; Previous</span>
-        <span class="nav-title">Feature f007 — Write tier: structural edits (the `b004` gaps)</span>
+        <span class="nav-title">Bug b010 — `swap_items` &#x2f; `move_item` move values, not entries: every comment stays behind</span>
     </a>
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f009-fidelity-default-normalize" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Feature f009 — Byte fidelity by default; classic pipeline behind `--normalize`</span>
-    </a>
     
 </nav>
 
@@ -2934,19 +2955,27 @@ Style-matched quoting via <code>set_value</code> for computed string results.</l
         <ul>
         
             <li class="toc-level-2">
-                <a href="#1-scope">1. Scope</a>
+                <a href="#1-summary">1. Summary</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#2-dependency">2. Dependency</a>
+                <a href="#2-it-is-valid">2. It is valid</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#3-structural-integrity-contract">3. Structural-integrity contract</a>
+                <a href="#3-why-it-matters-more-than-the-refusal-suggests">3. Why it matters more than the refusal suggests</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-acceptance-criteria-outline">4. Acceptance criteria (outline)</a>
+                <a href="#4-route">4. Route</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#5-provenance">5. Provenance</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#6-acceptance">6. Acceptance</a>
             </li>
         
         </ul>

@@ -92,12 +92,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-17",
+  "dateModified": "2026-08-18",
   "description": "Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr's whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...",
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 3764
+  "wordCount": 3828
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -484,8 +487,14 @@
   
     
     
+  
+    
+    
       
       
+      
+        
+        
       
         
         
@@ -695,6 +704,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -994,6 +1006,11 @@
       
         
         
+          
+        
+      
+        
+        
       
         
         
@@ -1200,6 +1217,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse"
+                   class="sidebar-link">Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all</a>
+              
+            
+              
+              
             
               
               
@@ -1348,6 +1371,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1688,6 +1714,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1700,6 +1729,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1883,6 +1915,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2190,6 +2225,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2255,6 +2293,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2550,6 +2591,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2614,6 +2658,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2828,8 +2875,8 @@ seam)</p>
 <p>The surgical edits that have <strong>no first-class API</strong> in noyalib 0.0.14 and so are
 excluded from <code>f006</code>. Each is cataloged in <code>yqr-b004</code> §2:</p>
 <ul>
-<li><strong>Structural delete</strong> — multi-line, nested, sole-entry, and flow deletes that
-<code>Document::remove</code> rejects (<code>b004</code> 2.4). <strong>Shipped</strong> (§5).</li>
+<li><strong>Structural delete</strong> — multi-line, nested, sole-entry, and flow deletes
+(<code>b004</code> 2.4). <strong>Shipped</strong> (§5); the last two classes since <code>yqr-f016</code> §5.</li>
 <li><strong>Comment editing</strong> — add / change / remove a comment attached to a node
 (<code>b004</code> 2.1; comments were read-only in 0.0.14). <strong>Deferred</strong> (§6).</li>
 <li><strong>Key rename</strong> — <code>.a.b</code> key renamed in place, preserving <code>:</code> and value
@@ -2870,8 +2917,9 @@ the document untouched.</p>
 <h2 id="4-acceptance-criteria">4. Acceptance criteria<a class="heading-anchor" href="#4-acceptance-criteria" aria-label="Link to this section"></a></h2>
 <ul>
 <li><input disabled="" type="checkbox" checked=""/>
-Delete of a multi-line / nested node, byte-exact elsewhere; a clear error
-where still unsupported (sole-entry, flow).</li>
+Delete of a multi-line / nested node, byte-exact elsewhere. Sole-entry
+and flow deletes are supported as of <code>yqr-f016</code> §5, so the “clear error
+where still unsupported” half of this criterion no longer has a subject.</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Every <code>replace_span</code> edit is guarded and covered by a byte-exact test.</li>
 <li><input disabled="" type="checkbox"/>
@@ -2954,18 +3002,24 @@ re-attributes the comment to the following sibling.</li>
 </ul>
 </li>
 <li>
-<p><strong>Refuse the unsupported shapes</strong> with a clear message: the <strong>sole entry</strong> of
-a block (removing it would empty the block, which re-parses as <code>null</code>), and an
-item of a <strong>flow</strong> collection (<code>[a, b]</code> / <code>{a: 1}</code>, detected from the parent’s
-own bytes — including a root-level flow collection, whose parent is the
-document itself).</p>
-<p>Both refusals became <strong>optional</strong> on 2026-08-16: noyalib 0.0.23 covers both
-classes, taking exactly one separator with a flow member and writing the
-collection out explicitly (<code>a:</code>/<code>  {}</code>) for a sole entry — which is the same
-<code>null</code>-not-removal argument this step makes, answered rather than refused.
-Whether yqr delegates the two, implements them, or keeps refusing is
-<code>yqr-f016</code> §5, decided on that feature’s measurement. Nothing has moved:
-0.0.23 is unpublished, and this step is unchanged until it does.</p>
+<p><strong>Route the two shapes that do not own whole lines</strong>, both supported since
+<code>yqr-f016</code> §5 (2026-08-17) and each by a different implementation:</p>
+<ul>
+<li>An item of a <strong>flow</strong> collection (<code>[a, b]</code> / <code>{a: 1}</code>, detected from the
+parent’s own bytes — including a root-level flow collection, whose parent
+is the document itself) is <strong>delegated</strong> to noyalib’s <code>remove</code>. Upstream
+owns the separator arithmetic; this module has none, so re-deriving it
+would produce a second copy rather than a second opinion.</li>
+<li>The <strong>sole entry</strong> of a block is <strong>implemented here</strong>: the collection is
+written out explicitly (<code>{}</code> / <code>[]</code>) at the entry’s own indentation and
+line terminator, since deleting the bytes would leave a dangling key that
+re-parses as <code>null</code> — a type change, not a removal. Kept in this module
+because the range to replace includes the entry’s head-comment run, which
+upstream’s own sole-entry path misses (<code>yqr-f016</code> §4.4, noyalib#280).</li>
+</ul>
+<p>The oracle argument decides the split in both directions: keep an
+independent implementation where it can disagree with something, skip it
+where it cannot.</p>
 </li>
 <li>
 <p><strong>Splice, guard, and commit byte-preservingly.</strong> Re-parse the spliced source
@@ -3315,31 +3369,31 @@ a document read from an echo.</p>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
   </ul>
@@ -3370,7 +3424,7 @@ a document read from an echo.</p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-17</span>
+        <span>Site last updated: 2026-08-18</span>
         
     </footer>
 

@@ -92,12 +92,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-17",
+  "dateModified": "2026-08-18",
   "description": "Single source of truth for the state of every yqr-bNNN bug. Update this file in the same change that opens, advances, or resolves a bug (mirrors the feature status tracker convention).",
   "inLanguage": "en",
   "name": "Bug Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 1319
+  "wordCount": 1490
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -484,8 +487,14 @@
   
     
     
+  
+    
+    
       
       
+      
+        
+        
       
         
         
@@ -695,6 +704,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -994,6 +1006,11 @@
       
         
         
+          
+        
+      
+        
+        
       
         
         
@@ -1200,6 +1217,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse"
+                   class="sidebar-link">Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all</a>
+              
+            
+              
+              
             
               
               
@@ -1348,6 +1371,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1688,6 +1714,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1700,6 +1729,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -1883,6 +1915,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2190,6 +2225,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2255,6 +2293,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2550,6 +2591,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2614,6 +2658,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2817,7 +2864,9 @@ in the same change that opens, advances, or resolves a bug (mirrors the feature
 status tracker convention).</p>
 <p><strong>Status legend:</strong> Open · In Progress · Fixed · Resolved · Won’t Fix · Duplicate</p>
 <h2 id="open">Open<a class="heading-anchor" href="#open" aria-label="Link to this section"></a></h2>
-<p><em>None.</em></p>
+<table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
+<tr><td><a href="/yqr/specs/bugs/yqr-b011-multiline-flow-collection-fails-to-parse">b011</a></td><td>A multi-line flow collection is valid YAML that yqr cannot read at all</td><td>Medium</td><td>Open — noyalib refuses to parse a flow collection spread over several lines (<code>ports: [</code> / <code>  80,</code> / <code>]</code>), which PyYAML and the YAML spec both accept; the message names the right indentation rule and applies it to the closing indicator. Loud rather than silent (exit 5, no damage), but it is a <strong>whole-file read</strong> refusal, so <code>a001</code>’s guarantee is vacuous for these files and <code>validate</code> calls them unreadable. Found while reviewing the <code>yqr-f016</code> §5 flow-delete work — the “flow deletes only work on single-line collections” limitation is a symptom of this. <strong>Not yet filed upstream</strong>; the fix is in noyalib’s parser, a part yqr has not contributed to before</td><td><code>yqr-a001</code>, <code>yqr-b004</code>, <code>yqr-f016</code></td></tr>
+</tbody></table>
 <h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
 <tr><td><a href="/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries">b010</a></td><td><code>swap_items</code> / <code>move_item</code> move values, not entries: every comment stays behind</td><td>Medium</td><td>Resolved — noyalib’s reorder mutators exchanged <strong>value bytes</strong> only, so a reorder silently re-attributed every comment in the range at <strong>exit 0</strong>, past upstream’s guard by construction (it compares typed values, and a comment is not in one). Filed as noyalib#269 and <strong>corrected in flight</strong>: upstream’s behaviour was deliberate, documented and tested (<em>“the comment annotates the slot”</em>), so this was a semantics disagreement, not a defect of the b004 §6.1/§6.4 class. yqr’s argument — <code>remove</code> already decides the same question the other way for the same bytes — was accepted; the fix is yqr’s own commit <code>d397330</code>, landed via upstream #271 and <strong>released in noyalib 0.0.23</strong>, verified against the published crate by <code>yqr-f016</code> §3. Unblocks the <code>swap</code>/<code>move</code> slice of <code>yqr-a002</code> §9</td><td><code>yqr-b004</code>, <code>yqr-b006</code>, <code>yqr-a002</code>, <code>yqr-f007</code>, <code>yqr-f015</code>, <code>yqr-f016</code></td></tr>
@@ -2833,8 +2882,9 @@ status tracker convention).</p>
 </tbody></table>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total bugs: 10</li>
-<li>Open: 0</li>
+<li>Total bugs: 11</li>
+<li>Open: 1 (b011 — noyalib cannot parse a multi-line flow collection, so yqr
+cannot read the file at all; loud, not silent, and not yet filed upstream)</li>
 <li>Resolved: 10 (b010 — noyalib’s reorder exchanged value bytes only, so every
 comment stayed with the slot; filed as noyalib#269, re-framed from “defect”
 to a semantics disagreement once its pinning test turned up, argued on
@@ -2913,31 +2963,31 @@ backend, <code>yqr-m005</code>)</li>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-17">2026-08-17</time>
+      <time class="recent-docs-date" datetime="2026-08-18">2026-08-18</time>
     </li>
     
   </ul>
@@ -2968,7 +3018,7 @@ backend, <code>yqr-m005</code>)</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-17</span>
+        <span>Site last updated: 2026-08-18</span>
         
     </footer>
 

@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "timestamp": "2026-08-17T20:55:34Z",
+  "timestamp": "2026-08-18T18:17:21Z",
   "pages": {
     "/": {
-      "content_hash": "0069f998b82fa6e5",
+      "content_hash": "de11cec76d9c79f9",
       "template": "home.html.jinja",
       "template_hash": "feec811eaced002c"
     },
@@ -33,7 +33,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/kubernetes": {
-      "content_hash": "c26c548ed9e36de5",
+      "content_hash": "0276f947afe2cd42",
       "template": "kubernetes.html.jinja",
       "template_hash": "30406ea523c53def"
     },
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "400ed9318b8314dd",
+      "content_hash": "5206759fc8f3466b",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -122,13 +122,18 @@
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
+    "/specs/bugs/yqr-b011-multiline-flow-collection-fails-to-parse": {
+      "content_hash": "9bbbfaa306eebac2",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
     "/specs/features": {
       "content_hash": "64caeda468267e11",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "d540dcf3695166e8",
+      "content_hash": "ebc360ddd1efb956",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -163,7 +168,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "660619f11d3e37d3",
+      "content_hash": "a90d585e28bf550e",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -208,7 +213,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f016-noyalib-0-0-23-adoption": {
-      "content_hash": "2a03490d503c76a3",
+      "content_hash": "29ece540514568b4",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
