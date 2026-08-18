@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787077107228,
+  "lastUpdate": 1787079520825,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1175,6 +1175,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 261665,
             "range": "± 1536",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8b998fa2ca8fc0f3858459990660e9d3d9dd094f",
+          "message": "feat(write): edit comments with line_comment / head_comment (a002 slice 2) (#71)\n\n* feat(write): edit comments with line_comment / head_comment (a002 slice 2)\n\nThe second slice of the addressing grammar. Both selectors read, set and\ndelete, and both compose with del() the same way key() does.\n\n    line_comment(.spec.replicas) = \"tuned\"    the # after the value\n    head_comment(.spec) = \"why\\nthis\"          the block above the entry\n    del(line_comment(.spec.replicas))\n\nReading strips the # and exactly one leading space, which is what makes\nset and read exact inverses -- a002 4.3's round-trip property, pinned as\nan executable CLI test over bodies with inner spaces, leading spaces, a\n'#' and a ':'. An empty body writes a bare '#'; only del() removes, so\nboth remain reachable.\n\nThe work is the pre-checks, not the calls. Three measured cases where\nupstream's guard answers a different question from the one the filter\nasked, all of them silent wrong results:\n\n  - An entry whose value starts on the next line has a single-line *value\n    span*, so upstream's guard does not fire and the comment lands on the\n    child's line; removal deletes the child's comment. Refused both ways,\n    on one comparison between key_span and span_at.\n  - A head block detached by a blank line is reported by comments_at, so\n    delegating would replace or delete a comment documenting whatever came\n    before. Refused; read is null.\n  - A *partly* detached block generalizes that, and one check covers both:\n    yqr computes the contiguous same-indent run itself and refuses when it\n    differs from comments_at().before, which means the edit would reach\n    bytes the path does not name.\n\nThe removal no-op is detected rather than enumerated, and that is the\ndesign decision worth flagging. Upstream's removers return Ok(()) on an\nunresolved path, a missing comment, and every shape their setters refuse.\nListing those shapes would put an upstream-owned list in yqr's source,\nfree to drift silently. Instead a removal checks afterwards that the\ncomment is gone and refuses when it is not -- which covers any such shape\nwithout naming them, and needs no rollback, since the document is\nuntouched in exactly that case.\n\nfoot_comment now parses and is refused with its reason (a002 8) rather\nthan reporting an unexpected token; the selector words are table-driven so\nthe three of them, and key, share one recognition path. None is a\nreserved word: .line_comment, .head_comment and .foot_comment still read\nfields, with a test.\n\nOne bug found on the way, recorded in a002 9 and f007 8.4: the attached-run\nwalk measured a sequence item's indent from its value, which sits past\n'- ', so a head comment aligned with the dash never matched and every item\nread null. delete_entry had this right already; this path had to learn it\nseparately.\n\nTwelve write-path unit tests, three parser tests, nine CLI tests and three\ncorpus cases. Guide updated; every example in it was run and prints what\nthe docs claim. Local CI green.\n\n* fix(read): a total read must not panic; extend the line guard to sequence items\n\nReview of the slice-2 work found two defects in it, both mine, and both in\nthe part the slice exists for.\n\n**A documented-total read panicked.** attached_head_len counts source lines\nwhile comments_at().before comes from the CST, and an alias-valued entry\nmakes the two disagree -- `a: &b 1` / `# c` / `c: *b` reports fewer\ncomments than there are lines above the entry. Taking a tail longer than\nthe list overflowed the subtraction (exit 101 in debug; an out-of-range\nslice panic in release). a002 4.4 says a read must never fail a batch, and\na panic is worse than any error it could have returned. A disagreement now\nreads null, because it means yqr cannot establish ownership. The write path\nwas already safe here, since check_comment_site compares the counts before\nusing either.\n\n**The value-starts-on-the-next-line guard was bypassed for sequence\nitems.** It asked only whether the entry had a key token on the value's\nline, and returned true for every sequence item -- I reasoned that an item\nalways sits on its own line. A bare `-` with the value below it is the\ncounterexample, and it is the mapping defect exactly:\n\n    xs:\n      -\n        a: 1  # child\n\nset rewrote the child's comment, del deleted it, and read reported it, all\nat exit 0. So the guard this slice was written to add was missing for half\nits cases. Both the guard and the head-comment walk now resolve an entry's\nmarker the same way -- key token, or `-` indicator via dash_before -- which\nis the same lesson twice in one file.\n\nThree smaller items from the same review. The head-comment refusal asserted\n\"separated by a blank line\" for any count mismatch, including an\nindentation difference or the alias case above, so it named a cause it had\nnot established; it now describes what the check actually knows. CommentKind\nwas inserted between the FidelityWriter trait's doc block and the trait,\nsilently reassigning five paragraphs to the enum -- the same displacement\nthe noyalib reorder PR had, so the lesson evidently needed repeating. And\nthe guide and changelog claimed setting and reading are \"exact inverses\",\nwhich holds write-then-read but not the other way: an authored `#note`\nreads as `note` and writes back as `# note`.\n\nFour regression tests, and f007 8.4 now records all three bugs, since each\nwas found by something disagreeing rather than by a test.",
+          "timestamp": "2026-08-18T20:57:14+02:00",
+          "tree_id": "9a931ba00989a1f6659a732f553d64f1322f2b68",
+          "url": "https://github.com/zoosky/yqr/commit/8b998fa2ca8fc0f3858459990660e9d3d9dd094f"
+        },
+        "date": 1787079517472,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 524,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5249,
+            "range": "± 46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 266611,
+            "range": "± 2169",
             "unit": "ns/iter"
           }
         ]
