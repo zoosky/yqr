@@ -34,6 +34,12 @@ pub enum Token {
     LParen,
     /// `)` — closes a `del(...)` form.
     RParen,
+    /// `;` — separates a reorder verb's arguments (`swap(.xs; 0; 1)`).
+    ///
+    /// jq's argument separator, taken for the same reason: `,` is spoken for
+    /// by the stream operator on yqr's roadmap.
+    // Feature f007: the reorder verb's argument separator.
+    Semi,
     /// A bare identifier, e.g. `foo` in `.foo`.
     Ident(String),
     /// An integer literal (used for indexing and as an assignment RHS), e.g.
@@ -104,6 +110,21 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
             ')' => {
                 tokens.push(Token::RParen);
                 i += 1;
+            }
+            // Feature f007: reorder-verb argument separator.
+            ';' => {
+                tokens.push(Token::Semi);
+                i += 1;
+            }
+            // `,` is the likeliest wrong guess for that separator, and it is
+            // reserved for the stream operator rather than free to take, so
+            // the refusal points at `;` instead of just naming the byte.
+            // Feature f007.
+            ',' => {
+                return Err(YqrError::lex(format!(
+                    "unexpected character ',' at position {i}: yqr has no ',' operator; \
+                     a function separates its arguments with ';', as in swap(.xs; 0; 1)"
+                )));
             }
             '"' => {
                 let (s, next) = lex_string(&chars, i)?;
@@ -278,6 +299,31 @@ mod tests {
                 Token::Question,
             ]
         );
+    }
+
+    // Feature f007: the reorder verb's argument separator.
+    #[test]
+    fn lexes_a_reorder_verb() {
+        assert_eq!(
+            lex("swap(.xs; 0; -1)").unwrap(),
+            vec![
+                Token::Ident("swap".into()),
+                Token::LParen,
+                Token::Dot,
+                Token::Ident("xs".into()),
+                Token::Semi,
+                Token::Int(0),
+                Token::Semi,
+                Token::Int(-1),
+                Token::RParen,
+            ]
+        );
+    }
+
+    #[test]
+    fn a_comma_points_at_the_separator_it_is_mistaken_for() {
+        let err = format!("{}", lex("swap(.xs, 0, 1)").unwrap_err());
+        assert!(err.contains("';'"), "got: {err}");
     }
 
     #[test]

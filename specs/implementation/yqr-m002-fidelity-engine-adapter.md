@@ -351,6 +351,20 @@ re-exported from `lib.rs` via `pub mod fidelity;`:
   (`src/fidelity/rust_yaml/span_index.rs`) before it crosses the limit.
 - `src/fidelity/noyalib.rs` — `NoyalibEngine` (backend C), behind a
   `noyalib-backend` feature.
+- `src/fidelity/write.rs` — the write seam (`FidelityWriter`, `NoyalibWriter`,
+  `apply`), with one sibling sub-module per edit whose implementation is more
+  than a call plus an error map: `write/delete.rs` (`yqr-f007` §5, the byte
+  arithmetic) and `write/reorder.rs` (`yqr-f007` §9, the index arithmetic and
+  refusals around `swap_items` / `move_item`).
+
+  **Owed:** `write.rs` itself is past the rule 9 limit — ~710 lines of
+  production code as of the reorder slice, and already ~670 before it. The
+  sub-modules keep new concerns out of it but do not shrink it. The natural
+  further split follows the same seam: the comment mutators and their
+  pre-checks (`write/comment.rs`), and the rename (`write/rename.rs`), leaving
+  `write.rs` as the trait, `apply`/`apply_to_doc`, and the shared path/value
+  lowering. Not done inside the reorder slice, because a same-PR refactor of
+  three unrelated edits is how a byte-fidelity change stops being reviewable.
 
 ## 9. First increment
 

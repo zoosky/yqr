@@ -165,3 +165,34 @@ fn sole_entry_delete_empties_the_collection() {
     .expect("sole-entry delete now succeeds");
     assert_eq!(out, "only:\n  {}\nother: 2\n");
 }
+
+// -- Feature f007: sequence reorder via the public API -------------------------
+
+#[test]
+fn swap_moves_whole_entries_through_the_public_api() {
+    // The public surface a library caller reaches for: parse the filter, apply
+    // it, get the whole stream back with each item's comments carried along.
+    let input = "steps:\n  # build it\n  - run: cargo build  # release\n  - run: cargo test\n";
+    let out = mutate("swap(.steps; 0; 1)", input);
+    assert_eq!(
+        out,
+        "steps:\n  - run: cargo test\n  # build it\n  - run: cargo build  # release\n"
+    );
+}
+
+#[test]
+fn move_is_expressible_as_a_mutation_value() {
+    // `Mutation::Reorder` is public, so a caller can build one without going
+    // through the filter grammar at all.
+    let out = write::apply(
+        &yqr::ast::Mutation::Reorder {
+            path: yqr::parser::parse(".xs").expect("valid"),
+            op: yqr::ast::ReorderOp::Move,
+            from: -1,
+            to: 0,
+        },
+        "xs:\n  - a\n  - b\n  - c\n",
+    )
+    .expect("move applies");
+    assert_eq!(out, "xs:\n  - c\n  - a\n  - b\n");
+}

@@ -83,21 +83,32 @@ fn field(value: &Value, name: &str, path: Option<&Path>) -> Result<Traced> {
     }
 }
 
+/// Resolve a possibly-negative sequence index against a length, or `None`
+/// when it falls outside the sequence.
+///
+/// A negative index counts from the end, so `-1` is the last item. Shared with
+/// the write path's reorder verb, whose indices are specified to resolve
+/// "as `.[-1]` does" — one implementation is what keeps that true.
+// Feature f007: shared with `swap`/`move`.
+pub(crate) fn resolve_seq_index(idx: i64, len: usize) -> Option<usize> {
+    let len = i64::try_from(len).ok()?;
+    let resolved = if idx < 0 { len + idx } else { idx };
+    if resolved < 0 || resolved >= len {
+        return None;
+    }
+    usize::try_from(resolved).ok()
+}
+
 fn index(value: &Value, idx: i64, path: Option<&Path>) -> Result<Traced> {
     match value {
         Value::Null => Ok((Value::Null, None)),
         Value::Sequence(items) => {
-            let len = items.len() as i64;
-            let resolved = if idx < 0 { len + idx } else { idx };
-            if resolved < 0 || resolved >= len {
-                // Out of range yields null with no source node to slice.
-                Ok((Value::Null, None))
-            } else {
-                #[allow(clippy::cast_sign_loss)] // just checked 0 <= resolved
-                let i = resolved as usize;
-                let child = path.map(|p| p.child(PathSeg::Index(i)));
-                Ok((items[i].clone(), child))
-            }
+            // Out of range yields null with no source node to slice.
+            let Some(i) = resolve_seq_index(idx, items.len()) else {
+                return Ok((Value::Null, None));
+            };
+            let child = path.map(|p| p.child(PathSeg::Index(i)));
+            Ok((items[i].clone(), child))
         }
         other => Err(YqrError::eval(format!(
             "cannot index {} with number {}",

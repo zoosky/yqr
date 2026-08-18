@@ -411,7 +411,7 @@ pub(super) fn value_starts_on_key_line(doc: &::noyalib::cst::Document, path: &st
 ///
 /// An entry owns the contiguous run of same-indent comment lines immediately
 /// above it, and nothing separated from it by a blank line — the rule
-/// `delete_entry` already applies (`yqr-b006`). Upstream draws the line
+/// `delete_entry` already applies. Upstream draws the line
 /// elsewhere: `comments_at().before` walks upward *past* blank lines, so it
 /// reports a detached comment as part of the run and both leading mutators
 /// then rewrite it.

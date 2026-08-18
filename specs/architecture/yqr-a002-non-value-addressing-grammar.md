@@ -1,18 +1,20 @@
 # Architecture a002 — Addressing what is not a value: comments, keys, and sequence order
 
-**Status:** Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is
-staged in §9 and unblocked as of noyalib 0.0.23 — `yqr-b010` is fixed)
+**Status:** Accepted and implemented (grammar settled; all three slices shipped
+— 1 on 2026-08-16, 2 and 3 on 2026-08-18, each recorded in `yqr-f007`)
 **Owner:** yqr maintainers
-**Last updated:** 2026-08-16
+**Last updated:** 2026-08-18
 **Decides:** the "final syntax TBD" left open by `yqr-f007` §4 and §6 for
 comment editing, key rename, and sequence reorder
 **Affects:** `src/lexer.rs`, `src/parser.rs`, `src/ast.rs`, `src/eval.rs`,
-`src/fidelity/write.rs`, `src/fidelity/mod.rs`, `docs/content/guide/`
+`src/fidelity/write.rs` and `src/fidelity/write/reorder.rs`,
+`src/fidelity/mod.rs`, `docs/content/guide/`
 **Related:** `yqr-a001` (the fidelity guarantee these edits must not break),
-`yqr-f007` (the three deferred slices this unblocks), `yqr-b004` §2.1–2.3 (the
-original upstream gap catalog), `yqr-b010` (the reorder trivia disagreement that blocks
-slice 3, measured out of §6), `yqr-f015` (the noyalib 0.0.22 pin every form
-here calls into)
+`yqr-f007` (the three slices this unblocked, §7–§9 there), `yqr-b004` §2.1–2.3
+(the original upstream gap catalog), `yqr-b010` (the reorder trivia
+disagreement that blocked slice 3, measured out of §6 and fixed by yqr in
+noyalib 0.0.23), `yqr-f015` (the noyalib 0.0.22 pin the first two slices were
+written against; `yqr-f016` moved it to 0.0.23)
 
 ## 1. The problem the three slices share
 
@@ -496,6 +498,10 @@ So the slice is unblocked. What remains is implementation, and slice 3's
 trivia criterion is now met by the backend rather than needing a yqr-side
 refusal.
 
+**Shipped 2026-08-18** (`yqr-f007` §9). The slice is one call per verb, as this
+section predicted, and the criterion the backend now meets is still a yqr test
+— which is the point of the §5.4 lesson rather than a contradiction of it.
+
 ## 7. Compiler surface
 
 ### 7.1 AST
@@ -685,22 +691,41 @@ Three things the slice settled that this section had not anticipated:
   own run length against `comments_at().before.len()` and refuses on any
   mismatch, which covers both shapes with one test.
 
-**Slice 3 — `swap` / `move`. Unblocked 2026-08-17** (§6): noyalib 0.0.23 moves
-an entry's trivia with it, so this ships as a call rather than as a refusal.
-The `refusal-when-commented` fallback this section reserved is no longer
-needed and is withdrawn.
+**Slice 3 — `swap` / `move`. Shipped 2026-08-18 (`yqr-f007` §9).** noyalib
+0.0.23 moves an entry's trivia with it, so this shipped as a call rather than
+as a refusal. The `refusal-when-commented` fallback this section reserved was
+never needed and is withdrawn.
 
-- [ ] `swap`/`move` on an uncommented block sequence, byte-exact elsewhere.
-- [ ] An item's inline and head comments travel with the item — met by the
+- [x] `swap`/`move` on an uncommented block sequence, byte-exact elsewhere.
+- [x] An item's inline and head comments travel with the item — met by the
       backend as of 0.0.23; the test pins it against future engine drift, which
       is the whole reason it is a criterion rather than an assumption.
-- [ ] A flow sequence keeps upstream's value-span exchange and is not refused.
-- [ ] Negative indices resolve as `.[-1]` does (§4.5).
-- [ ] Out-of-range indices refuse with exit 5.
+- [x] A flow sequence keeps upstream's value-span exchange and is not refused.
+- [x] Negative indices resolve as `.[-1]` does (§4.5) — through the *same*
+      function, so the two cannot drift apart.
+- [x] Out-of-range indices refuse with exit 5.
+
+Two things the slice settled that this section had not anticipated:
+
+- **The out-of-range check is yqr's, not a forward.** §5.4's row says the
+  engine refuses "naming the length", so the plan was to forward it. But §4.5
+  requires yqr to resolve a negative index *before* the call, which means
+  holding the length already — and forwarding then gives two message shapes for
+  one mistake, one of them quoting the engine's root path, which is the empty
+  string. One yqr-side check covers `i` and `-i` alike and names the valid
+  range.
+- **`swap(.xs; 1; 1)` is a plain success, not the forbidden no-op.** §4.4
+  forbids a mutation that silently does nothing, and the rule is about a
+  request that *cannot* be honoured. Reordering an index with itself has a
+  well-defined result, and the unchanged document is it.
 
 Each slice updates `docs/content/guide/` (CLAUDE.md rule 15) and the yq
 comparison page, whose "not in the released grammar yet" note for renames and
-comment edits is what these slices retire.
+comment edits is what these slices retire. Retired as of slice 3: that page now
+carries a *"where the shapes differ on purpose"* section instead, since all
+three operations exist in both tools' grammars except reorder, which has no yq
+builtin at all (re-measured on v4.53.3 — `swap(...)` is a lexer error, and
+`|= reverse` reorders by re-emitting the document).
 
 ## 10. Provenance
 

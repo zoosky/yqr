@@ -225,12 +225,11 @@ pub trait FidelityEngine {
     /// block separated by a blank line documents whatever precedes it.
     ///
     /// The body comes back without `#` and without the single leading space
-    /// the engine reports, so writing it back reproduces it
-    /// (`yqr-a002` §4.3). A multi-line head comment is `\n`-joined.
+    /// the engine reports, so writing it back reproduces it — the round-trip
+    /// property. A multi-line head comment is `\n`-joined.
     ///
-    /// Reads are total (`yqr-a002` §4.4), so an unresolved path, an
-    /// unaddressable key and a shape that cannot carry the comment are all
-    /// `None` rather than errors.
+    /// Reads are total, so an unresolved path, an unaddressable key and a
+    /// shape that cannot carry the comment are all `None` rather than errors.
     ///
     /// # Errors
     ///
