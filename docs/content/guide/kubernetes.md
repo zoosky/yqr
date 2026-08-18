@@ -117,6 +117,50 @@ used to be refused:
 - **An item of a flow collection** like `ports: [80, 443]`. Exactly one
   separator goes with the item, so you never get `[, 443]` or `[80, ]`.
 
+## Editing a comment
+
+<!-- Feature f007 -->
+
+Two selectors, wrapping a path the same way `key(...)` does:
+
+```console
+$ yqr 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
+$ yqr 'head_comment(.spec) = "why this exists"' deploy.yaml
+$ yqr -i 'del(line_comment(.spec.replicas))' deploy.yaml
+```
+
+`line_comment` is the `# ...` after the value on the entry's own line;
+`head_comment` is the block of comment lines directly above it. Reading
+either gives the body without the `#`:
+
+```console
+$ yqr -r 'line_comment(.spec.replicas)' deploy.yaml
+tuned for peak
+```
+
+Setting and reading are exact inverses -- what you write is what you read
+back, including leading spaces -- so a comment survives a round trip
+through yqr unchanged.
+
+An empty body writes a bare `#` rather than removing anything. Removal has
+its own spelling, `del(...)`, so both are reachable.
+
+Three cases are refused rather than guessed at, each because the obvious
+thing to do would be wrong:
+
+- **An entry whose value starts on the next line** has no line of its own,
+  so there is nowhere to put an inline comment. Writing one would land it
+  on the first *child* instead, where it would look like it documents that.
+- **A comment block separated from the entry by a blank line** documents
+  whatever came before it, not the entry below. yqr will not rewrite or
+  delete it.
+- **A comment block above a sequence item** can be read but not edited --
+  the YAML engine attaches leading comments to mapping keys only.
+
+And `foot_comment(...)` is refused with an explanation rather than a syntax
+error: a comment *below* an entry belongs to whatever follows it about as
+often as to the entry itself, so there is no unambiguous block to address.
+
 ## Renaming a key
 
 <!-- Feature f007 -->
@@ -184,8 +228,8 @@ stdin. That is deliberate; there is nothing to write back to.
 
 Being straight about the edges, because finding them yourself is annoying:
 
-- **Editing a comment** is not in the released grammar. Values, new keys,
-  appends, deletes, and key renames are.
+- **Reordering a sequence** is not in the released grammar. Values, new
+  keys, appends, deletes, key renames, and comment edits are.
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
 - **Keys containing `.` or `[`** -- the Kubernetes

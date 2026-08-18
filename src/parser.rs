@@ -24,7 +24,7 @@
 //! ```
 
 use crate::Value;
-use crate::ast::{Ast, Mutation, Program, Rhs, Target};
+use crate::ast::{Ast, FOOT_COMMENT_REFUSAL, Mutation, Program, Rhs, Target};
 use crate::error::{Result, YqrError};
 use crate::lexer::{Token, lex};
 
@@ -70,6 +70,24 @@ pub fn parse_program(src: &str) -> Result<Program> {
     }
     Ok(program)
 }
+
+/// Builds the [`Target`] a selector word names, from the path it wraps.
+type SelectorBuilder = fn(Ast) -> Target;
+
+/// Every selector word, paired with the [`Target`] it builds.
+///
+/// A word is a selector only in **function position** — immediately followed
+/// by `(` — so none of these is a reserved identifier: `.key` and
+/// `.head_comment` keep reading fields of those names. `foot_comment` is in
+/// the table on purpose despite having no implementation: parsing it is what
+/// lets the refusal name a reason instead of reporting an unexpected token.
+// Feature f007.
+const SELECTORS: &[(&str, SelectorBuilder)] = &[
+    ("key", Target::Key),
+    ("line_comment", Target::LineComment),
+    ("head_comment", Target::HeadComment),
+    ("foot_comment", Target::FootComment),
+];
 
 struct Parser {
     tokens: Vec<Token>,
@@ -163,19 +181,15 @@ impl Parser {
     /// Parse a target: a selector wrapping a path, or a bare path.
     // Feature f007.
     fn parse_target(&mut self) -> Result<Target> {
-        if self.at_function("key") {
-            return Ok(Target::Key(self.parse_selector_arg()?));
-        }
-        // Words the addressing grammar spells but this release does not
-        // implement. Recognised only to say so: without this they reach the
-        // path parser and report an unexpected token, which tells the user
-        // nothing about why their filter is not supported yet.
-        for pending in ["line_comment", "head_comment", "foot_comment"] {
-            if self.at_function(pending) {
-                return Err(YqrError::parse(format!(
-                    "'{pending}(...)' is not supported yet — comment editing is a \
-                     planned slice of the write tier; 'key(...)' is available today"
-                )));
+        for (word, build) in SELECTORS {
+            if self.at_function(word) {
+                let target = build(self.parse_selector_arg()?);
+                // Parsed, then refused — which is the whole reason the word is
+                // in the grammar (`yqr-a002` §8).
+                if matches!(target, Target::FootComment(_)) {
+                    return Err(YqrError::parse(FOOT_COMMENT_REFUSAL.to_string()));
+                }
+                return Ok(target);
             }
         }
         Ok(Target::Value(self.parse_pipeline()?))
@@ -618,13 +632,40 @@ mod tests {
     }
 
     #[test]
-    fn unimplemented_selectors_name_themselves() {
-        for word in ["line_comment", "head_comment", "foot_comment"] {
-            let err = parse_program(&format!("{word}(.a)")).unwrap_err();
-            let text = format!("{err}");
-            assert!(text.contains(word), "message should name {word}: {text}");
-            assert!(text.contains("not supported yet"), "got: {text}");
+    fn parses_the_comment_selectors() {
+        assert_eq!(
+            parse_program("line_comment(.a)").unwrap(),
+            Program::Query(Target::LineComment(Ast::Field("a".into())))
+        );
+        assert_eq!(
+            parse_program("head_comment(.a)").unwrap(),
+            Program::Query(Target::HeadComment(Ast::Field("a".into())))
+        );
+    }
+
+    #[test]
+    fn foot_comment_is_parsed_then_refused_with_a_reason() {
+        // The word is in the grammar precisely so this message exists rather
+        // than an unexpected-token report (a002 §8).
+        for src in [
+            "foot_comment(.a)",
+            "foot_comment(.a) = \"x\"",
+            "del(foot_comment(.a))",
+        ] {
+            let text = format!("{}", parse_program(src).unwrap_err());
+            assert!(text.contains("foot_comment"), "should name it: {text}");
+            assert!(text.contains("head_comment"), "should redirect: {text}");
         }
+    }
+
+    #[test]
+    fn del_composes_with_the_comment_selectors() {
+        let Program::Mutate(Mutation::Delete { target }) =
+            parse_program("del(line_comment(.a))").unwrap()
+        else {
+            panic!("expected a delete");
+        };
+        assert_eq!(target, Target::LineComment(Ast::Field("a".into())));
     }
 
     #[test]

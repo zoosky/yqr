@@ -727,3 +727,114 @@ fn flow_collection_item_delete_works() {
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "ports: [443]\n");
 }
+
+// -- Feature f007: comment editing (a002 slice 2) -------------------------
+
+#[test]
+fn comment_reads_report_the_body_without_hash_or_its_leading_space() {
+    let doc = "spec:\n  # documents replicas\n  replicas: 3  # tuned\n";
+    let inline = run(&["-r", "line_comment(.spec.replicas)"], doc);
+    assert_eq!(inline.status, 0, "stderr: {}", inline.stderr);
+    assert_eq!(inline.stdout, "tuned\n");
+    let head = run(&["-r", "head_comment(.spec.replicas)"], doc);
+    assert_eq!(head.stdout, "documents replicas\n");
+}
+
+#[test]
+fn comment_reads_are_total() {
+    // No comment, a value on the next line, and a blank-detached block above:
+    // all null, none an error, so a batch is never failed by a missing comment.
+    for (filter, doc) in [
+        ("line_comment(.a)", "a: 1\n"),
+        ("head_comment(.a)", "a: 1\n"),
+        ("line_comment(.a)", "a:\n  b: 1  # child\n"),
+        ("head_comment(.a)", "# detached\n\na: 1\n"),
+        ("line_comment(.nope)", "a: 1\n"),
+    ] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{filter} on {doc:?}: {}", out.stderr);
+        assert_eq!(out.stdout, "null\n", "{filter} on {doc:?}");
+    }
+}
+
+#[test]
+fn comment_selector_iterates_like_the_path_it_wraps() {
+    let out = run(
+        &["-r", "line_comment(.xs[])"],
+        "xs:\n  - one  # first\n  - two\n",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "first\nnull\n");
+}
+
+#[test]
+fn the_comment_round_trip_property_holds() {
+    // a002 §4.3, as an executable check: setting a body and reading it back
+    // yields the same body, for every shape that survives the shell.
+    for body in [
+        "plain",
+        "with  inner  spaces",
+        "  leading spaces",
+        "#hash",
+        "a: colon",
+        "trailing  ",
+    ] {
+        let file = temp_yaml("a: 1\n");
+        let path = file.to_str().unwrap();
+        let set = run(&["-i", &format!("line_comment(.a) = \"{body}\""), path], "");
+        assert_eq!(set.status, 0, "set {body:?}: {}", set.stderr);
+        let got = run(&["-r", "line_comment(.a)", path], "");
+        assert_eq!(got.stdout, format!("{body}\n"), "round trip of {body:?}");
+        let _ = std::fs::remove_file(&file);
+    }
+}
+
+#[test]
+fn comment_edits_in_place_touch_only_the_comment() {
+    let original =
+        "# header\n\nspec:\n  # documents replicas\n  replicas: 3  # tuned\n  image: web\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(
+        &["-i", "line_comment(.spec.replicas) = \"now five\"", path],
+        "",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        read_back(&file),
+        "# header\n\nspec:\n  # documents replicas\n  replicas: 3  # now five\n  image: web\n"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn a_refused_comment_edit_leaves_the_file_unchanged() {
+    let original = "# detached\n\na: 1\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", "del(head_comment(.a))", path], "");
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert_eq!(read_back(&file), original);
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn foot_comment_refuses_with_its_own_reason() {
+    let out = run(&["foot_comment(.a)"], "a: 1\n");
+    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("head_comment"), "{}", out.stderr);
+}
+
+#[test]
+fn comment_selector_words_still_read_fields() {
+    let doc = "line_comment: one\nhead_comment: two\nfoot_comment: three\n";
+    for (filter, want) in [
+        (".line_comment", "one\n"),
+        (".head_comment", "two\n"),
+        (".foot_comment", "three\n"),
+    ] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{filter}: {}", out.stderr);
+        assert_eq!(out.stdout, want, "{filter}");
+    }
+}

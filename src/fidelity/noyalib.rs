@@ -140,6 +140,39 @@ impl FidelityEngine for NoyalibEngine {
     }
 
     // Feature f007.
+    fn comment_body(&self, doc: usize, path: &Path, head: bool) -> Result<Option<String>> {
+        self.check_doc(doc)?;
+        let Some(path_str) = to_noyalib_path(path) else {
+            return Ok(None);
+        };
+        let d = &self.docs[doc];
+        if d.span_at(&path_str).is_none() {
+            return Ok(None);
+        }
+        let bundle = d.comments_at(&path_str);
+        if head {
+            // Report only the run yqr owns. Upstream's `before` walks past
+            // blank lines, so its tail is the attached part and anything
+            // earlier documents what came before the entry.
+            let owned = attached_head_len(d, &path_str);
+            if owned == 0 {
+                return Ok(None);
+            }
+            let lines: Vec<&str> = bundle.before[bundle.before.len() - owned..]
+                .iter()
+                .map(|c| comment_body(&c.text))
+                .collect();
+            Ok(Some(lines.join("\n")))
+        } else {
+            // An entry whose value starts on the next line has no line of its
+            // own; the comment `comments_at` reports there is the child's.
+            if !value_starts_on_key_line(d, &path_str) {
+                return Ok(None);
+            }
+            Ok(bundle.inline.map(|c| comment_body(&c.text).to_string()))
+        }
+    }
+
     fn key_bytes(&self, doc: usize, path: &Path) -> Result<Option<&str>> {
         self.check_doc(doc)?;
         // The root is the document, not an entry, so it has no key. Same for
@@ -327,6 +360,109 @@ fn lower_value(value: &::noyalib::Value) -> Value {
         ),
         ::noyalib::Value::Tagged(tagged) => lower_value(tagged.value()),
     }
+}
+
+// ── Comment ownership (f007 / a002 slice 2) ──────────────────────────
+//
+// Both the read seam and the write seam need the same two questions
+// answered before they touch a comment, and both answer them from the
+// document rather than from the filter. They live here, next to the
+// engine, because they are span arithmetic over noyalib's own spans.
+
+/// Whether the entry at `path` carries its value on the key's own line.
+///
+/// `set_inline_comment` guards on whether the *value span* holds a newline,
+/// which is not the same question. A nested entry with a single child —
+/// `a:` then `  b: 1` — has a single-line value span, so upstream's guard
+/// does not fire and the comment lands on the **child's** line. Removal has
+/// the same defect from the other side.
+///
+/// The test that catches it is whether the key token and the value start on
+/// the same source line. A sequence item has no key of its own and always
+/// sits on its own line, so it passes.
+pub(super) fn value_starts_on_key_line(doc: &::noyalib::cst::Document, path: &str) -> bool {
+    let src = doc.source();
+    let Some((value_start, _)) = doc.span_at(path) else {
+        return false;
+    };
+    match doc.key_span(path) {
+        None => true,
+        Some((key_start, _)) => line_start_of(src, key_start) == line_start_of(src, value_start),
+    }
+}
+
+/// How many of the comment lines directly above the entry at `path` yqr
+/// considers the entry's **own** head comment.
+///
+/// An entry owns the contiguous run of same-indent comment lines immediately
+/// above it, and nothing separated from it by a blank line — the rule
+/// `delete_entry` already applies (`yqr-b006`). Upstream draws the line
+/// elsewhere: `comments_at().before` walks upward *past* blank lines, so it
+/// reports a detached comment as part of the run and both leading mutators
+/// then rewrite it.
+///
+/// Comparing this count against `comments_at().before.len()` is what tells a
+/// caller whether delegating the edit would touch bytes the entry does not
+/// own.
+pub(super) fn attached_head_len(doc: &::noyalib::cst::Document, path: &str) -> usize {
+    let src = doc.source();
+    let Some((value_start, _)) = doc.span_at(path) else {
+        return 0;
+    };
+    // The entry's own line and indent come from its marker: the key token
+    // where it has one, and the `-` indicator otherwise. Anchoring a sequence
+    // item on its *value* instead measures the indent past `- `, so a head
+    // comment aligned with the dash never matches and the run reads as empty.
+    let anchor = match doc.key_span(path) {
+        Some((key_start, _)) => key_start,
+        None => dash_before(src, value_start).unwrap_or(value_start),
+    };
+    let mut line = line_start_of(src, anchor);
+    let indent = anchor - line;
+
+    let mut count = 0;
+    while line > 0 {
+        // The line above ends at `line - 1` (its own '\n').
+        let prev = line_start_of(src, line - 1);
+        let text = &src[prev..line - 1];
+        let trimmed = text.trim_start_matches([' ', '\t']);
+        if !trimmed.starts_with('#') || text.len() - trimmed.len() != indent {
+            break;
+        }
+        count += 1;
+        line = prev;
+    }
+    count
+}
+
+/// The `-` indicator introducing the sequence item whose value starts at
+/// `value_start`, when it sits on the same line.
+///
+/// The indicator is the item's marker the way a key token is a mapping
+/// entry's, so it — not the value — is what the item's indentation means.
+fn dash_before(src: &str, value_start: usize) -> Option<usize> {
+    let bytes = src.as_bytes();
+    let mut i = value_start;
+    while i > 0 && matches!(bytes[i - 1], b' ' | b'\t') {
+        i -= 1;
+    }
+    (i > 0 && bytes[i - 1] == b'-').then(|| i - 1)
+}
+
+/// Byte offset of the first character of the line containing `pos`.
+fn line_start_of(src: &str, pos: usize) -> usize {
+    src[..pos].rfind('\n').map_or(0, |n| n + 1)
+}
+
+/// Strip the single leading space `comments_at` reports so the surface
+/// round-trips.
+///
+/// A comment written `# note` comes back as `" note"`. Writing that value
+/// straight back renders `#  note`, growing a space per cycle, so the read
+/// side drops exactly one — never more, or a body whose own leading spaces
+/// are deliberate would lose them.
+pub(super) fn comment_body(text: &str) -> &str {
+    text.strip_prefix(' ').unwrap_or(text)
 }
 
 #[cfg(test)]

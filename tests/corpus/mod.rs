@@ -334,6 +334,31 @@ pub fn engine_cases() -> Vec<EngineCase> {
             raw: false,
             expect: "null\n",
         },
+        // -- Feature f007: comment reads (a002 slice 2) ----------------------
+        EngineCase {
+            id: "engine/comment/inline-on-a-real-manifest",
+            doc: FIDELITY_RICH,
+            filter: "line_comment(.defaults.timeout)",
+            raw: true,
+            expect: "seconds\n",
+        },
+        EngineCase {
+            id: "engine/comment/head-block-is-detached-so-null",
+            // `# deployment defaults` is separated from `defaults:` by nothing,
+            // but it is the document's first line — the run is attached, so
+            // this reads it. The detached case is covered in the unit tests.
+            doc: FIDELITY_RICH,
+            filter: "head_comment(.defaults)",
+            raw: true,
+            expect: "deployment defaults\n",
+        },
+        EngineCase {
+            id: "engine/comment/absent-is-null",
+            doc: K8S_DEPLOYMENT,
+            filter: "line_comment(.metadata.name)",
+            raw: false,
+            expect: "null\n",
+        },
         EngineCase {
             id: "engine/key/sequence-item-is-null",
             doc: GH_ACTIONS,

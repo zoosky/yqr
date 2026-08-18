@@ -31,7 +31,7 @@
 // Feature f006 (see specs/features/): write tier v1 — value assignment.
 
 use crate::Value;
-use crate::ast::{Mutation, Target};
+use crate::ast::{FOOT_COMMENT_REFUSAL, Mutation, Target};
 use crate::error::{Result, YqrError};
 use crate::eval::{AssignTarget, resolve_assign_target, resolve_rhs, resolve_target};
 use crate::fidelity::{Path, PathSeg};
@@ -52,6 +52,30 @@ mod delete;
 ///
 /// The trait is object-safe and drivable as `&mut dyn FidelityWriter`,
 /// mirroring the read seam.
+/// Which comment attached to an entry a mutation addresses.
+///
+/// The two are separate operations upstream and separate selectors in the
+/// filter grammar, but they share every pre-check, so the seam takes the kind
+/// as a parameter rather than growing four methods.
+// Feature f007.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum CommentKind {
+    /// The `# ...` following the value on the entry's own line.
+    Line,
+    /// The run of comment lines immediately above the entry.
+    Head,
+}
+
+impl CommentKind {
+    /// The selector spelling, for diagnostics.
+    fn word(self) -> &'static str {
+        match self {
+            CommentKind::Line => "line_comment",
+            CommentKind::Head => "head_comment",
+        }
+    }
+}
+
 pub(crate) trait FidelityWriter {
     /// Number of logical YAML documents in the stream.
     fn doc_count(&self) -> usize;
@@ -114,6 +138,32 @@ pub(crate) trait FidelityWriter {
     /// Errors when the path is unaddressable, or the edit would re-parse to a
     /// different document.
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()>;
+
+    /// Set (or replace) a comment attached to the entry at `path`.
+    ///
+    /// `kind` selects the inline comment on the entry's own line or the block
+    /// of comment lines above it. `text` is the body without `#`; an empty
+    /// body writes a bare `#` rather than removing anything (removal is
+    /// [`remove_comment`](Self::remove_comment)).
+    ///
+    /// # Errors
+    ///
+    /// Errors when the path is unaddressable, the entry cannot carry that kind
+    /// of comment, or the block above it is not the entry's to rewrite.
+    fn set_comment(&mut self, doc: usize, path: &Path, kind: CommentKind, text: &str)
+    -> Result<()>;
+
+    /// Remove a comment attached to the entry at `path`.
+    ///
+    /// Every refusal here is yqr's own. Upstream's two removers return
+    /// `Ok(())` on an unresolved path, on a missing comment, and on every
+    /// shape their setters reject, so delegating unchecked would turn a
+    /// refusal into a silent no-op — which `yqr-a002` §4.4 forbids.
+    ///
+    /// # Errors
+    ///
+    /// Errors wherever [`set_comment`](Self::set_comment) does.
+    fn remove_comment(&mut self, doc: usize, path: &Path, kind: CommentKind) -> Result<()>;
 
     /// Rename the key of the mapping entry at `path`, leaving its value, its
     /// comments, and every other byte in the document identical.
@@ -206,6 +256,36 @@ fn apply_to_doc(
             let new_key = key_name(&resolve_rhs(rhs, value)?)?;
             writer.rename_key(doc, &target, &new_key)
         }
+        // A comment is text, so the RHS must be a string. It reaches upstream
+        // as the body without `#`; an empty body is a bare `#`, not a removal
+        // (`yqr-a002` §4.2) — upstream already spells it that way.
+        Mutation::Assign {
+            target: target @ (Target::LineComment(path) | Target::HeadComment(path)),
+            rhs,
+        } => {
+            let Some(resolved) = resolve_target(path, value)? else {
+                return Ok(());
+            };
+            let text = comment_text(&resolve_rhs(rhs, value)?)?;
+            writer.set_comment(doc, &resolved, comment_kind(target), &text)
+        }
+        Mutation::Delete {
+            target: target @ (Target::LineComment(path) | Target::HeadComment(path)),
+        } => {
+            let Some(resolved) = resolve_target(path, value)? else {
+                return Ok(());
+            };
+            writer.remove_comment(doc, &resolved, comment_kind(target))
+        }
+        // Refused when the target is built (`parse_target`), so reaching here
+        // would mean the parser and this dispatch had drifted apart.
+        Mutation::Assign {
+            target: Target::FootComment(_),
+            ..
+        }
+        | Mutation::Delete {
+            target: Target::FootComment(_),
+        } => Err(YqrError::eval(FOOT_COMMENT_REFUSAL.to_string())),
         Mutation::Append { path, rhs } => {
             let Some(target) = resolve_target(path, value)? else {
                 return Ok(());
@@ -226,6 +306,32 @@ fn apply_to_doc(
         } => Err(YqrError::eval(
             "del(key(...)) is not an edit: a key cannot outlive its entry".to_string(),
         )),
+    }
+}
+
+/// The [`CommentKind`] a comment target selects.
+///
+/// Total on the two comment variants; every other target is routed before
+/// this is reached.
+fn comment_kind(target: &Target) -> CommentKind {
+    match target {
+        Target::HeadComment(_) => CommentKind::Head,
+        _ => CommentKind::Line,
+    }
+}
+
+/// The body a `line_comment(...) = <rhs>` / `head_comment(...) = <rhs>` writes.
+///
+/// A comment is text. A number or boolean would have to be rendered to write
+/// it, and yqr would then be choosing a spelling the user did not — refused
+/// here, where the message can name what was given.
+fn comment_text(value: &Value) -> Result<String> {
+    match value {
+        Value::String(s) => Ok(s.clone()),
+        other => Err(YqrError::eval(format!(
+            "the right-hand side of a comment assignment must be a string, but found {}",
+            type_name(other)
+        ))),
     }
 }
 
@@ -286,6 +392,69 @@ impl NoyalibWriter {
         self.docs
             .get_mut(doc)
             .ok_or_else(|| YqrError::eval(format!("document index {doc} out of range ({len})")))
+    }
+
+    /// Whether the entry at `path_str` currently carries a comment of `kind`
+    /// that yqr considers its own.
+    ///
+    /// Used twice by a removal: once to refuse "there is nothing here", and
+    /// once afterwards to refuse an upstream `Ok` that removed nothing.
+    // Feature f007.
+    fn comment_present(&self, doc: usize, path_str: &str, kind: CommentKind) -> Result<bool> {
+        let d = self.doc_ref(doc)?;
+        Ok(match kind {
+            CommentKind::Line => d.comments_at(path_str).inline.is_some(),
+            CommentKind::Head => super::noyalib::attached_head_len(d, path_str) > 0,
+        })
+    }
+
+    /// The pre-checks a comment mutation runs before it reaches upstream.
+    ///
+    /// These exist because upstream's guards answer a *different* question
+    /// from the one the filter asked, in two measured ways
+    /// (`yqr-a002` §4.1). Both are silent wrong results rather than
+    /// refusals, so nothing downstream would catch them.
+    // Feature f007.
+    fn check_comment_site(&self, doc: usize, path_str: &str, kind: CommentKind) -> Result<()> {
+        let d = self.doc_ref(doc)?;
+        if d.span_at(path_str).is_none() {
+            return Err(YqrError::eval(format!(
+                "cannot address {}({path_str}): the path does not resolve to a node",
+                kind.word()
+            )));
+        }
+        match kind {
+            // An entry whose value begins on the next line has no line of its
+            // own to comment. Upstream's guard looks at the value span, which
+            // is single-line here, so it writes the comment onto the child's
+            // line instead — and removal deletes the child's comment.
+            CommentKind::Line => {
+                if !super::noyalib::value_starts_on_key_line(d, path_str) {
+                    return Err(YqrError::eval(format!(
+                        "cannot address line_comment({path_str}): its value starts on the \
+                         next line, so the entry has no line of its own to comment; \
+                         comment one of its entries instead"
+                    )));
+                }
+            }
+            // Upstream's leading mutators rewrite whatever `comments_at`
+            // reports above the entry, and that walk crosses blank lines. yqr
+            // owns only the contiguous run, so a mismatch means the edit would
+            // reach a comment that documents whatever came before.
+            CommentKind::Head => {
+                let owned = super::noyalib::attached_head_len(d, path_str);
+                let upstream = d.comments_at(path_str).before.len();
+                if owned != upstream {
+                    return Err(YqrError::eval(format!(
+                        "cannot address head_comment({path_str}): the comment block above it \
+                         is separated by a blank line, so it documents what precedes the \
+                         entry rather than the entry; editing it here would rewrite bytes \
+                         the path does not name"
+                    )));
+                }
+            }
+        }
+        Ok(())
     }
 
     /// Bounds-checked shared document accessor (used by the structural-delete
@@ -363,6 +532,63 @@ impl FidelityWriter for NoyalibWriter {
         // over the engine's own output, which is what f015 removed. Settled;
         // reopen on a new argument, not on upstream improving further.
         self.delete_entry(doc, path)
+    }
+
+    fn set_comment(
+        &mut self,
+        doc: usize,
+        path: &Path,
+        kind: CommentKind,
+        text: &str,
+    ) -> Result<()> {
+        let path_str = noyalib_path(path)?;
+        self.check_comment_site(doc, &path_str, kind)?;
+        let d = self.doc_mut(doc)?;
+        match kind {
+            CommentKind::Line => d.set_inline_comment(&path_str, text),
+            CommentKind::Head => d.set_leading_comment(&path_str, text),
+        }
+        .map_err(|e| YqrError::eval(format!("cannot set {}({path_str}): {e}", kind.word())))
+    }
+
+    fn remove_comment(&mut self, doc: usize, path: &Path, kind: CommentKind) -> Result<()> {
+        let path_str = noyalib_path(path)?;
+        self.check_comment_site(doc, &path_str, kind)?;
+        // Upstream's removers refuse nothing, so "there is no comment here" has
+        // to be yqr's own check: `del` is a mutation, and a mutation refuses
+        // rather than no-ops (`yqr-a002` §4.4).
+        if !self.comment_present(doc, &path_str, kind)? {
+            return Err(YqrError::eval(format!(
+                "cannot remove {}({path_str}): the entry has no {} to remove",
+                kind.word(),
+                match kind {
+                    CommentKind::Line => "comment on its own line",
+                    CommentKind::Head => "comment block above it",
+                }
+            )));
+        }
+        let d = self.doc_mut(doc)?;
+        match kind {
+            CommentKind::Line => d.remove_inline_comment(&path_str),
+            CommentKind::Head => d.remove_leading_comment(&path_str),
+        }
+        .map_err(|e| YqrError::eval(format!("cannot remove {}({path_str}): {e}", kind.word())))?;
+
+        // Upstream's removers report `Ok(())` for shapes they do not handle —
+        // a leading block on a sequence item is the measured case — so `Ok` is
+        // not evidence that anything happened. Checking the comment is
+        // actually gone turns that into the refusal `yqr-a002` §4.4 requires,
+        // and does it for any such shape rather than for an enumerated list.
+        // The document is already unchanged in exactly this case, so there is
+        // nothing to roll back.
+        if self.comment_present(doc, &path_str, kind)? {
+            return Err(YqrError::eval(format!(
+                "cannot remove {}({path_str}): the YAML engine does not support removing \
+                 it from this kind of entry, and reported success without removing it",
+                kind.word()
+            )));
+        }
+        Ok(())
     }
 
     fn rename_key(&mut self, doc: usize, path: &Path, new_key: &str) -> Result<()> {
@@ -455,6 +681,161 @@ mod tests {
             },
             input,
         )
+    }
+
+    /// Run `line_comment(<path>) = <text>` / `head_comment(...)` over `input`.
+    fn set_comment_on(kind: Target, text: &str, input: &str) -> Result<String> {
+        apply(
+            &Mutation::Assign {
+                target: kind,
+                rhs: Rhs::Literal(Value::String(text.to_string())),
+            },
+            input,
+        )
+    }
+
+    fn line_of(path: &str) -> Target {
+        Target::LineComment(crate::parser::parse(path).expect("valid path"))
+    }
+    fn head_of(path: &str) -> Target {
+        Target::HeadComment(crate::parser::parse(path).expect("valid path"))
+    }
+    fn del_comment(target: Target, input: &str) -> Result<String> {
+        apply(&Mutation::Delete { target }, input)
+    }
+
+    // -- Feature f007: comment editing (a002 slice 2) --------------------------
+
+    #[test]
+    fn sets_and_changes_an_inline_comment_byte_exactly() {
+        let input = "# header\nspec:\n  replicas: 3\n  image: web\n";
+        let once = set_comment_on(line_of(".spec.replicas"), "tuned", input).unwrap();
+        assert_eq!(
+            once,
+            "# header\nspec:\n  replicas: 3  # tuned\n  image: web\n"
+        );
+        // Changing replaces the body in place, keeping the separator.
+        let twice = set_comment_on(line_of(".spec.replicas"), "again", &once).unwrap();
+        assert_eq!(
+            twice,
+            "# header\nspec:\n  replicas: 3  # again\n  image: web\n"
+        );
+    }
+
+    #[test]
+    fn an_empty_body_writes_a_bare_hash_rather_than_removing() {
+        // a002 §4.2: upstream distinguishes the two and yqr already owns an
+        // unambiguous removal spelling, so conflating them would make one of
+        // them unreachable.
+        let out = set_comment_on(line_of(".a"), "", "a: 1  # note\n").unwrap();
+        assert_eq!(out, "a: 1  #\n");
+        assert_eq!(
+            del_comment(line_of(".a"), "a: 1  # note\n").unwrap(),
+            "a: 1\n"
+        );
+    }
+
+    #[test]
+    fn head_comment_lands_above_the_entry_at_its_own_indent() {
+        let out =
+            set_comment_on(head_of(".spec.replicas"), "why", "spec:\n  replicas: 3\n").unwrap();
+        assert_eq!(out, "spec:\n  # why\n  replicas: 3\n");
+    }
+
+    #[test]
+    fn a_multi_line_head_comment_is_one_line_per_segment() {
+        let out = set_comment_on(head_of(".a"), "one\ntwo", "a: 1\n").unwrap();
+        assert_eq!(out, "# one\n# two\na: 1\n");
+    }
+
+    #[test]
+    fn a_crlf_document_gets_crlf_comment_lines() {
+        let out = set_comment_on(head_of(".a"), "why", "a: 1\r\nb: 2\r\n").unwrap();
+        assert_eq!(out, "# why\r\na: 1\r\nb: 2\r\n");
+    }
+
+    #[test]
+    fn an_entry_whose_value_starts_on_the_next_line_is_refused_both_ways() {
+        // a002 §4.1.2. Upstream's guard looks at the value span, which is
+        // single-line here, so it writes onto the *child's* line — and the
+        // remover deletes the child's comment. Neither may happen.
+        let input = "a:\n  b: 1  # child\nc: 2\n";
+        for err in [
+            set_comment_on(line_of(".a"), "x", input).unwrap_err(),
+            del_comment(line_of(".a"), input).unwrap_err(),
+        ] {
+            assert!(
+                format!("{err}").contains("no line of its own"),
+                "got: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_blank_detached_block_is_never_rewritten() {
+        // a002 §4.1.1: `comments_at().before` walks past blank lines, so
+        // delegating would replace (or delete) a comment documenting whatever
+        // came before the entry.
+        let input = "# detached\n\na: 1\n";
+        for err in [
+            set_comment_on(head_of(".a"), "new", input).unwrap_err(),
+            del_comment(head_of(".a"), input).unwrap_err(),
+        ] {
+            assert!(
+                format!("{err}").contains("separated by a blank line"),
+                "got: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_partially_detached_block_is_refused_too() {
+        // Upstream reports both comments as the entry's; yqr owns only the
+        // contiguous tail. Editing here would reach `# far`, which the path
+        // does not name.
+        let input = "# far\n\n# near\na: 1\n";
+        assert!(set_comment_on(head_of(".a"), "new", input).is_err());
+        assert!(del_comment(head_of(".a"), input).is_err());
+    }
+
+    #[test]
+    fn removing_a_comment_that_is_not_there_refuses() {
+        // a002 §4.4: `del` is a mutation, and a mutation refuses rather than
+        // no-ops. Upstream's removers return Ok for this.
+        assert!(del_comment(line_of(".a"), "a: 1\n").is_err());
+        assert!(del_comment(head_of(".a"), "a: 1\n").is_err());
+    }
+
+    #[test]
+    fn removing_a_sequence_items_head_comment_refuses_instead_of_no_opping() {
+        // Upstream returns Ok having done nothing, which is the shape the
+        // post-removal check exists to catch.
+        let input = "xs:\n  # about one\n  - one\n  - two\n";
+        let err = del_comment(head_of(".xs[0]"), input).unwrap_err();
+        assert!(
+            format!("{err}").contains("reported success without removing it"),
+            "got: {err}"
+        );
+    }
+
+    #[test]
+    fn a_comment_on_an_absent_path_is_a_skip_not_an_error() {
+        let input = "a: 1\n";
+        assert_eq!(set_comment_on(line_of(".nope"), "x", input).unwrap(), input);
+        assert_eq!(del_comment(line_of(".nope"), input).unwrap(), input);
+    }
+
+    #[test]
+    fn a_non_string_comment_body_is_refused() {
+        let err = apply(
+            &Mutation::Assign {
+                target: line_of(".a"),
+                rhs: Rhs::Literal(Value::Int(5)),
+            },
+            "a: 1\n",
+        )
+        .unwrap_err();
+        assert!(format!("{err}").contains("must be a string"), "got: {err}");
     }
 
     // -- Feature f007: key rename ---------------------------------------------

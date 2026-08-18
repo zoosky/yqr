@@ -30,6 +30,29 @@ All notable changes to `yqr` are documented here. The format is based on
   named `key` -- along with `.swap`, `.move`, `.del` and the comment words
   reserved for later.
 
+- **Edit a comment: `line_comment(...)` and `head_comment(...)`.** The `#`
+  after a value on its own line, and the block of comment lines above an
+  entry. Both read, set, and delete:
+
+  ```console
+  $ yqr -i 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
+  $ yqr -r 'line_comment(.spec.replicas)' deploy.yaml
+  tuned for peak
+  ```
+
+  Setting and reading are exact inverses, leading spaces included, so a
+  comment survives a round trip unchanged. An empty body writes a bare `#`
+  rather than removing -- `del(...)` is how you remove, so both are
+  reachable.
+
+  Three cases are refused rather than guessed at, each because the obvious
+  thing would be wrong: an entry whose value starts on the next line has no
+  line of its own to comment (writing one would land it on the first child);
+  a comment block separated by a blank line documents what came before it,
+  not the entry below; and a comment block above a list item can be read but
+  not edited. `foot_comment(...)` is refused with an explanation rather than
+  a syntax error.
+
 - **`del` now handles the last entry of a block, and items of inline
   collections.** Both used to be refused with a message explaining why.
 
