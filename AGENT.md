@@ -164,11 +164,13 @@ The project enforces strict clippy lints. See `Cargo.toml` for the full configur
   driving **both** `tests/corpus_validation.rs` (functional assertions) and
   `benches/corpus_bench.rs` (timings) — a case authored once is validated and
   benchmarked. It covers every implemented filter operation, the error taxonomy
-  (exit 3/5), raw output, and fidelity byte-identity. Add a `Case` to
-  `classic_cases()` (semantic/raw/error expectation) or an `EngineCase` to
-  `engine_cases()` (byte-exact, per backend); both consumers pick it up
-  automatically. Run: `cargo test --test corpus_validation` /
-  `cargo bench --bench corpus_bench`.
+  (exit 3/5), raw output, fidelity byte-identity, and every implemented **write**
+  operation with its refusals. Three case tiers: add a `Case` to
+  `classic_cases()` (semantic/raw/error expectation), an `EngineCase` to
+  `engine_cases()` (byte-exact read), or a `WriteCase` to `write_cases()` (a
+  mutating filter, stating the spans it rewrites — everything else is asserted
+  unchanged). All consumers pick it up automatically. Run:
+  `cargo test --test corpus_validation` / `cargo bench --bench corpus_bench`.
 - **Fidelity harness** (`tests/fidelity.rs`): A backend-agnostic round-trip
   harness that checks the a001 byte-for-byte property (`parse -> emit == input`)
   across YAML backend libraries, one case per b001 formatting dimension

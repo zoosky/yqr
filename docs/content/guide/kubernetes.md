@@ -287,9 +287,22 @@ Being straight about the edges, because finding them yourself is annoying:
 
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
+<!-- Bug b012: the sibling half of this, with the misleading diagnostic. -->
 - **Keys containing `.` or `[`** -- the Kubernetes
-  `app.kubernetes.io/name` style -- cannot be addressed by the path syntax,
-  so yqr will tell you so rather than guess.
+  `app.kubernetes.io/name` style. Reading one works with the bracket form,
+  `.metadata.labels["app.kubernetes.io/name"]`; **writing** does not, and
+  neither does adding a plain-named key *next to* one:
+
+  ```console
+  $ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
+  yqr: runtime error: cannot insert key "tier": ... (every key is inherited
+  through a `<<` merge) ...
+  ```
+
+  There is no `<<` in the file -- the message names the only cause its check
+  knows about. The edit is refused, so nothing is damaged, but the reason it
+  gives is not the reason. If your labels follow the `app.kubernetes.io/`
+  convention, treat that whole mapping as read-only for now.
 - **No arithmetic or builtins.** You cannot say "increment the replica
   count"; you say what it should become.
 

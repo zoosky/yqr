@@ -211,8 +211,7 @@ pub(crate) trait FidelityWriter {
 /// Apply a single [`Mutation`] to `input` and return the whole emitted stream.
 ///
 /// The mutation is applied to every document whose target resolves; documents
-/// where the path is absent are emitted byte-identically. It is an error for a
-/// mutation to match no document at all.
+/// where the path is absent are emitted byte-identically.
 ///
 /// This function performs no file I/O — the caller decides whether to print the
 /// result or write it back (see the `-i` handling in `main`).

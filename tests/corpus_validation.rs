@@ -8,7 +8,8 @@
 #[path = "corpus/mod.rs"]
 mod corpus;
 
-use corpus::{Case, EngineCase, Expect};
+use corpus::{Case, EngineCase, Expect, WriteCase, WriteExpect};
+use yqr::ast::Program;
 use yqr::{eval_str, render};
 
 /// Run one classic-pipeline case and assert its expectation.
@@ -65,6 +66,67 @@ fn check_engine(case: &EngineCase) {
     assert_eq!(got, case.expect, "[{}] byte output mismatch", case.id);
 }
 
+/// Apply one write case's mutation to its document.
+fn run_write(case: &WriteCase) -> yqr::Result<String> {
+    match yqr::parser::parse_program(case.filter)? {
+        Program::Mutate(mutation) => yqr::fidelity::write::apply(&mutation, case.doc),
+        Program::Query(_) => panic!("[{}] filter must be a mutation", case.id),
+    }
+}
+
+/// Run one write-tier case and assert its expectation.
+///
+/// A [`WriteExpect::Rewrites`] expectation is checked by *building* the
+/// expected document from the input, so the assertion covers the whole file:
+/// every byte the case does not name has to come back unchanged.
+fn check_write(case: &WriteCase) {
+    match case.expect {
+        WriteExpect::Rewrites(edits) => {
+            let mut want = case.doc.to_string();
+            for (from, to) in edits {
+                assert_eq!(
+                    want.matches(from).count(),
+                    1,
+                    "[{}] rewrite anchor {from:?} must match exactly one span",
+                    case.id
+                );
+                want = want.replacen(from, to, 1);
+            }
+            assert_ne!(
+                want, case.doc,
+                "[{}] a rewrite case must change bytes",
+                case.id
+            );
+            let got =
+                run_write(case).unwrap_or_else(|e| panic!("[{}] mutation failed: {e}", case.id));
+            assert_eq!(got, want, "[{}] byte output mismatch", case.id);
+            // An edit may not produce a document yqr would reject: the write
+            // path's own re-parse guard proves it loads, this proves it is
+            // still clean YAML by the validator's standards.
+            let findings = yqr::validate::check_str(&got, true);
+            assert!(
+                findings.is_empty(),
+                "[{}] edited document must validate cleanly, got {findings:?}\n{got}",
+                case.id
+            );
+        }
+        WriteExpect::Unchanged => {
+            let got =
+                run_write(case).unwrap_or_else(|e| panic!("[{}] mutation failed: {e}", case.id));
+            assert_eq!(got, case.doc, "[{}] document must be untouched", case.id);
+        }
+        WriteExpect::Err(code) => {
+            let err = run_write(case).expect_err(&format!("[{}] expected a refusal", case.id));
+            assert_eq!(
+                err.exit_code(),
+                code,
+                "[{}] exit code mismatch: {err}",
+                case.id
+            );
+        }
+    }
+}
+
 #[test]
 fn classic_corpus_matches_expectations() {
     for case in corpus::classic_cases() {
@@ -79,6 +141,13 @@ fn engine_corpus_is_byte_exact() {
     }
 }
 
+#[test]
+fn write_corpus_edits_only_the_targeted_bytes() {
+    for case in corpus::write_cases() {
+        check_write(&case);
+    }
+}
+
 // Feature f012: every corpus document is real-world YAML the validate
 // command must accept, in both default and strict mode — the corpus is the
 // no-false-positives guard for the validator.
@@ -86,6 +155,7 @@ fn engine_corpus_is_byte_exact() {
 fn corpus_documents_validate_cleanly() {
     let mut docs: Vec<&str> = corpus::classic_cases().iter().map(|c| c.doc).collect();
     docs.extend(corpus::engine_cases().iter().map(|c| c.doc));
+    docs.extend(corpus::write_cases().iter().map(|c| c.doc));
     docs.sort_unstable();
     docs.dedup();
     for doc in docs {
@@ -104,6 +174,7 @@ fn corpus_ids_are_unique() {
         .iter()
         .map(|c| c.id)
         .chain(corpus::engine_cases().iter().map(|c| c.id))
+        .chain(corpus::write_cases().iter().map(|c| c.id))
         .collect();
     let total = ids.len();
     ids.sort_unstable();

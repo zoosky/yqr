@@ -129,7 +129,10 @@ sole-entry implemented in `delete_entry`, where the head-comment run travels
 with the entry. Both classes now work, so `f007` §5 has no refusals left. With slice 3 in,
 **`f007` is Done**: all four `b004` gaps are closed and the epic's remaining
 items are scope and addressing work `f007` §6 tracks — collection right-hand
-sides, keys holding `.` or `[`, and a write tier for the shared corpus. f008
+sides and keys holding `.` or `[`. The third of those, a write tier for the
+shared corpus, was **closed 2026-08-18** (`m003` §3–§6): 31 write cases plus
+seven refusals now cover every shipped edit, and the tier found two upstream
+defects on its first run, `b012` and `b013`. f008
 (`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
 order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
 (done) → f016 (done) → f007 remainder (done) → M2 → f008.

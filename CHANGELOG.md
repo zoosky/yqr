@@ -105,6 +105,17 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- **Two limitations of editing documented, having been measured rather than
+  assumed.** Adding a key to a mapping whose other keys contain a `.` -- the
+  Kubernetes `app.kubernetes.io/name` convention -- is refused, and the message
+  it gives blames a merge key the file does not have. Separately, a value
+  inserted into a document that quotes a string anywhere gets quoted itself,
+  even where every neighbouring value is plain. Neither damages a file: the
+  first refuses outright, and the second writes the value you asked for, spelled
+  differently than its neighbours. Both are now written down in the Kubernetes
+  guide's "What is not here yet" and pinned by the test suite, so they cannot
+  change without someone noticing.
+
 - **YAML engine upgraded to noyalib 0.0.23.** Reordering a list now moves each
   item's comments with it. Before, a swap exchanged the values and left every
   comment where it was, so a comment ended up describing whichever item landed
