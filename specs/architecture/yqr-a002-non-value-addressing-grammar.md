@@ -1,7 +1,7 @@
 # Architecture a002 — Addressing what is not a value: comments, keys, and sequence order
 
-**Status:** Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are
-staged in §9 and **both unblocked** as of noyalib 0.0.23 — `yqr-b010` is fixed)
+**Status:** Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is
+staged in §9 and unblocked as of noyalib 0.0.23 — `yqr-b010` is fixed)
 **Owner:** yqr maintainers
 **Last updated:** 2026-08-16
 **Decides:** the "final syntax TBD" left open by `yqr-f007` §4 and §6 for
@@ -639,29 +639,51 @@ Two things the slice settled that this section had not anticipated:
   shape — `Unaddressable` degrades to typed rendering — so this is the existing
   contract rather than a new wrinkle, and it resolves when §7.3 does.
 
-**Slice 2 — `line_comment` / `head_comment`.** Adds the second and third
-selectors, `del(...)` composition, and the read path.
+**Slice 2 — `line_comment` / `head_comment`. Shipped 2026-08-18
+(`yqr-f007`).** Adds the second and third selectors, `del(...)` composition,
+and the read path.
 
-- [ ] Set, change, and remove, for both kinds, byte-exact elsewhere.
-- [ ] `head_comment` places the block **above** the addressed entry, at the
+- [x] Set, change, and remove, for both kinds, byte-exact elsewhere.
+- [x] `head_comment` places the block **above** the addressed entry, at the
       entry's own indent, with the document's line terminator.
-- [ ] The §4.3 round-trip property holds, including for a `\n`-joined
+- [x] The §4.3 round-trip property holds, including for a `\n`-joined
       `head_comment` and for a comment body with leading spaces of its own.
-- [ ] `= ""` writes a bare `#`; only `del(...)` removes (§4.2).
-- [ ] Each §5.1 / §5.2 row behaves as its **direction** column says. In
+- [x] `= ""` writes a bare `#`; only `del(...)` removes (§4.2).
+- [x] Each §5.1 / §5.2 row behaves as its **direction** column says. In
       particular every `del(...)` row refuses (exit 5) rather than inheriting
       upstream's `Ok`-and-no-op, and `-i` leaves the file untouched.
-- [ ] `line_comment` on an entry whose value starts on the next line refuses in
+- [x] `line_comment` on an entry whose value starts on the next line refuses in
       both directions and never touches the child's line (§4.1.2) — the read on
       that entry is `null`, not the child's comment.
-- [ ] A blank-detached comment block above the entry is never replaced, deleted
+- [x] A blank-detached comment block above the entry is never replaced, deleted
       or reported (§4.1.1); all three directions refuse or read `null`, and the
       `delete_entry` case it mirrors keeps its existing behaviour.
-- [ ] Reads yield `null`, never an error, where there is no comment — including
+- [x] Reads yield `null`, never an error, where there is no comment — including
       where the matching write refuses (§4.4).
-- [ ] `.line_comment`, `.head_comment` and `.foot_comment` still parse as field
+- [x] `.line_comment`, `.head_comment` and `.foot_comment` still parse as field
       accesses; `foot_comment(.a)` refuses with the §8 reason, not a generic
       parse error.
+
+Three things the slice settled that this section had not anticipated:
+
+- **A no-op has to be detected, not enumerated.** §5.2 lists the shapes where
+  upstream's removers return `Ok` having done nothing, and the implementation
+  started by pre-checking each. That is fragile — the list is upstream's to
+  change. It now *checks afterwards* that the comment is actually gone, which
+  turns any such shape into the §4.4 refusal without knowing which shapes they
+  are. The pre-check remains only for the cases that must be refused before the
+  document is touched at all.
+- **A sequence item's marker is its `-`, not its value.** The attached-run walk
+  first measured a sequence item's indent from its value, which sits past
+  `- `, so a head comment aligned with the dash never matched and every item
+  read `null`. `delete_entry` had this right already; the comment path had to
+  learn it separately.
+- **§4.1.1's rule generalizes.** The section describes a block *wholly*
+  detached by a blank line. The same argument applies to a partially detached
+  one (`# far`, blank, `# near`, entry): upstream reports both comments as the
+  entry's, yqr owns only the contiguous tail. The implementation compares its
+  own run length against `comments_at().before.len()` and refuses on any
+  mismatch, which covers both shapes with one test.
 
 **Slice 3 — `swap` / `move`. Unblocked 2026-08-17** (§6): noyalib 0.0.23 moves
 an entry's trivia with it, so this ships as a call rather than as a refusal.

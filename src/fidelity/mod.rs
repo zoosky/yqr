@@ -215,6 +215,29 @@ pub trait FidelityEngine {
     /// Returns an error when `doc` is out of range.
     fn resolve(&self, doc: usize, path: &Path) -> Result<Resolved<'_>>;
 
+    /// The body of a comment attached to the entry at `path`, or `None` where
+    /// the entry has none that it owns.
+    ///
+    /// Ownership is yqr's, not upstream's: an inline comment counts only when
+    /// the entry carries its value on the key's own line (otherwise the
+    /// comment being reported belongs to a child), and a head comment counts
+    /// only for the contiguous same-indent run directly above the entry — a
+    /// block separated by a blank line documents whatever precedes it.
+    ///
+    /// The body comes back without `#` and without the single leading space
+    /// the engine reports, so writing it back reproduces it
+    /// (`yqr-a002` §4.3). A multi-line head comment is `\n`-joined.
+    ///
+    /// Reads are total (`yqr-a002` §4.4), so an unresolved path, an
+    /// unaddressable key and a shape that cannot carry the comment are all
+    /// `None` rather than errors.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when `doc` is out of range.
+    // Feature f007.
+    fn comment_body(&self, doc: usize, path: &Path, head: bool) -> Result<Option<String>>;
+
     /// The original bytes of the *key token* of the mapping entry at `path`.
     ///
     /// This is deliberately not answered from the resolved [`Path`]'s last
@@ -287,30 +310,46 @@ pub fn run(filter: &str, input: &str, raw: bool) -> Result<String> {
 /// Returns an error when the engine rejects the input or evaluation fails.
 // Feature f007.
 pub fn run_target(target: &Target, input: &str, raw: bool) -> Result<String> {
-    let Target::Key(path_ast) = target else {
-        return run_ast(target.path(), input, raw);
+    let path_ast = match target {
+        Target::Value(_) => return run_ast(target.path(), input, raw),
+        Target::FootComment(_) => {
+            return Err(crate::error::YqrError::parse(
+                crate::ast::FOOT_COMMENT_REFUSAL.to_string(),
+            ));
+        }
+        other => other.path(),
     };
+    let head = matches!(target, Target::HeadComment(_));
     let engine = open(input)?;
     let mut out = String::new();
 
     for doc in 0..engine.doc_count() {
         let value = engine.value(doc)?;
         for (_, path) in crate::eval::eval_traced(path_ast, &value, Some(&Path::root()))? {
-            // A computed value has no path and therefore no entry, so there
-            // is no key to report — `null`, like every other empty read.
-            let bytes = match path {
-                Some(p) => engine.key_bytes(doc, &p)?,
-                None => None,
+            // A computed value has no path and therefore no entry, so there is
+            // nothing attached to report — `null`, like every other empty read.
+            let Some(p) = path else {
+                out.push_str(&crate::render(&[Value::Null], raw)?);
+                continue;
             };
-            match bytes {
+            match target {
                 // The key token verbatim, quotes and all: a key authored
                 // `"a"` reads back `"a"`. `raw` unquotes it, matching how a
                 // string *value* prints under `-r`.
-                Some(bytes) => {
-                    out.push_str(&render_key(bytes, raw)?);
-                    out.push('\n');
-                }
-                None => out.push_str(&crate::render(&[Value::Null], raw)?),
+                Target::Key(_) => match engine.key_bytes(doc, &p)? {
+                    Some(bytes) => {
+                        out.push_str(&render_key(bytes, raw)?);
+                        out.push('\n');
+                    }
+                    None => out.push_str(&crate::render(&[Value::Null], raw)?),
+                },
+                // A comment body is a string, so it renders as one: quoted by
+                // default (a body can contain anything), bare under `-r`.
+                // Reading it back is what makes the §4.3 round-trip hold.
+                _ => match engine.comment_body(doc, &p, head)? {
+                    Some(body) => out.push_str(&crate::render(&[Value::String(body)], raw)?),
+                    None => out.push_str(&crate::render(&[Value::Null], raw)?),
+                },
             }
         }
     }

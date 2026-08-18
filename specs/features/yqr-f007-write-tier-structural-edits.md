@@ -2,8 +2,9 @@
 
 **Status:** In Progress (structural **delete** shipped, and since `yqr-f013`
 it is yqr's whole delete path rather than a fallback; **key rename** shipped
-2026-08-16 as `yqr-a002` slice 1 — §7; comment editing and sequence reorder
-remain deferred, their grammar settled in `yqr-a002` and staged in §6)
+2026-08-16 and **comment editing** 2026-08-18, as `yqr-a002` slices 1 and 2 —
+§7 and §8; sequence reorder remains deferred, its grammar settled in
+`yqr-a002` and unblocked since noyalib 0.0.23)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
@@ -21,7 +22,7 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 - **Structural delete** — multi-line, nested, sole-entry, and flow deletes
   (`b004` 2.4). **Shipped** (§5); the last two classes since `yqr-f016` §5.
 - **Comment editing** — add / change / remove a comment attached to a node
-  (`b004` 2.1; comments were read-only in 0.0.14). **Deferred** (§6).
+  (`b004` 2.1; comments were read-only in 0.0.14). **Shipped** (§8).
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
   (`b004` 2.2). **Shipped** (§7).
 - **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
@@ -65,7 +66,7 @@ the document untouched.
       and flow deletes are supported as of `yqr-f016` §5, so the "clear error
       where still unsupported" half of this criterion no longer has a subject.
 - [x] Every `replace_span` edit is guarded and covered by a byte-exact test.
-- [ ] `line_comment(<path>)` / `head_comment(<path>)` set and remove
+- [x] `line_comment(<path>)` / `head_comment(<path>)` set and remove
       (`yqr-a002` §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
       set does, rather than inheriting upstream's `Ok`-and-no-op.
 - [x] `key(<path>) = "new"` renames a key, preserving value + trailing comment;
@@ -431,3 +432,95 @@ nine on the grammar, ten black-box CLI tests including `-i` and the
 refusal-leaves-the-file-untouched contract, and three shared-corpus
 `EngineCase`s — one of which is a merge-produced key, the case that separates
 a document read from an echo.
+
+## 8. Comment editing (shipped)
+
+`yqr-a002` slice 2, the second use of its addressing grammar. Landed
+2026-08-18.
+
+### 8.1 Surface
+
+```text
+line_comment(<path>)          read the `# ...` on the entry's own line
+line_comment(<path>) = "t"    set or change it
+del(line_comment(<path>))     remove it
+
+head_comment(<path>)          read the block directly above the entry
+head_comment(<path>) = "a\nb" set it, one line per segment
+del(head_comment(<path>))     remove it
+```
+
+`= ""` writes a bare `#`; only `del(...)` removes (`yqr-a002` §4.2). Reading
+strips the `#` and exactly one leading space, which is what makes set and read
+exact inverses — the §4.3 round-trip property, pinned as an executable test
+over bodies with inner spaces, leading spaces, a `#`, and a `:`.
+
+`foot_comment(...)` parses and is then refused with its reason, which is the
+only thing it exists for (`yqr-a002` §8).
+
+### 8.2 What yqr checks that upstream does not
+
+Three pre-checks, each for a measured case where upstream's guard answers a
+different question from the one the filter asked. All three were silent wrong
+results, not refusals.
+
+| Case | Upstream | yqr |
+|---|---|---|
+| entry's value starts on the next line | comments the **child's** line; removal deletes the child's comment | refused both ways |
+| head block detached by a blank line | replaces / deletes it | refused; read is `null` |
+| head block *partly* detached | treats the whole run as the entry's | refused, same check |
+
+The third generalizes the second, and one comparison covers both: yqr computes
+the contiguous same-indent run itself and refuses when it differs from
+`comments_at().before`. A mismatch means the edit would reach bytes the path
+does not name.
+
+### 8.3 The no-op is detected, not enumerated
+
+Upstream's two removers return `Ok(())` on an unresolved path, on a missing
+comment, and on every shape their setters refuse — a leading block on a
+sequence item being the measured case. `yqr-a002` §4.4 forbids a mutation that
+no-ops, so each of those has to become a refusal.
+
+Enumerating the shapes would have been the obvious route and is the wrong one:
+the list belongs to upstream and can change under yqr silently. Instead a
+removal **checks afterwards** that the comment is gone, and refuses when it is
+not. That covers any such shape without knowing which they are, and the
+document is already unchanged in exactly that case, so there is nothing to roll
+back.
+
+### 8.4 Reads are total, and read the same ownership
+
+`line_comment` reports `null` where the entry has no line of its own;
+`head_comment` reports only the run yqr owns, so a detached block reads `null`
+while an attached one reads its body. A sequence item's head comment **reads**
+(§5.2 requires it) even though writing one is refused upstream — reads and
+writes answer to the same ownership rule but not to the same capability.
+
+Two bugs worth recording, both about what a sequence item's *line* is, and
+both caught only because something else disagreed:
+
+- The head-comment walk measured an item's indentation from its **value**,
+  which sits past `- `, so a comment aligned with the dash never matched and
+  every item read `null`. `delete_entry` had this right already; this path had
+  to learn it separately.
+- The §8.2 value-starts-on-the-next-line check asked only whether the entry had
+  a key token on the value's line, and answered "yes, fine" for every sequence
+  item — on the reasoning that an item always sits on its own line. A bare `-`
+  with the value below it is the counterexample, and it is the mapping defect
+  exactly: the comment lands on the child. So the guard this slice exists to
+  add was bypassed for half its cases until review found it. Both now resolve
+  the marker the same way, key token or `-` indicator.
+
+A third, in the read path: `attached_head_len` counts source lines while
+`comments_at().before` comes from the CST, and an alias-valued entry makes them
+disagree. Slicing a tail longer than the list **panicked** — on a read
+documented as total, which is worse than any error it could have returned. A
+disagreement now reads `null`, since it means ownership cannot be established.
+
+### 8.5 Coverage
+
+Twelve write-path unit tests (set, change, remove, bare `#`, multi-line block,
+CRLF, absent-path skip, non-string body, and one per refusal), three parser
+tests, nine black-box CLI tests including the round-trip property and the
+refusal-leaves-the-file-untouched contract, and three corpus `EngineCase`s.

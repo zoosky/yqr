@@ -43,6 +43,15 @@ pub enum Target {
     Value(Ast),
     /// `key(<path>)` — the key token of the mapping entry at `<path>`.
     Key(Ast),
+    /// `line_comment(<path>)` — the `# ...` comment following the value on the
+    /// entry's own line.
+    LineComment(Ast),
+    /// `head_comment(<path>)` — the run of comment lines immediately above the
+    /// entry, at its own indentation.
+    HeadComment(Ast),
+    /// `foot_comment(<path>)` — parsed only so the refusal can name a reason;
+    /// there is no upstream mutator and no design for it.
+    FootComment(Ast),
 }
 
 impl Target {
@@ -50,7 +59,11 @@ impl Target {
     #[must_use]
     pub fn path(&self) -> &Ast {
         match self {
-            Target::Value(ast) | Target::Key(ast) => ast,
+            Target::Value(ast)
+            | Target::Key(ast)
+            | Target::LineComment(ast)
+            | Target::HeadComment(ast)
+            | Target::FootComment(ast) => ast,
         }
     }
 
@@ -61,9 +74,23 @@ impl Target {
         match self {
             Target::Value(_) => None,
             Target::Key(_) => Some("key"),
+            Target::LineComment(_) => Some("line_comment"),
+            Target::HeadComment(_) => Some("head_comment"),
+            Target::FootComment(_) => Some("foot_comment"),
         }
     }
 }
+
+/// Why `foot_comment(...)` is refused wherever it appears.
+///
+/// The word is in the grammar so the parser can build a target and then say
+/// this, rather than reporting an unexpected token and leaving the user to
+/// guess whether the spelling or the feature is missing.
+// Feature f007.
+pub const FOOT_COMMENT_REFUSAL: &str = "foot_comment(...) is not supported: a comment below an entry belongs to \
+     whatever follows it as often as to the entry itself, so there is no \
+     unambiguous block to address, and the YAML engine has no mutator for one. \
+     Use head_comment(<path>) for the block above an entry";
 
 /// A surgical edit targeting exactly one addressable node.
 ///
