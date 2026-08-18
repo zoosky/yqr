@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...">
+<meta name="description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Feature f007 — Write tier: structural edits (the `b004` gaps)">
-<meta property="og:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...">
+<meta property="og:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Feature f007 — Write tier: structural edits (the `b004` gaps)">
-<meta name="twitter:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...">
+<meta name="twitter:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-18",
-  "description": "Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr's whole delete path rather than a fallback; key rename shipped 2026-08-16 as yqr-a002 slice 1 — §7; comment editing and sequence reorder remain deferred, their grammar settled in yqr-a002 and staged in §6) Epic: Fide...",
+  "description": "Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr's whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...",
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 3828
+  "wordCount": 4563
 }
 </script>
 <script type="application/ld+json">
@@ -2861,8 +2861,9 @@
         <div class="content prose">
             <p><strong>Status:</strong> In Progress (structural <strong>delete</strong> shipped, and since <code>yqr-f013</code>
 it is yqr’s whole delete path rather than a fallback; <strong>key rename</strong> shipped
-2026-08-16 as <code>yqr-a002</code> slice 1 — §7; comment editing and sequence reorder
-remain deferred, their grammar settled in <code>yqr-a002</code> and staged in §6)
+2026-08-16 and <strong>comment editing</strong> 2026-08-18, as <code>yqr-a002</code> slices 1 and 2 —
+§7 and §8; sequence reorder remains deferred, its grammar settled in
+<code>yqr-a002</code> and unblocked since noyalib 0.0.23)
 <strong>Epic:</strong> Fidelity write tier (<code>f006</code>–<code>f008</code>)
 <strong>Owner:</strong> yqr maintainers
 <strong>Related:</strong> <code>yqr-f006</code> (write tier v1 — the value-replacement core this builds
@@ -2878,7 +2879,7 @@ excluded from <code>f006</code>. Each is cataloged in <code>yqr-b004</code> §2:
 <li><strong>Structural delete</strong> — multi-line, nested, sole-entry, and flow deletes
 (<code>b004</code> 2.4). <strong>Shipped</strong> (§5); the last two classes since <code>yqr-f016</code> §5.</li>
 <li><strong>Comment editing</strong> — add / change / remove a comment attached to a node
-(<code>b004</code> 2.1; comments were read-only in 0.0.14). <strong>Deferred</strong> (§6).</li>
+(<code>b004</code> 2.1; comments were read-only in 0.0.14). <strong>Shipped</strong> (§8).</li>
 <li><strong>Key rename</strong> — <code>.a.b</code> key renamed in place, preserving <code>:</code> and value
 (<code>b004</code> 2.2). <strong>Shipped</strong> (§7).</li>
 <li><strong>Sequence reorder / move / swap</strong> — reorder block-sequence items (<code>b004</code> 2.3).
@@ -2922,7 +2923,7 @@ and flow deletes are supported as of <code>yqr-f016</code> §5, so the “clear 
 where still unsupported” half of this criterion no longer has a subject.</li>
 <li><input disabled="" type="checkbox" checked=""/>
 Every <code>replace_span</code> edit is guarded and covered by a byte-exact test.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>line_comment(&lt;path&gt;)</code> / <code>head_comment(&lt;path&gt;)</code> set and remove
 (<code>yqr-a002</code> §2.4), byte-exact elsewhere. Remove refuses (exit 5) wherever
 set does, rather than inheriting upstream’s <code>Ok</code>-and-no-op.</li>
@@ -3266,6 +3267,79 @@ nine on the grammar, ten black-box CLI tests including <code>-i</code> and the
 refusal-leaves-the-file-untouched contract, and three shared-corpus
 <code>EngineCase</code>s — one of which is a merge-produced key, the case that separates
 a document read from an echo.</p>
+<h2 id="8-comment-editing-shipped">8. Comment editing (shipped)<a class="heading-anchor" href="#8-comment-editing-shipped" aria-label="Link to this section"></a></h2>
+<p><code>yqr-a002</code> slice 2, the second use of its addressing grammar. Landed
+2026-08-18.</p>
+<h3 id="8-1-surface">8.1 Surface<a class="heading-anchor" href="#8-1-surface" aria-label="Link to this section"></a></h3>
+<pre><code class="language-text">line_comment(&lt;path&gt;)          read the `# ...` on the entry's own line
+line_comment(&lt;path&gt;) = "t"    set or change it
+del(line_comment(&lt;path&gt;))     remove it
+
+head_comment(&lt;path&gt;)          read the block directly above the entry
+head_comment(&lt;path&gt;) = "a\nb" set it, one line per segment
+del(head_comment(&lt;path&gt;))     remove it
+</code></pre>
+<p><code>= ""</code> writes a bare <code>#</code>; only <code>del(...)</code> removes (<code>yqr-a002</code> §4.2). Reading
+strips the <code>#</code> and exactly one leading space, which is what makes set and read
+exact inverses — the §4.3 round-trip property, pinned as an executable test
+over bodies with inner spaces, leading spaces, a <code>#</code>, and a <code>:</code>.</p>
+<p><code>foot_comment(...)</code> parses and is then refused with its reason, which is the
+only thing it exists for (<code>yqr-a002</code> §8).</p>
+<h3 id="8-2-what-yqr-checks-that-upstream-does-not">8.2 What yqr checks that upstream does not<a class="heading-anchor" href="#8-2-what-yqr-checks-that-upstream-does-not" aria-label="Link to this section"></a></h3>
+<p>Three pre-checks, each for a measured case where upstream’s guard answers a
+different question from the one the filter asked. All three were silent wrong
+results, not refusals.</p>
+<table><thead><tr><th>Case</th><th>Upstream</th><th>yqr</th></tr></thead><tbody>
+<tr><td>entry’s value starts on the next line</td><td>comments the <strong>child’s</strong> line; removal deletes the child’s comment</td><td>refused both ways</td></tr>
+<tr><td>head block detached by a blank line</td><td>replaces / deletes it</td><td>refused; read is <code>null</code></td></tr>
+<tr><td>head block <em>partly</em> detached</td><td>treats the whole run as the entry’s</td><td>refused, same check</td></tr>
+</tbody></table>
+<p>The third generalizes the second, and one comparison covers both: yqr computes
+the contiguous same-indent run itself and refuses when it differs from
+<code>comments_at().before</code>. A mismatch means the edit would reach bytes the path
+does not name.</p>
+<h3 id="8-3-the-no-op-is-detected-not-enumerated">8.3 The no-op is detected, not enumerated<a class="heading-anchor" href="#8-3-the-no-op-is-detected-not-enumerated" aria-label="Link to this section"></a></h3>
+<p>Upstream’s two removers return <code>Ok(())</code> on an unresolved path, on a missing
+comment, and on every shape their setters refuse — a leading block on a
+sequence item being the measured case. <code>yqr-a002</code> §4.4 forbids a mutation that
+no-ops, so each of those has to become a refusal.</p>
+<p>Enumerating the shapes would have been the obvious route and is the wrong one:
+the list belongs to upstream and can change under yqr silently. Instead a
+removal <strong>checks afterwards</strong> that the comment is gone, and refuses when it is
+not. That covers any such shape without knowing which they are, and the
+document is already unchanged in exactly that case, so there is nothing to roll
+back.</p>
+<h3 id="8-4-reads-are-total-and-read-the-same-ownership">8.4 Reads are total, and read the same ownership<a class="heading-anchor" href="#8-4-reads-are-total-and-read-the-same-ownership" aria-label="Link to this section"></a></h3>
+<p><code>line_comment</code> reports <code>null</code> where the entry has no line of its own;
+<code>head_comment</code> reports only the run yqr owns, so a detached block reads <code>null</code>
+while an attached one reads its body. A sequence item’s head comment <strong>reads</strong>
+(§5.2 requires it) even though writing one is refused upstream — reads and
+writes answer to the same ownership rule but not to the same capability.</p>
+<p>Two bugs worth recording, both about what a sequence item’s <em>line</em> is, and
+both caught only because something else disagreed:</p>
+<ul>
+<li>The head-comment walk measured an item’s indentation from its <strong>value</strong>,
+which sits past <code>- </code>, so a comment aligned with the dash never matched and
+every item read <code>null</code>. <code>delete_entry</code> had this right already; this path had
+to learn it separately.</li>
+<li>The §8.2 value-starts-on-the-next-line check asked only whether the entry had
+a key token on the value’s line, and answered “yes, fine” for every sequence
+item — on the reasoning that an item always sits on its own line. A bare <code>-</code>
+with the value below it is the counterexample, and it is the mapping defect
+exactly: the comment lands on the child. So the guard this slice exists to
+add was bypassed for half its cases until review found it. Both now resolve
+the marker the same way, key token or <code>-</code> indicator.</li>
+</ul>
+<p>A third, in the read path: <code>attached_head_len</code> counts source lines while
+<code>comments_at().before</code> comes from the CST, and an alias-valued entry makes them
+disagree. Slicing a tail longer than the list <strong>panicked</strong> — on a read
+documented as total, which is worse than any error it could have returned. A
+disagreement now reads <code>null</code>, since it means ownership cannot be established.</p>
+<h3 id="8-5-coverage">8.5 Coverage<a class="heading-anchor" href="#8-5-coverage" aria-label="Link to this section"></a></h3>
+<p>Twelve write-path unit tests (set, change, remove, bare <code>#</code>, multi-line block,
+CRLF, absent-path skip, non-string body, and one per refusal), three parser
+tests, nine black-box CLI tests including the round-trip property and the
+refusal-leaves-the-file-untouched contract, and three corpus <code>EngineCase</code>s.</p>
 
         </div>
         </accent-island>
@@ -3355,6 +3429,30 @@ a document read from an echo.</p>
         
             <li class="toc-level-3">
                 <a href="#7-4-coverage">7.4 Coverage</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#8-comment-editing-shipped">8. Comment editing (shipped)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#8-1-surface">8.1 Surface</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#8-2-what-yqr-checks-that-upstream-does-not">8.2 What yqr checks that upstream does not</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#8-3-the-no-op-is-detected-not-enumerated">8.3 The no-op is detected, not enumerated</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#8-4-reads-are-total-and-read-the-same-ownership">8.4 Reads are total, and read the same ownership</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#8-5-coverage">8.5 Coverage</a>
             </li>
         
         </ul>

@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 971
+  "wordCount": 1273
 }
 </script>
 <script type="application/ld+json">
@@ -366,7 +366,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">5 min read</span>
+                    <span class="reading-time">7 min read</span>
                 </div>
                 
 
@@ -394,6 +394,10 @@
     
         <li class="toc-level-2">
             <a href="#other-edits-you-can-make-today">Other edits you can make today</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#editing-a-comment">Editing a comment</a>
         </li>
     
         <li class="toc-level-2">
@@ -506,6 +510,40 @@ left behind describing an empty collection.</p>
 separator goes with the item, so you never get <code>[, 443]</code> or <code>[80, ]</code>.</p>
 </li>
 </ul>
+<h2 id="editing-a-comment">Editing a comment<a class="heading-anchor" href="#editing-a-comment" aria-label="Link to this section"></a></h2>
+<!-- Feature f007 -->
+<p>Two selectors, wrapping a path the same way <code>key(...)</code> does:</p>
+<pre><code class="language-console">$ yqr 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
+$ yqr 'head_comment(.spec) = "why this exists"' deploy.yaml
+$ yqr -i 'del(line_comment(.spec.replicas))' deploy.yaml
+</code></pre>
+<p><code>line_comment</code> is the <code># ...</code> after the value on the entry’s own line;
+<code>head_comment</code> is the block of comment lines directly above it. Reading
+either gives the body without the <code>#</code>:</p>
+<pre><code class="language-console">$ yqr -r 'line_comment(.spec.replicas)' deploy.yaml
+tuned for peak
+</code></pre>
+<p>What you write is what you read back, including leading spaces, so a
+comment survives being set and read again unchanged. The reverse is not a
+byte-level identity: a comment authored <code>#note</code>, with no space, reads as
+<code>note</code>, and writing that back renders <code># note</code>.</p>
+<p>An empty body writes a bare <code>#</code> rather than removing anything. Removal has
+its own spelling, <code>del(...)</code>, so both are reachable.</p>
+<p>Three cases are refused rather than guessed at, each because the obvious
+thing to do would be wrong:</p>
+<ul>
+<li><strong>An entry whose value starts on the next line</strong> has no line of its own,
+so there is nowhere to put an inline comment. Writing one would land it
+on the first <em>child</em> instead, where it would look like it documents that.</li>
+<li><strong>A comment block separated from the entry by a blank line</strong> documents
+whatever came before it, not the entry below. yqr will not rewrite or
+delete it.</li>
+<li><strong>A comment block above a sequence item</strong> can be read but not edited –
+the YAML engine attaches leading comments to mapping keys only.</li>
+</ul>
+<p>And <code>foot_comment(...)</code> is refused with an explanation rather than a syntax
+error: a comment <em>below</em> an entry belongs to whatever follows it about as
+often as to the entry itself, so there is no unambiguous block to address.</p>
 <h2 id="renaming-a-key">Renaming a key<a class="heading-anchor" href="#renaming-a-key" aria-label="Link to this section"></a></h2>
 <!-- Feature f007 -->
 <p>A path names a <em>value</em>, so there is no path that means “the key of this
@@ -554,8 +592,8 @@ stdin. That is deliberate; there is nothing to write back to.</p>
 <h2 id="what-is-not-here-yet">What is not here yet<a class="heading-anchor" href="#what-is-not-here-yet" aria-label="Link to this section"></a></h2>
 <p>Being straight about the edges, because finding them yourself is annoying:</p>
 <ul>
-<li><strong>Editing a comment</strong> is not in the released grammar. Values, new keys,
-appends, deletes, and key renames are.</li>
+<li><strong>Reordering a sequence</strong> is not in the released grammar. Values, new
+keys, appends, deletes, key renames, and comment edits are.</li>
 <li><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
 is not supported yet.</li>
 <li><strong>Keys containing <code>.</code> or <code>[</code></strong> – the Kubernetes

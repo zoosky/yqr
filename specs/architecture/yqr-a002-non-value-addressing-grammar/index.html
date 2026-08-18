@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, an...">
+<meta name="description" content="Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
-<meta property="og:description" content="Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, an...">
+<meta property="og:description" content="Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
-<meta name="twitter:description" content="Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, an...">
+<meta name="twitter:description" content="Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-18",
-  "description": "Status: Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are staged in §9 and both unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the \"final syntax TBD\" left open by yqr-f007 §4 and §6 for comment editing, key rename, an...",
+  "description": "Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the \"final syntax TBD\" left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...",
   "inLanguage": "en",
   "name": "Architecture a002 — Addressing what is not a value: comments, keys, and sequence order",
   "url": "https://zoosky.github.io/yqr/specs/architecture/yqr-a002-non-value-addressing-grammar",
-  "wordCount": 5778
+  "wordCount": 5983
 }
 </script>
 <script type="application/ld+json">
@@ -2859,8 +2859,8 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Accepted (grammar settled; slice 1 shipped, slices 2 and 3 are
-staged in §9 and <strong>both unblocked</strong> as of noyalib 0.0.23 — <code>yqr-b010</code> is fixed)
+            <p><strong>Status:</strong> Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is
+staged in §9 and unblocked as of noyalib 0.0.23 — <code>yqr-b010</code> is fixed)
 <strong>Owner:</strong> yqr maintainers
 <strong>Last updated:</strong> 2026-08-16
 <strong>Decides:</strong> the “final syntax TBD” left open by <code>yqr-f007</code> §4 and §6 for
@@ -3380,38 +3380,60 @@ Documented in the guide rather than papered over. The value read has the same
 shape — <code>Unaddressable</code> degrades to typed rendering — so this is the existing
 contract rather than a new wrinkle, and it resolves when §7.3 does.</li>
 </ul>
-<p><strong>Slice 2 — <code>line_comment</code> / <code>head_comment</code>.</strong> Adds the second and third
-selectors, <code>del(...)</code> composition, and the read path.</p>
+<p><strong>Slice 2 — <code>line_comment</code> / <code>head_comment</code>. Shipped 2026-08-18
+(<code>yqr-f007</code>).</strong> Adds the second and third selectors, <code>del(...)</code> composition,
+and the read path.</p>
 <ul>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 Set, change, and remove, for both kinds, byte-exact elsewhere.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>head_comment</code> places the block <strong>above</strong> the addressed entry, at the
 entry’s own indent, with the document’s line terminator.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 The §4.3 round-trip property holds, including for a <code>\n</code>-joined
 <code>head_comment</code> and for a comment body with leading spaces of its own.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>= ""</code> writes a bare <code>#</code>; only <code>del(...)</code> removes (§4.2).</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 Each §5.1 / §5.2 row behaves as its <strong>direction</strong> column says. In
 particular every <code>del(...)</code> row refuses (exit 5) rather than inheriting
 upstream’s <code>Ok</code>-and-no-op, and <code>-i</code> leaves the file untouched.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>line_comment</code> on an entry whose value starts on the next line refuses in
 both directions and never touches the child’s line (§4.1.2) — the read on
 that entry is <code>null</code>, not the child’s comment.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 A blank-detached comment block above the entry is never replaced, deleted
 or reported (§4.1.1); all three directions refuse or read <code>null</code>, and the
 <code>delete_entry</code> case it mirrors keeps its existing behaviour.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 Reads yield <code>null</code>, never an error, where there is no comment — including
 where the matching write refuses (§4.4).</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>.line_comment</code>, <code>.head_comment</code> and <code>.foot_comment</code> still parse as field
 accesses; <code>foot_comment(.a)</code> refuses with the §8 reason, not a generic
 parse error.</li>
+</ul>
+<p>Three things the slice settled that this section had not anticipated:</p>
+<ul>
+<li><strong>A no-op has to be detected, not enumerated.</strong> §5.2 lists the shapes where
+upstream’s removers return <code>Ok</code> having done nothing, and the implementation
+started by pre-checking each. That is fragile — the list is upstream’s to
+change. It now <em>checks afterwards</em> that the comment is actually gone, which
+turns any such shape into the §4.4 refusal without knowing which shapes they
+are. The pre-check remains only for the cases that must be refused before the
+document is touched at all.</li>
+<li><strong>A sequence item’s marker is its <code>-</code>, not its value.</strong> The attached-run walk
+first measured a sequence item’s indent from its value, which sits past
+<code>- </code>, so a head comment aligned with the dash never matched and every item
+read <code>null</code>. <code>delete_entry</code> had this right already; the comment path had to
+learn it separately.</li>
+<li><strong>§4.1.1’s rule generalizes.</strong> The section describes a block <em>wholly</em>
+detached by a blank line. The same argument applies to a partially detached
+one (<code># far</code>, blank, <code># near</code>, entry): upstream reports both comments as the
+entry’s, yqr owns only the contiguous tail. The implementation compares its
+own run length against <code>comments_at().before.len()</code> and refuses on any
+mismatch, which covers both shapes with one test.</li>
 </ul>
 <p><strong>Slice 3 — <code>swap</code> / <code>move</code>. Unblocked 2026-08-17</strong> (§6): noyalib 0.0.23 moves
 an entry’s trivia with it, so this ships as a call rather than as a refusal.
