@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b010-reorder-moves-values-not-entries",
-  "wordCount": 1761
+  "wordCount": 1795
 }
 </script>
 <script type="application/ld+json">
@@ -2866,7 +2866,8 @@ against the published crate. <code>noyalib#269</code> closed 2026-08-16
 <strong>Severity:</strong> Medium — a silent wrong result at exit 0, not a refusal
 <strong>Component:</strong> noyalib <code>cst::Document::swap_items</code> / <code>cst::Document::move_item</code>
 (upstream), reached from yqr’s planned reorder verb
-<strong>Blocks:</strong> the <code>swap</code> / <code>move</code> slice of <code>yqr-a002</code> §9
+<strong>Blocked:</strong> the <code>swap</code> / <code>move</code> slice of <code>yqr-a002</code> §9, which shipped
+2026-08-18 once the fix was released (<code>yqr-f007</code> §9)
 <strong>Related:</strong> <code>yqr-b004</code> §2.3 (the gap whose fix shipped this API) and §6.5 (the
 adoption finding that points here), <code>yqr-b006</code> (the same failure class in
 yqr’s own delete), <code>yqr-a002</code> §6 (the architecture consequence),
@@ -3021,9 +3022,11 @@ the re-framing explicitly endorsed.</li>
 A released noyalib moves an entry’s inline and head comments with the
 item, for both <code>swap_items</code> and <code>move_item</code> — 0.0.23, verified against
 the published crate (<code>yqr-f016</code> §3).</li>
-<li><input disabled="" type="checkbox"/>
-<code>yqr-a002</code> §9 slice 3’s criteria pass against that release — the slice is
-unblocked but not implemented.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>yqr-a002</code> §9 slice 3’s criteria pass against that release — shipped
+2026-08-18 (<code>yqr-f007</code> §9). The §2 measurement is now a yqr regression
+test (<code>an_items_comments_travel_with_the_item</code>), so the property this bug
+argued for is checked on every run rather than trusted to the pin.</li>
 <li><input disabled="" type="checkbox" checked=""/>
 <code>yqr-b000</code> and this file moved to Resolved in the same change.</li>
 </ul>

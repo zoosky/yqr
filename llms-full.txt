@@ -168,18 +168,50 @@ Plenty, and it is worth knowing before you switch:
   that already exist.
 - **Builtins and arithmetic.** No `map`, `select`, `length`, `+` on values.
 - **Format conversion.** No JSON, XML, TOML, or properties in or out.
-- **Comment and ordering edits.** yqr can change values, add keys, append
-  to sequences, delete entries, and rename keys with `key(...)`. Rewriting
-  a comment and reordering a sequence are not in the released grammar yet.
-
-  Where yqr does have the operation, the shape differs on purpose. yq
-  spells a rename `(.a | key) = "z"` and a comment edit `.a
-  line_comment="hi"` -- two different shapes, and the one that works for
-  comments is a **silent no-op** for keys. yqr uses one shape for both,
-  `key(.a) = "z"`, so learning either teaches the other.
+- **Everything above, in one expression.** yq composes; yqr applies one edit
+  per run. Chaining, conditionals, and computed right-hand sides all live on
+  the yq side of the line.
 
 If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.
+
+## Where the shapes differ on purpose
+
+<!-- Feature f007 -->
+
+Both tools can rename a key, edit a comment, and reorder a list. The
+spellings are not the same, and the differences are deliberate.
+
+yq spells a rename `(.a | key) = "z"` and a comment edit `.a
+line_comment="hi"` -- two different shapes, and the one that works for
+comments is a **silent no-op** for keys (measured on v4.53.3). yqr uses one
+shape for both, so learning either teaches the other:
+
+```console
+$ yqr 'key(.a) = "z"' y.yaml
+$ yqr 'line_comment(.a) = "hi"' y.yaml
+$ yqr 'head_comment(.a) = "why this exists"' y.yaml
+```
+
+`head_comment` puts the block **above** the entry you addressed. yq's
+`head_comment` puts it below, where in a file with siblings it comes to
+document the next entry instead.
+
+Reordering is the one operation with no yq builtin at all -- there is no
+`swap` or `move` -- so the nearest equivalent rebuilds the sequence, and
+rebuilding re-emits the document:
+
+```console
+$ yq '.jobs.build.steps |= reverse' ci.yaml
+name: ci                      # was 'name:    ci'
+      - uses: actions/checkout@v4 # pinned    # was two spaces before '#'
+$ yqr 'swap(.jobs.build.steps; 0; 1)' ci.yaml
+name:    ci
+      - uses: actions/checkout@v4  # pinned
+```
+
+Same reordering, and in the yqr run every byte outside the two items is the
+byte that was there before.
 
 ## Using both
 
@@ -469,6 +501,7 @@ $ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
 $ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
 $ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
 $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
+$ yqr -i 'swap(.spec.template.spec.containers; 0; 1)' deploy.yaml # reorder a list
 ```
 
 `del` handles nested blocks and multi-line values, not just single lines,
@@ -589,6 +622,61 @@ cannot be addressed by the path syntax at all, so `key(...)` on one reports
 `null` like any other keyless node. That limitation is not specific to
 renames; it is the same one listed below.
 
+## Reordering a list
+
+<!-- Feature f007 -->
+
+An ordering is the one thing here with no node to name -- there is no path
+that means "third". So it is a verb with arguments rather than a selector
+wrapping a path, and the arguments are separated by `;`:
+
+```console
+$ yqr -i 'swap(.jobs.build.steps; 0; 2)' ci.yaml   # exchange two items
+$ yqr -i 'move(.jobs.build.steps; 0; -1)' ci.yaml  # move one, shifting the rest
+```
+
+`swap` exchanges two items and leaves everything between them alone. `move`
+takes one item out and puts it back at the destination, shifting the items
+in between by one. Indices count from zero, and a negative index counts from
+the end -- `-1` is the last item, the same as `.[-1]` in a path.
+
+The reason this is worth having as its own verb is what travels with an
+item. A step in a workflow is usually two or three lines with a comment
+above it and another beside it, and all of that belongs to the step rather
+than to the position:
+
+```console
+$ cat ci.yaml
+jobs:
+  build:
+    steps:
+      # check out first
+      - uses: actions/checkout@v4  # pinned
+      - name: test
+        run:  cargo test
+$ yqr -i 'swap(.jobs.build.steps; 0; 1)' ci.yaml
+$ cat ci.yaml
+jobs:
+  build:
+    steps:
+      - name: test
+        run:  cargo test
+      # check out first
+      - uses: actions/checkout@v4  # pinned
+```
+
+Both comments moved with the item they document, and the odd spacing in
+`run:  cargo test` came through untouched, because nothing was re-emitted.
+
+An inline list (`ports: [80, 443, 8080]`) reorders too. Its items have no
+lines of their own, so there is no comment to carry -- just the values, in
+their new order.
+
+Two refusals, both exit 5 with the file left alone under `-i`: an index
+outside the sequence, and a path that names something other than a
+sequence. There is no partial reorder -- either the whole edit lands or none
+of it does.
+
 ## Piping from kubectl
 
 There is no file argument needed -- yqr reads stdin:
@@ -604,8 +692,6 @@ stdin. That is deliberate; there is nothing to write back to.
 
 Being straight about the edges, because finding them yourself is annoying:
 
-- **Reordering a sequence** is not in the released grammar. Values, new
-  keys, appends, deletes, key renames, and comment edits are.
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
 - **Keys containing `.` or `[`** -- the Kubernetes
@@ -963,19 +1049,21 @@ URL: /yqr/specs/architecture/yqr-a002-non-value-addressing-grammar
 
 # Architecture a002 — Addressing what is not a value: comments, keys, and sequence order
 
-**Status:** Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is
-staged in §9 and unblocked as of noyalib 0.0.23 — `yqr-b010` is fixed)
+**Status:** Accepted and implemented (grammar settled; all three slices shipped
+— 1 on 2026-08-16, 2 and 3 on 2026-08-18, each recorded in `yqr-f007`)
 **Owner:** yqr maintainers
-**Last updated:** 2026-08-16
+**Last updated:** 2026-08-18
 **Decides:** the "final syntax TBD" left open by `yqr-f007` §4 and §6 for
 comment editing, key rename, and sequence reorder
 **Affects:** `src/lexer.rs`, `src/parser.rs`, `src/ast.rs`, `src/eval.rs`,
-`src/fidelity/write.rs`, `src/fidelity/mod.rs`, `docs/content/guide/`
+`src/fidelity/write.rs` and `src/fidelity/write/reorder.rs`,
+`src/fidelity/mod.rs`, `docs/content/guide/`
 **Related:** `yqr-a001` (the fidelity guarantee these edits must not break),
-`yqr-f007` (the three deferred slices this unblocks), `yqr-b004` §2.1–2.3 (the
-original upstream gap catalog), `yqr-b010` (the reorder trivia disagreement that blocks
-slice 3, measured out of §6), `yqr-f015` (the noyalib 0.0.22 pin every form
-here calls into)
+`yqr-f007` (the three slices this unblocked, §7–§9 there), `yqr-b004` §2.1–2.3
+(the original upstream gap catalog), `yqr-b010` (the reorder trivia
+disagreement that blocked slice 3, measured out of §6 and fixed by yqr in
+noyalib 0.0.23), `yqr-f015` (the noyalib 0.0.22 pin the first two slices were
+written against; `yqr-f016` moved it to 0.0.23)
 
 ## 1. The problem the three slices share
 
@@ -1459,6 +1547,10 @@ So the slice is unblocked. What remains is implementation, and slice 3's
 trivia criterion is now met by the backend rather than needing a yqr-side
 refusal.
 
+**Shipped 2026-08-18** (`yqr-f007` §9). The slice is one call per verb, as this
+section predicted, and the criterion the backend now meets is still a yqr test
+— which is the point of the §5.4 lesson rather than a contradiction of it.
+
 ## 7. Compiler surface
 
 ### 7.1 AST
@@ -1648,22 +1740,41 @@ Three things the slice settled that this section had not anticipated:
   own run length against `comments_at().before.len()` and refuses on any
   mismatch, which covers both shapes with one test.
 
-**Slice 3 — `swap` / `move`. Unblocked 2026-08-17** (§6): noyalib 0.0.23 moves
-an entry's trivia with it, so this ships as a call rather than as a refusal.
-The `refusal-when-commented` fallback this section reserved is no longer
-needed and is withdrawn.
+**Slice 3 — `swap` / `move`. Shipped 2026-08-18 (`yqr-f007` §9).** noyalib
+0.0.23 moves an entry's trivia with it, so this shipped as a call rather than
+as a refusal. The `refusal-when-commented` fallback this section reserved was
+never needed and is withdrawn.
 
-- [ ] `swap`/`move` on an uncommented block sequence, byte-exact elsewhere.
-- [ ] An item's inline and head comments travel with the item — met by the
+- [x] `swap`/`move` on an uncommented block sequence, byte-exact elsewhere.
+- [x] An item's inline and head comments travel with the item — met by the
       backend as of 0.0.23; the test pins it against future engine drift, which
       is the whole reason it is a criterion rather than an assumption.
-- [ ] A flow sequence keeps upstream's value-span exchange and is not refused.
-- [ ] Negative indices resolve as `.[-1]` does (§4.5).
-- [ ] Out-of-range indices refuse with exit 5.
+- [x] A flow sequence keeps upstream's value-span exchange and is not refused.
+- [x] Negative indices resolve as `.[-1]` does (§4.5) — through the *same*
+      function, so the two cannot drift apart.
+- [x] Out-of-range indices refuse with exit 5.
+
+Two things the slice settled that this section had not anticipated:
+
+- **The out-of-range check is yqr's, not a forward.** §5.4's row says the
+  engine refuses "naming the length", so the plan was to forward it. But §4.5
+  requires yqr to resolve a negative index *before* the call, which means
+  holding the length already — and forwarding then gives two message shapes for
+  one mistake, one of them quoting the engine's root path, which is the empty
+  string. One yqr-side check covers `i` and `-i` alike and names the valid
+  range.
+- **`swap(.xs; 1; 1)` is a plain success, not the forbidden no-op.** §4.4
+  forbids a mutation that silently does nothing, and the rule is about a
+  request that *cannot* be honoured. Reordering an index with itself has a
+  well-defined result, and the unchanged document is it.
 
 Each slice updates `docs/content/guide/` (CLAUDE.md rule 15) and the yq
 comparison page, whose "not in the released grammar yet" note for renames and
-comment edits is what these slices retire.
+comment edits is what these slices retire. Retired as of slice 3: that page now
+carries a *"where the shapes differ on purpose"* section instead, since all
+three operations exist in both tools' grammars except reorder, which has no yq
+builtin at all (re-measured on v4.53.3 — `swap(...)` is a lexer error, and
+`|= reverse` reorders by re-emitting the document).
 
 ## 10. Provenance
 
@@ -1728,7 +1839,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b010](yqr-b010-reorder-moves-values-not-entries.md) | `swap_items` / `move_item` move values, not entries: every comment stays behind | Medium | Resolved — noyalib's reorder mutators exchanged **value bytes** only, so a reorder silently re-attributed every comment in the range at **exit 0**, past upstream's guard by construction (it compares typed values, and a comment is not in one). Filed as noyalib#269 and **corrected in flight**: upstream's behaviour was deliberate, documented and tested (*"the comment annotates the slot"*), so this was a semantics disagreement, not a defect of the b004 §6.1/§6.4 class. yqr's argument — `remove` already decides the same question the other way for the same bytes — was accepted; the fix is yqr's own commit `d397330`, landed via upstream #271 and **released in noyalib 0.0.23**, verified against the published crate by `yqr-f016` §3. Unblocks the `swap`/`move` slice of `yqr-a002` §9 | `yqr-b004`, `yqr-b006`, `yqr-a002`, `yqr-f007`, `yqr-f015`, `yqr-f016` |
+| [b010](yqr-b010-reorder-moves-values-not-entries.md) | `swap_items` / `move_item` move values, not entries: every comment stays behind | Medium | Resolved — noyalib's reorder mutators exchanged **value bytes** only, so a reorder silently re-attributed every comment in the range at **exit 0**, past upstream's guard by construction (it compares typed values, and a comment is not in one). Filed as noyalib#269 and **corrected in flight**: upstream's behaviour was deliberate, documented and tested (*"the comment annotates the slot"*), so this was a semantics disagreement, not a defect of the b004 §6.1/§6.4 class. yqr's argument — `remove` already decides the same question the other way for the same bytes — was accepted; the fix is yqr's own commit `d397330`, landed via upstream #271 and **released in noyalib 0.0.23**, verified against the published crate by `yqr-f016` §3. Unblocked the `swap`/`move` slice of `yqr-a002` §9, which shipped 2026-08-18 (`yqr-f007` §9) with the §2 measurement as a yqr regression test | `yqr-b004`, `yqr-b006`, `yqr-a002`, `yqr-f007`, `yqr-f015`, `yqr-f016` |
 | [b004](yqr-b004-noyalib-cst-mutation-api-gaps.md) | noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete | Medium | Resolved — all five gaps of umbrella issue noyalib#221 released in **noyalib 0.0.18** (crates.io 2026-07-31): our noyalib#222 (key rename) and noyalib#223 (`Emit` auto-formatting tier), both merged, the other three by the maintainer. Two adoption findings stand (b004 §6): upstream `remove` diverges on delete trivia in **three** measured ways, so delete stays yqr's own code by decision rather than necessity (`yqr-f007` §5.1, would otherwise regress `yqr-b006`); and `key_span` does **not** replace `validate`'s green-tree walk. Those divergences were filed as noyalib#225 and fixed by yqr's noyalib#226 — **merged 2026-08-05, released in noyalib 0.0.19** (§6.4). yqr pins `noyalib = "0.0.22"` as of `yqr-f015`. The maintainer's 2026-08-11 status update on #221 listed three of these gaps as still open; yqr's per-item correction from the published crates (`yqr-f014` §4) was **accepted in the 2026-08-14 update**, which now records comment mutation, `rename_key` and sequence reorder as shipped and re-scopes extended `remove` and fragment quoting as partial (`yqr-f015` §5). Two later adoption findings are recorded in §6.5/§6.6 and do **not** reopen this bug: the reorder trivia semantics are disputed in **`yqr-b010`** (open, above), and upstream's leading-comment mutators absorb a blank-detached comment block — documented upstream behaviour, so no defect, but the opposite of `delete_entry`'s rule, which is why `yqr-a002` §4.1.1 declines to adopt it | `yqr-b002`, `yqr-b006`, `yqr-b008`, `yqr-b010`, `yqr-r002`, `yqr-m002`, `yqr-m005`, `yqr-f006`, `yqr-f007`, `yqr-f013`, `yqr-f014`, `yqr-f015`, `yqr-a002` |
 | [b009](yqr-b009-inserted-lines-break-crlf-documents.md) | An inserted line ends with `\n`, giving a CRLF document mixed line endings | Medium | Resolved — noyalib's insertion mutators hard-coded `\n`, so new-key assignment and `+=` gave a CRLF file one bare LF per added line, at **exit 0**. Known upstream behaviour recorded in `b004` §2.5 but never filed, so nothing tracked or tested it. Fixed upstream by yqr's **noyalib#261, merged unmodified 2026-08-14 and released in noyalib 0.0.22**, raised on noyalib#221 (b009 §6); the defect was wider there — the fragment mutators and both comment setters shared it, and `set_comment(Inline)` spliced between the `\r` and the `\n`. yqr carried a local `emit` restore in the meantime (`f014`); `f015` pins 0.0.22 and **deletes** it, since the engine now derives an inserted line's terminator from the document the same way it already derived the indentation. The five byte-exact tests survive unchanged and now pin the engine — with the workaround gone, three of them fail against a temporary 0.0.21 pin. Read, `set_value` and `del` were never affected | `yqr-b001`, `yqr-b004`, `yqr-b008`, `yqr-f014`, `yqr-f015`, `yqr-a001` |
 | [b008](yqr-b008-fragment-splice-corrupts-multiline-inserts.md) | Hand-built fragments corrupt `+=` and new-key inserts of a multi-line string | High | Fixed — `+=` produced unparseable output and new-key assignment a wrong value whenever the RHS string contained a newline, both at **exit 0**, so `-i` wrote the damage to the user's file and reported success. `value_fragment` rendered the value to text, and the fragment-taking mutators splice a fragment verbatim — synthesising indentation for its first line only — so a block scalar's continuation lines kept the rendering's indentation instead of the insertion site's. Both paths now use noyalib's typed tier (`insert_entry_value` / `push_back_value`), which owns the indentation and holds the splice to a load-back oracle. Three regression tests assert emitted bytes **and** loaded-back value. Ships with the 0.0.21 pin (`yqr-f014`) | `yqr-f006`, `yqr-f014`, `yqr-b004`, `yqr-f013`, `yqr-f007` |
@@ -3728,7 +3839,8 @@ against the published crate. `noyalib#269` closed 2026-08-16
 **Severity:** Medium — a silent wrong result at exit 0, not a refusal
 **Component:** noyalib `cst::Document::swap_items` / `cst::Document::move_item`
 (upstream), reached from yqr's planned reorder verb
-**Blocks:** the `swap` / `move` slice of `yqr-a002` §9
+**Blocked:** the `swap` / `move` slice of `yqr-a002` §9, which shipped
+2026-08-18 once the fix was released (`yqr-f007` §9)
 **Related:** `yqr-b004` §2.3 (the gap whose fix shipped this API) and §6.5 (the
 adoption finding that points here), `yqr-b006` (the same failure class in
 yqr's own delete), `yqr-a002` §6 (the architecture consequence),
@@ -3913,8 +4025,10 @@ only if it happens.
 - [x] A released noyalib moves an entry's inline and head comments with the
       item, for both `swap_items` and `move_item` — 0.0.23, verified against
       the published crate (`yqr-f016` §3).
-- [ ] `yqr-a002` §9 slice 3's criteria pass against that release — the slice is
-      unblocked but not implemented.
+- [x] `yqr-a002` §9 slice 3's criteria pass against that release — shipped
+      2026-08-18 (`yqr-f007` §9). The §2 measurement is now a yqr regression
+      test (`an_items_comments_travel_with_the_item`), so the property this bug
+      argued for is checked on every run rather than trusted to the pin.
 - [x] `yqr-b000` and this file moved to Resolved in the same change.
 
 ## 8. Close-out
@@ -4102,7 +4216,7 @@ dependency/release timing.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
-| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | In Progress (structural delete, **key rename** and **comment editing** shipped; reorder unblocked and unimplemented) |
+| [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | Done (all four `b004` gaps: structural delete, **key rename**, **comment editing** and **sequence reorder**) |
 | [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
@@ -4121,17 +4235,20 @@ itself (`b004` 2.4/2.5), sole-entry and flow deletes refused. The remaining f007
 wrapping a path — `line_comment(p)`, `head_comment(p)`, `key(p)`, assignable
 with `=` and removable with `del(...)` — plus a reorder verb `swap(p; i; j)` /
 `move(p; from; to)`, staged as three slices with per-slice acceptance criteria.
-Two of the three are now implementation over a live API, and the **first has
-shipped**: `yqr-a002` slice 1 landed 2026-08-16 as `key(<path>)` / `key(<path>)
-= "new"` (`f007` §7) — the whole new grammar path under the operation with the
-fewest cases. Its read goes through `key_span` rather than the filter's own
-resolved path segment, which is what keeps `key(...)` printing the document's
-bytes instead of echoing the query. The third is **not**:
-measuring 0.0.22 rather than reading its docs showed the backend *is* the
-blocker for reorder — `swap_items`/`move_item` exchange value bytes only, so a
-reorder silently re-attributes every comment in the range at exit 0, filed as
-**`yqr-b010`** (open, unfiled upstream). The same pass corrected three further
-upstream asymmetries the comment slice must pre-check rather than delegate
+**All three have now shipped.** Slice 1 landed 2026-08-16 as `key(<path>)` /
+`key(<path>) = "new"` (`f007` §7) — the whole new grammar path under the
+operation with the fewest cases; its read goes through `key_span` rather than
+the filter's own resolved path segment, which is what keeps `key(...)` printing
+the document's bytes instead of echoing the query. Slices 2 and 3 landed
+2026-08-18: `line_comment` / `head_comment` (`f007` §8) and `swap` / `move`
+(`f007` §9). Reorder was the one whose *backend* was the blocker — measuring
+0.0.22 rather than reading its docs showed `swap_items`/`move_item` exchanging
+value bytes only, so a reorder silently re-attributed every comment in the
+range at exit 0 — filed as **`yqr-b010`**, argued as a semantics disagreement
+rather than a defect, fixed by yqr's own commit, and released in 0.0.23; the
+slice is one call per verb as a result, with the trivia property pinned by a yqr
+test rather than assumed. The same measuring pass corrected three further
+upstream asymmetries the comment slice pre-checks rather than delegates
 (`b004` §6.6, `yqr-a002` §4.1/§5): the comment *removers* refuse nothing,
 `set_inline_comment`'s guard fires on the value span so a nested entry's
 comment lands on its child's line, and the leading mutators absorb a
@@ -4158,11 +4275,12 @@ plus a **deletion**, retiring the `b009` CRLF restore from `emit` now that the
 engine derives an inserted line's terminator from the document the same way it
 already derived the indentation. The control is what makes that safe rather than
 plausible: with the workaround removed, the same three tests fail against a
-temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f016 **in progress**: 0.0.23 published 2026-08-17 and the pin has moved, with
+temporary 0.0.21 pin and pass on 0.0.22 (`f015` §4). f016 **done**: 0.0.23 published 2026-08-17 and the pin has moved, with
 the suite green untouched. Two things came out of it. **`b010` is fixed** —
 yqr's own reorder commit ships in this release, so an item's comments travel
-with it and `a002` slice 3 is unblocked, leaving slices 2 and 3 as
-implementation with nothing waiting on upstream. And the `f007` §6 delegation
+with it and `a002` slice 3 was unblocked, leaving slices 2 and 3 as
+implementation with nothing waiting on upstream; both then shipped the next
+day. And the `f007` §6 delegation
 question was re-measured per test: **seven failures, all "yqr refuses and
 upstream now succeeds"**, none of them a trivia divergence — but the
 sole-entry half of that strands the removed entry's head comment above an empty
@@ -4170,10 +4288,13 @@ sole-entry half of that strands the removed entry's head comment above an empty
 time. The flow half is clean. That asymmetry decided §5: **each half went to
 whichever implementation was already correct** — flow delegated to upstream,
 sole-entry implemented in `delete_entry`, where the head-comment run travels
-with the entry. Both classes now work, so `f007` §5 has no refusals left. f008 (`|=` computed
-updates) is gated on `f001` M2 (arithmetic/builtins). Priority order: f006
-(done) → f007 delete (done) → f013 (done) → f014 (done) → f015 (done) → f016
-(blocked on the release) → f007 remainder → M2 → f008.
+with the entry. Both classes now work, so `f007` §5 has no refusals left. With slice 3 in,
+**`f007` is Done**: all four `b004` gaps are closed and the epic's remaining
+items are scope and addressing work `f007` §6 tracks — collection right-hand
+sides, keys holding `.` or `[`, and a write tier for the shared corpus. f008
+(`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
+order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
+(done) → f016 (done) → f007 remainder (done) → M2 → f008.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -4216,10 +4337,8 @@ dashboard.
 - Total features: 17
 - Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
   scoped from the `yqr-r003` usage report)
-- In Progress: 2 (f001 M0; f007 — structural delete shipped; the comment /
-  rename / reorder grammar settled in `yqr-a002` and staged as three slices,
-  none implemented, and slice 3 blocked on `yqr-b010`)
-- Done: 10 (f002, f006, f009, f010, f011, f012, f013, f014, f015, f016)
+- In Progress: 1 (f001 M0)
+- Done: 11 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
@@ -5197,19 +5316,20 @@ URL: /yqr/specs/features/yqr-f007-write-tier-structural-edits
 
 # Feature f007 — Write tier: structural edits (the `b004` gaps)
 
-**Status:** In Progress (structural **delete** shipped, and since `yqr-f013`
-it is yqr's whole delete path rather than a fallback; **key rename** shipped
-2026-08-16 and **comment editing** 2026-08-18, as `yqr-a002` slices 1 and 2 —
-§7 and §8; sequence reorder remains deferred, its grammar settled in
-`yqr-a002` and unblocked since noyalib 0.0.23)
+**Status:** Done (structural **delete** shipped, and since `yqr-f013` it is
+yqr's whole delete path rather than a fallback; **key rename** shipped
+2026-08-16, **comment editing** and **sequence reorder** 2026-08-18, as
+`yqr-a002` slices 1, 2 and 3 — §7, §8 and §9. All four `b004` gaps are
+closed; what remains under §6 is scope and addressing work this spec never
+claimed, tracked there for whoever picks it up)
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006` (write tier v1 — the value-replacement core this builds
 on), `yqr-a002` (the addressing grammar for the three deferred slices),
 `yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog) and its §6.6 (the
-comment-mutator asymmetries the slice must pre-check), `yqr-b010` (the reorder
-trivia disagreement that blocks one slice), `yqr-m002` §4/§6.2 (write-tier
-seam)
+comment-mutator asymmetries the comment slice must pre-check), `yqr-b010` (the
+reorder trivia disagreement that blocked the last slice, fixed by yqr in
+noyalib 0.0.23), `yqr-m002` §4/§6.2 (write-tier seam)
 
 ## 1. Scope
 
@@ -5223,7 +5343,8 @@ excluded from `f006`. Each is cataloged in `yqr-b004` §2:
 - **Key rename** — `.a.b` key renamed in place, preserving `:` and value
   (`b004` 2.2). **Shipped** (§7).
 - **Sequence reorder / move / swap** — reorder block-sequence items (`b004` 2.3).
-  **Deferred** (§6).
+  **Shipped** (§9); unblocked by noyalib 0.0.23, which is yqr's own fix
+  (`yqr-b010`).
 
 ## 2. Dependencies & approach
 
@@ -5269,9 +5390,10 @@ the document untouched.
 - [x] `key(<path>) = "new"` renames a key, preserving value + trailing comment;
       `key(<path>)` reads the document's key token, not the filter's path
       segment (`yqr-a002` §7.2).
-- [ ] `swap(<path>; i; j)` / `move(<path>; from; to)` reorder by index,
-      re-parse-guarded, with each item's comments travelling with the item
-      (blocked on `yqr-b010`).
+- [x] `swap(<path>; i; j)` / `move(<path>; from; to)` reorder by index,
+      re-parse-guarded, with each item's comments travelling with the item —
+      met by the backend since noyalib 0.0.23 (`yqr-b010`) and pinned here by
+      test rather than assumed.
 
 ## 5. Structural delete (shipped)
 
@@ -5436,15 +5558,13 @@ for each, so with the grammar settled two of the three are a call, not a splice
   `delete_entry` deliberately excludes.
 - **Key rename** (`b004` 2.2) — **shipped 2026-08-16**; the record moved to
   §7 and this bullet is kept only so the three-gap list stays readable.
-- **Sequence reorder** (`b004` 2.3) — grammar settled, **unblocked
-  2026-08-17**: `yqr-b010` is fixed in noyalib 0.0.23 by yqr's own commit, so
-  an item's comments now travel with it and the slice is a call. Was blocked
-  because: `swap_items` / `move_item` exchange value bytes only, so a
-  reorder silently re-attributes every comment in the range at exit 0 and past
-  upstream's own guard. That is §5.1's failure class exactly, and this module's
-  entry-range arithmetic is the reference implementation for the fix. The
-  measurement and the route live in `yqr-b010`; the consequence for the
-  grammar is `yqr-a002` §6.
+- **Sequence reorder** (`b004` 2.3) — **shipped 2026-08-18**; the record moved
+  to §9. It was blocked because `swap_items` / `move_item` exchanged value
+  bytes only, so a reorder silently re-attributed every comment in the range at
+  exit 0 and past upstream's own guard — §5.1's failure class exactly, with
+  this module's entry-range arithmetic as the reference implementation for the
+  fix. `yqr-b010` carries the measurement and the route; `yqr-a002` §6 carries
+  the consequence for the grammar.
 
 The upstream `PR-with-fix` path (§2) already ran its course for all three, and
 0.0.22 is pinned (`yqr-f015`), so comment editing and key rename are now
@@ -5553,10 +5673,15 @@ first is settled; the other three are open:
 
   Every `yqr-a002` form inherits the same refusal (`yqr-a002` §7.3). This is the
   common Kubernetes label/annotation case and is worth doing.
-- **A multi-line-insert case in the shared corpus.** `yqr-b008` §6: the unit
-  tests pin the fix, but `yqr-m003`'s byte-exact `EngineCase` tier has no
-  multi-line-string insert, so a backend swap could reintroduce the corruption
-  without failing `tests/corpus_validation.rs`.
+- **A write tier in the shared corpus.** `yqr-b008` §6 names the specific gap:
+  the unit tests pin the multi-line-insert fix, but `yqr-m003`'s byte-exact
+  `EngineCase` tier has no multi-line-string insert, so a backend swap could
+  reintroduce the corruption without failing `tests/corpus_validation.rs`. The
+  cause is one level up — `EngineCase` runs through `fidelity::run`, which
+  refuses a mutating filter, so **no** edit is covered by the corpus at all.
+  Slices 1 and 2 could add corpus cases because they have read forms; a reorder
+  has none, so §9 is unit- and CLI-tested only and adds nothing here. Closing
+  this is a third case tier (`WriteCase`) plus its two consumers, not a case.
 
 _(The grammar and the upstream API surface are now both known; the per-slice
 criteria live in `yqr-a002` §9. What stays open here is the scope and
@@ -5721,6 +5846,108 @@ Twelve write-path unit tests (set, change, remove, bare `#`, multi-line block,
 CRLF, absent-path skip, non-string body, and one per refusal), three parser
 tests, nine black-box CLI tests including the round-trip property and the
 refusal-leaves-the-file-untouched contract, and three corpus `EngineCase`s.
+
+## 9. Sequence reorder (shipped)
+
+`yqr-a002` slice 3, the last of the four `b004` gaps and the only one that is
+not a naming function. Landed 2026-08-18.
+
+### 9.1 Surface
+
+```text
+swap(<path>; i; j)        exchange two items of the sequence at <path>
+move(<path>; from; to)    move one item, shifting the items between by one
+```
+
+An ordering has no bytes of its own and no node to name, so there is nothing
+for the `key`/`line_comment` wrapper shape to wrap (`yqr-a002` §2.2). It is a
+verb with arguments instead, and it costs the grammar one token — `;`, jq's
+argument separator, taken because `,` is spoken for by the stream operator on
+the M1 roadmap.
+
+`swap` and `move` are recognized in **function position at the start of a
+program** only, so they are not reserved words: `.swap` and `.move` still read
+fields of those names, which matters because both are ordinary YAML keys. The
+existing seven-word parser test covers them, and a CLI test reads a document
+whose keys are literally `swap` and `move`.
+
+Indices count from zero and a negative index counts from the end, resolved
+through the **same function** `.[-1]` resolves through
+(`eval::resolve_seq_index`). That is what makes "as `.[-1]` does"
+(`yqr-a002` §4.5) a fact about the code rather than a claim about it.
+
+### 9.2 What is not in the grammar
+
+- **A reorder is not a target.** `del(swap(...))` and `swap(...) = 5` are parse
+  errors. Neither has a meaning to guess at: the verb *is* the edit.
+- **Indices are integer literals**, not an `Rhs`. A path or a string there
+  would have nothing to fall back on, so the refusal names the form.
+- **No read form.** There is nothing to print — which is also why this slice
+  adds no shared-corpus case (§6), where slices 1 and 2 each added three.
+
+### 9.3 The trivia property is the backend's, and yqr pins it anyway
+
+This slice is one call per verb. That is only true because of `yqr-b010`:
+before noyalib 0.0.23, `swap_items` and `move_item` exchanged the two items'
+**value bytes** and nothing else, so every comment stayed with the *slot* and
+silently came to document whatever item landed in it — at `Ok`, at exit 0, and
+past upstream's own integrity guard, which compares typed values and therefore
+cannot see a comment move. yqr argued the semantics, wrote the fix, and it
+shipped in 0.0.23 (`yqr-b010` §5).
+
+So the criterion "an item's comments travel with it" is met by the engine, not
+by this module. It is still a yqr test — `an_items_comments_travel_with_the_item`
+in `write.rs` — because a property yqr sells and does not own is exactly the one
+worth pinning against engine drift. `yqr-f007` §5.1's reminder in its third
+clause: "upstream has yqr's semantics" is a question that has to be re-asked
+every release, and a test is how it gets asked automatically.
+
+### 9.4 What yqr adds around the call
+
+Three things, all before the call, all so a refusal is yqr's own rather than an
+engine message quoting an engine path:
+
+- **The sequence length**, read from the typed view. yqr needs it up front
+  regardless — a negative index resolves against it — so once it is in hand,
+  forwarding the range check to upstream would produce a second message shape
+  for the same mistake. `yqr-a002` §5.4 records that row as "forwards"; it is a
+  yqr pre-check instead, and the reason is the negative-index resolution the
+  same section requires. One message covers `i` and `-i` alike, and it names the
+  valid range.
+- **A path that is not a sequence** is refused naming what it is, since the
+  typed walk that produced the length already knows.
+- **Path spelling.** Diagnostics quote the path as a filter spells it (`.xs[0]`,
+  and `.` for the root), not as the engine does — its root path is the empty
+  string, which in a message reads as a missing argument rather than as the
+  whole document.
+
+An absent path stays a per-document **skip**, exactly as `del` and the rename
+skip it (`yqr-a002` §4.4's one permitted no-op). `swap(.xs; 1; 1)` is *not* that
+case and is a plain success: the request has a well-defined result, and the
+unchanged document is it.
+
+### 9.5 Coverage
+
+Twenty write-path unit tests: the byte-exact swap and move; comments
+travelling with the item (§9.3); negative indices; the root sequence; a
+sequence written at its key's own column; multi-line items; a flow sequence
+reordered rather than refused; index-with-itself; an anchored item whose alias
+still resolves; a blank-detached header left alone; a document with no trailing
+newline (the `- b- a` splice `yqr-b010` §5 warns about); CRLF; a block-scalar
+item; each refusal, including the empty and single-item sequences; the
+multi-document skip and the multi-document apply; and an unaddressable key.
+Six parser tests and two lexer tests cover the grammar, including the
+`,`-for-`;` mistake, which the lexer answers by naming the separator rather than
+the byte. Nine black-box CLI tests cover `-i`, the refusal-leaves-the-file
+contract, and `.swap` / `.move` still reading fields; two library tests cover
+the public `Mutation::Reorder`, which a caller can build without going through
+the grammar at all.
+
+The implementation lives in `src/fidelity/write/reorder.rs`, a sibling of
+`delete.rs` under the same rule 9 split — the trait method in `write.rs`
+delegates to it. Adding it inline would have pushed `write.rs` further past the
+500-line production limit it already exceeds (`yqr-m002` §8 records the split
+that owes).
 
 ---
 
@@ -8156,6 +8383,20 @@ re-exported from `lib.rs` via `pub mod fidelity;`:
   (`src/fidelity/rust_yaml/span_index.rs`) before it crosses the limit.
 - `src/fidelity/noyalib.rs` — `NoyalibEngine` (backend C), behind a
   `noyalib-backend` feature.
+- `src/fidelity/write.rs` — the write seam (`FidelityWriter`, `NoyalibWriter`,
+  `apply`), with one sibling sub-module per edit whose implementation is more
+  than a call plus an error map: `write/delete.rs` (`yqr-f007` §5, the byte
+  arithmetic) and `write/reorder.rs` (`yqr-f007` §9, the index arithmetic and
+  refusals around `swap_items` / `move_item`).
+
+  **Owed:** `write.rs` itself is past the rule 9 limit — ~710 lines of
+  production code as of the reorder slice, and already ~670 before it. The
+  sub-modules keep new concerns out of it but do not shrink it. The natural
+  further split follows the same seam: the comment mutators and their
+  pre-checks (`write/comment.rs`), and the rename (`write/rename.rs`), leaving
+  `write.rs` as the trait, `apply`/`apply_to_doc`, and the shared path/value
+  lowering. Not done inside the reorder slice, because a same-PR refactor of
+  three unrelated edits is how a byte-fidelity change stops being reviewable.
 
 ## 9. First increment
 

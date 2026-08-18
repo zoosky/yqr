@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...">
+<meta name="description" content="Status: Accepted and implemented (grammar settled; all three slices shipped — 1 on 2026-08-16, 2 and 3 on 2026-08-18, each recorded in yqr-f007) Owner: yqr maintainers Last updated: 2026-08-18 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
-<meta property="og:description" content="Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...">
+<meta property="og:description" content="Status: Accepted and implemented (grammar settled; all three slices shipped — 1 on 2026-08-16, 2 and 3 on 2026-08-18, each recorded in yqr-f007) Owner: yqr maintainers Last updated: 2026-08-18 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Architecture a002 — Addressing what is not a value: comments, keys, and sequence order">
-<meta name="twitter:description" content="Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...">
+<meta name="twitter:description" content="Status: Accepted and implemented (grammar settled; all three slices shipped — 1 on 2026-08-16, 2 and 3 on 2026-08-18, each recorded in yqr-f007) Owner: yqr maintainers Last updated: 2026-08-18 Decides: the &quot;final syntax TBD&quot; left open by yqr-f007 §4 and §6 for comment editing, key rename, and...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-18",
-  "description": "Status: Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is staged in §9 and unblocked as of noyalib 0.0.23 — yqr-b010 is fixed) Owner: yqr maintainers Last updated: 2026-08-16 Decides: the \"final syntax TBD\" left open by yqr-f007 §4 and §6 for comment editing, key rename, and sequ...",
+  "description": "Status: Accepted and implemented (grammar settled; all three slices shipped — 1 on 2026-08-16, 2 and 3 on 2026-08-18, each recorded in yqr-f007) Owner: yqr maintainers Last updated: 2026-08-18 Decides: the \"final syntax TBD\" left open by yqr-f007 §4 and §6 for comment editing, key rename, and...",
   "inLanguage": "en",
   "name": "Architecture a002 — Addressing what is not a value: comments, keys, and sequence order",
   "url": "https://zoosky.github.io/yqr/specs/architecture/yqr-a002-non-value-addressing-grammar",
-  "wordCount": 5983
+  "wordCount": 6236
 }
 </script>
 <script type="application/ld+json">
@@ -2859,19 +2859,21 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Accepted (grammar settled; slices 1 and 2 shipped; slice 3 is
-staged in §9 and unblocked as of noyalib 0.0.23 — <code>yqr-b010</code> is fixed)
+            <p><strong>Status:</strong> Accepted and implemented (grammar settled; all three slices shipped
+— 1 on 2026-08-16, 2 and 3 on 2026-08-18, each recorded in <code>yqr-f007</code>)
 <strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-08-16
+<strong>Last updated:</strong> 2026-08-18
 <strong>Decides:</strong> the “final syntax TBD” left open by <code>yqr-f007</code> §4 and §6 for
 comment editing, key rename, and sequence reorder
 <strong>Affects:</strong> <code>src/lexer.rs</code>, <code>src/parser.rs</code>, <code>src/ast.rs</code>, <code>src/eval.rs</code>,
-<code>src/fidelity/write.rs</code>, <code>src/fidelity/mod.rs</code>, <code>docs/content/guide/</code>
+<code>src/fidelity/write.rs</code> and <code>src/fidelity/write/reorder.rs</code>,
+<code>src/fidelity/mod.rs</code>, <code>docs/content/guide/</code>
 <strong>Related:</strong> <code>yqr-a001</code> (the fidelity guarantee these edits must not break),
-<code>yqr-f007</code> (the three deferred slices this unblocks), <code>yqr-b004</code> §2.1–2.3 (the
-original upstream gap catalog), <code>yqr-b010</code> (the reorder trivia disagreement that blocks
-slice 3, measured out of §6), <code>yqr-f015</code> (the noyalib 0.0.22 pin every form
-here calls into)</p>
+<code>yqr-f007</code> (the three slices this unblocked, §7–§9 there), <code>yqr-b004</code> §2.1–2.3
+(the original upstream gap catalog), <code>yqr-b010</code> (the reorder trivia
+disagreement that blocked slice 3, measured out of §6 and fixed by yqr in
+noyalib 0.0.23), <code>yqr-f015</code> (the noyalib 0.0.22 pin the first two slices were
+written against; <code>yqr-f016</code> moved it to 0.0.23)</p>
 <h2 id="1-the-problem-the-three-slices-share">1. The problem the three slices share<a class="heading-anchor" href="#1-the-problem-the-three-slices-share" aria-label="Link to this section"></a></h2>
 <p><code>yqr-f007</code> defers comment editing, key rename, and sequence reorder for one
 stated reason each — “needs a comment-addressing syntax”, “needs a rename
@@ -3249,6 +3251,9 @@ upstream’s leading-comment block definition on exactly the same grounds.</p>
 <p>So the slice is unblocked. What remains is implementation, and slice 3’s
 trivia criterion is now met by the backend rather than needing a yqr-side
 refusal.</p>
+<p><strong>Shipped 2026-08-18</strong> (<code>yqr-f007</code> §9). The slice is one call per verb, as this
+section predicted, and the criterion the backend now meets is still a yqr test
+— which is the point of the §5.4 lesson rather than a contradiction of it.</p>
 <h2 id="7-compiler-surface">7. Compiler surface<a class="heading-anchor" href="#7-compiler-surface" aria-label="Link to this section"></a></h2>
 <h3 id="7-1-ast">7.1 AST<a class="heading-anchor" href="#7-1-ast" aria-label="Link to this section"></a></h3>
 <p>The two shapes in §2 are the two shapes in the AST — the type carries the
@@ -3435,27 +3440,46 @@ entry’s, yqr owns only the contiguous tail. The implementation compares its
 own run length against <code>comments_at().before.len()</code> and refuses on any
 mismatch, which covers both shapes with one test.</li>
 </ul>
-<p><strong>Slice 3 — <code>swap</code> / <code>move</code>. Unblocked 2026-08-17</strong> (§6): noyalib 0.0.23 moves
-an entry’s trivia with it, so this ships as a call rather than as a refusal.
-The <code>refusal-when-commented</code> fallback this section reserved is no longer
-needed and is withdrawn.</p>
+<p><strong>Slice 3 — <code>swap</code> / <code>move</code>. Shipped 2026-08-18 (<code>yqr-f007</code> §9).</strong> noyalib
+0.0.23 moves an entry’s trivia with it, so this shipped as a call rather than
+as a refusal. The <code>refusal-when-commented</code> fallback this section reserved was
+never needed and is withdrawn.</p>
 <ul>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>swap</code>/<code>move</code> on an uncommented block sequence, byte-exact elsewhere.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 An item’s inline and head comments travel with the item — met by the
 backend as of 0.0.23; the test pins it against future engine drift, which
 is the whole reason it is a criterion rather than an assumption.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 A flow sequence keeps upstream’s value-span exchange and is not refused.</li>
-<li><input disabled="" type="checkbox"/>
-Negative indices resolve as <code>.[-1]</code> does (§4.5).</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
+Negative indices resolve as <code>.[-1]</code> does (§4.5) — through the <em>same</em>
+function, so the two cannot drift apart.</li>
+<li><input disabled="" type="checkbox" checked=""/>
 Out-of-range indices refuse with exit 5.</li>
+</ul>
+<p>Two things the slice settled that this section had not anticipated:</p>
+<ul>
+<li><strong>The out-of-range check is yqr’s, not a forward.</strong> §5.4’s row says the
+engine refuses “naming the length”, so the plan was to forward it. But §4.5
+requires yqr to resolve a negative index <em>before</em> the call, which means
+holding the length already — and forwarding then gives two message shapes for
+one mistake, one of them quoting the engine’s root path, which is the empty
+string. One yqr-side check covers <code>i</code> and <code>-i</code> alike and names the valid
+range.</li>
+<li><strong><code>swap(.xs; 1; 1)</code> is a plain success, not the forbidden no-op.</strong> §4.4
+forbids a mutation that silently does nothing, and the rule is about a
+request that <em>cannot</em> be honoured. Reordering an index with itself has a
+well-defined result, and the unchanged document is it.</li>
 </ul>
 <p>Each slice updates <code>docs/content/guide/</code> (CLAUDE.md rule 15) and the yq
 comparison page, whose “not in the released grammar yet” note for renames and
-comment edits is what these slices retire.</p>
+comment edits is what these slices retire. Retired as of slice 3: that page now
+carries a <em>“where the shapes differ on purpose”</em> section instead, since all
+three operations exist in both tools’ grammars except reorder, which has no yq
+builtin at all (re-measured on v4.53.3 — <code>swap(...)</code> is a lexer error, and
+<code>|= reverse</code> reorders by re-emitting the document).</p>
 <h2 id="10-provenance">10. Provenance<a class="heading-anchor" href="#10-provenance" aria-label="Link to this section"></a></h2>
 <p>Every behavioural claim here was measured on 2026-08-15, not recalled:</p>
 <ul>

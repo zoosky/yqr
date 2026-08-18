@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...">
+<meta name="description" content="Status: Done (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16, comment editing and sequence reorder 2026-08-18, as yqr-a002 slices 1, 2 and 3 — §7, §8 and §9. All four b004 gaps are closed; what remains under ...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Feature f007 — Write tier: structural edits (the `b004` gaps)">
-<meta property="og:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...">
+<meta property="og:description" content="Status: Done (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16, comment editing and sequence reorder 2026-08-18, as yqr-a002 slices 1, 2 and 3 — §7, §8 and §9. All four b004 gaps are closed; what remains under ...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f007-write-tier-structural-edits">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Feature f007 — Write tier: structural edits (the `b004` gaps)">
-<meta name="twitter:description" content="Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...">
+<meta name="twitter:description" content="Status: Done (structural delete shipped, and since yqr-f013 it is yqr&#x27;s whole delete path rather than a fallback; key rename shipped 2026-08-16, comment editing and sequence reorder 2026-08-18, as yqr-a002 slices 1, 2 and 3 — §7, §8 and §9. All four b004 gaps are closed; what remains under ...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-18",
-  "description": "Status: In Progress (structural delete shipped, and since yqr-f013 it is yqr's whole delete path rather than a fallback; key rename shipped 2026-08-16 and comment editing 2026-08-18, as yqr-a002 slices 1 and 2 — §7 and §8; sequence reorder remains deferred, its grammar settled in yqr-a002 and...",
+  "description": "Status: Done (structural delete shipped, and since yqr-f013 it is yqr's whole delete path rather than a fallback; key rename shipped 2026-08-16, comment editing and sequence reorder 2026-08-18, as yqr-a002 slices 1, 2 and 3 — §7, §8 and §9. All four b004 gaps are closed; what remains under ...",
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 4563
+  "wordCount": 5564
 }
 </script>
 <script type="application/ld+json">
@@ -2859,19 +2859,20 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> In Progress (structural <strong>delete</strong> shipped, and since <code>yqr-f013</code>
-it is yqr’s whole delete path rather than a fallback; <strong>key rename</strong> shipped
-2026-08-16 and <strong>comment editing</strong> 2026-08-18, as <code>yqr-a002</code> slices 1 and 2 —
-§7 and §8; sequence reorder remains deferred, its grammar settled in
-<code>yqr-a002</code> and unblocked since noyalib 0.0.23)
+            <p><strong>Status:</strong> Done (structural <strong>delete</strong> shipped, and since <code>yqr-f013</code> it is
+yqr’s whole delete path rather than a fallback; <strong>key rename</strong> shipped
+2026-08-16, <strong>comment editing</strong> and <strong>sequence reorder</strong> 2026-08-18, as
+<code>yqr-a002</code> slices 1, 2 and 3 — §7, §8 and §9. All four <code>b004</code> gaps are
+closed; what remains under §6 is scope and addressing work this spec never
+claimed, tracked there for whoever picks it up)
 <strong>Epic:</strong> Fidelity write tier (<code>f006</code>–<code>f008</code>)
 <strong>Owner:</strong> yqr maintainers
 <strong>Related:</strong> <code>yqr-f006</code> (write tier v1 — the value-replacement core this builds
 on), <code>yqr-a002</code> (the addressing grammar for the three deferred slices),
 <code>yqr-b004</code> (the noyalib 0.0.14 mutation-API gap catalog) and its §6.6 (the
-comment-mutator asymmetries the slice must pre-check), <code>yqr-b010</code> (the reorder
-trivia disagreement that blocks one slice), <code>yqr-m002</code> §4/§6.2 (write-tier
-seam)</p>
+comment-mutator asymmetries the comment slice must pre-check), <code>yqr-b010</code> (the
+reorder trivia disagreement that blocked the last slice, fixed by yqr in
+noyalib 0.0.23), <code>yqr-m002</code> §4/§6.2 (write-tier seam)</p>
 <h2 id="1-scope">1. Scope<a class="heading-anchor" href="#1-scope" aria-label="Link to this section"></a></h2>
 <p>The surgical edits that have <strong>no first-class API</strong> in noyalib 0.0.14 and so are
 excluded from <code>f006</code>. Each is cataloged in <code>yqr-b004</code> §2:</p>
@@ -2883,7 +2884,8 @@ excluded from <code>f006</code>. Each is cataloged in <code>yqr-b004</code> §2:
 <li><strong>Key rename</strong> — <code>.a.b</code> key renamed in place, preserving <code>:</code> and value
 (<code>b004</code> 2.2). <strong>Shipped</strong> (§7).</li>
 <li><strong>Sequence reorder / move / swap</strong> — reorder block-sequence items (<code>b004</code> 2.3).
-<strong>Deferred</strong> (§6).</li>
+<strong>Shipped</strong> (§9); unblocked by noyalib 0.0.23, which is yqr’s own fix
+(<code>yqr-b010</code>).</li>
 </ul>
 <h2 id="2-dependencies-approach">2. Dependencies &amp; approach<a class="heading-anchor" href="#2-dependencies-approach" aria-label="Link to this section"></a></h2>
 <ul>
@@ -2931,10 +2933,11 @@ set does, rather than inheriting upstream’s <code>Ok</code>-and-no-op.</li>
 <code>key(&lt;path&gt;) = "new"</code> renames a key, preserving value + trailing comment;
 <code>key(&lt;path&gt;)</code> reads the document’s key token, not the filter’s path
 segment (<code>yqr-a002</code> §7.2).</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>swap(&lt;path&gt;; i; j)</code> / <code>move(&lt;path&gt;; from; to)</code> reorder by index,
-re-parse-guarded, with each item’s comments travelling with the item
-(blocked on <code>yqr-b010</code>).</li>
+re-parse-guarded, with each item’s comments travelling with the item —
+met by the backend since noyalib 0.0.23 (<code>yqr-b010</code>) and pinned here by
+test rather than assumed.</li>
 </ul>
 <h2 id="5-structural-delete-shipped">5. Structural delete (shipped)<a class="heading-anchor" href="#5-structural-delete-shipped" aria-label="Link to this section"></a></h2>
 <h3 id="5-1-surface">5.1 Surface<a class="heading-anchor" href="#5-1-surface" aria-label="Link to this section"></a></h3>
@@ -3088,15 +3091,13 @@ leading mutators absorb a blank-detached comment block that this module’s own
 <code>delete_entry</code> deliberately excludes.</li>
 <li><strong>Key rename</strong> (<code>b004</code> 2.2) — <strong>shipped 2026-08-16</strong>; the record moved to
 §7 and this bullet is kept only so the three-gap list stays readable.</li>
-<li><strong>Sequence reorder</strong> (<code>b004</code> 2.3) — grammar settled, <strong>unblocked
-2026-08-17</strong>: <code>yqr-b010</code> is fixed in noyalib 0.0.23 by yqr’s own commit, so
-an item’s comments now travel with it and the slice is a call. Was blocked
-because: <code>swap_items</code> / <code>move_item</code> exchange value bytes only, so a
-reorder silently re-attributes every comment in the range at exit 0 and past
-upstream’s own guard. That is §5.1’s failure class exactly, and this module’s
-entry-range arithmetic is the reference implementation for the fix. The
-measurement and the route live in <code>yqr-b010</code>; the consequence for the
-grammar is <code>yqr-a002</code> §6.</li>
+<li><strong>Sequence reorder</strong> (<code>b004</code> 2.3) — <strong>shipped 2026-08-18</strong>; the record moved
+to §9. It was blocked because <code>swap_items</code> / <code>move_item</code> exchanged value
+bytes only, so a reorder silently re-attributed every comment in the range at
+exit 0 and past upstream’s own guard — §5.1’s failure class exactly, with
+this module’s entry-range arithmetic as the reference implementation for the
+fix. <code>yqr-b010</code> carries the measurement and the route; <code>yqr-a002</code> §6 carries
+the consequence for the grammar.</li>
 </ul>
 <p>The upstream <code>PR-with-fix</code> path (§2) already ran its course for all three, and
 0.0.22 is pinned (<code>yqr-f015</code>), so comment editing and key rename are now
@@ -3206,10 +3207,15 @@ or a yqr-owned green-tree walk, not a change to yqr’s own path syntax.</li>
 common Kubernetes label/annotation case and is worth doing.</p>
 </li>
 <li>
-<p><strong>A multi-line-insert case in the shared corpus.</strong> <code>yqr-b008</code> §6: the unit
-tests pin the fix, but <code>yqr-m003</code>’s byte-exact <code>EngineCase</code> tier has no
-multi-line-string insert, so a backend swap could reintroduce the corruption
-without failing <code>tests/corpus_validation.rs</code>.</p>
+<p><strong>A write tier in the shared corpus.</strong> <code>yqr-b008</code> §6 names the specific gap:
+the unit tests pin the multi-line-insert fix, but <code>yqr-m003</code>’s byte-exact
+<code>EngineCase</code> tier has no multi-line-string insert, so a backend swap could
+reintroduce the corruption without failing <code>tests/corpus_validation.rs</code>. The
+cause is one level up — <code>EngineCase</code> runs through <code>fidelity::run</code>, which
+refuses a mutating filter, so <strong>no</strong> edit is covered by the corpus at all.
+Slices 1 and 2 could add corpus cases because they have read forms; a reorder
+has none, so §9 is unit- and CLI-tested only and adds nothing here. Closing
+this is a third case tier (<code>WriteCase</code>) plus its two consumers, not a case.</p>
 </li>
 </ul>
 <p><em>(The grammar and the upstream API surface are now both known; the per-slice
@@ -3340,6 +3346,92 @@ disagreement now reads <code>null</code>, since it means ownership cannot be est
 CRLF, absent-path skip, non-string body, and one per refusal), three parser
 tests, nine black-box CLI tests including the round-trip property and the
 refusal-leaves-the-file-untouched contract, and three corpus <code>EngineCase</code>s.</p>
+<h2 id="9-sequence-reorder-shipped">9. Sequence reorder (shipped)<a class="heading-anchor" href="#9-sequence-reorder-shipped" aria-label="Link to this section"></a></h2>
+<p><code>yqr-a002</code> slice 3, the last of the four <code>b004</code> gaps and the only one that is
+not a naming function. Landed 2026-08-18.</p>
+<h3 id="9-1-surface">9.1 Surface<a class="heading-anchor" href="#9-1-surface" aria-label="Link to this section"></a></h3>
+<pre><code class="language-text">swap(&lt;path&gt;; i; j)        exchange two items of the sequence at &lt;path&gt;
+move(&lt;path&gt;; from; to)    move one item, shifting the items between by one
+</code></pre>
+<p>An ordering has no bytes of its own and no node to name, so there is nothing
+for the <code>key</code>/<code>line_comment</code> wrapper shape to wrap (<code>yqr-a002</code> §2.2). It is a
+verb with arguments instead, and it costs the grammar one token — <code>;</code>, jq’s
+argument separator, taken because <code>,</code> is spoken for by the stream operator on
+the M1 roadmap.</p>
+<p><code>swap</code> and <code>move</code> are recognized in <strong>function position at the start of a
+program</strong> only, so they are not reserved words: <code>.swap</code> and <code>.move</code> still read
+fields of those names, which matters because both are ordinary YAML keys. The
+existing seven-word parser test covers them, and a CLI test reads a document
+whose keys are literally <code>swap</code> and <code>move</code>.</p>
+<p>Indices count from zero and a negative index counts from the end, resolved
+through the <strong>same function</strong> <code>.[-1]</code> resolves through
+(<code>eval::resolve_seq_index</code>). That is what makes “as <code>.[-1]</code> does”
+(<code>yqr-a002</code> §4.5) a fact about the code rather than a claim about it.</p>
+<h3 id="9-2-what-is-not-in-the-grammar">9.2 What is not in the grammar<a class="heading-anchor" href="#9-2-what-is-not-in-the-grammar" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>A reorder is not a target.</strong> <code>del(swap(...))</code> and <code>swap(...) = 5</code> are parse
+errors. Neither has a meaning to guess at: the verb <em>is</em> the edit.</li>
+<li><strong>Indices are integer literals</strong>, not an <code>Rhs</code>. A path or a string there
+would have nothing to fall back on, so the refusal names the form.</li>
+<li><strong>No read form.</strong> There is nothing to print — which is also why this slice
+adds no shared-corpus case (§6), where slices 1 and 2 each added three.</li>
+</ul>
+<h3 id="9-3-the-trivia-property-is-the-backend-s-and-yqr-pins-it-anyway">9.3 The trivia property is the backend’s, and yqr pins it anyway<a class="heading-anchor" href="#9-3-the-trivia-property-is-the-backend-s-and-yqr-pins-it-anyway" aria-label="Link to this section"></a></h3>
+<p>This slice is one call per verb. That is only true because of <code>yqr-b010</code>:
+before noyalib 0.0.23, <code>swap_items</code> and <code>move_item</code> exchanged the two items’
+<strong>value bytes</strong> and nothing else, so every comment stayed with the <em>slot</em> and
+silently came to document whatever item landed in it — at <code>Ok</code>, at exit 0, and
+past upstream’s own integrity guard, which compares typed values and therefore
+cannot see a comment move. yqr argued the semantics, wrote the fix, and it
+shipped in 0.0.23 (<code>yqr-b010</code> §5).</p>
+<p>So the criterion “an item’s comments travel with it” is met by the engine, not
+by this module. It is still a yqr test — <code>an_items_comments_travel_with_the_item</code>
+in <code>write.rs</code> — because a property yqr sells and does not own is exactly the one
+worth pinning against engine drift. <code>yqr-f007</code> §5.1’s reminder in its third
+clause: “upstream has yqr’s semantics” is a question that has to be re-asked
+every release, and a test is how it gets asked automatically.</p>
+<h3 id="9-4-what-yqr-adds-around-the-call">9.4 What yqr adds around the call<a class="heading-anchor" href="#9-4-what-yqr-adds-around-the-call" aria-label="Link to this section"></a></h3>
+<p>Three things, all before the call, all so a refusal is yqr’s own rather than an
+engine message quoting an engine path:</p>
+<ul>
+<li><strong>The sequence length</strong>, read from the typed view. yqr needs it up front
+regardless — a negative index resolves against it — so once it is in hand,
+forwarding the range check to upstream would produce a second message shape
+for the same mistake. <code>yqr-a002</code> §5.4 records that row as “forwards”; it is a
+yqr pre-check instead, and the reason is the negative-index resolution the
+same section requires. One message covers <code>i</code> and <code>-i</code> alike, and it names the
+valid range.</li>
+<li><strong>A path that is not a sequence</strong> is refused naming what it is, since the
+typed walk that produced the length already knows.</li>
+<li><strong>Path spelling.</strong> Diagnostics quote the path as a filter spells it (<code>.xs[0]</code>,
+and <code>.</code> for the root), not as the engine does — its root path is the empty
+string, which in a message reads as a missing argument rather than as the
+whole document.</li>
+</ul>
+<p>An absent path stays a per-document <strong>skip</strong>, exactly as <code>del</code> and the rename
+skip it (<code>yqr-a002</code> §4.4’s one permitted no-op). <code>swap(.xs; 1; 1)</code> is <em>not</em> that
+case and is a plain success: the request has a well-defined result, and the
+unchanged document is it.</p>
+<h3 id="9-5-coverage">9.5 Coverage<a class="heading-anchor" href="#9-5-coverage" aria-label="Link to this section"></a></h3>
+<p>Twenty write-path unit tests: the byte-exact swap and move; comments
+travelling with the item (§9.3); negative indices; the root sequence; a
+sequence written at its key’s own column; multi-line items; a flow sequence
+reordered rather than refused; index-with-itself; an anchored item whose alias
+still resolves; a blank-detached header left alone; a document with no trailing
+newline (the <code>- b- a</code> splice <code>yqr-b010</code> §5 warns about); CRLF; a block-scalar
+item; each refusal, including the empty and single-item sequences; the
+multi-document skip and the multi-document apply; and an unaddressable key.
+Six parser tests and two lexer tests cover the grammar, including the
+<code>,</code>-for-<code>;</code> mistake, which the lexer answers by naming the separator rather than
+the byte. Nine black-box CLI tests cover <code>-i</code>, the refusal-leaves-the-file
+contract, and <code>.swap</code> / <code>.move</code> still reading fields; two library tests cover
+the public <code>Mutation::Reorder</code>, which a caller can build without going through
+the grammar at all.</p>
+<p>The implementation lives in <code>src/fidelity/write/reorder.rs</code>, a sibling of
+<code>delete.rs</code> under the same rule 9 split — the trait method in <code>write.rs</code>
+delegates to it. Adding it inline would have pushed <code>write.rs</code> further past the
+500-line production limit it already exceeds (<code>yqr-m002</code> §8 records the split
+that owes).</p>
 
         </div>
         </accent-island>
@@ -3453,6 +3545,30 @@ refusal-leaves-the-file-untouched contract, and three corpus <code>EngineCase</c
         
             <li class="toc-level-3">
                 <a href="#8-5-coverage">8.5 Coverage</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#9-sequence-reorder-shipped">9. Sequence reorder (shipped)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#9-1-surface">9.1 Surface</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#9-2-what-is-not-in-the-grammar">9.2 What is not in the grammar</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#9-3-the-trivia-property-is-the-backend-s-and-yqr-pins-it-anyway">9.3 The trivia property is the backend’s, and yqr pins it anyway</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#9-4-what-yqr-adds-around-the-call">9.4 What yqr adds around the call</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#9-5-coverage">9.5 Coverage</a>
             </li>
         
         </ul>

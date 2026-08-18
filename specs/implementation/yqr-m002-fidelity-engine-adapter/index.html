@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Implementation m002 — Fidelity-Engine Adapter (the a001 §4.3 seam)",
   "url": "https://zoosky.github.io/yqr/specs/implementation/yqr-m002-fidelity-engine-adapter",
-  "wordCount": 3263
+  "wordCount": 3398
 }
 </script>
 <script type="application/ld+json">
@@ -3183,15 +3183,36 @@ cross-check. <code>--no-default-features</code> still yields a backend-less mini
 <p><code>src/fidelity/</code> as a directory module (CLAUDE.md rule 9, 500-line split),
 re-exported from <code>lib.rs</code> via <code>pub mod fidelity;</code>:</p>
 <ul>
-<li><code>src/fidelity/mod.rs</code> — the seam: the two traits + <code>Span</code>, <code>Path</code>/<code>PathSeg</code>,
+<li>
+<p><code>src/fidelity/mod.rs</code> — the seam: the two traits + <code>Span</code>, <code>Path</code>/<code>PathSeg</code>,
 <code>Resolved</code>/<code>Unaddressable</code>, <code>Replacement</code>/<code>QuoteHint</code>, <code>BackendId</code>, <code>Loaded</code>,
 <code>open()</code>. If it nears ~500 lines, split the plain data types into
-<code>src/fidelity/types.rs</code> and <code>pub use types::*;</code> to keep import paths stable.</li>
-<li><code>src/fidelity/rust_yaml.rs</code> — <code>RustYamlEngine</code> (backend A). The token-stream
+<code>src/fidelity/types.rs</code> and <code>pub use types::*;</code> to keep import paths stable.</p>
+</li>
+<li>
+<p><code>src/fidelity/rust_yaml.rs</code> — <code>RustYamlEngine</code> (backend A). The token-stream
 span-index builder is the bulk; pre-plan a further split
-(<code>src/fidelity/rust_yaml/span_index.rs</code>) before it crosses the limit.</li>
-<li><code>src/fidelity/noyalib.rs</code> — <code>NoyalibEngine</code> (backend C), behind a
-<code>noyalib-backend</code> feature.</li>
+(<code>src/fidelity/rust_yaml/span_index.rs</code>) before it crosses the limit.</p>
+</li>
+<li>
+<p><code>src/fidelity/noyalib.rs</code> — <code>NoyalibEngine</code> (backend C), behind a
+<code>noyalib-backend</code> feature.</p>
+</li>
+<li>
+<p><code>src/fidelity/write.rs</code> — the write seam (<code>FidelityWriter</code>, <code>NoyalibWriter</code>,
+<code>apply</code>), with one sibling sub-module per edit whose implementation is more
+than a call plus an error map: <code>write/delete.rs</code> (<code>yqr-f007</code> §5, the byte
+arithmetic) and <code>write/reorder.rs</code> (<code>yqr-f007</code> §9, the index arithmetic and
+refusals around <code>swap_items</code> / <code>move_item</code>).</p>
+<p><strong>Owed:</strong> <code>write.rs</code> itself is past the rule 9 limit — ~710 lines of
+production code as of the reorder slice, and already ~670 before it. The
+sub-modules keep new concerns out of it but do not shrink it. The natural
+further split follows the same seam: the comment mutators and their
+pre-checks (<code>write/comment.rs</code>), and the rename (<code>write/rename.rs</code>), leaving
+<code>write.rs</code> as the trait, <code>apply</code>/<code>apply_to_doc</code>, and the shared path/value
+lowering. Not done inside the reorder slice, because a same-PR refactor of
+three unrelated edits is how a byte-fidelity change stops being reviewable.</p>
+</li>
 </ul>
 <h2 id="9-first-increment">9. First increment<a class="heading-anchor" href="#9-first-increment" aria-label="Link to this section"></a></h2>
 <blockquote>

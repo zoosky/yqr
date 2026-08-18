@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-18T18:57:30Z",
+  "timestamp": "2026-08-18T19:47:17Z",
   "pages": {
     "/": {
       "content_hash": "de11cec76d9c79f9",
@@ -13,7 +13,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/compare/yq": {
-      "content_hash": "332b98765c422226",
+      "content_hash": "85cf435bcfc80e4d",
       "template": "yq.html.jinja",
       "template_hash": "30406ea523c53def"
     },
@@ -33,7 +33,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/kubernetes": {
-      "content_hash": "b8f0a4fcdf3ff02d",
+      "content_hash": "5eb07713f8c3e18e",
       "template": "kubernetes.html.jinja",
       "template_hash": "30406ea523c53def"
     },
@@ -58,7 +58,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/architecture/yqr-a002-non-value-addressing-grammar": {
-      "content_hash": "bc45ebf62830b5ed",
+      "content_hash": "453785b553a22ed9",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "5206759fc8f3466b",
+      "content_hash": "9d744dc30eb1c418",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -118,7 +118,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b010-reorder-moves-values-not-entries": {
-      "content_hash": "d7f72c1309a63747",
+      "content_hash": "8d8c2c320c3e40e6",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -133,7 +133,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "2c6d8c31573ba66a",
+      "content_hash": "7b8944d514604e1f",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -168,7 +168,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "23ba03f617d9b3ea",
+      "content_hash": "6e9fe0775862ec80",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -233,7 +233,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/implementation/yqr-m002-fidelity-engine-adapter": {
-      "content_hash": "1fa20f885ab177ab",
+      "content_hash": "b0068e39d6c43981",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

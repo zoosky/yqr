@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "yqr and yq -- what actually changes in your file",
   "url": "https://zoosky.github.io/yqr/compare/yq",
-  "wordCount": 939
+  "wordCount": 1096
 }
 </script>
 <script type="application/ld+json">
@@ -366,7 +366,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">5 min read</span>
+                    <span class="reading-time">6 min read</span>
                 </div>
                 
 
@@ -398,6 +398,10 @@
     
         <li class="toc-level-2">
             <a href="#what-yq-does-that-yqr-does-not">What yq does that yqr does not</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#where-the-shapes-differ-on-purpose">Where the shapes differ on purpose</a>
         </li>
     
         <li class="toc-level-2">
@@ -528,29 +532,43 @@ only one being made here.</p>
 <h2 id="what-yq-does-that-yqr-does-not">What yq does that yqr does not<a class="heading-anchor" href="#what-yq-does-that-yqr-does-not" aria-label="Link to this section"></a></h2>
 <p>Plenty, and it is worth knowing before you switch:</p>
 <ul>
-<li>
-<p><strong>Building new documents.</strong> yqr has no object or array construction, no
+<li><strong>Building new documents.</strong> yqr has no object or array construction, no
 string interpolation, and no comma operator. It walks and edits documents
-that already exist.</p>
-</li>
-<li>
-<p><strong>Builtins and arithmetic.</strong> No <code>map</code>, <code>select</code>, <code>length</code>, <code>+</code> on values.</p>
-</li>
-<li>
-<p><strong>Format conversion.</strong> No JSON, XML, TOML, or properties in or out.</p>
-</li>
-<li>
-<p><strong>Comment and ordering edits.</strong> yqr can change values, add keys, append
-to sequences, delete entries, and rename keys with <code>key(...)</code>. Rewriting
-a comment and reordering a sequence are not in the released grammar yet.</p>
-<p>Where yqr does have the operation, the shape differs on purpose. yq
-spells a rename <code>(.a | key) = "z"</code> and a comment edit <code>.a line_comment="hi"</code> – two different shapes, and the one that works for
-comments is a <strong>silent no-op</strong> for keys. yqr uses one shape for both,
-<code>key(.a) = "z"</code>, so learning either teaches the other.</p>
-</li>
+that already exist.</li>
+<li><strong>Builtins and arithmetic.</strong> No <code>map</code>, <code>select</code>, <code>length</code>, <code>+</code> on values.</li>
+<li><strong>Format conversion.</strong> No JSON, XML, TOML, or properties in or out.</li>
+<li><strong>Everything above, in one expression.</strong> yq composes; yqr applies one edit
+per run. Chaining, conditionals, and computed right-hand sides all live on
+the yq side of the line.</li>
 </ul>
 <p>If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.</p>
+<h2 id="where-the-shapes-differ-on-purpose">Where the shapes differ on purpose<a class="heading-anchor" href="#where-the-shapes-differ-on-purpose" aria-label="Link to this section"></a></h2>
+<!-- Feature f007 -->
+<p>Both tools can rename a key, edit a comment, and reorder a list. The
+spellings are not the same, and the differences are deliberate.</p>
+<p>yq spells a rename <code>(.a | key) = "z"</code> and a comment edit <code>.a line_comment="hi"</code> – two different shapes, and the one that works for
+comments is a <strong>silent no-op</strong> for keys (measured on v4.53.3). yqr uses one
+shape for both, so learning either teaches the other:</p>
+<pre><code class="language-console">$ yqr 'key(.a) = "z"' y.yaml
+$ yqr 'line_comment(.a) = "hi"' y.yaml
+$ yqr 'head_comment(.a) = "why this exists"' y.yaml
+</code></pre>
+<p><code>head_comment</code> puts the block <strong>above</strong> the entry you addressed. yq’s
+<code>head_comment</code> puts it below, where in a file with siblings it comes to
+document the next entry instead.</p>
+<p>Reordering is the one operation with no yq builtin at all – there is no
+<code>swap</code> or <code>move</code> – so the nearest equivalent rebuilds the sequence, and
+rebuilding re-emits the document:</p>
+<pre><code class="language-console">$ yq '.jobs.build.steps |= reverse' ci.yaml
+name: ci                      # was 'name:    ci'
+      - uses: actions/checkout@v4 # pinned    # was two spaces before '#'
+$ yqr 'swap(.jobs.build.steps; 0; 1)' ci.yaml
+name:    ci
+      - uses: actions/checkout@v4  # pinned
+</code></pre>
+<p>Same reordering, and in the yqr run every byte outside the two items is the
+byte that was there before.</p>
 <h2 id="using-both">Using both<a class="heading-anchor" href="#using-both" aria-label="Link to this section"></a></h2>
 <p>Nothing stops you. A pattern that works well:</p>
 <pre><code class="language-console">$ yq '.spec.template.spec.containers[] | .image' deploy.yaml   # explore
