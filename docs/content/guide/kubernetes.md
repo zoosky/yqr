@@ -138,9 +138,10 @@ $ yqr -r 'line_comment(.spec.replicas)' deploy.yaml
 tuned for peak
 ```
 
-Setting and reading are exact inverses -- what you write is what you read
-back, including leading spaces -- so a comment survives a round trip
-through yqr unchanged.
+What you write is what you read back, including leading spaces, so a
+comment survives being set and read again unchanged. The reverse is not a
+byte-level identity: a comment authored `#note`, with no space, reads as
+`note`, and writing that back renders `# note`.
 
 An empty body writes a bare `#` rather than removing anything. Removal has
 its own spelling, `del(...)`, so both are reachable.

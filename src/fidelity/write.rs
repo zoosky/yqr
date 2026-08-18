@@ -42,16 +42,6 @@ use crate::fidelity::{Path, PathSeg};
 // ancestor-module privacy.
 mod delete;
 
-/// A source-preserving *writer* over one parsed YAML input.
-///
-/// Implementations own an editable view of the document stream and apply
-/// path-targeted mutations that change only the targeted node's bytes. Every
-/// method that mutates is guarded: if the edit would restructure the document,
-/// it returns an error and leaves the stream unchanged, so a failed edit can
-/// never corrupt the output.
-///
-/// The trait is object-safe and drivable as `&mut dyn FidelityWriter`,
-/// mirroring the read seam.
 /// Which comment attached to an entry a mutation addresses.
 ///
 /// The two are separate operations upstream and separate selectors in the
@@ -76,6 +66,16 @@ impl CommentKind {
     }
 }
 
+/// A source-preserving *writer* over one parsed YAML input.
+///
+/// Implementations own an editable view of the document stream and apply
+/// path-targeted mutations that change only the targeted node's bytes. Every
+/// method that mutates is guarded: if the edit would restructure the document,
+/// it returns an error and leaves the stream unchanged, so a failed edit can
+/// never corrupt the output.
+///
+/// The trait is object-safe and drivable as `&mut dyn FidelityWriter`,
+/// mirroring the read seam.
 pub(crate) trait FidelityWriter {
     /// Number of logical YAML documents in the stream.
     fn doc_count(&self) -> usize;
@@ -445,11 +445,17 @@ impl NoyalibWriter {
                 let owned = super::noyalib::attached_head_len(d, path_str);
                 let upstream = d.comments_at(path_str).before.len();
                 if owned != upstream {
+                    // Deliberately generic. A blank line is the common cause
+                    // and the one §4.1.1 describes, but not the only one — a
+                    // differently-indented comment and an alias-valued entry
+                    // both land here too, and naming a cause the check has not
+                    // established would be a confident wrong answer.
                     return Err(YqrError::eval(format!(
-                        "cannot address head_comment({path_str}): the comment block above it \
-                         is separated by a blank line, so it documents what precedes the \
-                         entry rather than the entry; editing it here would rewrite bytes \
-                         the path does not name"
+                        "cannot address head_comment({path_str}): the comment block the YAML \
+                         engine would rewrite is larger than the run directly above this \
+                         entry — typically because a blank line separates part of it, so it \
+                         documents what precedes the entry rather than the entry itself. \
+                         Editing it here would rewrite bytes the path does not name"
                     )));
                 }
             }
@@ -772,6 +778,32 @@ mod tests {
     }
 
     #[test]
+    fn a_sequence_item_whose_value_starts_below_the_dash_is_refused_too() {
+        // The §4.1.2 guard originally asked only "does this entry have a key
+        // token on the value's line", and answered `true` for every sequence
+        // item on the reasoning that an item always sits on its own line. A
+        // bare `-` with the value below it is the counterexample: the shape is
+        // the mapping case exactly, and the comment lands on the child.
+        let input = "xs:\n  -\n    a: 1  # child\n";
+        for err in [
+            set_comment_on(line_of(".xs[0]"), "mine", input).unwrap_err(),
+            del_comment(line_of(".xs[0]"), input).unwrap_err(),
+        ] {
+            assert!(
+                format!("{err}").contains("no line of its own"),
+                "got: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_ordinary_sequence_item_still_takes_an_inline_comment() {
+        // The guard above must not refuse the common shape.
+        let out = set_comment_on(line_of(".xs[0]"), "first", "xs:\n  - one\n").unwrap();
+        assert_eq!(out, "xs:\n  - one  # first\n");
+    }
+
+    #[test]
     fn a_blank_detached_block_is_never_rewritten() {
         // a002 §4.1.1: `comments_at().before` walks past blank lines, so
         // delegating would replace (or delete) a comment documenting whatever
@@ -782,7 +814,7 @@ mod tests {
             del_comment(head_of(".a"), input).unwrap_err(),
         ] {
             assert!(
-                format!("{err}").contains("separated by a blank line"),
+                format!("{err}").contains("rewrite bytes the path does not name"),
                 "got: {err}"
             );
         }

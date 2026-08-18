@@ -154,8 +154,14 @@ impl FidelityEngine for NoyalibEngine {
             // Report only the run yqr owns. Upstream's `before` walks past
             // blank lines, so its tail is the attached part and anything
             // earlier documents what came before the entry.
+            // `owned` counts source lines and `before` comes from the CST, so
+            // the two can disagree — an alias-valued entry reports fewer
+            // comments than the lines above it. Taking a tail longer than the
+            // list would panic, and a read must never do that (§4.4), so a
+            // disagreement means yqr cannot establish ownership and reports
+            // nothing.
             let owned = attached_head_len(d, &path_str);
-            if owned == 0 {
+            if owned == 0 || owned > bundle.before.len() {
                 return Ok(None);
             }
             let lines: Vec<&str> = bundle.before[bundle.before.len() - owned..]
@@ -385,10 +391,19 @@ pub(super) fn value_starts_on_key_line(doc: &::noyalib::cst::Document, path: &st
     let Some((value_start, _)) = doc.span_at(path) else {
         return false;
     };
-    match doc.key_span(path) {
-        None => true,
-        Some((key_start, _)) => line_start_of(src, key_start) == line_start_of(src, value_start),
-    }
+    // The entry's marker is its key token where it has one, and its `-`
+    // indicator otherwise. A sequence item is *not* automatically on its own
+    // line: a bare `-` with the value below it (`-` then `    a: 1`) is the
+    // same shape as the mapping case and has the same defect.
+    let marker = match doc.key_span(path) {
+        Some((key_start, _)) => key_start,
+        None => match dash_before(src, value_start) {
+            Some(dash) => dash,
+            // No marker found at all: refuse to claim the entry owns a line.
+            None => return false,
+        },
+    };
+    line_start_of(src, marker) == line_start_of(src, value_start)
 }
 
 /// How many of the comment lines directly above the entry at `path` yqr
@@ -731,6 +746,36 @@ mod tests {
                 other => panic!("expected Found, got {other:?}"),
             }
         }
+    }
+
+    // -- Feature f007: comment reads --------------------------------------
+
+    #[test]
+    fn a_head_comment_read_is_total_even_when_the_two_counts_disagree() {
+        // `attached_head_len` scans source lines; `comments_at().before` comes
+        // from the CST. An alias-valued entry makes them disagree, and taking
+        // a tail longer than the list panicked — on a read documented as
+        // total, which is worse than any error it could have returned.
+        let e = engine("a: &b 1\n# c\nc: *b\n");
+        let path = Path::root().child(PathSeg::Key("c".into()));
+        assert_eq!(e.comment_body(0, &path, true).unwrap(), None);
+    }
+
+    #[test]
+    fn comment_reads_report_the_body_without_its_leading_space() {
+        let e = engine("a: 1  # note\n");
+        let path = Path::root().child(PathSeg::Key("a".into()));
+        assert_eq!(
+            e.comment_body(0, &path, false).unwrap().as_deref(),
+            Some("note")
+        );
+        // A body whose own leading spaces are deliberate keeps all but one.
+        let e = engine("a: 1  #   spaced\n");
+        let path = Path::root().child(PathSeg::Key("a".into()));
+        assert_eq!(
+            e.comment_body(0, &path, false).unwrap().as_deref(),
+            Some("  spaced")
+        );
     }
 
     // -- Feature f007: key-token reads ------------------------------------

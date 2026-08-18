@@ -40,8 +40,10 @@ All notable changes to `yqr` are documented here. The format is based on
   tuned for peak
   ```
 
-  Setting and reading are exact inverses, leading spaces included, so a
-  comment survives a round trip unchanged. An empty body writes a bare `#`
+  What you write is what you read back, leading spaces included. An
+  authored `#note` reads as `note` and writes back as `# note`, so the
+  spacing is normalised the first time you touch it and stable after that.
+  An empty body writes a bare `#`
   rather than removing -- `del(...)` is how you remove, so both are
   reachable.
 

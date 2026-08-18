@@ -497,10 +497,26 @@ while an attached one reads its body. A sequence item's head comment **reads**
 (§5.2 requires it) even though writing one is refused upstream — reads and
 writes answer to the same ownership rule but not to the same capability.
 
-One bug worth recording, because `delete_entry` had it right and this path had
-to learn it separately: a sequence item's indentation is measured from its `-`
-indicator, not from its value, which sits past `- `. Anchoring on the value
-made every item's head comment read `null`.
+Two bugs worth recording, both about what a sequence item's *line* is, and
+both caught only because something else disagreed:
+
+- The head-comment walk measured an item's indentation from its **value**,
+  which sits past `- `, so a comment aligned with the dash never matched and
+  every item read `null`. `delete_entry` had this right already; this path had
+  to learn it separately.
+- The §8.2 value-starts-on-the-next-line check asked only whether the entry had
+  a key token on the value's line, and answered "yes, fine" for every sequence
+  item — on the reasoning that an item always sits on its own line. A bare `-`
+  with the value below it is the counterexample, and it is the mapping defect
+  exactly: the comment lands on the child. So the guard this slice exists to
+  add was bypassed for half its cases until review found it. Both now resolve
+  the marker the same way, key token or `-` indicator.
+
+A third, in the read path: `attached_head_len` counts source lines while
+`comments_at().before` comes from the CST, and an alias-valued entry makes them
+disagree. Slicing a tail longer than the list **panicked** — on a read
+documented as total, which is worse than any error it could have returned. A
+disagreement now reads `null`, since it means ownership cannot be established.
 
 ### 8.5 Coverage
 
