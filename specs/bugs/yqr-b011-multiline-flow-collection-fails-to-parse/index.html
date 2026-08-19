@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (upstream), reached through every yqr entry point — parse_stream is the fir...">
+<meta name="description" content="Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (u...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all">
-<meta property="og:description" content="Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (upstream), reached through every yqr entry point — parse_stream is the fir...">
+<meta property="og:description" content="Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (u...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all">
-<meta name="twitter:description" content="Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (upstream), reached through every yqr entry point — parse_stream is the fir...">
+<meta name="twitter:description" content="Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (u...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-19",
-  "description": "Status: Open (found 2026-08-17, not yet filed upstream) Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard \"cannot open your file\" Component: noyalib's parser (upstream), reached through every yqr entry point — parse_stream is the fir...",
+  "description": "Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard \"cannot open your file\" Component: noyalib's parser (u...",
   "inLanguage": "en",
   "name": "Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b011-multiline-flow-collection-fails-to-parse",
-  "wordCount": 561
+  "wordCount": 1099
 }
 </script>
 <script type="application/ld+json">
@@ -3047,7 +3047,8 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open (found 2026-08-17, not yet filed upstream)
+            <p><strong>Status:</strong> Open — filed upstream 2026-08-19 as noyalib#285 with a
+fix proposed as noyalib#286; open here until a release carries it
 <strong>Severity:</strong> Medium — an input yqr refuses outright, on the <strong>read</strong> path, so
 no filter runs; not silent, but a hard “cannot open your file”
 <strong>Component:</strong> noyalib’s parser (upstream), reached through every yqr entry
@@ -3080,6 +3081,13 @@ than the block — which <code>  80,</code> and <code>  443,</code> are. The clo
 indicator rather than content, and every other implementation accepts it at the
 parent’s column.</p>
 <p>The message names the right rule and applies it to the wrong token.</p>
+<p><strong>Refined 2026-08-19, while fixing it.</strong> “PyYAML accepts it” is true but is the
+weaker half of the argument, and taking it as the standard would be wrong: the
+libyaml family is <em>more lenient than the spec</em> here, accepting under-indented
+flow <strong>content</strong> (<code>ports: [</code> / <code>80,</code> / <code>]</code>) that the yaml-test-suite marks as an
+error (9C9N, VJP3). The defensible claim is narrower — the closing indicator is
+not content, so the rule that governs content does not reach it — and §4.3
+records the suite survey that establishes it.</p>
 <h2 id="3-why-it-matters-more-than-the-refusal-suggests">3. Why it matters more than the refusal suggests<a class="heading-anchor" href="#3-why-it-matters-more-than-the-refusal-suggests" aria-label="Link to this section"></a></h2>
 <p>It is loud, which is the good half: exit 5 with a message, no damage. But it is
 a <strong>whole-file</strong> refusal on the read path, so:</p>
@@ -3091,12 +3099,44 @@ wrong in the one direction a validator must not be wrong.</li>
 <li>Multi-line flow sequences are common in hand-maintained config (a long
 <code>args:</code> or <code>ports:</code> list wrapped for width), so this is not an exotic shape.</li>
 </ul>
-<h2 id="4-route">4. Route<a class="heading-anchor" href="#4-route" aria-label="Link to this section"></a></h2>
-<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent. Not yet filed. The fix
-is a parser indentation check that exempts the closing indicator, so it is
-plausibly small — but this is the parser rather than a mutator, which is a part
-of noyalib yqr has not contributed to before, so the estimate is worth
-treating as a guess.</p>
+<h2 id="4-route-taken-2026-08-19">4. Route — taken 2026-08-19<a class="heading-anchor" href="#4-route-taken-2026-08-19" aria-label="Link to this section"></a></h2>
+<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent: filed as <strong>noyalib#285</strong>
+and fixed in <strong>noyalib#286</strong>. The estimate held — it is a parser indentation
+check that exempts the closing indicator — and this is yqr’s first contribution
+to noyalib’s parser rather than its mutators.</p>
+<h3 id="4-1-what-the-fix-does">4.1 What the fix does<a class="heading-anchor" href="#4-1-what-the-fix-does" aria-label="Link to this section"></a></h3>
+<p>The scanner’s rule refuses a flow continuation line whose content column is at
+or below the surrounding block’s indent. Its own comment states the reason:
+under-indented content would be ambiguous with sibling block content (the
+yaml-test-suite case 9C9N). That reason is about <em>content</em>; a line whose first
+character is <code>]</code> or <code>}</code> cannot begin block content, so the rule was reaching the
+terminator as well as the content it was written for. The patch exempts such a
+line and changes nothing else.</p>
+<p>The asymmetry was already visible upstream: the same closer at column 0 is
+accepted at the <strong>root</strong>, where the tracked indent is <code>-1</code>, and upstream’s own
+counter-example test carries <code>[\n  a,\n  b\n]\n</code>. Only a flow inside a block
+mapping refused it.</p>
+<h3 id="4-2-what-the-fix-deliberately-does-not-do">4.2 What the fix deliberately does not do<a class="heading-anchor" href="#4-2-what-the-fix-deliberately-does-not-do" aria-label="Link to this section"></a></h3>
+<p>Under-indented <strong>content</strong> stays refused, so <code>ports: [</code> / <code>80,</code> / <code>]</code> is still an
+error even though libyaml, PyYAML and Psych all accept it. That is 9C9N’s rule.
+This matters for §2 of this spec, which was written from the libyaml family’s
+behaviour: the ecosystem is <em>more</em> lenient than the spec here, and the fix
+follows the spec, not the ecosystem. The <code>]</code>-at-the-parent’s-column shape is
+the part that is defensible on the spec’s own terms.</p>
+<h3 id="4-3-the-evidence-the-fix-rests-on">4.3 The evidence the fix rests on<a class="heading-anchor" href="#4-3-the-evidence-the-fix-rests-on" aria-label="Link to this section"></a></h3>
+<p>Every yaml-test-suite case with a closing flow indicator on a line of its own
+— 28 of them — split cleanly, and the split is about content rather than the
+closer:</p>
+<table><thead><tr><th>Case</th><th>Shape</th><th>Expect</th></tr></thead><tbody>
+<tr><td>9C9N</td><td><code>flow: [a,</code> / <code>b,</code> / <code>c]</code> — content at col 0</td><td>error</td></tr>
+<tr><td>VJP3</td><td><code>k: {</code> / <code>k</code> / <code>:</code> / <code>v</code> / <code>}</code> — content at col 0</td><td>error</td></tr>
+<tr><td>87E4, L9U5, LQZ7 (spec 7.4/7.8/7.11)</td><td>key col 0, content col 2, closer col 1</td><td>pass</td></tr>
+<tr><td>ZF4X (spec 2.6)</td><td>content col 4, closer col 2</td><td>pass</td></tr>
+<tr><td>4ABK, C2DT, DFF7, FRK4, QF4Y, WZ62, NKF9</td><td>root flow, content and closer col 0</td><td>pass</td></tr>
+</tbody></table>
+<p>No case pins a closer at column 0 under a block key at column 0 in either
+direction, while three spec examples deliberately put the closer <em>below</em> the
+content.</p>
 <h2 id="5-provenance">5. Provenance<a class="heading-anchor" href="#5-provenance" aria-label="Link to this section"></a></h2>
 <p>Found while reviewing the <code>yqr-f016</code> §5 flow-delete work: the reviewer noted
 that flow deletes only work on single-line flow collections, and the reason
@@ -3104,8 +3144,9 @@ turned out to be that yqr cannot open a multi-line one. So the delete
 limitation is a symptom, and this is the defect.</p>
 <h2 id="6-acceptance">6. Acceptance<a class="heading-anchor" href="#6-acceptance" aria-label="Link to this section"></a></h2>
 <ul>
-<li><input disabled="" type="checkbox"/>
-Filed upstream with the §2 evidence.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Filed upstream with the §2 evidence — noyalib#285, with the fix as
+noyalib#286 and the §4.3 suite survey behind it.</li>
 <li><input disabled="" type="checkbox"/>
 A released noyalib parses a multi-line flow collection, closing indicator
 at the parent’s column included.</li>
@@ -3116,6 +3157,11 @@ fidelity harness.</li>
 A corpus case covers a wrapped flow sequence, since the shape is common
 enough that its absence is why this went unnoticed.</li>
 </ul>
+<p>Measured against the patched crate through a path override, so the last three
+are ready to land the day a release carries the fix: <code>yqr '.'</code> returns the file
+byte-identical, <code>.ports[1]</code> answers <code>443</code>, an edit to a neighbouring key leaves
+the wrapped list and its inline comment untouched, <code>validate --strict</code> passes,
+and yqr’s whole suite is green.</p>
 
         </div>
         </accent-island>
@@ -3160,7 +3206,19 @@ enough that its absence is why this went unnoticed.</li>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-route">4. Route</a>
+                <a href="#4-route-taken-2026-08-19">4. Route — taken 2026-08-19</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-1-what-the-fix-does">4.1 What the fix does</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-2-what-the-fix-deliberately-does-not-do">4.2 What the fix deliberately does not do</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-3-the-evidence-the-fix-rests-on">4.3 The evidence the fix rests on</a>
             </li>
         
             <li class="toc-level-2">
