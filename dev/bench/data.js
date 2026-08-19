@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787114502156,
+  "lastUpdate": 1787115113455,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1301,6 +1301,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 257075,
             "range": "± 2794",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "03796bf7e155be9becd94ae16b0362953822a510",
+          "message": "chore(deps): adopt noyalib 0.0.24; re-measure the sole-entry delegation (f018) (#74)\n\n0.0.24 carries one functional change, and it is yqr's report: remove()\nnow takes a sole entry's head comment (noyalib#280, filed by yqr with the\nmechanism diagnosed; the patch is the maintainer's). The pin moves, the\nsuite is green untouched, and the lockfile loses a crate -- noyalib was\nthe last holder of hashbrown 0.15.5.\n\nThe fix is verified against the published crate rather than taken from\nthe release notes: probed on all four shapes f016 §4.4 measured, upstream\nnow matches delete_entry exactly, blank-detached exclusion included.\n\nThat removes the reason f016 §5 gave for keeping sole-entry delete in\nyqr's own code, so the delegation was re-run rather than assumed. 242 of\n244 lib tests pass under it. The two failures are one shape: the sole\nitem of a block sequence written at its key's own column, where upstream\nwrites\n\n    on:\n    []\n\nand yqr writes the empty collection one level deeper. PyYAML and Ruby's\nPsych both reject the first and accept the second, so delegation would\nwrite a file the ecosystem cannot read -- at exit 0, past upstream's\nguard, past yqr's re-parse guard (it re-parses with noyalib), and past\nyqr validate --strict.\n\nSo the class stays in delete_entry, on a new and sharper finding rather\nthan on the retired one, and the finding is filed as b014. Its live half\nis the validator: yqr's own strict mode calls that document clean,\nbecause validate walks noyalib's green tree and inherits the parser's\nleniency. That is b011 seen from the other side.",
+          "timestamp": "2026-08-19T06:50:30+02:00",
+          "tree_id": "dec6c4012764c9a3f9567d94890b05ec88f41a6b",
+          "url": "https://github.com/zoosky/yqr/commit/03796bf7e155be9becd94ae16b0362953822a510"
+        },
+        "date": 1787115111836,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 520,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5253,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 250593,
+            "range": "± 2161",
             "unit": "ns/iter"
           }
         ]
