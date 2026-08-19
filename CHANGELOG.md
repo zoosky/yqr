@@ -103,6 +103,23 @@ All notable changes to `yqr` are documented here. The format is based on
   that constructs or exhaustively matches `Mutation` needs updating; a value
   path is now `Target::Value(ast)`. The CLI is unaffected.
 
+- **`validate` catches a value that is not indented past its key (`Y103`).**
+
+  ```console
+  $ yqr validate workflow.yaml
+  error[Y103]: block mapping value is not indented past its key
+    --> workflow.yaml:2:1
+  ```
+
+  yqr's YAML engine reads such a file; PyYAML and Ruby's Psych both refuse
+  it. A validator that passes it is telling you something it cannot back up,
+  so this is on by default rather than under `--strict` -- the document is
+  invalid, not merely unusual.
+
+  The two layouts that look like this and are fine are never flagged: a block
+  sequence at its key's own column (the GitHub Actions style, `on:` then
+  `- push`), and a block scalar, whose own content sets its indentation.
+
 ### Changed
 
 - **Two limitations of editing documented, having been measured rather than

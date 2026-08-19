@@ -201,3 +201,156 @@ fn unescape_double(inner: &str) -> String {
     }
     out
 }
+
+/// One block-mapping entry whose value sits on a later line without being
+/// indented past its key.
+///
+/// Both offsets are document-relative at scan time and file-absolute after
+/// the caller adds the document's base offset, exactly as [`DuplicateKey`]'s
+/// are.
+pub(crate) struct UnderIndentedValue {
+    /// Byte offset of the entry's key token.
+    pub key: usize,
+    /// Byte offset of the first byte of the value.
+    pub value: usize,
+}
+
+/// Every block-mapping entry in `doc` whose value starts on a later line at a
+/// column no deeper than its key's, offsets shifted by `base`.
+///
+/// A block mapping's value, when it does not sit on the key's line, must be
+/// indented past the key. noyalib's parser accepts one that is not and hands
+/// back a tree in which the under-indented node is the entry's value; other
+/// implementations reject the document outright, so nothing downstream of the
+/// parse can notice. Hence the green-tree walk, for the same reason the
+/// duplicate-key scan exists.
+pub(crate) fn under_indented_values(doc: &Document, base: usize) -> Vec<UnderIndentedValue> {
+    let mut out = Vec::new();
+    scan_indent(doc.syntax(), 0, doc.source(), &mut out);
+    for hit in &mut out {
+        hit.key += base;
+        hit.value += base;
+    }
+    out
+}
+
+/// Depth-first walk: check every entry of every block mapping, then recurse.
+fn scan_indent(node: &GreenNode, offset: usize, source: &str, out: &mut Vec<UnderIndentedValue>) {
+    if node.kind() == SyntaxKind::BlockMapping {
+        let mut child_offset = offset;
+        for child in node.children() {
+            if let GreenChild::Node(entry) = child
+                && entry.kind() == SyntaxKind::MappingEntry
+                && let Some(hit) = under_indented_entry(entry, child_offset, source)
+            {
+                out.push(hit);
+            }
+            child_offset += child.text_len();
+        }
+    }
+    let mut child_offset = offset;
+    for child in node.children() {
+        if let GreenChild::Node(inner) = child {
+            scan_indent(inner, child_offset, source, out);
+        }
+        child_offset += child.text_len();
+    }
+}
+
+/// The finding for one mapping entry, if it has one.
+///
+/// Returns `None` for every entry whose value is where it belongs, and for
+/// the two layouts that look under-indented but are not:
+///
+/// - **A block sequence at the key's own column** (`on:` / `- push`, the
+///   GitHub Actions idiom) — explicitly permitted by the spec, and accepted
+///   everywhere. In the tree it is the entry's own `-` token rather than a
+///   nested node, so it is recognised by that token.
+/// - **A block scalar** (`|` / `>`), whose indentation is set by its own
+///   content, so the header may sit at the key's column.
+///
+/// Entries whose key is not a plain scalar token before the `:` are skipped
+/// too — an alias key has no key column to compare against, and an explicit
+/// `? key` measures its value against the `?` under a different rule.
+fn under_indented_entry(
+    entry: &GreenNode,
+    offset: usize,
+    source: &str,
+) -> Option<UnderIndentedValue> {
+    let (key_offset, value_offset, value_is_block_seq) = entry_key_and_value(entry, offset)?;
+    let (key_line, key_column) = position_in(source, key_offset);
+    let (value_line, value_column) = position_in(source, value_offset);
+    if value_line == key_line || value_column > key_column {
+        return None;
+    }
+    // A block sequence is allowed to share its key's column, and only that
+    // column — one shallower and it would belong to an outer collection.
+    if value_is_block_seq && value_column == key_column {
+        return None;
+    }
+    Some(UnderIndentedValue {
+        key: key_offset,
+        value: value_offset,
+    })
+}
+
+/// The entry's key offset, the offset of the first byte of its value, and
+/// whether that value is a block sequence.
+///
+/// The value is the first non-trivia child after the `:` indicator. An entry
+/// with no value (`a:` followed by a sibling) yields `None`, as does one whose
+/// key is not a plain scalar token.
+fn entry_key_and_value(entry: &GreenNode, offset: usize) -> Option<(usize, usize, bool)> {
+    let mut child_offset = offset;
+    let mut key: Option<usize> = None;
+    let mut past_colon = false;
+    for child in entry.children() {
+        match child {
+            GreenChild::Token { kind, .. } => {
+                if *kind == SyntaxKind::QuestionIndicator {
+                    // An explicit key (`? a` / `: b`) puts the `:` on a line of
+                    // its own, so its value is measured against the `?`, not
+                    // against the key token. A different rule, and not one this
+                    // scan claims to know.
+                    return None;
+                }
+                if *kind == SyntaxKind::ColonIndicator {
+                    key?;
+                    past_colon = true;
+                } else if past_colon {
+                    match kind {
+                        SyntaxKind::Whitespace | SyntaxKind::Newline | SyntaxKind::Comment => {}
+                        SyntaxKind::LiteralScalar | SyntaxKind::FoldedScalar => return None,
+                        SyntaxKind::DashIndicator => {
+                            return Some((key?, child_offset, true));
+                        }
+                        _ => return Some((key?, child_offset, false)),
+                    }
+                } else if key.is_none() && is_scalar_token(*kind) {
+                    key = Some(child_offset);
+                }
+            }
+            GreenChild::Node(inner) => {
+                if past_colon {
+                    let is_block_seq = inner.kind() == SyntaxKind::BlockSequence;
+                    return Some((key?, child_offset, is_block_seq));
+                }
+            }
+        }
+        child_offset += child.text_len();
+    }
+    None
+}
+
+/// 1-based `(line, column)` of `byte` within `source`.
+///
+/// A local walk rather than `render::position_of`: the scan works in
+/// document-relative offsets, and lines and columns are the same whether they
+/// are counted from the start of the document or the start of the file, since
+/// a document always begins at a line boundary.
+fn position_in(source: &str, byte: usize) -> (usize, usize) {
+    let byte = byte.min(source.len());
+    let start = source[..byte].rfind('\n').map_or(0, |i| i + 1);
+    let line = source[..byte].bytes().filter(|&b| b == b'\n').count() + 1;
+    (line, source[start..byte].chars().count() + 1)
+}

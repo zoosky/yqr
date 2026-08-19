@@ -175,8 +175,11 @@ error[Y001]: expected a node but found StreamEnd
       <code>&lt;&lt;</code> merge keys included, with the positions of both
       occurrences. Keys that collide after string conversion are refused
       outright (<code>Y102</code>), non-UTF-8 input is a coded finding
-      (<code>Y003</code>), and a file containing unresolved merge-conflict
-      markers gets a dedicated hint anchored at the first marker. Exit codes
+      (<code>Y003</code>), a mapping value that is not indented past its key
+      is flagged by default (<code>Y103</code>) because yqr's engine reads
+      such a file and other implementations refuse it, and a file containing
+      unresolved merge-conflict markers gets a dedicated hint anchored at the
+      first marker. Exit codes
       are scriptable: 0 all valid, 1 validation findings, 5 an input could
       not be read. Stdin is explicit (<code>yqr validate -</code>); an empty
       file list is a usage error, never a silent "all valid".

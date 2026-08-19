@@ -184,6 +184,32 @@ fn validate_valid_stdin_is_silent_and_exits_zero() {
     assert!(out.stderr.is_empty(), "stderr: {}", out.stderr);
 }
 
+// Bug b014: a document noyalib reads and the rest of the ecosystem refuses.
+#[test]
+fn validate_reports_an_under_indented_block_value() {
+    let out = run(&["validate", "-"], "on:\n[]\njobs: {}\n");
+    assert_eq!(out.status, 1);
+    let err = &out.stderr;
+    assert!(
+        err.contains("error[Y103]: block mapping value is not indented past its key"),
+        "unexpected stderr: {err}"
+    );
+    // Default mode, not `--strict`: the file is invalid, not merely dubious.
+    assert!(
+        err.contains("-->"),
+        "the finding must carry a location: {err}"
+    );
+    assert!(out.stdout.is_empty(), "validate writes findings to stderr");
+}
+
+#[test]
+fn validate_accepts_a_block_sequence_at_its_keys_column() {
+    // The GitHub Actions idiom, which is valid and must not be flagged.
+    let out = run(&["validate", "--strict", "-"], "on:\n- push\njobs: {}\n");
+    assert_eq!(out.status, 0);
+    assert!(out.stderr.is_empty());
+}
+
 #[test]
 fn validate_without_inputs_is_a_usage_error() {
     // No silent stdin fallback: a validation gate whose file list came up

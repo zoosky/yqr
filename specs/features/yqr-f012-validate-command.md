@@ -95,6 +95,19 @@ filter parse error.
    A pass therefore certifies not just "parses" but "parses and
    round-trips losslessly" — a stronger guarantee than other validators give.
 
+3. **Block value indentation** (`Y103`, added 2026-08-19). A mapping value
+   that sits on a later line must be indented past its key. noyalib's parser
+   accepts one that is not — `on:` / `[]` — and hands back a tree in which the
+   under-indented node is the entry's value; PyYAML and Ruby's Psych both
+   refuse the document. The check is a green-tree walk for the same reason
+   `Y101` is: nothing downstream of the parse can see a shape the parser
+   already swallowed. It belongs to the **default** checks, not `--strict`,
+   because the file is invalid rather than merely unusual — a clean verdict on
+   it would mean less than it says. `yqr-b014` carries the measurement and the
+   two layouts deliberately exempted (a block sequence at its key's own column,
+   the GitHub Actions idiom; and a block scalar, whose content sets its own
+   indentation).
+
 Nothing else. Valid-but-unusual YAML (empty file, scalar root, duplicate
 keys) passes by default, matching the leniency of every mainstream parser —
 default validate answers "is this YAML?", not "is this the YAML you meant?".
@@ -151,7 +164,8 @@ Components and rules:
 
 - **Severity + stable code.** `error[Ynnn]` with a small closed registry:
   `Y001` syntax error, `Y002` stream-integrity failure, `Y003` non-UTF-8
-  input, `Y101` duplicate key, `Y102` stringified-key collision. Codes are
+  input, `Y101` duplicate key, `Y102` stringified-key collision, `Y103`
+  under-indented block mapping value. Codes are
   documented on the site and never renumbered, so scripts may match on
   them. I/O failures are not coded (plain `error: failed to read "f.yaml":
   ...`).
@@ -312,6 +326,9 @@ two PRs (paths first, spans second).
 - [x] A stream-integrity failure reports `error[Y002]` and exits 1
       (unreachable through the real parser; pinned by a unit test on the
       check itself).
+- [x] A block mapping value not indented past its key is a default-mode
+      finding (`Y103`, exit 1), located on the value, with the two valid
+      same-column layouts exempted (`yqr-b014`).
 - [x] Non-UTF-8 input is a coded finding (`Y003`, exit 1) pointing one past
       the valid prefix — not an exit-5 environment error.
 - [x] Multiple files: every input is validated in one run, each diagnostic
