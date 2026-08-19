@@ -1,7 +1,8 @@
 # Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
 
-**Status:** Open (found 2026-08-19 by the `yqr-f018` §4 measurement; not filed
-upstream as part of this change)
+**Status:** Open — **§3.2 fixed 2026-08-19** (route 3: `validate` reports it
+as `Y103`); §3.1, the upstream writer, is still open and not filed upstream as
+part of either change
 **Severity:** Medium — nothing in yqr writes this shape today, so there is no
 live corruption; what is live is the **validator false negative** in §3.2,
 and the fact that every guard in the write loop is blind to the shape
@@ -59,14 +60,34 @@ today: `yqr-f016` §5 kept the sole-entry class in `delete_entry`, and
 `yqr-f018` §5 keeps it there on the strength of exactly this finding. So this
 is a live defect in noyalib and a *blocked route* for yqr, not a yqr bug.
 
-### 3.2 The validator — this one is live
+### 3.2 The validator — **fixed 2026-08-19**
 
-`yqr validate --strict` walks noyalib's green tree, so it inherits the
-parser's leniency and reports the file clean. A user running yqr as the
-correctness gate in a pipeline gets a pass on a file their next tool cannot
-read. This is `yqr-b011` seen from the other side: there, noyalib refuses YAML
-the ecosystem accepts; here, it accepts YAML the ecosystem refuses. Both are
-the parser, and both make `validate`'s verdict differ from the ecosystem's.
+`yqr validate` walked noyalib's green tree, inherited the parser's leniency,
+and reported the file clean. A user running yqr as the correctness gate in a
+pipeline got a pass on a file their next tool cannot read. This was `yqr-b011`
+seen from the other side: there, noyalib refuses YAML the ecosystem accepts;
+here, it accepted YAML the ecosystem refuses.
+
+Fixed by route 3 — the same green-tree walk that already finds duplicate keys
+now also measures each block-mapping entry's value against its key's column,
+and reports `Y103` in **default** mode (§5). The two same-column layouts that
+are genuinely valid are exempt, and each exemption was checked against both
+oracles rather than reasoned from the spec:
+
+| Layout | Verdict | Why |
+|---|---|---|
+| `on:` / `- push` (block sequence at the key's column) | exempt | valid, and the GitHub Actions / Ansible idiom — flagging it would be worse than no check |
+| `a:` / `\|` / `  x` (block scalar header at the key's column) | exempt | the scalar's own content sets its indentation |
+| `? a` / `: b` (explicit key) | skipped | the value is measured against the `?`, a rule this scan does not claim to know |
+| `a:` / `b: 1` (no value, sibling follows) | not a finding | `b` is a sibling entry, and the tree says so |
+| `on:` / `[]`, `on:` / `foo` | **`Y103`** | rejected by PyYAML and Psych |
+
+**Coverage of the fix, stated honestly.** noyalib's leniency here is narrower
+and less consistent than the shape suggests: it rejects `on:` / `{}` and
+`on:` / `[a, b]` outright (those surface as `Y001`), rejects the same
+under-indented value when the mapping has no following sibling, and accepts
+`on:` / `[]` when one follows. `Y103` covers what the parser lets through; a
+document rejected by the parser was never the problem.
 
 ## 4. Why every guard misses it
 
@@ -86,14 +107,21 @@ it looks, and this is the clearest instance of the gap so far.
    past its key. Correct, and the more disruptive of the two — it is a
    leniency users may be relying on, so it belongs behind whatever strictness
    knob the parser grows.
-3. **yqr-side, validator:** add the indentation check to `validate`'s own
-   walk, which already looks at the green tree for things the parser does not
-   flag. This is the only route that fixes §3.2 without waiting on upstream,
-   and it does not depend on route 2 being taken.
+3. **yqr-side, validator: taken 2026-08-19.** The indentation check now runs
+   in `validate`'s own green-tree walk, which already looks for things the
+   parser does not flag. It fixed §3.2 without waiting on upstream and does
+   not depend on route 2 being taken. Routes 1 and 2 remain the fix for §3.1.
 
 ## 6. Regression coverage
 
 `src/fidelity/write/delete.rs` — `sole_item_of_a_same_column_sequence_is_indented_under_its_key`
 and `sole_item_of_a_nested_same_column_sequence_clears_its_key` pin yqr's
-(correct) spelling, and are the two tests that fail under delegation. Nothing
-pins §3.2 yet; a validator case belongs with route 3.
+(correct) spelling, and are the two tests that fail under delegation.
+
+`src/validate/mod.rs` — five tests pin §3.2's fix: the located finding, that it
+fires in default *and* strict mode, nested and multi-document positions, the
+same-column block sequence staying clean, and the other three exempt layouts.
+`tests/cli.rs` pins the rendered `error[Y103]` and the exit code. A 28-shape
+differential harness against PyYAML and Psych was used to develop the check and
+agreed with it on every shape; it is not committed, since it needs both
+interpreters.

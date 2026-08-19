@@ -7,12 +7,16 @@
 //! (severity, stable code, `--> file:line:col`, source window with caret,
 //! and a help line) that both can act on.
 //!
-//! Two checks always run:
+//! Three checks always run:
 //!
 //! - **Syntax**: every document in the stream parses on noyalib's CST.
 //! - **Stream integrity**: the parsed documents reproduce the input
 //!   byte-for-byte, the same invariant the fidelity engine asserts before
 //!   trusting any read.
+//! - **Block value indentation**: a mapping value that sits on a later line
+//!   is indented past its key. The engine accepts one that is not; the rest
+//!   of the ecosystem refuses the file, so accepting it silently would make
+//!   a clean verdict mean less than it says.
 //!
 //! Keys that collide after string conversion (like `1:` and `"1":`) are
 //! refused by the parser itself, so they surface through the default checks
@@ -46,6 +50,8 @@ pub enum Code {
     DuplicateKey,
     /// `Y102` — two distinct keys collapse to the same string key.
     KeyCollision,
+    /// `Y103` — a block mapping's value is not indented past its key.
+    BlockValueIndent,
 }
 
 impl Code {
@@ -58,6 +64,7 @@ impl Code {
             Code::Encoding => "Y003",
             Code::DuplicateKey => "Y101",
             Code::KeyCollision => "Y102",
+            Code::BlockValueIndent => "Y103",
         }
     }
 }
@@ -101,8 +108,11 @@ pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
     if let Some(diag) = tiling_diagnostic(source, docs.iter().map(::noyalib::cst::Document::source))
     {
         findings.push(diag);
-    } else if strict {
-        findings.extend(strict_findings(source, &docs));
+    } else {
+        findings.extend(block_value_indent_findings(source, &docs));
+        if strict {
+            findings.extend(strict_findings(source, &docs));
+        }
     }
     findings
 }
@@ -236,6 +246,43 @@ where
     })
 }
 
+/// Collect every `Y103` finding: a block mapping's value on a later line that
+/// is not indented past its key.
+///
+/// This runs in **default** mode, not under `--strict`, because it is not a
+/// question of taste or of a policy other tools apply differently: the
+/// document is invalid, and implementations outside noyalib refuse to read it
+/// (`yqr-b014`). noyalib's parser accepts the shape, so this scan is the only
+/// place the loop can notice — the fidelity engine's re-parse guard, which
+/// re-parses with the same engine, cannot.
+fn block_value_indent_findings(source: &str, docs: &[::noyalib::cst::Document]) -> Vec<Diagnostic> {
+    let mut findings = Vec::new();
+    let mut base = 0usize;
+    for doc in docs {
+        for hit in scan::under_indented_values(doc, base) {
+            let (line, column) = render::position_of(source, hit.value);
+            let (key_line, key_column) = render::position_of(source, hit.key);
+            findings.push(Diagnostic {
+                code: Code::BlockValueIndent,
+                message: "block mapping value is not indented past its key".to_string(),
+                position: Some((line, column)),
+                note: Some(format!(
+                    "its key is at line {key_line}, column {key_column}, so the value must \
+                     start at column {} or deeper",
+                    key_column + 1
+                )),
+                help: Some(
+                    "indent the value, or write it on the key's own line; noyalib reads this \
+                     file but other YAML implementations reject it"
+                        .to_string(),
+                ),
+            });
+        }
+        base += doc.source().len();
+    }
+    findings
+}
+
 /// Collect every duplicate-mapping-key finding across the stream.
 ///
 /// The green-tree scan (see [`scan`]) reports **all** duplicates —
@@ -347,6 +394,77 @@ mod tests {
         assert!(check_str("a: 1\nb:\n  - x\n", false).is_empty());
         assert!(check_str("", false).is_empty());
         assert!(check_str("a: 1\n---\nb: 2\n", true).is_empty());
+    }
+
+    // Bug b014: the shapes noyalib's parser lets through. Every input below
+    // was checked against PyYAML and Ruby's Psych — the ones flagged here are
+    // rejected by both, the ones asserted clean are accepted by both.
+
+    #[test]
+    fn under_indented_block_value_is_a_located_y103() {
+        // The shape upstream's sole-entry `remove` writes, and the reason
+        // yqr does not delegate that class (`yqr-f018` §4).
+        let findings = check_str("on:\n[]\njobs: {}\n", false);
+        assert_eq!(findings.len(), 1);
+        let d = &findings[0];
+        assert_eq!(d.code, Code::BlockValueIndent);
+        assert_eq!(d.position, Some((2, 1)));
+        assert!(
+            d.note
+                .as_ref()
+                .is_some_and(|n| n.contains("column 2 or deeper"))
+        );
+    }
+
+    #[test]
+    fn y103_fires_in_default_mode_not_only_under_strict() {
+        // The document is invalid, not merely questionable, so it is not a
+        // strict-mode opinion — that distinction is the whole point of the
+        // finding.
+        assert_eq!(check_str("on:\nfoo\nb: 1\n", false).len(), 1);
+        assert_eq!(check_str("on:\nfoo\nb: 1\n", true).len(), 1);
+    }
+
+    #[test]
+    fn y103_is_reported_in_a_nested_mapping_and_a_later_document() {
+        let nested = check_str("steps:\n  on:\n  []\nx: 1\n", false);
+        assert_eq!(nested.len(), 1);
+        assert_eq!(nested[0].position, Some((3, 3)));
+        // Positions are absolute in the file, so the second document's
+        // offsets have to carry the first document's length. (The trailing
+        // `jobs:` entry is load-bearing: noyalib rejects the same under-indented
+        // value outright when it is the mapping's only entry, and accepts it
+        // when a sibling follows — the leniency is narrower than the shape.)
+        let multi = check_str("a: 1\n---\non:\n[]\njobs: {}\n", false);
+        assert_eq!(multi.len(), 1);
+        assert_eq!(multi[0].code, Code::BlockValueIndent);
+        assert_eq!(multi[0].position, Some((4, 1)));
+    }
+
+    #[test]
+    fn a_block_sequence_at_its_keys_column_is_not_a_finding() {
+        // The GitHub Actions / Ansible idiom. Valid YAML, and by far the most
+        // common way a value sits at its key's column — a check that flagged
+        // it would be worse than no check.
+        assert!(check_str("on:\n- push\n- pull_request\njobs: {}\n", false).is_empty());
+        assert!(check_str("jobs:\n  build:\n    steps:\n    - run: make\n", false).is_empty());
+        assert!(check_str("on:\r\n- push\r\n", false).is_empty());
+    }
+
+    #[test]
+    fn the_other_layouts_that_look_under_indented_are_not_findings() {
+        // A block scalar's own content sets its indentation, so its header
+        // may sit at the key's column.
+        assert!(check_str("a:\n|\n  x\n", false).is_empty());
+        // `a:` with no value, followed by a sibling — the sibling is not the
+        // value, and the tree says so.
+        assert!(check_str("a:\nb: 1\n", false).is_empty());
+        assert!(check_str("a:\n  b:\n  c: 1\n", false).is_empty());
+        // An explicit key measures its value against the `?`, under a rule
+        // this scan does not claim to know.
+        assert!(check_str("? a\n: b\n", false).is_empty());
+        // An anchored value on its own line, properly indented.
+        assert!(check_str("a:\n  &x 1\nb: *x\n", false).is_empty());
     }
 
     #[test]

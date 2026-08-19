@@ -53,6 +53,51 @@ Exit 0 when every input is valid, 1 when any input fails, and 5 when an
 input cannot be read at all -- a missing file is a different problem from a
 malformed one, so it gets a different code.
 
+## The file your engine reads and nobody else does
+
+<!-- Bug b014 §3.2: the Y103 check. -->
+
+A mapping value on its own line has to be indented past its key. Some
+parsers -- yqr's included -- read one that is not, which is worse than
+refusing it: the file works for you and fails for everyone else.
+
+```console
+$ cat workflow.yaml
+on:
+[]
+jobs: {}
+$ yqr validate workflow.yaml
+error[Y103]: block mapping value is not indented past its key
+  --> workflow.yaml:2:1
+  |
+2 | []
+  | ^
+  = note: its key is at line 1, column 1, so the value must start at column 2 or deeper
+  = help: indent the value, or write it on the key's own line; noyalib reads this file but other YAML implementations reject it
+```
+
+This one is not a `--strict` opinion, so it is on by default: the document
+is invalid, not merely unusual. Python's PyYAML and Ruby's Psych both refuse
+that file.
+
+Two layouts look like this and are perfectly fine, so they are never
+flagged. A block sequence may sit at its key's own column -- the GitHub
+Actions and Ansible style:
+
+```yaml
+on:
+- push
+- pull_request
+```
+
+And a block scalar sets its own indentation, so its `|` may sit anywhere:
+
+```yaml
+script:
+|
+  make build
+```
+
 ## `--strict`, and the bug it catches
 
 Here is a file that is perfectly legal YAML and almost certainly a mistake:
