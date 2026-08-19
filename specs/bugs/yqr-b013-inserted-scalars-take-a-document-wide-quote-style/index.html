@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`) - yqr</title>
+    <title>Bug b013 — An inserted scalar is quoted because some unrelated line is quoted - yqr</title>
     
     
 
@@ -12,10 +12,10 @@
 
 
 
-<meta name="description" content="Status: Resolved Severity: Low Related: yqr-m001 (CI&#x2f;release), .agent&#x2f;skills&#x2f;dep-upgrade">
+<meta name="description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b013-inserted-scalars-take-a-document-wide-quote-style">
 
 
 
@@ -29,10 +29,10 @@
 
 
 
-<meta property="og:title" content="Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)">
-<meta property="og:description" content="Status: Resolved Severity: Low Related: yqr-m001 (CI&#x2f;release), .agent&#x2f;skills&#x2f;dep-upgrade">
+<meta property="og:title" content="Bug b013 — An inserted scalar is quoted because some unrelated line is quoted">
+<meta property="og:description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b013-inserted-scalars-take-a-document-wide-quote-style">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -42,8 +42,8 @@
 
 
 
-<meta name="twitter:title" content="Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)">
-<meta name="twitter:description" content="Status: Resolved Severity: Low Related: yqr-m001 (CI&#x2f;release), .agent&#x2f;skills&#x2f;dep-upgrade">
+<meta name="twitter:title" content="Bug b013 — An inserted scalar is quoted because some unrelated line is quoted">
+<meta name="twitter:description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-19",
-  "description": "Status: Resolved Severity: Low Related: yqr-m001 (CI/release), .agent/skills/dep-upgrade",
+  "description": "Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...",
   "inLanguage": "en",
-  "name": "Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)",
-  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b005-crossbeam-epoch-advisory-via-criterion",
-  "wordCount": 297
+  "name": "Bug b013 — An inserted scalar is quoted because some unrelated line is quoted",
+  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b013-inserted-scalars-take-a-document-wide-quote-style",
+  "wordCount": 659
 }
 </script>
 <script type="application/ld+json">
@@ -125,8 +125,8 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b005-crossbeam-epoch-advisory-via-criterion",
-      "name": "Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)",
+      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b013-inserted-scalars-take-a-document-wide-quote-style",
+      "name": "Bug b013 — An inserted scalar is quoted because some unrelated line is quoted",
       "position": 4
     }
   ]
@@ -1216,7 +1216,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b005-crossbeam-epoch-advisory-via-criterion"
-                   class="sidebar-link active">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</a>
+                   class="sidebar-link">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</a>
               
             
               
@@ -1264,7 +1264,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b013-inserted-scalars-take-a-document-wide-quote-style"
-                   class="sidebar-link">Bug b013 — An inserted scalar is quoted because some unrelated line is quoted</a>
+                   class="sidebar-link active">Bug b013 — An inserted scalar is quoted because some unrelated line is quoted</a>
               
             
               
@@ -2945,71 +2945,98 @@
         <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</span>
+    <span aria-current="page">Bug b013 — An inserted scalar is quoted because some unrelated line is quoted</span>
 </nav>
 
 
-        <h1>Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)</h1>
+        <h1>Bug b013 — An inserted scalar is quoted because some unrelated line is quoted</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Resolved
-<strong>Severity:</strong> Low
-<strong>Related:</strong> <code>yqr-m001</code> (CI/release), <code>.agent/skills/dep-upgrade</code></p>
-<blockquote>
-<p><strong>Resolved.</strong> <code>cargo update -p crossbeam-epoch</code> bumped the transitive pin
-<code>0.9.18 -&gt; 0.9.20</code> (Rust 1.97-compatible); no manifest or code change was
-needed. <code>cargo audit</code> now exits 0, the full suite stays green (187 tests), and
-only the one lockfile line changed.</p>
-</blockquote>
-<h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
-<p><code>bash .github/scripts/local-ci.sh</code> (and the <code>security</code> CI job) fails at the
-<code>cargo audit</code> step with <strong>RUSTSEC-2026-0204</strong>:</p>
-<pre><code>Crate:     crossbeam-epoch
-Version:   0.9.18
-Title:     Invalid pointer dereference in `fmt::Pointer` impl for `Atomic` and
-           `Shared` when the underlying pointer is invalid
-Solution:  Upgrade to &gt;=0.9.20
-Dependency tree:
-crossbeam-epoch 0.9.18
-└── crossbeam-deque 0.8.6
-    └── rayon-core 1.13.0
-        └── rayon 1.12.0
-            └── criterion 0.8.2
-                └── yqr 0.3.0
+            <p><strong>Status:</strong> Open (found 2026-08-18 by the <code>yqr-m003</code> write tier; not filed
+upstream as part of this change)
+<strong>Severity:</strong> Low — the value is correct and round-trips; what is wrong is the
+spelling at the edit site, which is the one place <code>yqr-a001</code> promises an edit
+looks like the file it lands in
+<strong>Component:</strong> noyalib’s <code>detect_dominant_quote_style</code> (upstream), reached from
+yqr’s new-key assignment (<code>insert_key</code>) and <code>+=</code> (<code>append</code>)
+<strong>Related:</strong> <code>yqr-a001</code> (the fidelity contract), <code>yqr-b008</code> (the other defect in
+inserted-scalar spelling), <code>yqr-f006</code> §7, <code>yqr-m003</code></p>
+<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
+<p>An inserted string is spelled with the document’s “dominant” quote style. The
+dominance vote counts <strong>only quoted scalars against each other</strong> — plain
+scalars do not vote at all — so a single quoted scalar anywhere in the file
+makes every subsequent insertion quoted, however plain its neighbours are:</p>
+<pre><code class="language-console">$ printf 'labels:\n  app: web\n' | yqr '.labels.tier = "web"'
+labels:
+  app: web
+  tier: web
+
+$ printf 'quoted: "30"\nlabels:\n  app: web\n' | yqr '.labels.tier = "web"'
+quoted: "30"
+labels:
+  app: web
+  tier: "web"
 </code></pre>
-<h2 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to this section"></a></h2>
-<ul>
-<li><strong>Dev-dependency only.</strong> <code>crossbeam-epoch</code> reaches yqr solely through
-<code>criterion</code> (the benchmark harness). It is not linked into the shipped <code>yqr</code>
-binary or the library, so end users are unaffected.</li>
-<li>The vulnerable path is the <code>fmt::Pointer</code> debug formatting of crossbeam’s
-<code>Atomic</code>/<code>Shared</code> with an already-invalid pointer — not a path the benchmark
-code exercises.</li>
-<li>Pre-existing: the advisory was published 2026-07-06 and lands via the advisory
-DB, independent of any yqr code change. CI on <code>main</code> fails on it until the
-lockfile is refreshed.</li>
-</ul>
-<h2 id="fix">Fix<a class="heading-anchor" href="#fix" aria-label="Link to this section"></a></h2>
-<p>Refresh the transitive pin so <code>crossbeam-epoch &gt;= 0.9.20</code> is selected:</p>
+<p>The second document differs only in a line the edit does not touch, four lines
+above the mapping being edited.</p>
+<p>On a real Kubernetes Deployment the vote is decided by <code>value: "30"</code> in a
+container’s env block and <code>cpu: "1"</code> in its resource limits — arbitrarily far
+from the labels the user is editing.</p>
+<h2 id="2-root-cause">2. Root cause<a class="heading-anchor" href="#2-root-cause" aria-label="Link to this section"></a></h2>
+<p>noyalib 0.0.23, <code>src/cst/document.rs</code>:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#8fa1b3;">cargo</span><span style="color:#c0c5ce;"> update</span><span style="color:#bf616a;"> -p</span><span style="color:#c0c5ce;"> crossbeam-epoch
-</span><span style="color:#8fa1b3;">cargo</span><span style="color:#c0c5ce;"> audit        </span><span style="color:#65737e;"># expect clean
-</span><span style="color:#8fa1b3;">bash</span><span style="color:#c0c5ce;"> .github/scripts/local-ci.sh
+<span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">detect_dominant_quote_style</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">root</span><span style="color:#c0c5ce;">: &amp;GreenNode) -&gt; crate::ScalarStyle {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> single = </span><span style="color:#d08770;">0_</span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> double = </span><span style="color:#d08770;">0_</span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">    </span><span style="color:#96b5b4;">walk_tokens</span><span style="color:#c0c5ce;">(root, </span><span style="color:#d08770;">0</span><span style="color:#c0c5ce;">, &amp;</span><span style="color:#b48ead;">mut </span><span style="color:#c0c5ce;">|kind, _| </span><span style="color:#b48ead;">match</span><span style="color:#c0c5ce;"> kind {
+</span><span style="color:#c0c5ce;">        SyntaxKind::SingleQuotedScalar =&gt; single += </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">        SyntaxKind::DoubleQuotedScalar =&gt; double += </span><span style="color:#d08770;">1</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">        _ =&gt; {}
+</span><span style="color:#c0c5ce;">    });
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> single == </span><span style="color:#d08770;">0 </span><span style="color:#c0c5ce;">&amp;&amp; double == </span><span style="color:#d08770;">0 </span><span style="color:#c0c5ce;">{ </span><span style="color:#b48ead;">return crate</span><span style="color:#c0c5ce;">::ScalarStyle::Plain; }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> single &gt;= double { </span><span style="color:#b48ead;">crate</span><span style="color:#c0c5ce;">::ScalarStyle::SingleQuoted } </span><span style="color:#b48ead;">else </span><span style="color:#c0c5ce;">{ </span><span style="color:#b48ead;">crate</span><span style="color:#c0c5ce;">::ScalarStyle::DoubleQuoted }
+</span><span style="color:#c0c5ce;">}
 </span></pre>
-<p>If <code>cargo update -p crossbeam-epoch</code> cannot reach <code>&gt;=0.9.20</code> under the current
-<code>criterion</code>/<code>rayon</code> versions, bump <code>rayon</code>/<code>criterion</code> (dev-dependency) enough to
-pull a fixed <code>crossbeam-epoch</code>, one crate at a time per the <code>dep-upgrade</code> skill,
-and re-run the quality gate.</p>
-<h2 id="acceptance-criteria">Acceptance criteria<a class="heading-anchor" href="#acceptance-criteria" aria-label="Link to this section"></a></h2>
+<p><code>Plain</code> is returned only when the document contains <strong>no</strong> quoted scalar at
+all. One quoted token out of a hundred plain ones carries the vote. The
+intent is right — match the file’s conventions rather than impose the
+emitter’s — but the scope is the whole document, and the count omits the
+majority style.</p>
+<h2 id="3-impact">3. Impact<a class="heading-anchor" href="#3-impact" aria-label="Link to this section"></a></h2>
 <ul>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>cargo audit</code> reports no vulnerabilities.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>Cargo.lock</code> selects <code>crossbeam-epoch &gt;= 0.9.20</code>.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>bash .github/scripts/local-ci.sh</code> is fully green.</li>
+<li>Cosmetic and non-destructive: the inserted value loads back as the string it
+was given, and <code>validate</code> is clean either way.</li>
+<li>Visible in every diff of an edited manifest, at the one line the user is
+looking at, and it is the kind of drive-by reformatting <code>a001</code> exists to
+prevent.</li>
+<li>Notably <strong>not</strong> what the sibling behaviours do: replacing an existing scalar
+matches its own quote style (<code>set_value</code>), and renaming a key matches the
+neighbouring key’s. Only insertion reaches document-wide.</li>
 </ul>
+<h2 id="4-fix-route">4. Fix route<a class="heading-anchor" href="#4-fix-route" aria-label="Link to this section"></a></h2>
+<p>Score the vote where the edit lands, then widen: the sibling entries of the
+target mapping (or sequence) first, and only fall back to the document when the
+site has no quoted or unquoted evidence of its own. Counting <code>PlainScalar</code>
+alongside the two quoted kinds is the smaller half of the same fix and would
+already give the right answer for both examples above.</p>
+<p>Upstream, on the <code>yqr-f007</code> §2 route. yqr should not pre-empt this with a
+post-pass — the engine owns inserted-scalar spelling as of <code>yqr-b008</code>, and
+<code>yqr-f015</code> deleted the last yqr-side patch-up of engine output for good
+reasons.</p>
+<h2 id="5-regression-coverage">5. Regression coverage<a class="heading-anchor" href="#5-regression-coverage" aria-label="Link to this section"></a></h2>
+<p>Pinned as it behaves, in <code>tests/corpus/mod.rs</code>:
+<code>write/insert/new-key-under-a-nested-mapping</code> (a plain-keyed Kubernetes labels
+block gains <code>tier: "web"</code>) and <code>write/append/sequence-item-at-the-site-indent</code>
+(a list of plain feature flags gains <code>- "billing"</code>, decided by <code>zip: "007"</code>).
+Both flip to the plain spelling when this is fixed, and fail until the
+expectations are updated.</p>
+<p>A related shape that is <strong>not</strong> this bug and is pinned beside them: a multi-line
+string whose own lines are indented has no unambiguous block-scalar spelling
+without an explicit indentation indicator, so it is emitted as an escaped
+double-quoted scalar regardless of the vote
+(<code>write/append/multi-line-item-with-inner-indentation-is-escaped</code>). That is the
+safe answer, and it should survive any fix to the above.</p>
 
         </div>
         </accent-island>
@@ -3021,16 +3048,11 @@ and re-run the quality gate.</p>
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b004-noyalib-cst-mutation-api-gaps" class="nav-prev">
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b012-insert-refused-when-every-key-holds-a-dot" class="nav-prev">
         <span class="nav-label">&larr; Previous</span>
-        <span class="nav-title">Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested&#x2f;multi-line delete</span>
+        <span class="nav-title">Bug b012 — A new key cannot be inserted into a mapping whose keys all hold a `.`</span>
     </a>
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b006-structural-delete-trivia-and-fidelity" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences</span>
-    </a>
     
 </nav>
 
@@ -3042,19 +3064,23 @@ and re-run the quality gate.</p>
         <ul>
         
             <li class="toc-level-2">
-                <a href="#summary">Summary</a>
+                <a href="#1-summary">1. Summary</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#impact">Impact</a>
+                <a href="#2-root-cause">2. Root cause</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#fix">Fix</a>
+                <a href="#3-impact">3. Impact</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#acceptance-criteria">Acceptance criteria</a>
+                <a href="#4-fix-route">4. Fix route</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#5-regression-coverage">5. Regression coverage</a>
             </li>
         
         </ul>

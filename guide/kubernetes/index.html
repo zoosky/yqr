@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-18",
+  "dateModified": "2026-08-19",
   "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 1590
+  "wordCount": 1682
 }
 </script>
 <script type="application/ld+json">
@@ -151,6 +151,12 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -366,7 +372,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">8 min read</span>
+                    <span class="reading-time">9 min read</span>
                 </div>
                 
 
@@ -642,11 +648,27 @@ stdin. That is deliberate; there is nothing to write back to.</p>
 <ul>
 <li><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
 is not supported yet.</li>
-<li><strong>Keys containing <code>.</code> or <code>[</code></strong> – the Kubernetes
-<code>app.kubernetes.io/name</code> style – cannot be addressed by the path syntax,
-so yqr will tell you so rather than guess.</li>
-<li><strong>No arithmetic or builtins.</strong> You cannot say “increment the replica
-count”; you say what it should become.</li>
+</ul>
+<!-- Bug b012: the sibling half of this, with the misleading diagnostic. -->
+<ul>
+<li>
+<p><strong>Keys containing <code>.</code> or <code>[</code></strong> – the Kubernetes
+<code>app.kubernetes.io/name</code> style. Reading one works with the bracket form,
+<code>.metadata.labels["app.kubernetes.io/name"]</code>; <strong>writing</strong> does not, and
+neither does adding a plain-named key <em>next to</em> one:</p>
+<pre><code class="language-console">$ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
+yqr: runtime error: cannot insert key "tier": ... (every key is inherited
+through a `&lt;&lt;` merge) ...
+</code></pre>
+<p>There is no <code>&lt;&lt;</code> in the file – the message names the only cause its check
+knows about. The edit is refused, so nothing is damaged, but the reason it
+gives is not the reason. If your labels follow the <code>app.kubernetes.io/</code>
+convention, treat that whole mapping as read-only for now.</p>
+</li>
+<li>
+<p><strong>No arithmetic or builtins.</strong> You cannot say “increment the replica
+count”; you say what it should become.</p>
+</li>
 </ul>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
 <ul>
@@ -715,7 +737,7 @@ count”; you say what it should become.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-18</span>
+        <span>Site last updated: 2026-08-19</span>
         
     </footer>
 
