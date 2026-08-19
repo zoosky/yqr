@@ -1,7 +1,7 @@
 # Bug b013 — An inserted scalar is quoted because some unrelated line is quoted
 
-**Status:** Open (found 2026-08-18 by the `yqr-m003` write tier; not filed
-upstream as part of this change)
+**Status:** Open — found 2026-08-18 by the `yqr-m003` write tier, **filed
+upstream 2026-08-19 as noyalib#290**, deliberately without a patch (§4.1)
 **Severity:** Low — the value is correct and round-trips; what is wrong is the
 spelling at the edit site, which is the one place `yqr-a001` promises an edit
 looks like the file it lands in
@@ -73,6 +73,32 @@ majority style.
   neighbouring key's. Only insertion reaches document-wide.
 
 ## 4. Fix route
+
+### 4.1 Filed 2026-08-19 as noyalib#290 — and, unlike the others, with no patch
+
+`yqr-b011`, `yqr-b012` and `yqr-b014` were all filed *with* a fix, because each
+is a defect against upstream's own stated intent, where the right behaviour is
+not in question. This one is different and was filed differently: it is a
+**heuristic** with a public API attached (`Document::dominant_quote_style`, both
+documented and doctested), so changing what it counts changes a published
+contract. That is the maintainer's call rather than a drive-by patch's. The
+issue puts two options — count `PlainScalar` in the vote, or score the vote at
+the edit site and widen only as a fallback — and offers to implement either.
+
+Two things the filing added that this spec had not:
+
+- **The majority does not vote.** Four plain scalars lose to one quoted one, so
+  this is not a close call decided the wrong way; plain is never counted at all
+  unless it is unanimous.
+- **The sibling mutators disagree with insertion.** On the same document `set`
+  writes `k: w` plain, matching the site, while insertion writes `j: "w"`,
+  matching the file; `push_back_value` follows insertion. The inconsistency is
+  therefore internal to noyalib, which is a stronger argument than a divergence
+  from what a reader expects, and it is the one the issue leads with.
+
+All measurements re-run against `main` at `209b9ed` before filing.
+
+### 4.2 The route itself
 
 Score the vote where the edit lands, then widen: the sibling entries of the
 target mapping (or sequence) first, and only fall back to the document when the
