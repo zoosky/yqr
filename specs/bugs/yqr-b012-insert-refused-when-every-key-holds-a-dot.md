@@ -1,7 +1,7 @@
 # Bug b012 — A new key cannot be inserted into a mapping whose keys all hold a `.`
 
-**Status:** Open (found 2026-08-18 by the `yqr-m003` write tier; not filed
-upstream as part of this change)
+**Status:** Open — filed upstream 2026-08-19 as noyalib#288 with a fix
+proposed as noyalib#289; open here until a release carries it
 **Severity:** Medium — a refusal, not damage (exit 5, file untouched), but the
 shape is the standard Kubernetes label/annotation block, and the diagnostic
 names a cause that is not present in the document
@@ -74,21 +74,58 @@ rather than describing the observation ("no entry has bytes of its own").
   expose on this path.
 - Nothing is silently wrong: the edit is refused, `-i` leaves the file alone.
 
-## 4. Fix routes
+## 4. Fix routes — 1 and 2 taken 2026-08-19
 
-1. **Upstream, narrow:** re-word the error to describe what was observed and
-   list the keys that could not be addressed. Removes the false cause; leaves
-   the limit.
+1. **Upstream, narrow:** re-word the error to describe what was observed.
+   **Done** as part of noyalib#289.
 2. **Upstream, real:** give `mapping_insert_anchor` a path-free way to reach a
-   key's span (walk the green tree, or take a `&GreenNode` rather than a
-   composed string). This also removes the limit for `set_value`, `remove`,
-   `rename_key` and `swap_items`, which compose paths the same way — the
-   `yqr-f007` §6 item in full.
-3. **yqr-side:** own the anchor arithmetic, on the `f007` §2 last-resort route.
-   Not preferred: it duplicates upstream's indentation model for one case.
+   key's span. **Done** in noyalib#289, and by a route this spec did not
+   anticipate: not the green tree but the **span tree**, which already holds
+   the target mapping's entries with their spans. The fix adds `resolve_tree`
+   — the span-tree twin of the existing `resolve_span`, for callers that want
+   the addressed node's structure rather than its span — and the anchor search
+   walks those entries directly. No path is composed, so the key's spelling
+   stops mattering.
+3. **yqr-side:** own the anchor arithmetic. Not taken, and now moot for insert.
 
-Route 2 is the one worth filing; route 1 is worth filing regardless, being a
-message change with no semantics attached.
+### 4.1 What §3's measurement missed
+
+This spec recorded "all three write paths refuse". That was right, but it hid
+that the insert refusal has **two** independent causes in upstream, not one:
+`mapping_insert_anchor` composes a path per candidate key, and `insert_entry`
+duplicates the same logic inline rather than calling it. Fixing only the first
+left `insert_entry` failing with a *different* message
+(`could not resolve last entry span`). The fix consolidates them.
+
+### 4.2 Three things the fix settles beyond this bug
+
+Each is a shape the anchor search reached only once it stopped going through
+path strings:
+
+- Keys holding `[` or `*`, and quoted keys such as `"a.b"`, insert correctly
+  for the same reason.
+- A mapping whose last entry is an **implicit null** (`b:` with no value) now
+  anchors on that entry's own key line, so a new sibling lands after it.
+  `insert_entry` used to refuse such a mapping outright and `insert_entry_value`
+  inserted *above* the null.
+- A mapping with both a `<<` merge and an entry of its own anchors on the
+  entry. A merge-only mapping still refuses, with a message that now describes
+  the observation.
+
+### 4.3 What is still out of reach
+
+Insert only. `set_value`, `delete`, `rename_key` and the reorder verbs still
+address through `parse_query_path`, so on the 0.0.24 pin yqr still answers
+
+```console
+$ yqr '.metadata.labels["app.kubernetes.io/name"] = "api"' deploy.yaml
+yqr: runtime error: cannot address key "app.kubernetes.io/name": it uses
+characters the write path cannot express
+```
+
+Whether the path grammar grows an escape form is the `yqr-f007` §6 question and
+is untouched here. §3's "all three write paths refuse" therefore becomes "two
+of the three still do".
 
 ## 5. Regression coverage
 
@@ -99,3 +136,17 @@ plain-keyed `.spec.template.metadata.labels` block of the same document, so the
 two differ only in the keys' spelling. When this is fixed, the first case turns
 into a `Rewrites` expectation and fails until it is updated — which is the
 intent.
+
+**That trigger fired, on purpose.** Run against the patched crate through a
+path override, the corpus is green except that one case, which now reports the
+successful insert instead of the refusal:
+
+```text
+[write/insert/refuses-a-mapping-whose-keys-hold-a-dot] expected a refusal:
+"...    app.kubernetes.io/component: frontend\n    tier: \"web\"\n..."
+```
+
+So the case flips to `Rewrites` the day a release carries the fix — and note
+the inserted value arrives double-quoted, which is `yqr-b013` and unrelated to
+this one. `docs/content/guide/kubernetes.md` also carries a limitation note
+naming this bug, and it comes out with the same change.
