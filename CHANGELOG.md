@@ -116,6 +116,12 @@ All notable changes to `yqr` are documented here. The format is based on
   guide's "What is not here yet" and pinned by the test suite, so they cannot
   change without someone noticing.
 
+- **YAML engine upgraded to noyalib 0.0.24.** One functional change, and it is
+  a fix yqr reported: deleting the last entry of a block now takes the comment
+  above it along, instead of leaving that comment describing an empty `{}`. yqr
+  already did this itself, so nothing changes in what yqr writes -- what changes
+  is that the engine and yqr now agree, and the dependency graph loses a crate.
+
 - **YAML engine upgraded to noyalib 0.0.23.** Reordering a list now moves each
   item's comments with it. Before, a swap exchanged the values and left every
   comment where it was, so a comment ended up describing whichever item landed

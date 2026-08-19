@@ -223,6 +223,11 @@ time an independent implementation has been the thing that made an upstream
 trivia divergence visible, and the first time yqr has kept a *capability*
 rather than a refusal because of it.
 
+**Retired 2026-08-19.** noyalib#280 is fixed in 0.0.24 — upstream now takes the
+head comment with the sole entry, blank-detached exclusion included — so this
+section's argument no longer holds anything up. The decision it supported did
+not move, but it rests on a different and sharper finding now: `yqr-f018` §4.
+
 ## 6. Upstream close-out
 
 `#221` is closed. Its five sub-asks all shipped, and four of the merged fixes

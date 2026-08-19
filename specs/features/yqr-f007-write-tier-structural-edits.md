@@ -325,6 +325,16 @@ first is settled; the other three are open:
   what the backend can do**, which is a different fact from a diagnostic
   difference.
 
+  **Re-run a third time on the 0.0.24 pin (`yqr-f018` §4), for the sole-entry
+  class alone, because that release removed the reason `yqr-f016` §5 had given
+  for keeping it.** 242 of 244 lib tests pass under delegation, and the two
+  failures are one shape: on a block sequence written at its key's own column,
+  upstream writes the empty collection at the key's column, producing a
+  document PyYAML and Psych both reject while noyalib accepts it — so the
+  re-parse guard, upstream's guard and `yqr validate --strict` are all blind to
+  it (`yqr-b014`). The class stays in `delete_entry`, on that finding rather
+  than on the retired head-comment one.
+
   The three reasons above are untouched by this and still stand; what changed
   is that the "and yqr loses nothing by keeping its own path" half is now "and
   yqr forgoes two delete classes". Upstream also asked directly for the

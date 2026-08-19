@@ -60,6 +60,7 @@ dependency/release timing.
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
 | [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr used to refuse | Done |
+| [f018](yqr-f018-noyalib-0-0-24-adoption.md) | Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -135,7 +136,21 @@ seven refusals now cover every shipped edit, and the tier found two upstream
 defects on its first run, `b012` and `b013`. f008
 (`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
 order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
-(done) → f016 (done) → f007 remainder (done) → M2 → f008.
+(done) → f016 (done) → f007 remainder (done) → f018 (done) → M2 → f008.
+
+f018 **done**: 0.0.24 published 2026-08-18 carrying one functional change, the
+fix for yqr's noyalib#280 — a sole entry's head comment now goes with the
+entry. The pin moved, the suite is green untouched, and the lockfile *loses* a
+crate (noyalib was the last holder of `hashbrown 0.15.5`). The point of the
+feature is the re-measurement it forces: `f016` §5 had kept sole-entry delete
+in yqr's own code **because** of that stranded comment, so with the reason gone
+the delegation was re-run rather than assumed. 242 of 244 lib tests pass under
+it; the two that fail are one shape — the sole item of a block sequence at its
+key's own column, where upstream writes `on:` / `[]`, which noyalib accepts and
+both PyYAML and Psych reject. The class stays in `delete_entry` on that
+finding, and the finding is filed as **`b014`**, whose live half is a false
+negative in yqr's own `validate` (it walks noyalib's tree, so it inherits the
+leniency).
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -175,11 +190,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 17
+- Total features: 18
 - Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
   scoped from the `yqr-r003` usage report)
 - In Progress: 1 (f001 M0)
-- Done: 11 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016)
+- Done: 12 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f018)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

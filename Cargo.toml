@@ -44,7 +44,7 @@ clap = { version = "4.6.1", features = ["derive"] }
 # pin lets yqr delete. (0.0.20 was merged upstream but never tagged, so it
 # never reached crates.io; the published sequence is 0.0.19 -> 0.0.21.) See
 # research r002 and bugs b002/b004/b008/b009.
-noyalib = "0.0.23"
+noyalib = "0.0.24"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
