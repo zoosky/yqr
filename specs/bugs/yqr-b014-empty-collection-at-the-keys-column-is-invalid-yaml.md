@@ -1,8 +1,7 @@
 # Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
 
 **Status:** Open — **§3.2 fixed 2026-08-19** (route 3: `validate` reports it
-as `Y103`); §3.1, the upstream writer, is still open and not filed upstream as
-part of either change
+as `Y103`); §3.1, the upstream writer, **filed 2026-08-19 as noyalib#283**
 **Severity:** Medium — nothing in yqr writes this shape today, so there is no
 live corruption; what is live is the **validator false negative** in §3.2,
 and the fact that every guard in the write loop is blind to the shape
@@ -53,12 +52,41 @@ the deleted line, and that is the only spelling that re-parses everywhere.
 
 ## 3. The two faces
 
-### 3.1 The writer
+### 3.1 The writer — filed as noyalib#283
 
 Upstream's sole-entry arm emits the shape at exit 0. yqr does not reach it
 today: `yqr-f016` §5 kept the sole-entry class in `delete_entry`, and
 `yqr-f018` §5 keeps it there on the strength of exactly this finding. So this
 is a live defect in noyalib and a *blocked route* for yqr, not a yqr bug.
+
+**Filed 2026-08-19 as noyalib#283**, with one argument that did not exist when
+this spec was written: upstream's **own guard already rejects the output** —
+it simply cannot see it in the case that matters. Remove the sibling entry and
+the identical removal is refused:
+
+```text
+"on:\n- push\njobs: {}\n"  -> Ok, writes "on:\n[]\njobs: {}\n"
+"on:\n- push\n"             -> Err: "removing `on[0]` left the document unable
+                                to re-parse ... the document was left unchanged"
+```
+
+Same shape, same removal, same output spelling; refused as a whole document,
+accepted when a `jobs:` line follows. noyalib's parser rejects `on:` / `[]`
+and accepts `on:` / `[]` / `jobs: {}`, so the re-parse guard inherits that
+inconsistency. That is a stronger argument than the two external parsers,
+because it is upstream's own code disagreeing with itself in the neighbouring
+case — the shape of argument that carried `yqr-b010` and noyalib#280.
+
+The mechanism is now localised to one function introduced by #280's own fix,
+`sole_entry_range` (`src/cst/document.rs:3129`), which derives the indent from
+the removed entry's line (`let indent = coll_start - line_start`). For an
+indented collection that is right; for a sequence at its key's column it yields
+the key's column, one short of the minimum a block-mapping value may have. The
+constraint is "strictly deeper than the key", not "match the entry", and the
+two coincide everywhere except this layout.
+
+None of the eight tests added with #280 uses a same-column collection, which is
+why this shipped beside a fix that is otherwise exactly right.
 
 ### 3.2 The validator — **fixed 2026-08-19**
 
@@ -100,9 +128,10 @@ it looks, and this is the clearest instance of the gap so far.
 
 ## 5. Fix routes
 
-1. **Upstream, writer:** derive the empty collection's indent from the parent
-   key, as `delete_entry` does. Narrow, and it makes the sole-entry class
-   fully delegatable (`yqr-f018` §5's revisit condition).
+1. **Upstream, writer — filed as noyalib#283.** Derive the empty collection's
+   indent from the parent key, as `delete_entry` does. Narrow, and it makes the
+   sole-entry class fully delegatable (`yqr-f018` §5's revisit condition). The
+   issue carries yqr's rule verbatim as a reference implementation.
 2. **Upstream, parser:** reject a block-mapping value that is not indented
    past its key. Correct, and the more disruptive of the two — it is a
    leniency users may be relying on, so it belongs behind whatever strictness
