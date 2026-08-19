@@ -1,7 +1,8 @@
 # Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
 
 **Status:** Open — **§3.2 fixed 2026-08-19** (route 3: `validate` reports it
-as `Y103`); §3.1, the upstream writer, **filed 2026-08-19 as noyalib#283**
+as `Y103`); §3.1, the upstream writer, **filed 2026-08-19 as noyalib#283 with a
+fix proposed as noyalib#284**, open until a release carries it
 **Severity:** Medium — nothing in yqr writes this shape today, so there is no
 live corruption; what is live is the **validator false negative** in §3.2,
 and the fact that every guard in the write loop is blind to the shape
@@ -88,6 +89,22 @@ two coincide everywhere except this layout.
 None of the eight tests added with #280 uses a same-column collection, which is
 why this shipped beside a fix that is otherwise exactly right.
 
+**Fix proposed 2026-08-19 as noyalib#284** (route 1 below). The parent key's
+offset is threaded down to `sole_entry_range` — it is already in scope one
+frame up, in `entry_line_span`'s mapping descent — and the indent is clamped to
+the key's column plus two when the entry's own indent does not clear it. A root
+collection has no parent key and keeps today's value, as does a collection
+reached through a sequence item, which is not a key.
+
+Reviewing that patch against a 38-shape battery found a defect in it before the
+maintainer saw it: the key's column was measured as a **byte** distance, so a
+leading BOM inflated it by three and put the replacement in column 5 rather
+than 2. That is the same mistake noyalib#123 fixed in the scanner, and the fix
+reuses the `strip_bom` helper that already exists there. The battery also
+established the patch changes nothing else: 242 of 244 upstream lib tests pass
+under a delegation experiment, every non-same-column layout is byte-identical,
+and three shapes that `main` refused outright now succeed.
+
 ### 3.2 The validator — **fixed 2026-08-19**
 
 `yqr validate` walked noyalib's green tree, inherited the parser's leniency,
@@ -128,10 +145,11 @@ it looks, and this is the clearest instance of the gap so far.
 
 ## 5. Fix routes
 
-1. **Upstream, writer — filed as noyalib#283.** Derive the empty collection's
-   indent from the parent key, as `delete_entry` does. Narrow, and it makes the
-   sole-entry class fully delegatable (`yqr-f018` §5's revisit condition). The
-   issue carries yqr's rule verbatim as a reference implementation.
+1. **Upstream, writer — filed as noyalib#283, fixed in noyalib#284.** Derive
+   the empty collection's indent from the parent key, as `delete_entry` does.
+   Narrow, and it makes the sole-entry class fully delegatable (`yqr-f018` §5's
+   revisit condition) once a release carries it. The issue carries yqr's rule
+   verbatim as a reference implementation, and the PR ports it.
 2. **Upstream, parser:** reject a block-mapping value that is not indented
    past its key. Correct, and the more disruptive of the two — it is a
    leniency users may be relying on, so it belongs behind whatever strictness
