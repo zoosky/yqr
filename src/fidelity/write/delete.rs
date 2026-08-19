@@ -632,8 +632,12 @@ mod tests {
         // `on:` / `- push` is the GitHub Actions idiom: the sequence sits at
         // its key's own column, so the item's indent is *not* deeper than the
         // key. Emitting `[]` there produces `on:` / `[]`, which noyalib parses
-        // and a spec-conformant parser rejects — so the re-parse guard cannot
-        // catch it and `-i` would write an unreadable file at exit 0.
+        // and both PyYAML and Ruby's Psych reject — so the re-parse guard
+        // cannot catch it and `-i` would write an unreadable file at exit 0.
+        //
+        // These two tests are also the whole of what upstream's sole-entry
+        // `remove` gets wrong as of 0.0.24: routing this class to it fails
+        // here and nowhere else (`yqr-f018` §4, filed as `yqr-b014`).
         let out = del(".on[0]", "on:\n- push\njobs: {}\n").unwrap();
         assert_eq!(out, "on:\n  []\njobs: {}\n");
     }
