@@ -1891,7 +1891,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b014](yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml.md) | An empty collection written at its key's own column is invalid YAML that noyalib accepts | Medium | Open (validator half **fixed**) — a block-mapping value must be indented past its key; noyalib's parser accepts one that is not, and its sole-entry `remove` writes one (`on:` / `[]` for the GitHub Actions layout). PyYAML and Ruby's Psych both reject the result. Two faces: the **writer** is upstream's and yqr does not reach it — `yqr-f018` §5 keeps the sole-entry delete in `delete_entry` on the strength of exactly this — while the **validator** face is now **fixed** (2026-08-19): `validate`'s green-tree walk measures each block-mapping entry's value against its key's column and reports `Y103` in default mode, with the two genuinely-valid same-column layouts exempt (a block sequence at its key's column — the GitHub Actions idiom — and a block scalar). Every exemption was checked against PyYAML and Psych rather than reasoned from the spec text. Every guard in the write loop is blind to it for the same reason the `b006`/`b010` blind spots existed: the integrity guard re-parses with the engine whose leniency is the bug. Found by the `yqr-f018` §4 measurement; not filed upstream as part of that change | `yqr-f018`, `yqr-f016`, `yqr-b006`, `yqr-b010`, `yqr-b011`, `yqr-f012` |
+| [b014](yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml.md) | An empty collection written at its key's own column is invalid YAML that noyalib accepts | Medium | Open (validator half **fixed**) — a block-mapping value must be indented past its key; noyalib's parser accepts one that is not, and its sole-entry `remove` writes one (`on:` / `[]` for the GitHub Actions layout). PyYAML and Ruby's Psych both reject the result. Two faces: the **writer** is upstream's and yqr does not reach it — `yqr-f018` §5 keeps the sole-entry delete in `delete_entry` on the strength of exactly this — while the **validator** face is now **fixed** (2026-08-19): `validate`'s green-tree walk measures each block-mapping entry's value against its key's column and reports `Y103` in default mode, with the two genuinely-valid same-column layouts exempt (a block sequence at its key's column — the GitHub Actions idiom — and a block scalar). Every exemption was checked against PyYAML and Psych rather than reasoned from the spec text. Every guard in the write loop is blind to it for the same reason the `b006`/`b010` blind spots existed: the integrity guard re-parses with the engine whose leniency is the bug. Found by the `yqr-f018` §4 measurement and **filed 2026-08-19 as noyalib#283**, on the argument that upstream's own re-parse guard already refuses the identical removal when the mapping has no following sibling — its own code disagreeing with itself, the shape of argument that carried `b010` and noyalib#280 | `yqr-f018`, `yqr-f016`, `yqr-b006`, `yqr-b010`, `yqr-b011`, `yqr-f012` |
 | [b013](yqr-b013-inserted-scalars-take-a-document-wide-quote-style.md) | An inserted scalar is quoted because some unrelated line is quoted | Low | Open — noyalib spells an inserted string with the document's dominant quote style, and the vote counts only quoted scalars against each other, so one `value: "30"` anywhere makes every later insertion quoted however plain its neighbours are. Cosmetic and non-destructive (the value round-trips, `validate` is clean), but it lands at the one line a reader is looking at, and it is what `a001` exists to prevent. Sibling behaviours disagree with it: `set_value` matches the scalar's own style, `rename_key` the neighbouring key's — only insertion reaches document-wide. Found by the `yqr-m003` write tier on its first run and pinned there as it behaves; not filed upstream as part of that change | `yqr-a001`, `yqr-b008`, `yqr-f006`, `yqr-m003` |
 | [b012](yqr-b012-insert-refused-when-every-key-holds-a-dot.md) | A new key cannot be inserted into a mapping whose keys all hold a `.` | Medium | Open — `.metadata.labels.tier = "web"` on a Kubernetes manifest is refused, and the message blames a `<<` merge the file does not contain. Upstream's `mapping_insert_anchor` composes each candidate anchor key back into a path **string** and re-parses it, and `parse_query_path` splits on `.` unconditionally, so every key of a dotted mapping is skipped and the only error the function knows about fires. Two defects nested: the `yqr-f007` §6 addressing limit reaching a mapping it was never meant to reach, and a diagnostic asserting a cause instead of describing the observation. Refusal only — exit 5, file untouched. Found by the `yqr-m003` write tier on its first run; not filed upstream as part of that change | `yqr-f007`, `yqr-a002`, `yqr-b004`, `yqr-m003` |
 | [b011](yqr-b011-multiline-flow-collection-fails-to-parse.md) | A multi-line flow collection is valid YAML that yqr cannot read at all | Medium | Open — noyalib refuses to parse a flow collection spread over several lines (`ports: [` / `  80,` / `]`), which PyYAML and the YAML spec both accept; the message names the right indentation rule and applies it to the closing indicator. Loud rather than silent (exit 5, no damage), but it is a **whole-file read** refusal, so `a001`'s guarantee is vacuous for these files and `validate` calls them unreadable. Found while reviewing the `yqr-f016` §5 flow-delete work — the "flow deletes only work on single-line collections" limitation is a symptom of this. **Not yet filed upstream**; the fix is in noyalib's parser, a part yqr has not contributed to before | `yqr-a001`, `yqr-b004`, `yqr-f016` |
@@ -4439,8 +4439,7 @@ URL: /yqr/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yam
 # Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
 
 **Status:** Open — **§3.2 fixed 2026-08-19** (route 3: `validate` reports it
-as `Y103`); §3.1, the upstream writer, is still open and not filed upstream as
-part of either change
+as `Y103`); §3.1, the upstream writer, **filed 2026-08-19 as noyalib#283**
 **Severity:** Medium — nothing in yqr writes this shape today, so there is no
 live corruption; what is live is the **validator false negative** in §3.2,
 and the fact that every guard in the write loop is blind to the shape
@@ -4491,12 +4490,41 @@ the deleted line, and that is the only spelling that re-parses everywhere.
 
 ## 3. The two faces
 
-### 3.1 The writer
+### 3.1 The writer — filed as noyalib#283
 
 Upstream's sole-entry arm emits the shape at exit 0. yqr does not reach it
 today: `yqr-f016` §5 kept the sole-entry class in `delete_entry`, and
 `yqr-f018` §5 keeps it there on the strength of exactly this finding. So this
 is a live defect in noyalib and a *blocked route* for yqr, not a yqr bug.
+
+**Filed 2026-08-19 as noyalib#283**, with one argument that did not exist when
+this spec was written: upstream's **own guard already rejects the output** —
+it simply cannot see it in the case that matters. Remove the sibling entry and
+the identical removal is refused:
+
+```text
+"on:\n- push\njobs: {}\n"  -> Ok, writes "on:\n[]\njobs: {}\n"
+"on:\n- push\n"             -> Err: "removing `on[0]` left the document unable
+                                to re-parse ... the document was left unchanged"
+```
+
+Same shape, same removal, same output spelling; refused as a whole document,
+accepted when a `jobs:` line follows. noyalib's parser rejects `on:` / `[]`
+and accepts `on:` / `[]` / `jobs: {}`, so the re-parse guard inherits that
+inconsistency. That is a stronger argument than the two external parsers,
+because it is upstream's own code disagreeing with itself in the neighbouring
+case — the shape of argument that carried `yqr-b010` and noyalib#280.
+
+The mechanism is now localised to one function introduced by #280's own fix,
+`sole_entry_range` (`src/cst/document.rs:3129`), which derives the indent from
+the removed entry's line (`let indent = coll_start - line_start`). For an
+indented collection that is right; for a sequence at its key's column it yields
+the key's column, one short of the minimum a block-mapping value may have. The
+constraint is "strictly deeper than the key", not "match the entry", and the
+two coincide everywhere except this layout.
+
+None of the eight tests added with #280 uses a same-column collection, which is
+why this shipped beside a fix that is otherwise exactly right.
 
 ### 3.2 The validator — **fixed 2026-08-19**
 
@@ -4538,9 +4566,10 @@ it looks, and this is the clearest instance of the gap so far.
 
 ## 5. Fix routes
 
-1. **Upstream, writer:** derive the empty collection's indent from the parent
-   key, as `delete_entry` does. Narrow, and it makes the sole-entry class
-   fully delegatable (`yqr-f018` §5's revisit condition).
+1. **Upstream, writer — filed as noyalib#283.** Derive the empty collection's
+   indent from the parent key, as `delete_entry` does. Narrow, and it makes the
+   sole-entry class fully delegatable (`yqr-f018` §5's revisit condition). The
+   issue carries yqr's rule verbatim as a reference implementation.
 2. **Upstream, parser:** reject a block-mapping value that is not indented
    past its key. Correct, and the more disruptive of the two — it is a
    leniency users may be relying on, so it belongs behind whatever strictness

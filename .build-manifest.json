@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-19T05:05:11Z",
+  "timestamp": "2026-08-19T16:18:43Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "9c694efd98e13d92",
+      "content_hash": "331e1547e192be86",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -138,7 +138,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml": {
-      "content_hash": "d95298d2ec5f5eeb",
+      "content_hash": "9d7861e95c5a7b3e",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

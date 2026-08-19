@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, is still open and not filed upstream as part of either change Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator fals...">
+<meta name="description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator false negative in §3.2, and the f...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b014 — An empty collection written at its key&#x27;s own column is invalid YAML that noyalib accepts">
-<meta property="og:description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, is still open and not filed upstream as part of either change Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator fals...">
+<meta property="og:description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator false negative in §3.2, and the f...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b014 — An empty collection written at its key&#x27;s own column is invalid YAML that noyalib accepts">
-<meta name="twitter:description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, is still open and not filed upstream as part of either change Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator fals...">
+<meta name="twitter:description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator false negative in §3.2, and the f...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-19",
-  "description": "Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, is still open and not filed upstream as part of either change Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator fals...",
+  "description": "Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 Severity: Medium — nothing in yqr writes this shape today, so there is no live corruption; what is live is the validator false negative in §3.2, and the f...",
   "inLanguage": "en",
   "name": "Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml",
-  "wordCount": 1029
+  "wordCount": 1287
 }
 </script>
 <script type="application/ld+json">
@@ -3049,8 +3049,7 @@
         <div class="content prose">
             <h1 id="bug-b014-an-empty-collection-written-at-its-key-s-own-column-is-invalid-yaml-that-noyalib-accepts">Bug b014 — An empty collection written at its key’s own column is invalid YAML that noyalib accepts<a class="heading-anchor" href="#bug-b014-an-empty-collection-written-at-its-key-s-own-column-is-invalid-yaml-that-noyalib-accepts" aria-label="Link to this section"></a></h1>
 <p><strong>Status:</strong> Open — <strong>§3.2 fixed 2026-08-19</strong> (route 3: <code>validate</code> reports it
-as <code>Y103</code>); §3.1, the upstream writer, is still open and not filed upstream as
-part of either change
+as <code>Y103</code>); §3.1, the upstream writer, <strong>filed 2026-08-19 as noyalib#283</strong>
 <strong>Severity:</strong> Medium — nothing in yqr writes this shape today, so there is no
 live corruption; what is live is the <strong>validator false negative</strong> in §3.2,
 and the fact that every guard in the write loop is blind to the shape
@@ -3089,11 +3088,34 @@ layout <em>is</em> the key’s column. yqr’s own path indents it one level dee
 because <code>delete_entry</code> derives the indent from the parent key rather than from
 the deleted line, and that is the only spelling that re-parses everywhere.</p>
 <h2 id="3-the-two-faces">3. The two faces<a class="heading-anchor" href="#3-the-two-faces" aria-label="Link to this section"></a></h2>
-<h3 id="3-1-the-writer">3.1 The writer<a class="heading-anchor" href="#3-1-the-writer" aria-label="Link to this section"></a></h3>
+<h3 id="3-1-the-writer-filed-as-noyalib-283">3.1 The writer — filed as noyalib#283<a class="heading-anchor" href="#3-1-the-writer-filed-as-noyalib-283" aria-label="Link to this section"></a></h3>
 <p>Upstream’s sole-entry arm emits the shape at exit 0. yqr does not reach it
 today: <code>yqr-f016</code> §5 kept the sole-entry class in <code>delete_entry</code>, and
 <code>yqr-f018</code> §5 keeps it there on the strength of exactly this finding. So this
 is a live defect in noyalib and a <em>blocked route</em> for yqr, not a yqr bug.</p>
+<p><strong>Filed 2026-08-19 as noyalib#283</strong>, with one argument that did not exist when
+this spec was written: upstream’s <strong>own guard already rejects the output</strong> —
+it simply cannot see it in the case that matters. Remove the sibling entry and
+the identical removal is refused:</p>
+<pre><code class="language-text">"on:\n- push\njobs: {}\n"  -&gt; Ok, writes "on:\n[]\njobs: {}\n"
+"on:\n- push\n"             -&gt; Err: "removing `on[0]` left the document unable
+                                to re-parse ... the document was left unchanged"
+</code></pre>
+<p>Same shape, same removal, same output spelling; refused as a whole document,
+accepted when a <code>jobs:</code> line follows. noyalib’s parser rejects <code>on:</code> / <code>[]</code>
+and accepts <code>on:</code> / <code>[]</code> / <code>jobs: {}</code>, so the re-parse guard inherits that
+inconsistency. That is a stronger argument than the two external parsers,
+because it is upstream’s own code disagreeing with itself in the neighbouring
+case — the shape of argument that carried <code>yqr-b010</code> and noyalib#280.</p>
+<p>The mechanism is now localised to one function introduced by #280’s own fix,
+<code>sole_entry_range</code> (<code>src/cst/document.rs:3129</code>), which derives the indent from
+the removed entry’s line (<code>let indent = coll_start - line_start</code>). For an
+indented collection that is right; for a sequence at its key’s column it yields
+the key’s column, one short of the minimum a block-mapping value may have. The
+constraint is “strictly deeper than the key”, not “match the entry”, and the
+two coincide everywhere except this layout.</p>
+<p>None of the eight tests added with #280 uses a same-column collection, which is
+why this shipped beside a fix that is otherwise exactly right.</p>
 <h3 id="3-2-the-validator-fixed-2026-08-19">3.2 The validator — <strong>fixed 2026-08-19</strong><a class="heading-anchor" href="#3-2-the-validator-fixed-2026-08-19" aria-label="Link to this section"></a></h3>
 <p><code>yqr validate</code> walked noyalib’s green tree, inherited the parser’s leniency,
 and reported the file clean. A user running yqr as the correctness gate in a
@@ -3127,9 +3149,10 @@ guard proves <em>this engine can read it back</em>, which is a weaker statement 
 it looks, and this is the clearest instance of the gap so far.</p>
 <h2 id="5-fix-routes">5. Fix routes<a class="heading-anchor" href="#5-fix-routes" aria-label="Link to this section"></a></h2>
 <ol>
-<li><strong>Upstream, writer:</strong> derive the empty collection’s indent from the parent
-key, as <code>delete_entry</code> does. Narrow, and it makes the sole-entry class
-fully delegatable (<code>yqr-f018</code> §5’s revisit condition).</li>
+<li><strong>Upstream, writer — filed as noyalib#283.</strong> Derive the empty collection’s
+indent from the parent key, as <code>delete_entry</code> does. Narrow, and it makes the
+sole-entry class fully delegatable (<code>yqr-f018</code> §5’s revisit condition). The
+issue carries yqr’s rule verbatim as a reference implementation.</li>
 <li><strong>Upstream, parser:</strong> reject a block-mapping value that is not indented
 past its key. Correct, and the more disruptive of the two — it is a
 leniency users may be relying on, so it belongs behind whatever strictness
@@ -3193,7 +3216,7 @@ interpreters.</p>
             </li>
         
             <li class="toc-level-3">
-                <a href="#3-1-the-writer">3.1 The writer</a>
+                <a href="#3-1-the-writer-filed-as-noyalib-283">3.1 The writer — filed as noyalib#283</a>
             </li>
         
             <li class="toc-level-3">
