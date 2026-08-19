@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787082503233,
+  "lastUpdate": 1787114502156,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1259,6 +1259,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 162054,
             "range": "± 1610",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "da9a33976bccad4591ae55d2b2663a206e5e86fa",
+          "message": "test(corpus): add a write tier to the shared corpus (m003) (#73)\n\nThe corpus had two case tiers and both were read-only by construction:\nEngineCase runs through fidelity::run, which reaches parser::parse, which\nrejects a mutation by design. So no edit was covered at all -- b008 §6\nfiled this as a missing multi-line-insert case, but the gap was a level up.\n\nAdds WriteCase / WriteExpect and write_cases(): 31 cases over the genuine\ndocuments, at least one per shipped write operation (assign, insert, +=,\ndel, key rename, comment set/remove, swap/move, CRLF, multi-doc), plus\nseven refusals, one per integrity guard. A case states the spans it\nrewrites; the checker builds the expected document from the input, so\nevery byte the case does not name is asserted unchanged. Each successful\noutput is additionally run through validate in strict mode.\n\nBoth consumers pick the tier up: corpus_validation gains\nwrite_corpus_edits_only_the_targeted_bytes and folds the write docs and\nids into the two cross-cutting tests; corpus_bench gains corpus/write_all\nand corpus/scale_write, and routes write filters through parse_program in\ncorpus/parse_all -- parse rejects them, so timing them any other way times\nthe error path.\n\nTwo real documents were needed and added: a workflow written with flow\ncollections (block documents cannot reach the flow member paths) and a\nCRLF config (a block-string literal would spell the terminator \\n and\nquietly test nothing).\n\nThe tier found two upstream defects on its first run, both filed and\npinned as they behave:\n\n- b012: a new key cannot be inserted into a mapping whose keys all hold a\n  `.` -- the standard Kubernetes label block -- and the refusal blames a\n  `<<` merge the file does not contain. Upstream composes each candidate\n  anchor key back into a path string and re-parses it.\n- b013: an inserted scalar takes the document's dominant quote style, a\n  vote in which plain scalars do not count, so one quoted line anywhere\n  decides the spelling at every later edit site. This is the b008 shape\n  exactly: the unit test pinning the multi-line append passes only\n  because its toy document happens to contain no quoted scalar.\n\nThe Kubernetes guide promised the b012 edit in \"Other edits you can make\ntoday\"; its limitations section now says what actually happens.\n\nAlso drops a sentence from write::apply's doc comment that contradicted\nthe paragraph below it (and the behaviour): a mutation matching no\ndocument is a no-op, not an error.",
+          "timestamp": "2026-08-19T06:40:18+02:00",
+          "tree_id": "e2dce508611d0b944eb286226120469da09ae024",
+          "url": "https://github.com/zoosky/yqr/commit/da9a33976bccad4591ae55d2b2663a206e5e86fa"
+        },
+        "date": 1787114500090,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 509,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5122,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 257075,
+            "range": "± 2794",
             "unit": "ns/iter"
           }
         ]
