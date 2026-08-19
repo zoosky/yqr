@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "timestamp": "2026-08-19T04:50:40Z",
+  "timestamp": "2026-08-19T05:05:11Z",
   "pages": {
     "/": {
-      "content_hash": "de11cec76d9c79f9",
+      "content_hash": "343b704b48f68933",
       "template": "home.html.jinja",
       "template_hash": "feec811eaced002c"
     },
@@ -38,7 +38,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/validate": {
-      "content_hash": "20b657a778fb827d",
+      "content_hash": "c1de6bdc4b947df1",
       "template": "validate.html.jinja",
       "template_hash": "30406ea523c53def"
     },
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "76f853d220fc6817",
+      "content_hash": "9c694efd98e13d92",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -138,7 +138,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml": {
-      "content_hash": "d7fa5495cbd5bdcd",
+      "content_hash": "d95298d2ec5f5eeb",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -208,7 +208,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f012-validate-command": {
-      "content_hash": "538ffdce2ab7875b",
+      "content_hash": "e0e1edba15ea8684",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

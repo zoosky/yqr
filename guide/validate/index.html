@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
   "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 638
+  "wordCount": 858
 }
 </script>
 <script type="application/ld+json">
@@ -378,7 +378,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">4 min read</span>
+                    <span class="reading-time">5 min read</span>
                 </div>
                 
 
@@ -394,6 +394,10 @@
     
         <li class="toc-level-2">
             <a href="#when-something-is-wrong">When something is wrong</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#the-file-your-engine-reads-and-nobody-else-does">The file your engine reads and nobody else does</a>
         </li>
     
         <li class="toc-level-2">
@@ -452,6 +456,41 @@ readable for a person as it is parseable for whatever is running it.</p>
 <p>Exit 0 when every input is valid, 1 when any input fails, and 5 when an
 input cannot be read at all – a missing file is a different problem from a
 malformed one, so it gets a different code.</p>
+<h2 id="the-file-your-engine-reads-and-nobody-else-does">The file your engine reads and nobody else does<a class="heading-anchor" href="#the-file-your-engine-reads-and-nobody-else-does" aria-label="Link to this section"></a></h2>
+<!-- Bug b014 §3.2: the Y103 check. -->
+<p>A mapping value on its own line has to be indented past its key. Some
+parsers – yqr’s included – read one that is not, which is worse than
+refusing it: the file works for you and fails for everyone else.</p>
+<pre><code class="language-console">$ cat workflow.yaml
+on:
+[]
+jobs: {}
+$ yqr validate workflow.yaml
+error[Y103]: block mapping value is not indented past its key
+  --&gt; workflow.yaml:2:1
+  |
+2 | []
+  | ^
+  = note: its key is at line 1, column 1, so the value must start at column 2 or deeper
+  = help: indent the value, or write it on the key's own line; noyalib reads this file but other YAML implementations reject it
+</code></pre>
+<p>This one is not a <code>--strict</code> opinion, so it is on by default: the document
+is invalid, not merely unusual. Python’s PyYAML and Ruby’s Psych both refuse
+that file.</p>
+<p>Two layouts look like this and are perfectly fine, so they are never
+flagged. A block sequence may sit at its key’s own column – the GitHub
+Actions and Ansible style:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#d08770;">on</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">- </span><span style="color:#a3be8c;">push
+</span><span style="color:#c0c5ce;">- </span><span style="color:#a3be8c;">pull_request
+</span></pre>
+<p>And a block scalar sets its own indentation, so its <code>|</code> may sit anywhere:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">script</span><span style="color:#c0c5ce;">:
+</span><span style="color:#b48ead;">|
+</span><span style="color:#a3be8c;">  make build
+</span></pre>
 <h2 id="strict-and-the-bug-it-catches"><code>--strict</code>, and the bug it catches<a class="heading-anchor" href="#strict-and-the-bug-it-catches" aria-label="Link to this section"></a></h2>
 <p>Here is a file that is perfectly legal YAML and almost certainly a mistake:</p>
 <pre style="background-color:#2b303b;">
