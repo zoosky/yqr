@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787115113455,
+  "lastUpdate": 1787115978991,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1343,6 +1343,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 250593,
             "range": "± 2161",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fa7f568f15555a712a418c37e7cccb723ce07e87",
+          "message": "fix(validate): report a block value not indented past its key (b014 §3.2) (#75)",
+          "timestamp": "2026-08-19T07:04:58+02:00",
+          "tree_id": "58ad87d488805182343dd7cecf0586a86e45d0a5",
+          "url": "https://github.com/zoosky/yqr/commit/fa7f568f15555a712a418c37e7cccb723ce07e87"
+        },
+        "date": 1787115975837,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 417,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4100,
+            "range": "± 173",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 213808,
+            "range": "± 8795",
             "unit": "ns/iter"
           }
         ]
