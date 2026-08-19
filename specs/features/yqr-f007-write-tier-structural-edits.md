@@ -13,7 +13,9 @@ on), `yqr-a002` (the addressing grammar for the three deferred slices),
 `yqr-b004` (the noyalib 0.0.14 mutation-API gap catalog) and its §6.6 (the
 comment-mutator asymmetries the comment slice must pre-check), `yqr-b010` (the
 reorder trivia disagreement that blocked the last slice, fixed by yqr in
-noyalib 0.0.23), `yqr-m002` §4/§6.2 (write-tier seam)
+noyalib 0.0.23), `yqr-m002` §4/§6.2 (write-tier seam), `yqr-m003` (the shared
+corpus, whose write tier now covers this feature — §6), `yqr-b012`/`yqr-b013`
+(what that tier found)
 
 ## 1. Scope
 
@@ -357,19 +359,38 @@ first is settled; the other three are open:
 
   Every `yqr-a002` form inherits the same refusal (`yqr-a002` §7.3). This is the
   common Kubernetes label/annotation case and is worth doing.
-- **A write tier in the shared corpus.** `yqr-b008` §6 names the specific gap:
-  the unit tests pin the multi-line-insert fix, but `yqr-m003`'s byte-exact
-  `EngineCase` tier has no multi-line-string insert, so a backend swap could
-  reintroduce the corruption without failing `tests/corpus_validation.rs`. The
-  cause is one level up — `EngineCase` runs through `fidelity::run`, which
-  refuses a mutating filter, so **no** edit is covered by the corpus at all.
-  Slices 1 and 2 could add corpus cases because they have read forms; a reorder
-  has none, so §9 is unit- and CLI-tested only and adds nothing here. Closing
-  this is a third case tier (`WriteCase`) plus its two consumers, not a case.
+- **A write tier in the shared corpus — done 2026-08-18.** `yqr-b008` §6 named
+  the specific gap: the unit tests pin the multi-line-insert fix, but
+  `yqr-m003`'s byte-exact `EngineCase` tier had no multi-line-string insert, so
+  a backend swap could reintroduce the corruption without failing
+  `tests/corpus_validation.rs`. The cause was one level up — `EngineCase` runs
+  through `fidelity::run`, which refuses a mutating filter, so **no** edit was
+  covered by the corpus at all.
+
+  Closed with a third case tier (`WriteCase`) and its two consumers, per
+  `yqr-m003` §3–§6: 31 cases over the genuine documents, at least one per
+  shipped write operation — including the reorder verbs of §9, which have no
+  read form and were unit- and CLI-tested only — plus seven refusals, one per
+  integrity guard. A case states the spans it rewrites and the checker *builds*
+  the expected document from the input, so every byte the case does not name is
+  asserted unchanged; each successful output is additionally run through
+  `validate` in strict mode.
+
+  The tier paid for itself on its first run, which is the argument for it
+  rather than a bonus: it found `yqr-b012` (a new key cannot be inserted into a
+  mapping whose keys all hold a `.` — the standard Kubernetes label block — and
+  the refusal blames a `<<` merge that is not there) and `yqr-b013` (an
+  inserted scalar takes the document's dominant quote style, a vote in which
+  plain scalars do not count, so one quoted line anywhere decides the spelling
+  at every later edit site). Both are pinned as they behave. The second is the
+  b008 shape exactly: the unit test that pins the multi-line append passes only
+  because its toy document happens to contain no quoted scalar.
 
 _(The grammar and the upstream API surface are now both known; the per-slice
 criteria live in `yqr-a002` §9. What stays open here is the scope and
-addressing work above, which `yqr-a002` §8 explicitly does not decide.)_
+addressing work above, which `yqr-a002` §8 explicitly does not decide — the
+delete-delegation question, collection right-hand sides, and keys holding `.`
+or `[`, whose insert face is now filed as `yqr-b012`.)_
 
 ## 7. Key rename (shipped)
 

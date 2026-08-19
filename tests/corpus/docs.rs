@@ -193,6 +193,38 @@ service:
   region: 'us-east-1'
 ";
 
+/// A GitHub Actions workflow written with **flow** collections — a flow
+/// sequence of triggers and a flow mapping of environment variables. Block
+/// documents cannot exercise the flow paths (member delete, member reorder),
+/// which the engine handles with entirely different arithmetic: a flow member
+/// owns no line of its own, only a span and a separator.
+pub const GH_ACTIONS_FLOW: &str = "\
+name: Lint
+on: [push, pull_request]
+env: { RUST_LOG: warn, CARGO_TERM_COLOR: always }
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: cargo clippy --all-targets -- -D warnings
+";
+
+/// The same shape as [`APP_CONFIG`], terminated with CRLF throughout.
+///
+/// Written as an explicit `concat!` because the terminator is the point: a
+/// block-string literal would spell it `\n` and quietly test nothing. An edit
+/// that inserts a line into this document must terminate it the way the
+/// document does, or the result is a mixed-ending file — written straight to
+/// disk under `-i`.
+pub const CRLF_APP_CONFIG: &str = concat!(
+    "server:\r\n",
+    "  host: 0.0.0.0\r\n",
+    "  port: 8443\r\n",
+    "logging:\r\n",
+    "  level: warn\r\n",
+);
+
 /// Build a large inventory document with `n` host records — used by the
 /// benchmark to measure iteration/projection at scale. Only the benchmark crate
 /// consumes it, so it is dead code from the validation crate's point of view.

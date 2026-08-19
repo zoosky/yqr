@@ -10,6 +10,8 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b013](yqr-b013-inserted-scalars-take-a-document-wide-quote-style.md) | An inserted scalar is quoted because some unrelated line is quoted | Low | Open — noyalib spells an inserted string with the document's dominant quote style, and the vote counts only quoted scalars against each other, so one `value: "30"` anywhere makes every later insertion quoted however plain its neighbours are. Cosmetic and non-destructive (the value round-trips, `validate` is clean), but it lands at the one line a reader is looking at, and it is what `a001` exists to prevent. Sibling behaviours disagree with it: `set_value` matches the scalar's own style, `rename_key` the neighbouring key's — only insertion reaches document-wide. Found by the `yqr-m003` write tier on its first run and pinned there as it behaves; not filed upstream as part of that change | `yqr-a001`, `yqr-b008`, `yqr-f006`, `yqr-m003` |
+| [b012](yqr-b012-insert-refused-when-every-key-holds-a-dot.md) | A new key cannot be inserted into a mapping whose keys all hold a `.` | Medium | Open — `.metadata.labels.tier = "web"` on a Kubernetes manifest is refused, and the message blames a `<<` merge the file does not contain. Upstream's `mapping_insert_anchor` composes each candidate anchor key back into a path **string** and re-parses it, and `parse_query_path` splits on `.` unconditionally, so every key of a dotted mapping is skipped and the only error the function knows about fires. Two defects nested: the `yqr-f007` §6 addressing limit reaching a mapping it was never meant to reach, and a diagnostic asserting a cause instead of describing the observation. Refusal only — exit 5, file untouched. Found by the `yqr-m003` write tier on its first run; not filed upstream as part of that change | `yqr-f007`, `yqr-a002`, `yqr-b004`, `yqr-m003` |
 | [b011](yqr-b011-multiline-flow-collection-fails-to-parse.md) | A multi-line flow collection is valid YAML that yqr cannot read at all | Medium | Open — noyalib refuses to parse a flow collection spread over several lines (`ports: [` / `  80,` / `]`), which PyYAML and the YAML spec both accept; the message names the right indentation rule and applies it to the closing indicator. Loud rather than silent (exit 5, no damage), but it is a **whole-file read** refusal, so `a001`'s guarantee is vacuous for these files and `validate` calls them unreadable. Found while reviewing the `yqr-f016` §5 flow-delete work — the "flow deletes only work on single-line collections" limitation is a symptom of this. **Not yet filed upstream**; the fix is in noyalib's parser, a part yqr has not contributed to before | `yqr-a001`, `yqr-b004`, `yqr-f016` |
 
 ## Resolved
@@ -29,9 +31,15 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 11
-- Open: 1 (b011 — noyalib cannot parse a multi-line flow collection, so yqr
-  cannot read the file at all; loud, not silent, and not yet filed upstream)
+- Total bugs: 13
+- Open: 3 (b013 — an inserted scalar takes the document's dominant quote style,
+  which counts only quoted scalars, so one quoted line anywhere decides the
+  spelling at every later edit site; b012 — a new key cannot be inserted into a
+  mapping whose keys all hold a `.`, and the refusal blames a `<<` merge that is
+  not there; both found by the `yqr-m003` write tier on its first run and pinned
+  there as they behave. b011 — noyalib cannot parse a multi-line flow
+  collection, so yqr cannot read the file at all; loud, not silent, and not yet
+  filed upstream)
 - Resolved: 10 (b010 — noyalib's reorder exchanged value bytes only, so every
   comment stayed with the slot; filed as noyalib#269, re-framed from "defect"
   to a semantics disagreement once its pinning test turned up, argued on
