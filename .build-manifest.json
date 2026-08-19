@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-19T18:34:39Z",
+  "timestamp": "2026-08-19T20:21:34Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "f2e11147188d1e8d",
+      "content_hash": "56582b7633e78aad",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -128,17 +128,17 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b012-insert-refused-when-every-key-holds-a-dot": {
-      "content_hash": "2c5a62147c02bd1c",
+      "content_hash": "479bc7012d1c7749",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b013-inserted-scalars-take-a-document-wide-quote-style": {
-      "content_hash": "7cdef54b962aa673",
+      "content_hash": "c9a250beadbd0054",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml": {
-      "content_hash": "9d7861e95c5a7b3e",
+      "content_hash": "987023219e345daf",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

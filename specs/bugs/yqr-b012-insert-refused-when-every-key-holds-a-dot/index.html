@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label&#x2f;annotation block, and the diagnostic names a cause that is not present in the d...">
+<meta name="description" content="Status: Open — filed upstream 2026-08-19 as noyalib#288 with a fix proposed as noyalib#289; open here until a release carries it Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label&#x2f;annotation block, and the diagnostic names a cause...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b012-insert-refused-when-every-key-holds-a-dot">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b012 — A new key cannot be inserted into a mapping whose keys all hold a `.`">
-<meta property="og:description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label&#x2f;annotation block, and the diagnostic names a cause that is not present in the d...">
+<meta property="og:description" content="Status: Open — filed upstream 2026-08-19 as noyalib#288 with a fix proposed as noyalib#289; open here until a release carries it Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label&#x2f;annotation block, and the diagnostic names a cause...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b012-insert-refused-when-every-key-holds-a-dot">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b012 — A new key cannot be inserted into a mapping whose keys all hold a `.`">
-<meta name="twitter:description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label&#x2f;annotation block, and the diagnostic names a cause that is not present in the d...">
+<meta name="twitter:description" content="Status: Open — filed upstream 2026-08-19 as noyalib#288 with a fix proposed as noyalib#289; open here until a release carries it Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label&#x2f;annotation block, and the diagnostic names a cause...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-19",
-  "description": "Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label/annotation block, and the diagnostic names a cause that is not present in the d...",
+  "description": "Status: Open — filed upstream 2026-08-19 as noyalib#288 with a fix proposed as noyalib#289; open here until a release carries it Severity: Medium — a refusal, not damage (exit 5, file untouched), but the shape is the standard Kubernetes label/annotation block, and the diagnostic names a cause...",
   "inLanguage": "en",
   "name": "Bug b012 — A new key cannot be inserted into a mapping whose keys all hold a `.`",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b012-insert-refused-when-every-key-holds-a-dot",
-  "wordCount": 665
+  "wordCount": 1031
 }
 </script>
 <script type="application/ld+json">
@@ -3047,8 +3047,8 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open (found 2026-08-18 by the <code>yqr-m003</code> write tier; not filed
-upstream as part of this change)
+            <p><strong>Status:</strong> Open — filed upstream 2026-08-19 as noyalib#288 with a fix
+proposed as noyalib#289; open here until a release carries it
 <strong>Severity:</strong> Medium — a refusal, not damage (exit 5, file untouched), but the
 shape is the standard Kubernetes label/annotation block, and the diagnostic
 names a cause that is not present in the document
@@ -3108,21 +3108,51 @@ workaround (<code>use set with a fragment instead</code>) names an API yqr does 
 expose on this path.</li>
 <li>Nothing is silently wrong: the edit is refused, <code>-i</code> leaves the file alone.</li>
 </ul>
-<h2 id="4-fix-routes">4. Fix routes<a class="heading-anchor" href="#4-fix-routes" aria-label="Link to this section"></a></h2>
+<h2 id="4-fix-routes-1-and-2-taken-2026-08-19">4. Fix routes — 1 and 2 taken 2026-08-19<a class="heading-anchor" href="#4-fix-routes-1-and-2-taken-2026-08-19" aria-label="Link to this section"></a></h2>
 <ol>
-<li><strong>Upstream, narrow:</strong> re-word the error to describe what was observed and
-list the keys that could not be addressed. Removes the false cause; leaves
-the limit.</li>
+<li><strong>Upstream, narrow:</strong> re-word the error to describe what was observed.
+<strong>Done</strong> as part of noyalib#289.</li>
 <li><strong>Upstream, real:</strong> give <code>mapping_insert_anchor</code> a path-free way to reach a
-key’s span (walk the green tree, or take a <code>&amp;GreenNode</code> rather than a
-composed string). This also removes the limit for <code>set_value</code>, <code>remove</code>,
-<code>rename_key</code> and <code>swap_items</code>, which compose paths the same way — the
-<code>yqr-f007</code> §6 item in full.</li>
-<li><strong>yqr-side:</strong> own the anchor arithmetic, on the <code>f007</code> §2 last-resort route.
-Not preferred: it duplicates upstream’s indentation model for one case.</li>
+key’s span. <strong>Done</strong> in noyalib#289, and by a route this spec did not
+anticipate: not the green tree but the <strong>span tree</strong>, which already holds
+the target mapping’s entries with their spans. The fix adds <code>resolve_tree</code>
+— the span-tree twin of the existing <code>resolve_span</code>, for callers that want
+the addressed node’s structure rather than its span — and the anchor search
+walks those entries directly. No path is composed, so the key’s spelling
+stops mattering.</li>
+<li><strong>yqr-side:</strong> own the anchor arithmetic. Not taken, and now moot for insert.</li>
 </ol>
-<p>Route 2 is the one worth filing; route 1 is worth filing regardless, being a
-message change with no semantics attached.</p>
+<h3 id="4-1-what-3-s-measurement-missed">4.1 What §3’s measurement missed<a class="heading-anchor" href="#4-1-what-3-s-measurement-missed" aria-label="Link to this section"></a></h3>
+<p>This spec recorded “all three write paths refuse”. That was right, but it hid
+that the insert refusal has <strong>two</strong> independent causes in upstream, not one:
+<code>mapping_insert_anchor</code> composes a path per candidate key, and <code>insert_entry</code>
+duplicates the same logic inline rather than calling it. Fixing only the first
+left <code>insert_entry</code> failing with a <em>different</em> message
+(<code>could not resolve last entry span</code>). The fix consolidates them.</p>
+<h3 id="4-2-three-things-the-fix-settles-beyond-this-bug">4.2 Three things the fix settles beyond this bug<a class="heading-anchor" href="#4-2-three-things-the-fix-settles-beyond-this-bug" aria-label="Link to this section"></a></h3>
+<p>Each is a shape the anchor search reached only once it stopped going through
+path strings:</p>
+<ul>
+<li>Keys holding <code>[</code> or <code>*</code>, and quoted keys such as <code>"a.b"</code>, insert correctly
+for the same reason.</li>
+<li>A mapping whose last entry is an <strong>implicit null</strong> (<code>b:</code> with no value) now
+anchors on that entry’s own key line, so a new sibling lands after it.
+<code>insert_entry</code> used to refuse such a mapping outright and <code>insert_entry_value</code>
+inserted <em>above</em> the null.</li>
+<li>A mapping with both a <code>&lt;&lt;</code> merge and an entry of its own anchors on the
+entry. A merge-only mapping still refuses, with a message that now describes
+the observation.</li>
+</ul>
+<h3 id="4-3-what-is-still-out-of-reach">4.3 What is still out of reach<a class="heading-anchor" href="#4-3-what-is-still-out-of-reach" aria-label="Link to this section"></a></h3>
+<p>Insert only. <code>set_value</code>, <code>delete</code>, <code>rename_key</code> and the reorder verbs still
+address through <code>parse_query_path</code>, so on the 0.0.24 pin yqr still answers</p>
+<pre><code class="language-console">$ yqr '.metadata.labels["app.kubernetes.io/name"] = "api"' deploy.yaml
+yqr: runtime error: cannot address key "app.kubernetes.io/name": it uses
+characters the write path cannot express
+</code></pre>
+<p>Whether the path grammar grows an escape form is the <code>yqr-f007</code> §6 question and
+is untouched here. §3’s “all three write paths refuse” therefore becomes “two
+of the three still do”.</p>
 <h2 id="5-regression-coverage">5. Regression coverage<a class="heading-anchor" href="#5-regression-coverage" aria-label="Link to this section"></a></h2>
 <p><code>tests/corpus/mod.rs</code>, case <code>write/insert/refuses-a-mapping-whose-keys-hold-a-dot</code>,
 pins the refusal (exit 5) against <code>K8S_DEPLOYMENT</code>. Its sibling
@@ -3131,6 +3161,16 @@ plain-keyed <code>.spec.template.metadata.labels</code> block of the same docume
 two differ only in the keys’ spelling. When this is fixed, the first case turns
 into a <code>Rewrites</code> expectation and fails until it is updated — which is the
 intent.</p>
+<p><strong>That trigger fired, on purpose.</strong> Run against the patched crate through a
+path override, the corpus is green except that one case, which now reports the
+successful insert instead of the refusal:</p>
+<pre><code class="language-text">[write/insert/refuses-a-mapping-whose-keys-hold-a-dot] expected a refusal:
+"...    app.kubernetes.io/component: frontend\n    tier: \"web\"\n..."
+</code></pre>
+<p>So the case flips to <code>Rewrites</code> the day a release carries the fix — and note
+the inserted value arrives double-quoted, which is <code>yqr-b013</code> and unrelated to
+this one. <code>docs/content/guide/kubernetes.md</code> also carries a limitation note
+naming this bug, and it comes out with the same change.</p>
 
         </div>
         </accent-island>
@@ -3175,7 +3215,19 @@ intent.</p>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-fix-routes">4. Fix routes</a>
+                <a href="#4-fix-routes-1-and-2-taken-2026-08-19">4. Fix routes — 1 and 2 taken 2026-08-19</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-1-what-3-s-measurement-missed">4.1 What §3’s measurement missed</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-2-three-things-the-fix-settles-beyond-this-bug">4.2 Three things the fix settles beyond this bug</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-3-what-is-still-out-of-reach">4.3 What is still out of reach</a>
             </li>
         
             <li class="toc-level-2">

@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...">
+<meta name="description" content="Status: Open — found 2026-08-18 by the yqr-m003 write tier, filed upstream 2026-08-19 as noyalib#290, deliberately without a patch (§4.1) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit loo...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b013-inserted-scalars-take-a-document-wide-quote-style">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b013 — An inserted scalar is quoted because some unrelated line is quoted">
-<meta property="og:description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...">
+<meta property="og:description" content="Status: Open — found 2026-08-18 by the yqr-m003 write tier, filed upstream 2026-08-19 as noyalib#290, deliberately without a patch (§4.1) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit loo...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b013-inserted-scalars-take-a-document-wide-quote-style">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b013 — An inserted scalar is quoted because some unrelated line is quoted">
-<meta name="twitter:description" content="Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...">
+<meta name="twitter:description" content="Status: Open — found 2026-08-18 by the yqr-m003 write tier, filed upstream 2026-08-19 as noyalib#290, deliberately without a patch (§4.1) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit loo...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-19",
-  "description": "Status: Open (found 2026-08-18 by the yqr-m003 write tier; not filed upstream as part of this change) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit looks like the file it lands in Component:...",
+  "description": "Status: Open — found 2026-08-18 by the yqr-m003 write tier, filed upstream 2026-08-19 as noyalib#290, deliberately without a patch (§4.1) Severity: Low — the value is correct and round-trips; what is wrong is the spelling at the edit site, which is the one place yqr-a001 promises an edit loo...",
   "inLanguage": "en",
   "name": "Bug b013 — An inserted scalar is quoted because some unrelated line is quoted",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b013-inserted-scalars-take-a-document-wide-quote-style",
-  "wordCount": 659
+  "wordCount": 894
 }
 </script>
 <script type="application/ld+json">
@@ -3047,8 +3047,8 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open (found 2026-08-18 by the <code>yqr-m003</code> write tier; not filed
-upstream as part of this change)
+            <p><strong>Status:</strong> Open — found 2026-08-18 by the <code>yqr-m003</code> write tier, <strong>filed
+upstream 2026-08-19 as noyalib#290</strong>, deliberately without a patch (§4.1)
 <strong>Severity:</strong> Low — the value is correct and round-trips; what is wrong is the
 spelling at the edit site, which is the one place <code>yqr-a001</code> promises an edit
 looks like the file it lands in
@@ -3109,6 +3109,28 @@ matches its own quote style (<code>set_value</code>), and renaming a key matches
 neighbouring key’s. Only insertion reaches document-wide.</li>
 </ul>
 <h2 id="4-fix-route">4. Fix route<a class="heading-anchor" href="#4-fix-route" aria-label="Link to this section"></a></h2>
+<h3 id="4-1-filed-2026-08-19-as-noyalib-290-and-unlike-the-others-with-no-patch">4.1 Filed 2026-08-19 as noyalib#290 — and, unlike the others, with no patch<a class="heading-anchor" href="#4-1-filed-2026-08-19-as-noyalib-290-and-unlike-the-others-with-no-patch" aria-label="Link to this section"></a></h3>
+<p><code>yqr-b011</code>, <code>yqr-b012</code> and <code>yqr-b014</code> were all filed <em>with</em> a fix, because each
+is a defect against upstream’s own stated intent, where the right behaviour is
+not in question. This one is different and was filed differently: it is a
+<strong>heuristic</strong> with a public API attached (<code>Document::dominant_quote_style</code>, both
+documented and doctested), so changing what it counts changes a published
+contract. That is the maintainer’s call rather than a drive-by patch’s. The
+issue puts two options — count <code>PlainScalar</code> in the vote, or score the vote at
+the edit site and widen only as a fallback — and offers to implement either.</p>
+<p>Two things the filing added that this spec had not:</p>
+<ul>
+<li><strong>The majority does not vote.</strong> Four plain scalars lose to one quoted one, so
+this is not a close call decided the wrong way; plain is never counted at all
+unless it is unanimous.</li>
+<li><strong>The sibling mutators disagree with insertion.</strong> On the same document <code>set</code>
+writes <code>k: w</code> plain, matching the site, while insertion writes <code>j: "w"</code>,
+matching the file; <code>push_back_value</code> follows insertion. The inconsistency is
+therefore internal to noyalib, which is a stronger argument than a divergence
+from what a reader expects, and it is the one the issue leads with.</li>
+</ul>
+<p>All measurements re-run against <code>main</code> at <code>209b9ed</code> before filing.</p>
+<h3 id="4-2-the-route-itself">4.2 The route itself<a class="heading-anchor" href="#4-2-the-route-itself" aria-label="Link to this section"></a></h3>
 <p>Score the vote where the edit lands, then widen: the sibling entries of the
 target mapping (or sequence) first, and only fall back to the document when the
 site has no quoted or unquoted evidence of its own. Counting <code>PlainScalar</code>
@@ -3176,6 +3198,14 @@ safe answer, and it should survive any fix to the above.</p>
         
             <li class="toc-level-2">
                 <a href="#4-fix-route">4. Fix route</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-1-filed-2026-08-19-as-noyalib-290-and-unlike-the-others-with-no-patch">4.1 Filed 2026-08-19 as noyalib#290 — and, unlike the others, with no patch</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-2-the-route-itself">4.2 The route itself</a>
             </li>
         
             <li class="toc-level-2">
