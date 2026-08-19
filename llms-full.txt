@@ -1846,6 +1846,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b014](yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml.md) | An empty collection written at its key's own column is invalid YAML that noyalib accepts | Medium | Open — a block-mapping value must be indented past its key; noyalib's parser accepts one that is not, and its sole-entry `remove` writes one (`on:` / `[]` for the GitHub Actions layout). PyYAML and Ruby's Psych both reject the result. Two faces: the **writer** is upstream's and yqr does not reach it — `yqr-f018` §5 keeps the sole-entry delete in `delete_entry` on the strength of exactly this — while the **validator** face is live, since `yqr validate --strict` walks noyalib's green tree and so calls the file clean, the mirror image of `b011`. Every guard in the write loop is blind to it for the same reason the `b006`/`b010` blind spots existed: the integrity guard re-parses with the engine whose leniency is the bug. Found by the `yqr-f018` §4 measurement; not filed upstream as part of that change | `yqr-f018`, `yqr-f016`, `yqr-b006`, `yqr-b010`, `yqr-b011`, `yqr-f012` |
 | [b013](yqr-b013-inserted-scalars-take-a-document-wide-quote-style.md) | An inserted scalar is quoted because some unrelated line is quoted | Low | Open — noyalib spells an inserted string with the document's dominant quote style, and the vote counts only quoted scalars against each other, so one `value: "30"` anywhere makes every later insertion quoted however plain its neighbours are. Cosmetic and non-destructive (the value round-trips, `validate` is clean), but it lands at the one line a reader is looking at, and it is what `a001` exists to prevent. Sibling behaviours disagree with it: `set_value` matches the scalar's own style, `rename_key` the neighbouring key's — only insertion reaches document-wide. Found by the `yqr-m003` write tier on its first run and pinned there as it behaves; not filed upstream as part of that change | `yqr-a001`, `yqr-b008`, `yqr-f006`, `yqr-m003` |
 | [b012](yqr-b012-insert-refused-when-every-key-holds-a-dot.md) | A new key cannot be inserted into a mapping whose keys all hold a `.` | Medium | Open — `.metadata.labels.tier = "web"` on a Kubernetes manifest is refused, and the message blames a `<<` merge the file does not contain. Upstream's `mapping_insert_anchor` composes each candidate anchor key back into a path **string** and re-parses it, and `parse_query_path` splits on `.` unconditionally, so every key of a dotted mapping is skipped and the only error the function knows about fires. Two defects nested: the `yqr-f007` §6 addressing limit reaching a mapping it was never meant to reach, and a diagnostic asserting a cause instead of describing the observation. Refusal only — exit 5, file untouched. Found by the `yqr-m003` write tier on its first run; not filed upstream as part of that change | `yqr-f007`, `yqr-a002`, `yqr-b004`, `yqr-m003` |
 | [b011](yqr-b011-multiline-flow-collection-fails-to-parse.md) | A multi-line flow collection is valid YAML that yqr cannot read at all | Medium | Open — noyalib refuses to parse a flow collection spread over several lines (`ports: [` / `  80,` / `]`), which PyYAML and the YAML spec both accept; the message names the right indentation rule and applies it to the closing indicator. Loud rather than silent (exit 5, no damage), but it is a **whole-file read** refusal, so `a001`'s guarantee is vacuous for these files and `validate` calls them unreadable. Found while reviewing the `yqr-f016` §5 flow-delete work — the "flow deletes only work on single-line collections" limitation is a symptom of this. **Not yet filed upstream**; the fix is in noyalib's parser, a part yqr has not contributed to before | `yqr-a001`, `yqr-b004`, `yqr-f016` |
@@ -1867,8 +1868,11 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 13
-- Open: 3 (b013 — an inserted scalar takes the document's dominant quote style,
+- Total bugs: 14
+- Open: 4 (b014 — an empty collection at its key's own column is invalid YAML
+  that noyalib accepts and its sole-entry `remove` writes; the live half is
+  `validate` inheriting the leniency and passing a file the ecosystem cannot
+  read; b013 — an inserted scalar takes the document's dominant quote style,
   which counts only quoted scalars, so one quoted line anywhere decides the
   spelling at every later edit site; b012 — a new key cannot be inserted into a
   mapping whose keys all hold a `.`, and the refusal blames a `<<` merge that is
@@ -4383,6 +4387,112 @@ safe answer, and it should survive any fix to the above.
 
 ---
 
+# Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
+
+URL: /yqr/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml
+
+# Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
+
+**Status:** Open (found 2026-08-19 by the `yqr-f018` §4 measurement; not filed
+upstream as part of this change)
+**Severity:** Medium — nothing in yqr writes this shape today, so there is no
+live corruption; what is live is the **validator false negative** in §3.2,
+and the fact that every guard in the write loop is blind to the shape
+**Component:** noyalib's parser (leniency) and `Document::remove`'s sole-entry
+arm (the writer), reached from yqr's `validate` and from any future
+delegation of the sole-entry delete
+**Related:** `yqr-f018` §4 (the measurement that found it), `yqr-f016` §5 (the
+decision it re-decides), `yqr-b006`/`yqr-b010` (the same silent-wrongness
+class), `yqr-b011` (the mirror image — noyalib *refusing* valid YAML),
+`yqr-f012` (the validator)
+
+## 1. Summary
+
+A block-mapping value must be indented more than its key. noyalib's parser
+accepts one that is not, and its sole-entry `remove` writes one:
+
+```console
+$ printf 'on:\n[]\njobs: {}\n' | python3 -c 'import sys,yaml; yaml.safe_load(sys.stdin.read())'
+yaml.scanner.ScannerError: while scanning a simple key
+
+$ printf 'on:\n[]\njobs: {}\n' | ruby -ryaml -e 'YAML.safe_load($stdin.read)'
+Psych::SyntaxError: could not find expected ':' while scanning a simple key
+
+$ printf 'on:\n[]\njobs: {}\n' > samecol.yaml && yqr validate --strict samecol.yaml
+$ echo $?
+0
+```
+
+Two independent implementations reject the document. yqr calls it valid, in
+strict mode, and reads it back happily.
+
+## 2. How it is produced
+
+`Document::remove` on the sole item of a block sequence written at its key's
+own column — the GitHub Actions / Ansible idiom:
+
+```text
+in                  upstream 0.0.24        yqr's delete_entry
+on:                 on:                    on:
+- push        ->    []                       []
+jobs: {}            jobs: {}               jobs: {}
+```
+
+The empty collection takes the removed item's own column, which for this
+layout *is* the key's column. yqr's own path indents it one level deeper,
+because `delete_entry` derives the indent from the parent key rather than from
+the deleted line, and that is the only spelling that re-parses everywhere.
+
+## 3. The two faces
+
+### 3.1 The writer
+
+Upstream's sole-entry arm emits the shape at exit 0. yqr does not reach it
+today: `yqr-f016` §5 kept the sole-entry class in `delete_entry`, and
+`yqr-f018` §5 keeps it there on the strength of exactly this finding. So this
+is a live defect in noyalib and a *blocked route* for yqr, not a yqr bug.
+
+### 3.2 The validator — this one is live
+
+`yqr validate --strict` walks noyalib's green tree, so it inherits the
+parser's leniency and reports the file clean. A user running yqr as the
+correctness gate in a pipeline gets a pass on a file their next tool cannot
+read. This is `yqr-b011` seen from the other side: there, noyalib refuses YAML
+the ecosystem accepts; here, it accepts YAML the ecosystem refuses. Both are
+the parser, and both make `validate`'s verdict differ from the ecosystem's.
+
+## 4. Why every guard misses it
+
+The write loop's integrity guard re-parses the edited document **with
+noyalib** and compares typed values. A shape noyalib accepts therefore passes
+the guard by construction, exactly as a moved comment passed it in `yqr-b010`
+(a comment is not in the typed value) and a stranded one in noyalib#280. The
+guard proves *this engine can read it back*, which is a weaker statement than
+it looks, and this is the clearest instance of the gap so far.
+
+## 5. Fix routes
+
+1. **Upstream, writer:** derive the empty collection's indent from the parent
+   key, as `delete_entry` does. Narrow, and it makes the sole-entry class
+   fully delegatable (`yqr-f018` §5's revisit condition).
+2. **Upstream, parser:** reject a block-mapping value that is not indented
+   past its key. Correct, and the more disruptive of the two — it is a
+   leniency users may be relying on, so it belongs behind whatever strictness
+   knob the parser grows.
+3. **yqr-side, validator:** add the indentation check to `validate`'s own
+   walk, which already looks at the green tree for things the parser does not
+   flag. This is the only route that fixes §3.2 without waiting on upstream,
+   and it does not depend on route 2 being taken.
+
+## 6. Regression coverage
+
+`src/fidelity/write/delete.rs` — `sole_item_of_a_same_column_sequence_is_indented_under_its_key`
+and `sole_item_of_a_nested_same_column_sequence_clears_its_key` pin yqr's
+(correct) spelling, and are the two tests that fail under delegation. Nothing
+pins §3.2 yet; a validator case belongs with route 3.
+
+---
+
 # Feature Specs
 
 URL: /yqr/specs/features
@@ -4460,6 +4570,7 @@ dependency/release timing.
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
 | [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr used to refuse | Done |
+| [f018](yqr-f018-noyalib-0-0-24-adoption.md) | Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -4535,7 +4646,21 @@ seven refusals now cover every shipped edit, and the tier found two upstream
 defects on its first run, `b012` and `b013`. f008
 (`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
 order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
-(done) → f016 (done) → f007 remainder (done) → M2 → f008.
+(done) → f016 (done) → f007 remainder (done) → f018 (done) → M2 → f008.
+
+f018 **done**: 0.0.24 published 2026-08-18 carrying one functional change, the
+fix for yqr's noyalib#280 — a sole entry's head comment now goes with the
+entry. The pin moved, the suite is green untouched, and the lockfile *loses* a
+crate (noyalib was the last holder of `hashbrown 0.15.5`). The point of the
+feature is the re-measurement it forces: `f016` §5 had kept sole-entry delete
+in yqr's own code **because** of that stranded comment, so with the reason gone
+the delegation was re-run rather than assumed. 242 of 244 lib tests pass under
+it; the two that fail are one shape — the sole item of a block sequence at its
+key's own column, where upstream writes `on:` / `[]`, which noyalib accepts and
+both PyYAML and Psych reject. The class stays in `delete_entry` on that
+finding, and the finding is filed as **`b014`**, whose live half is a false
+negative in yqr's own `validate` (it walks noyalib's tree, so it inherits the
+leniency).
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -4575,11 +4700,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 17
+- Total features: 18
 - Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
   scoped from the `yqr-r003` usage report)
 - In Progress: 1 (f001 M0)
-- Done: 11 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016)
+- Done: 12 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f018)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
@@ -5881,6 +6007,16 @@ first is settled; the other three are open:
   longer refuses either class, so those two tests now measure yqr **declining
   what the backend can do**, which is a different fact from a diagnostic
   difference.
+
+  **Re-run a third time on the 0.0.24 pin (`yqr-f018` §4), for the sole-entry
+  class alone, because that release removed the reason `yqr-f016` §5 had given
+  for keeping it.** 242 of 244 lib tests pass under delegation, and the two
+  failures are one shape: on a block sequence written at its key's own column,
+  upstream writes the empty collection at the key's column, producing a
+  document PyYAML and Psych both reject while noyalib accepts it — so the
+  re-parse guard, upstream's guard and `yqr validate --strict` are all blind to
+  it (`yqr-b014`). The class stays in `delete_entry`, on that finding rather
+  than on the retired head-comment one.
 
   The three reasons above are untouched by this and still stand; what changed
   is that the "and yqr loses nothing by keeping its own path" half is now "and
@@ -7893,6 +8029,11 @@ time an independent implementation has been the thing that made an upstream
 trivia divergence visible, and the first time yqr has kept a *capability*
 rather than a refusal because of it.
 
+**Retired 2026-08-19.** noyalib#280 is fixed in 0.0.24 — upstream now takes the
+head comment with the sole entry, blank-detached exclusion included — so this
+section's argument no longer holds anything up. The decision it supported did
+not move, but it rests on a different and sharper finding now: `yqr-f018` §4.
+
 ## 6. Upstream close-out
 
 `#221` is closed. Its five sub-asks all shipped, and four of the merged fixes
@@ -8118,6 +8259,166 @@ string, because its output is a computed value with no bytes. So they differ
 exactly where fidelity does. That is a real distinction and also a subtle one,
 and it should be settled and documented in this feature rather than discovered
 by a user comparing two outputs that differ by a pair of quotes.
+
+---
+
+# Feature f018 — Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question
+
+URL: /yqr/specs/features/yqr-f018-noyalib-0-0-24-adoption
+
+# Feature f018 — Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question
+
+**Status:** Done — 0.0.24 adopted, §4 measured, §5 decided (2026-08-19)
+**Epic:** Fidelity write tier (`f006`–`f008`)
+**Owner:** yqr maintainers
+**Related:** `yqr-f016` (the 0.0.23 adoption this succeeds, and whose §5.2
+argument this release retires), `yqr-f007` §5.1/§6 (the delete-delegation
+decision this re-measures), `yqr-b006` (the trivia class the fix belongs to),
+`yqr-b014` (what the re-measurement found), `yqr-m003` (the corpus write tier
+that runs against the new pin), `yqr-m004` (crates.io publishing)
+
+## 1. Scope
+
+Bump `noyalib = "0.0.23"` to `0.0.24` and re-run the one question the release
+changes the premise of: whether yqr's **sole-entry** delete should now be
+delegated to `Document::remove`, which this release makes agree with
+`delete_entry` on the case that decided it last time.
+
+**In scope:** the pin bump; verifying the fix against the published crate
+(§3); re-running the `yqr-f016` §5 sole-entry decision (§4); recording the
+outcome (§5).
+
+**Out of scope:** the flow-member class, already delegated by `yqr-f016` §5 and
+untouched by this release. The `yqr-a002` comment/rename slices — nothing here
+touches the comment mutators, `rename_key`, or the addressing grammar, so
+`yqr-b012`'s insert-anchor blocker and `yqr-b013`'s quote-style vote stand as
+measured on 0.0.23. `yqr-b011`, which this release does not fix.
+
+## 2. What 0.0.24 contains
+
+One functional change, and it is yqr's report:
+
+> `fix(cst): remove() takes a sole entry's head comment — closes #280`
+
+Released 2026-08-18 as `noyalib v0.0.24`, crate checksum
+`665102745aff776f400df932eaabb91860795fd6cff70ed9fc12c9298160e5eb`, which is
+the checksum `Cargo.lock` now records. The rest of the release is CI and
+supply-chain work (release-artefact signing, `codeql`/`taiki-e` action bumps)
+plus a `hashbrown` bump, `0.15.5` to `0.17.1`.
+
+**Attribution, stated precisely.** noyalib#280 was filed by yqr (`zoosky`,
+2026-08-17) with the mechanism diagnosed — the two `Removal` arms deriving
+their range differently, `Line` through `owned_entry_range` and so absorbing
+the comment run, `SoleEntry` through the *collection's* span, which starts
+below it. The commit that fixes it (`29c0739`) is the maintainer's, and its
+message credits the report. yqr contributed the diagnosis, not the patch; the
+four earlier upstream fixes yqr *did* author are listed in `yqr-f016` §6.
+
+The `hashbrown` bump is visible in the lockfile and is an improvement: noyalib
+was the last crate pinning `0.15.5`, so the duplicate is gone and the graph
+loses a crate rather than gaining one.
+
+## 3. Verified against the published crate
+
+Probed directly against 0.0.24, on the four shapes `yqr-f016` §4.4 measured:
+
+| Input | 0.0.23 | 0.0.24 |
+|---|---|---|
+| sole entry with a head comment | comment stranded above `{}` | **taken with the entry** |
+| sole entry, two contiguous comment lines | stranded | **taken** |
+| sole entry, blank-**detached** comment | left in place | left in place |
+| entry with a sibling | taken | taken |
+
+That is `delete_entry`'s rule exactly, including the blank-detached exclusion
+that is the easy half to get wrong. The `yqr-b006` trivia disagreement between
+the two implementations is, on this class, gone.
+
+## 4. The measurement, run 2026-08-19
+
+`yqr-f016` §5 sent the sole-entry class to `delete_entry` for one stated
+reason: upstream's path stranded the entry's head comment. That reason no
+longer exists, so the decision is re-run rather than assumed — the same
+discipline `yqr-f007` §6 imposes ("reopen only on a *new* argument"), applied
+in the direction that costs yqr code rather than saves it.
+
+**Method.** The sole-entry branch of `delete_entry` routed to
+`Document::remove` on a throwaway patch, whole suite run, patch reverted. The
+tree as committed contains only the pin bump.
+
+### 4.1 Two failures, one shape
+
+**242 of 244 lib tests pass**, and every integration suite passes untouched
+(76 corpus incl. the new write tier, cli, fidelity, integration). Both
+failures are the same shape — the sole item of a block sequence written at its
+key's own column, the GitHub Actions `on:` / `- push` idiom:
+
+| | yqr | upstream |
+|---|---|---|
+| `on:`<br>`- push`<br>`jobs: {}` | `on:`<br>`␣␣[]`<br>`jobs: {}` | `on:`<br>`[]`<br>`jobs: {}` |
+
+An empty collection is a block-mapping **value**, so it must sit strictly
+deeper than its key. Upstream writes it at the removed item's own column,
+which for this layout is the key's column.
+
+### 4.2 The failures are not assertion nitpicks
+
+Checked against two independent implementations rather than argued from the
+spec text:
+
+```console
+$ python3 -c 'import yaml; yaml.safe_load("on:\n[]\njobs: {}\n")'
+yaml.scanner.ScannerError: while scanning a simple key
+$ ruby -ryaml -e 'YAML.safe_load("on:\n[]\njobs: {}\n")'
+Psych::SyntaxError: could not find expected ':' while scanning a simple key
+```
+
+Both accept yqr's spelling. So delegation would write, at **exit 0**, a file
+that the rest of the YAML ecosystem cannot read — with `-i`, straight to the
+user's disk.
+
+Nothing in the loop notices: noyalib's parser accepts the shape, so upstream's
+own guard passes, yqr's re-parse guard passes (it re-parses with noyalib), and
+`yqr validate --strict` reports the file clean. That last one is a false
+negative in yqr's own validator and is filed with the rest as `yqr-b014`.
+
+This is the `yqr-b006`/`yqr-b010` failure class a fourth time, and the first
+one found by *considering* a delegation rather than by shipping one.
+
+## 5. The decision
+
+**Sole-entry delete stays in `delete_entry`.** The reason has changed
+completely, which is worth stating plainly rather than presenting the outcome
+as unchanged:
+
+- `yqr-f016` §5.2's reason — the head comment — is **retired**. Upstream is
+  correct on it as of this release, and yqr no longer keeps anything by
+  keeping its own path there.
+- The new reason is §4.2: on the same-column layout, delegation produces YAML
+  two libyaml-based parsers reject, silently. That is a strictly worse defect
+  than the one just fixed, since a stranded comment at least leaves a readable
+  file.
+
+The `yqr-f007` §6 standing argument is unchanged and now has a fourth data
+point: the independent implementation is the thing that made the divergence
+visible, before it reached anyone.
+
+**Revisit when** `yqr-b014` is fixed upstream. At that point the sole-entry
+class has no measured divergence left, and the question becomes the general
+one `yqr-f007` §6 already answers on its own terms (differential oracle,
+alternative implementation, asymmetric trade) rather than a case-specific one.
+
+## 6. Acceptance criteria
+
+- [x] 0.0.24 published to crates.io; the pin moves and `Cargo.lock` shows
+      noyalib moving, `hashbrown 0.15.5` dropping out, and nothing else.
+- [x] The `#280` fix verified against the **published** crate, per shape (§3),
+      not taken from the release notes.
+- [x] §4's measurement run per test, and its two failures checked against an
+      implementation that is not noyalib (§4.2).
+- [x] §5's decision recorded, with the retired reason called out as retired.
+- [x] Full suite green on the new pin with yqr's code unchanged; `cargo audit`
+      clean; site build clean.
+- [x] What §4.2 found filed as `yqr-b014`, both faces of it.
 
 ---
 

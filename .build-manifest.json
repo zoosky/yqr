@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-19T04:40:32Z",
+  "timestamp": "2026-08-19T04:50:40Z",
   "pages": {
     "/": {
       "content_hash": "de11cec76d9c79f9",
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "56d1e3acf92a0ba5",
+      "content_hash": "76f853d220fc6817",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -137,13 +137,18 @@
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
+    "/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml": {
+      "content_hash": "d7fa5495cbd5bdcd",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
     "/specs/features": {
       "content_hash": "64caeda468267e11",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "a310507b83bc50f6",
+      "content_hash": "7eb6421811fc8880",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -178,7 +183,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f007-write-tier-structural-edits": {
-      "content_hash": "70a68c445929a545",
+      "content_hash": "0f5473ed52d65ad9",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -223,12 +228,17 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f016-noyalib-0-0-23-adoption": {
-      "content_hash": "29ece540514568b4",
+      "content_hash": "ff937d49342d89fb",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f017-to-entries": {
       "content_hash": "3007740c34c11fd9",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
+    "/specs/features/yqr-f018-noyalib-0-0-24-adoption": {
+      "content_hash": "ff47d1a12fbf08e4",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

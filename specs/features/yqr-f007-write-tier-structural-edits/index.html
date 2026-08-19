@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f007 — Write tier: structural edits (the `b004` gaps)",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f007-write-tier-structural-edits",
-  "wordCount": 5776
+  "wordCount": 5882
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,12 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -502,6 +508,12 @@
   
     
     
+  
+    
+    
+  
+    
+    
       
       
       
@@ -551,6 +563,14 @@
         
       
         
+        
+      
+        
+        
+      
+        
+        
+          
         
       
         
@@ -773,6 +793,9 @@
             
               
               
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link">Feature Status Tracker</a>
               
@@ -877,6 +900,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f017-to-entries"
                    class="sidebar-link">Feature f017 — `to_entries`: enumerate a mapping without losing the keys</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f018-noyalib-0-0-24-adoption"
+                   class="sidebar-link">Feature f018 — Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question</a>
               
             
               
@@ -1041,6 +1070,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -1269,6 +1306,15 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml"
+                   class="sidebar-link">Bug b014 — An empty collection written at its key&#x27;s own column is invalid YAML that noyalib accepts</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1417,6 +1463,12 @@
         
         
           
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1775,6 +1827,12 @@
               
               
             
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1787,6 +1845,12 @@
     
       
       
+      
+        
+        
+      
+        
+        
       
         
         
@@ -1979,6 +2043,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2304,6 +2374,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2369,6 +2445,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2682,6 +2764,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2746,6 +2834,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -3263,6 +3357,15 @@ only the assertion that the message names the flow collection”. Upstream no
 longer refuses either class, so those two tests now measure yqr <strong>declining
 what the backend can do</strong>, which is a different fact from a diagnostic
 difference.</p>
+<p><strong>Re-run a third time on the 0.0.24 pin (<code>yqr-f018</code> §4), for the sole-entry
+class alone, because that release removed the reason <code>yqr-f016</code> §5 had given
+for keeping it.</strong> 242 of 244 lib tests pass under delegation, and the two
+failures are one shape: on a block sequence written at its key’s own column,
+upstream writes the empty collection at the key’s column, producing a
+document PyYAML and Psych both reject while noyalib accepts it — so the
+re-parse guard, upstream’s guard and <code>yqr validate --strict</code> are all blind to
+it (<code>yqr-b014</code>). The class stays in <code>delete_entry</code>, on that finding rather
+than on the retired head-comment one.</p>
 <p>The three reasons above are untouched by this and still stand; what changed
 is that the “and yqr loses nothing by keeping its own path” half is now “and
 yqr forgoes two delete classes”. Upstream also asked directly for the
