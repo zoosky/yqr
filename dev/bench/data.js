@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787235378716,
+  "lastUpdate": 1787247309017,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1511,6 +1511,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 255882,
             "range": "± 3365",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b2caec93a2738bcc7c5ebfcf2bcb047d57cea7e0",
+          "message": "feat(query): to_entries — enumerate a mapping without losing the keys (f017) (#83)\n\n* feat(query): to_entries — enumerate a mapping without losing the keys (f017)\n\nIterating a mapping yields its values, so on the most ordinary YAML layout\nthere is -- a mapping of named things -- yqr could produce the data and not\nsay what it was about. r003 records an agent hitting exactly that on a real\nfile and leaving for a Python script. key(...) closed half of it after the\nfact; this closes the other half.\n\nThe gate that kept to_entries queued behind M1 was imaginary, and f017 §3\nsaid so: jq's version returns objects, so the assumption was that yqr needed\nobject-construction syntax first. Syntax is what M1 owes a *user*; a builtin\nbuilds a Value in Rust, and the renderer already emits any Value.\n\nAst::Builtin is a third recognition rule beside f007's selectors and reorder\nverbs, and the only one costing no parenthesis: a builtin is an identifier\nwhere a path was expected, and no yqr path can begin with one. So the word is\nnot reserved -- .to_entries still reads a field, pinned three ways. The one\nnon-additive grammar change is that the chain following a path now follows a\nbuiltin too, so to_entries[] and to_entries[].key parse.\n\nPairs come out in the file's order, never sorted, pinned against keys that no\nsort in either direction produces. jq sorts object keys; here the difference\nis load-bearing, because the alignment r003 §5 records as a property is what\nthe builtin exists to make internal.\n\nThe output is computed, so it carries no provenance and renders through the\ntyped emitter (a001 §4's existing None arm). For the same reason every write\nform is refused at parse via Ast::builtin(), at all three mutation sites.\n\nf017 §10 asked whether key(...) and to_entries should stay two ways to\nenumerate. Settled in §11.1 and taught in the new guide page: key(...) is what\nyour file says -- the token, quotes included -- and to_entries is what it\nmeans, the decoded string. -r collapses the difference, because asking for raw\noutput is asking for the value rather than the spelling.\n\nFiled b016 on the way: the emitter writes a trailing space after `key:` when a\nblock collection is reached through a sequence item, which is most to_entries\npairs. Pre-existing and reachable via --normalize long before this. Carried\nvisibly rather than worked around -- a blanket line-strip in render() was\nmeasured to turn \"a  \\nb\" into \"a\\nb\", and silently altering a string is worse\nthan a cosmetic space. Pinned in tests/cli.rs and stated in the guide.\n\n* fix(query): refuse a builtin at the reorder verbs too, the fourth write site\n\nf017 §6 names three places a builtin must not appear -- `=`, `+=` and\n`del(...)` -- and the first implementation guarded exactly those. `swap` and\n`move` are a fourth, found by code review.\n\nThe failure mode is what makes it worth a commit of its own. It was not a\nmissing error but a *success*: `swap(.m | to_entries; 0; 1)` printed the\ndocument unchanged and exited 0, and with -i left the file alone and said\nnothing. The write driver is specified to leave an absent path alone at exit\n0; a builtin path resolves to nothing and was read as absent. Absent and\nunwritable are different, and only one of them deserves silence.\n\nThe other three sites could not hide it, because each reaches a resolver that\nerrors -- which is why this was the one to miss. Ast::builtin()'s doc comment\nnow names all four and says why the reorder site is the dangerous one, so the\nnext mutation form inherits the warning instead of the bug.\n\nAlso from the same review, two doc comments that had drifted from the code:\n\n- Ast::builtin() claimed every mutation site asked it, which was false while\n  the reorder verbs did not.\n- to_entries' comment claimed a non-string key is carried through as itself,\n  so `1: one` pairs as `key: 1`. The parse boundary makes every key a String\n  (b002 §2.7) -- the unit test asserts it and §11.3 says so. The comment was\n  written from the assumption the test then disproved, and only the test got\n  corrected. A reader of cargo doc would have written a consumer expecting an\n  unquoted number.",
+          "timestamp": "2026-08-20T19:33:39+02:00",
+          "tree_id": "4e8ebe7d54a72db14b1dbfb8ebe8ad774bb68fd3",
+          "url": "https://github.com/zoosky/yqr/commit/b2caec93a2738bcc7c5ebfcf2bcb047d57cea7e0"
+        },
+        "date": 1787247305395,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 514,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5113,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 259032,
+            "range": "± 11101",
             "unit": "ns/iter"
           }
         ]
