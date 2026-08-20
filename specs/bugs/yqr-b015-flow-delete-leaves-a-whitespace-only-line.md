@@ -1,7 +1,8 @@
 # Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line
 
 **Status:** Open — found 2026-08-20 while verifying `yqr-b011` against the
-noyalib 0.0.25 release; not yet filed upstream (§4)
+noyalib 0.0.25 release, **filed the same day as noyalib#294 with a fix in
+noyalib#296**; open here until a release carries it
 **Severity:** Low — the result is valid YAML and loads back correctly; what is
 wrong is a blank, trailing-whitespace line left at the edit site
 **Component:** noyalib's `Document::remove` (upstream), reached from yqr's
@@ -63,19 +64,51 @@ own code because it owns that path.
 - It is at the edit site, which `yqr-a001` singles out as the one place an
   edit's spelling has to be right.
 
-## 4. Route
+## 4. Route — taken 2026-08-20
 
-Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent, once the maintainer has
-had the four fixes of 0.0.25 land. The fix is the same shape as the one yqr's
-`owned_line_span` makes on the block path: a removed member owns its line's
-indentation when nothing else on that line survives, so the range should run
-from the line start rather than from the member's first byte. The
-single-line case must stay as it is, which is what makes the condition "the
-member is alone on its line" rather than "the collection is wrapped".
+Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent: filed as
+**noyalib#294** and fixed in **noyalib#296**. The estimate held — the fix is
+the same shape yqr's `owned_line_span` makes on the block path, and the
+condition is "the member is alone on its line" rather than "the collection is
+wrapped", so the single-line case is untouched.
 
-**Not yet filed.** Four yqr-authored fixes landed upstream on 2026-08-19; this
-is deliberately held until that release has settled rather than opened on top
-of it.
+### 4.1 The argument
+
+The one that carried it is upstream's own inconsistency, the shape that carried
+`b010` and `b014`: noyalib's **block** path already answers the identical
+question the other way for the same bytes. `owned_entry_range` takes a removed
+entry's whole line, indentation included, so `ports:` / `- 80` / `- 443` minus
+`ports[0]` leaves no residue. Same operation, same question, opposite answers —
+and only because one path is written in terms of lines and the other in terms
+of separators. "PyYAML and yamllint dislike the output" is true and is the
+weaker half.
+
+### 4.2 What the filing declined to decide
+
+Two shapes the patch deliberately leaves alone, both stated up front rather
+than left for the maintainer to find:
+
+- **The last member keeps the comma on the line above.** `[80,]` is valid — the
+  entries after a `,` are optional in the flow productions — and both PyYAML
+  and Psych read it back as `[80]`. Reaching up a line to delete a separator
+  the removal does not own is reformatting, not removing.
+- **A comment on the member's line keeps the line.** What a comment orphaned by
+  a removal *means* is a semantics question of the `b010` kind, and a
+  whitespace rule is the wrong instrument to settle it. Raised as a separate
+  question rather than decided in passing.
+
+### 4.3 Verification offered with the patch
+
+A 24-shape before/after battery (sequences and mappings, first/middle/last
+member, CRLF, tab indent, root-level, nested, no final newline, pre-existing
+blank lines, and each control): **14 outputs fixed, 10 byte-identical**, the 10
+being exactly the ones that should be. Every fixed output checked against
+PyYAML and Psych. The `fuzz_editors` invariants run over a generated corpus of
+336 accepted removals — re-parses, exactly one leaf fewer, no line gains
+trailing whitespace, CRLF stays CRLF — all holding, and on unpatched `main`
+only the whitespace invariant failing, which is what shows the change moves
+nothing else. libFuzzer itself was **not** run (`cargo-fuzz` is not installed
+locally and was not installed for this), and the PR says so.
 
 ## 5. Reproduction
 
