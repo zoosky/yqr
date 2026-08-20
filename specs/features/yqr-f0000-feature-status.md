@@ -233,6 +233,7 @@ sized schema follow-up (`--schema`) stays open in the spec's §5.1.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f010](yqr-f010-accent-website.md) | Accent CMS website over docs/ and specs/, deployed to GitHub Pages | Done |
+| [f021](yqr-f021-split-public-and-internal-sites.md) | Split the public site from the spec site | In Progress (split done; the `llms.txt` content items remain) |
 
 Progress: the site builds from `docs/` (the home page is a real CMS page:
 original hand-authored markup in `content/index.md` with the design as a
@@ -247,9 +248,10 @@ dashboard.
 
 ## Summary
 
-- Total features: 20
+- Total features: 21
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
-- In Progress: 1 (f001 M0)
+- In Progress: 2 (f001 M0; f021 — the site split is done, its `llms.txt`
+  content items are not)
 - Done: 15 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
   f017, f018, f019, f020)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —

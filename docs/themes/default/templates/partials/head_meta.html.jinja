@@ -23,11 +23,14 @@
 {# Robots: keep non-published and explicitly-flagged pages out of indexes. #}
 {% if page.status in ["draft", "review", "archived"] or page.custom.noindex %}
 <meta name="robots" content="noindex,nofollow">
-{# The mounted spec tree is the project's issue tracker, not published
-   writing. It is 39 of the site's 45 URLs, so indexing it makes the site
-   look topically like a bug database and buries the pages meant for
-   readers. `follow` rather than `nofollow`: the pages should still be
-   crawled so their links are followed and so the noindex is actually seen.
+{# The spec tree is the project's issue tracker, not published writing.
+   Since `yqr-f021` it is not on the public site at all -- it has its own
+   local-only site (specs/config.yaml) -- so this branch is unreachable
+   there and applies only when the internal site is built. It stays because
+   the two sites share this theme and because a future decision to publish
+   any part of the tree should inherit the noindex rather than rediscover
+   the need for it. `follow` rather than `nofollow`: the pages should still
+   be crawled so their links are followed and the noindex is actually seen.
    Matched on the path segment rather than a hardcoded `/yqr` prefix, which
    changes if the site moves to its own domain. #}
 {% elif page.url is endingwith("/specs") or "/specs/" in page.url %}

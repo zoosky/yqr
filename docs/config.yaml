@@ -1,10 +1,11 @@
-# Accent CMS configuration for the yqr website.
+# Accent CMS configuration for the yqr **public** website.
 #
-# The site combines two content sources:
-#   - ./content        (this directory) -- home page and usage documentation
-#   - ../specs         (mounted at /specs) -- the feature/bug/architecture
-#                      spec tree, served as flat-file pages without any
-#                      restructuring
+# Content is ./content and nothing else: the home page and the usage
+# documentation. The spec tree is deliberately not here -- it is written for
+# contributors, uses internal identifiers, and records decisions that were
+# later reversed, so publishing it alongside the guide made `llms-full.txt`
+# mostly spec text. It has its own local-only site at ../specs/config.yaml,
+# port 4401. See `yqr-f021`.
 #
 # The home page is a real CMS page, so serve and build agree: the
 # hand-authored design lives in themes/default/templates/home.html.jinja
@@ -52,13 +53,6 @@ server:
 
 content:
   directory: "./content"
-  mounts:
-    # Serve the repository's spec tree as-is. Every category directory
-    # (features, bugs, architecture, implementation, research) carries a
-    # README.md index so it appears as a sidebar section.
-    - source: ../specs
-      mount: /specs
-      default_template: docs
 
 theme:
   name: "default"
@@ -76,8 +70,7 @@ site:
     # even after verification succeeds, or the site loses its verified status.
     google-site-verification: "yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw"
     # Social card. Without an image a shared link renders as a bare grey
-    # stub, so this is set site-wide -- every page unfurls, including the
-    # mounted spec tree.
+    # stub, so this is set site-wide, so every page unfurls.
     #
     # Per page, the frontmatter key is `image:` (it populates the
     # `page.social_image` template variable, which is what the theme's
@@ -137,11 +130,34 @@ diagrams:
 # LLM crawler discovery files (llms.txt / llms-full.txt).
 llms:
   enabled: true
+  # This block is the whole of what a reader gets who fetches llms.txt and
+  # nothing else, so it carries the synopsis rather than describing the site:
+  # how to install yqr, how to invoke it, what its exit codes mean, and where
+  # the source lives. Before `yqr-f021` none of that appeared in either file.
   description: |
-    yqr is a jq-style query and editing tool for YAML written in Rust.
-    Reads are byte-preserving by default; the write tier performs surgical
-    edits that change only the targeted bytes. This site serves the usage
-    documentation and the full feature/bug/architecture spec tree.
+    yqr is a jq-style query and editing tool for YAML, written in Rust.
+    Reads are byte-preserving by default: nodes you do not touch are emitted
+    as their original bytes, so comments, quoting, indentation and line
+    endings survive. The write tier changes only the bytes the filter targets,
+    or refuses.
+
+    Install: cargo install yqr
+    Invoke:  yqr [-r] [-i] [-N] '<filter>' [file]      (stdin when file is omitted)
+             yqr validate [--strict] <file>...
+
+    Flags:
+      -r, --raw-output   print a string's value, not its YAML quoting
+      -i, --in-place     write the edit back to the file (mutating filters only)
+      -N, --normalize    re-serialize instead of preserving bytes
+
+    Exit codes:
+      0  success
+      1  validate found a problem in the file
+      3  the filter could not be lexed or parsed
+      5  runtime or I/O error, including a refused edit
+
+    Source:    https://github.com/zoosky/yqr
+    Package:   https://crates.io/crates/yqr
   exclude_paths:
     - "/tags/*"
 

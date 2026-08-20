@@ -1,8 +1,12 @@
 name: Website
 
-# Builds the Accent CMS site (docs/ plus the specs/ tree mounted at /specs)
-# and deploys it to GitHub Pages. Pull requests only build and verify; the
-# deploy runs on pushes to main and manual dispatch.
+# Builds the public Accent CMS site from docs/ and deploys it to GitHub
+# Pages. Pull requests only build and verify; the deploy runs on pushes to
+# main and manual dispatch.
+#
+# The spec tree is deliberately not part of this site (`yqr-f021`). It has
+# its own local-only site, specs/config.yaml on port 4401, which nothing
+# deploys -- so a change under specs/ no longer triggers this workflow.
 #
 # Sub-path serving: the site lives under /yqr/ on GitHub Pages. Accent
 # v0.23.0+ handles this natively -- the deployment path prefix is derived
@@ -18,8 +22,7 @@ name: Website
 # against the published checksums. Requires accent >= v0.24.0 (base-path
 # support and --strict-links from v0.23.1, which fails the build if any
 # internal link target is missing from the output; v0.24.0 stops raw HTML in
-# a page body being indexed as searchable text, which is what keeps the
-# `<!-- Feature fNNN -->` traceability comments out of the search index);
+# a page body being indexed as searchable text);
 # keep ACCENT_VERSION in sync with the version used for local development
 # (accent --version). See docs/config.yaml for the full rationale.
 on:
@@ -27,12 +30,10 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "specs/**"
       - ".github/workflows/pages.yml"
   pull_request:
     paths:
       - "docs/**"
-      - "specs/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
