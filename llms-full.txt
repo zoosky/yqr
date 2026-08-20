@@ -2074,7 +2074,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b016](yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space.md) | An emitted block collection reached through a sequence item keeps a trailing space | Low | Open — `to_string_value` writes `value: ` before a block collection whose indicator is reached through a **sequence item**, so the line carries a trailing space; the same mapping not reached through a sequence is correct. Valid YAML that loads back identically under PyYAML and Psych, which is why it is Low; what it breaks is `--normalize`'s claim to be a canonical form, since `git diff --check` and `yamllint` reject the output. Pre-existing and reachable through `--normalize` long before it was noticed — `yqr-f017` found it because `to_entries` output is exactly the shape (a sequence of mappings whose values are mappings), so **most** pairs carry one. Deliberately **not** worked around: stripping trailing whitespace per rendered line changes a block scalar whose content legitimately ends a line with spaces (`"a␣␣\\nb"` becomes `"a\\nb"`, measured), and silently altering a string is strictly worse than a cosmetic space. Pinned as it behaves in `tests/cli.rs` and stated in the guide. Not yet filed upstream — it batches naturally with `b015`, and two whitespace reports at once from the same reporter is worse than one then the other | `yqr-f017`, `yqr-b015`, `yqr-a001` |
+| [b016](yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space.md) | The serializer writes trailing whitespace: a dangling indicator in a sequence item, and the indent before an empty block-scalar line | Low | Open — `to_string_value` writes `value: ` before a block collection whose indicator is reached through a **sequence item**, so the line carries a trailing space; the same mapping not reached through a sequence is correct. Valid YAML that loads back identically under PyYAML and Psych, which is why it is Low; what it breaks is `--normalize`'s claim to be a canonical form, since `git diff --check` and `yamllint` reject the output. Pre-existing and reachable through `--normalize` long before it was noticed — `yqr-f017` found it because `to_entries` output is exactly the shape (a sequence of mappings whose values are mappings), so **most** pairs carry one. Deliberately **not** worked around: stripping trailing whitespace per rendered line changes a block scalar whose content legitimately ends a line with spaces (`"a␣␣\\nb"` becomes `"a\\nb"`, measured), and silently altering a string is strictly worse than a cosmetic space. Pinned as it behaves in `tests/cli.rs` and stated in the guide. **Filed 2026-08-20 as noyalib#297 with a fix in noyalib#298**, independent of `b015` — different files, either can land first. The filing found a **second and larger** source this row had missed: the block-scalar content loop writes the block's indent before every line including empty ones, which across noyalib's own corpus is 36 documents to the indicator's 9. It surfaced by holding the fix to a *property* (no emitted line carries trailing whitespace) rather than to the reproduction, which the first fix already satisfied. Both faces are one cause — duplicated logic drifted from a sibling that applies the rule, the block-scalar loop existing in three identical copies — so the patch extracts a rule per site rather than patching callers | `yqr-f017`, `yqr-b015`, `yqr-a001` |
 | [b015](yqr-b015-flow-delete-leaves-a-whitespace-only-line.md) | Deleting a member of a wrapped flow collection leaves a whitespace-only line | Low | Open — `del(.ports[0])` on `ports: [` / `  80,` / `  443,` / `]` removes the member and its separator but leaves the line's indentation, so a line that had no trailing whitespace now has two spaces of it. The result is valid YAML that loads back correctly, which is why the severity is Low; what it breaks is the diff, and `git diff --check`, `yamllint` and most pre-commit setups flag exactly this. Upstream's, not yqr's — the flow class is delegated to `Document::remove` (`yqr-f016` §5) and calling it directly produces the same bytes. Invisible until `yqr-b011` was fixed, for the plainest possible reason: the file could not be parsed. That is the second time in two releases that fixing a refusal exposed a defect behind it, which `yqr-f019` §3.5 names as a pattern — a read fix should be followed by walking the write verbs over the shape it unblocked. **Filed 2026-08-20 as noyalib#294, with a fix proposed as noyalib#296**, on the argument that carried `b010` and `b014`: noyalib's own block path already answers the identical question the other way for the same bytes — `owned_entry_range` takes a removed entry's whole line, indentation included — so this is the library disagreeing with itself rather than an external lint preference. The patch declines two adjacent shapes on purpose and says so: the last member keeps the comma on the line above (valid, and reaching up a line would be reformatting), and a comment on the member's line keeps the line (a `b010`-class semantics question, not one for a whitespace rule) | `yqr-b011`, `yqr-b006`, `yqr-b010`, `yqr-b014`, `yqr-f016`, `yqr-f019`, `yqr-a001` |
 
 ## Resolved
@@ -2103,10 +2103,13 @@ status tracker convention).
   where a line should have ended, one on the emit path and one on the write
   path, and both found by producing a shape nobody had produced before.
   - **b016** — the emitter writes `value: ` before a block collection reached
-    through a sequence item. Pre-existing and reachable through `--normalize`
-    since long before `yqr-f017`, which found it because `to_entries` output
-    is exactly that shape. Not worked around: a blanket line-strip in `render`
-    was measured to change a block scalar's value.
+    through a sequence item, *and* the block's indent before an empty
+    block-scalar line. Pre-existing and reachable through `--normalize` since
+    long before `yqr-f017`, which found the first face because `to_entries`
+    output is exactly that shape; the second was found while fixing it, by
+    measuring against the property rather than the reproduction. Not worked
+    around in yqr: a blanket line-strip in `render` was measured to change a
+    block scalar's value. Filed as noyalib#297 with a fix in noyalib#298.
   - **b015** — deleting a member of a *wrapped* flow collection leaves the
     removed member's indentation behind as a whitespace-only line. Upstream's
     `Document::remove`, which yqr delegates the flow class to. Valid YAML that
@@ -5110,8 +5113,10 @@ URL: /yqr/specs/bugs/yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-tra
 
 # Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space
 
-**Status:** Open — found 2026-08-20 by `yqr-f017`'s first output; pre-existing
-and reachable through `--normalize` since long before it
+**Status:** Open — found 2026-08-20 by `yqr-f017`'s first output, pre-existing
+and reachable through `--normalize` since long before it, **filed the same day
+as noyalib#297 with a fix in noyalib#298**; open here until a release carries
+it. The filing found a **second** source this spec had missed — see §6
 **Severity:** Low — the output is valid YAML that loads back correctly; what is
 wrong is a trailing space on a line that should not have one
 **Component:** noyalib's `to_string_value` (upstream), reached from yqr's
@@ -5197,16 +5202,63 @@ upstream.
 (`to_entries_output_carries_the_emitters_trailing_space`) rather than hiding
 it, on the `yqr-m003` rule that a pin states what the bug does.
 
-## 5. Route
+## 5. Route — taken 2026-08-20
 
-Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent, and naturally batched
-with `yqr-b015`: both are trailing whitespace written by noyalib where a line
-should have ended, one on the write path and one on the emit path, and the
-same maintainer is holding both.
+Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent: filed as
+**noyalib#297** and fixed in **noyalib#298**, independent of `b015`
+(noyalib#294 / #296) — both touch trailing whitespace but in different files,
+and either can land first.
 
-Not yet filed — `b015` (noyalib#294 / #296) is open at the time of writing, and
-two whitespace reports at once from the same reporter is worse than one
-followed by the other.
+## 6. What the filing found that this spec had not
+
+### 6.1 A second, larger source
+
+The indicator is not the only place noyalib emits trailing whitespace. A block
+scalar's content loop writes the block's indent before **every** line including
+empty ones, leaving the indent standing on a line that holds nothing:
+
+```text
+"k: |\n  a\n\n  b\n"   emits   "k: |\n  a\n␣␣\n  b\n"
+```
+
+Across noyalib's own fixture corpus this accounts for **36 documents to the
+indicator's 9** — so a report naming only the indicator would have described
+the smaller half and implied the rest was clean.
+
+Found by holding the fix to a property (*no emitted line carries trailing
+whitespace*) rather than to the reproduction. The reproduction was satisfied
+after the first fix; the property was not, and the gap was the second source.
+That is the transferable part: a fix measured against the case that prompted it
+stops exactly where that case stops.
+
+### 6.2 The same cause, three times over
+
+Both faces are duplicated logic that drifted from a sibling already applying
+the rule. `write_mapping` has always written `key:` without a space before a
+block value; `write_sequence` carries its own copy of the key-writing — twice —
+and neither consulted `needs_block_layout`. The block-scalar content loop
+exists in **three** identical copies (`|` auto, `|` explicit, `>`), so the rule
+was missing from all three and fixing any one would have left the others
+writing it.
+
+The patch therefore extracts a rule per site rather than patching the callers,
+which is what makes the fix a fix rather than a round of whack-a-mole:
+`indicator_takes_a_space` and `write_block_scalar_body`, one each, used by
+every caller.
+
+### 6.3 What the differential run measured
+
+384 documents, ~12.5k emitted lines: dangling indicators 9 docs → 0, leftover
+trailing whitespace 45 docs → 0. Two rows matter as much: emissions that fail
+to re-parse (5 docs) and that re-parse to a different value (4 docs) are the
+**same sets** before and after — pre-existing, unrelated, and untouched. They
+are noted to the maintainer as unexamined rather than left implied.
+
+§4's refusal to work around it held up under measurement and is pinned as two
+control tests upstream, including an all-spaces content line — which is
+distinguishable from an emitted indent only by what the string says, and is
+precisely why the rule keys on `line.is_empty()` rather than on how the
+emitted line looks.
 
 ---
 
@@ -9105,7 +9157,9 @@ Pre-existing, reachable through `--normalize` on any such document since long
 before this feature, and upstream — `render` calls `noyalib::to_string_value`
 and only trims the final newline.
 
-Filed as `yqr-b016` and **not worked around**. The obvious local fix — strip
+Filed as `yqr-b016`, upstream as noyalib#297 with a fix in noyalib#298 — which
+turned up a second and larger source of the same defect that `b016` §6.1
+records — and **not worked around** in yqr. The obvious local fix — strip
 trailing whitespace per rendered line — silently changes a block scalar whose
 content legitimately ends a line with spaces (`"a␣␣\nb"` becomes `"a\nb"`),
 measured rather than assumed. Altering a string is strictly worse than a

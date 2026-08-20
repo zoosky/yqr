@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f017 — `to_entries`: enumerate a mapping without losing the keys",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f017-to-entries",
-  "wordCount": 2180
+  "wordCount": 2208
 }
 </script>
 <script type="application/ld+json">
@@ -3440,7 +3440,9 @@ sequence item is written with a <strong>trailing space</strong> after its <code>
 Pre-existing, reachable through <code>--normalize</code> on any such document since long
 before this feature, and upstream — <code>render</code> calls <code>noyalib::to_string_value</code>
 and only trims the final newline.</p>
-<p>Filed as <code>yqr-b016</code> and <strong>not worked around</strong>. The obvious local fix — strip
+<p>Filed as <code>yqr-b016</code>, upstream as noyalib#297 with a fix in noyalib#298 — which
+turned up a second and larger source of the same defect that <code>b016</code> §6.1
+records — and <strong>not worked around</strong> in yqr. The obvious local fix — strip
 trailing whitespace per rendered line — silently changes a block scalar whose
 content legitimately ends a line with spaces (<code>"a␣␣\nb"</code> becomes <code>"a\nb"</code>),
 measured rather than assumed. Altering a string is strictly worse than a

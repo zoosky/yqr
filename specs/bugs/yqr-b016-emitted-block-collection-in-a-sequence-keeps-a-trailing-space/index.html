@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open — found 2026-08-20 by yqr-f017&#x27;s first output; pre-existing and reachable through --normalize since long before it Severity: Low — the output is valid YAML that loads back correctly; what is wrong is a trailing space on a line that should not have one Component: noyalib&#x27;s to_stri...">
+<meta name="description" content="Status: Open — found 2026-08-20 by yqr-f017&#x27;s first output, pre-existing and reachable through --normalize since long before it, filed the same day as noyalib#297 with a fix in noyalib#298; open here until a release carries it. The filing found a second source this spec had missed — see §6 S...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space">
-<meta property="og:description" content="Status: Open — found 2026-08-20 by yqr-f017&#x27;s first output; pre-existing and reachable through --normalize since long before it Severity: Low — the output is valid YAML that loads back correctly; what is wrong is a trailing space on a line that should not have one Component: noyalib&#x27;s to_stri...">
+<meta property="og:description" content="Status: Open — found 2026-08-20 by yqr-f017&#x27;s first output, pre-existing and reachable through --normalize since long before it, filed the same day as noyalib#297 with a fix in noyalib#298; open here until a release carries it. The filing found a second source this spec had missed — see §6 S...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space">
-<meta name="twitter:description" content="Status: Open — found 2026-08-20 by yqr-f017&#x27;s first output; pre-existing and reachable through --normalize since long before it Severity: Low — the output is valid YAML that loads back correctly; what is wrong is a trailing space on a line that should not have one Component: noyalib&#x27;s to_stri...">
+<meta name="twitter:description" content="Status: Open — found 2026-08-20 by yqr-f017&#x27;s first output, pre-existing and reachable through --normalize since long before it, filed the same day as noyalib#297 with a fix in noyalib#298; open here until a release carries it. The filing found a second source this spec had missed — see §6 S...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Status: Open — found 2026-08-20 by yqr-f017's first output; pre-existing and reachable through --normalize since long before it Severity: Low — the output is valid YAML that loads back correctly; what is wrong is a trailing space on a line that should not have one Component: noyalib's to_stri...",
+  "description": "Status: Open — found 2026-08-20 by yqr-f017's first output, pre-existing and reachable through --normalize since long before it, filed the same day as noyalib#297 with a fix in noyalib#298; open here until a release carries it. The filing found a second source this spec had missed — see §6 S...",
   "inLanguage": "en",
   "name": "Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space",
-  "wordCount": 711
+  "wordCount": 1101
 }
 </script>
 <script type="application/ld+json">
@@ -3230,8 +3230,10 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open — found 2026-08-20 by <code>yqr-f017</code>’s first output; pre-existing
-and reachable through <code>--normalize</code> since long before it
+            <p><strong>Status:</strong> Open — found 2026-08-20 by <code>yqr-f017</code>’s first output, pre-existing
+and reachable through <code>--normalize</code> since long before it, <strong>filed the same day
+as noyalib#297 with a fix in noyalib#298</strong>; open here until a release carries
+it. The filing found a <strong>second</strong> source this spec had missed — see §6
 <strong>Severity:</strong> Low — the output is valid YAML that loads back correctly; what is
 wrong is a trailing space on a line that should not have one
 <strong>Component:</strong> noyalib’s <code>to_string_value</code> (upstream), reached from yqr’s
@@ -3298,14 +3300,49 @@ upstream.</p>
 <p><code>yqr-f017</code> pins the current output in <code>tests/cli.rs</code>
 (<code>to_entries_output_carries_the_emitters_trailing_space</code>) rather than hiding
 it, on the <code>yqr-m003</code> rule that a pin states what the bug does.</p>
-<h2 id="5-route">5. Route<a class="heading-anchor" href="#5-route" aria-label="Link to this section"></a></h2>
-<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent, and naturally batched
-with <code>yqr-b015</code>: both are trailing whitespace written by noyalib where a line
-should have ended, one on the write path and one on the emit path, and the
-same maintainer is holding both.</p>
-<p>Not yet filed — <code>b015</code> (noyalib#294 / #296) is open at the time of writing, and
-two whitespace reports at once from the same reporter is worse than one
-followed by the other.</p>
+<h2 id="5-route-taken-2026-08-20">5. Route — taken 2026-08-20<a class="heading-anchor" href="#5-route-taken-2026-08-20" aria-label="Link to this section"></a></h2>
+<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent: filed as
+<strong>noyalib#297</strong> and fixed in <strong>noyalib#298</strong>, independent of <code>b015</code>
+(noyalib#294 / #296) — both touch trailing whitespace but in different files,
+and either can land first.</p>
+<h2 id="6-what-the-filing-found-that-this-spec-had-not">6. What the filing found that this spec had not<a class="heading-anchor" href="#6-what-the-filing-found-that-this-spec-had-not" aria-label="Link to this section"></a></h2>
+<h3 id="6-1-a-second-larger-source">6.1 A second, larger source<a class="heading-anchor" href="#6-1-a-second-larger-source" aria-label="Link to this section"></a></h3>
+<p>The indicator is not the only place noyalib emits trailing whitespace. A block
+scalar’s content loop writes the block’s indent before <strong>every</strong> line including
+empty ones, leaving the indent standing on a line that holds nothing:</p>
+<pre><code class="language-text">"k: |\n  a\n\n  b\n"   emits   "k: |\n  a\n␣␣\n  b\n"
+</code></pre>
+<p>Across noyalib’s own fixture corpus this accounts for <strong>36 documents to the
+indicator’s 9</strong> — so a report naming only the indicator would have described
+the smaller half and implied the rest was clean.</p>
+<p>Found by holding the fix to a property (<em>no emitted line carries trailing
+whitespace</em>) rather than to the reproduction. The reproduction was satisfied
+after the first fix; the property was not, and the gap was the second source.
+That is the transferable part: a fix measured against the case that prompted it
+stops exactly where that case stops.</p>
+<h3 id="6-2-the-same-cause-three-times-over">6.2 The same cause, three times over<a class="heading-anchor" href="#6-2-the-same-cause-three-times-over" aria-label="Link to this section"></a></h3>
+<p>Both faces are duplicated logic that drifted from a sibling already applying
+the rule. <code>write_mapping</code> has always written <code>key:</code> without a space before a
+block value; <code>write_sequence</code> carries its own copy of the key-writing — twice —
+and neither consulted <code>needs_block_layout</code>. The block-scalar content loop
+exists in <strong>three</strong> identical copies (<code>|</code> auto, <code>|</code> explicit, <code>&gt;</code>), so the rule
+was missing from all three and fixing any one would have left the others
+writing it.</p>
+<p>The patch therefore extracts a rule per site rather than patching the callers,
+which is what makes the fix a fix rather than a round of whack-a-mole:
+<code>indicator_takes_a_space</code> and <code>write_block_scalar_body</code>, one each, used by
+every caller.</p>
+<h3 id="6-3-what-the-differential-run-measured">6.3 What the differential run measured<a class="heading-anchor" href="#6-3-what-the-differential-run-measured" aria-label="Link to this section"></a></h3>
+<p>384 documents, ~12.5k emitted lines: dangling indicators 9 docs → 0, leftover
+trailing whitespace 45 docs → 0. Two rows matter as much: emissions that fail
+to re-parse (5 docs) and that re-parse to a different value (4 docs) are the
+<strong>same sets</strong> before and after — pre-existing, unrelated, and untouched. They
+are noted to the maintainer as unexamined rather than left implied.</p>
+<p>§4’s refusal to work around it held up under measurement and is pinned as two
+control tests upstream, including an all-spaces content line — which is
+distinguishable from an emitted indent only by what the string says, and is
+precisely why the rule keys on <code>line.is_empty()</code> rather than on how the
+emitted line looks.</p>
 
         </div>
         </accent-island>
@@ -3349,7 +3386,23 @@ followed by the other.</p>
             </li>
         
             <li class="toc-level-2">
-                <a href="#5-route">5. Route</a>
+                <a href="#5-route-taken-2026-08-20">5. Route — taken 2026-08-20</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#6-what-the-filing-found-that-this-spec-had-not">6. What the filing found that this spec had not</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#6-1-a-second-larger-source">6.1 A second, larger source</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#6-2-the-same-cause-three-times-over">6.2 The same cause, three times over</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#6-3-what-the-differential-run-measured">6.3 What the differential run measured</a>
             </li>
         
         </ul>

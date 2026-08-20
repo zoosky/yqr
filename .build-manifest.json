@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-20T17:33:52Z",
+  "timestamp": "2026-08-20T19:47:49Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
@@ -73,7 +73,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "161973a352424ec5",
+      "content_hash": "363437bacc40577a",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -153,7 +153,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space": {
-      "content_hash": "401cd5bcfcfde2a3",
+      "content_hash": "86f09a36caabd12b",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -248,7 +248,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f017-to-entries": {
-      "content_hash": "e8c5ad0e801c24d1",
+      "content_hash": "c6341ffcc2b73c7f",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
