@@ -1,8 +1,12 @@
 # Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line
 
 **Status:** Open — found 2026-08-20 while verifying `yqr-b011` against the
-noyalib 0.0.25 release, **filed the same day as noyalib#294 with a fix in
-noyalib#296**; open here until a release carries it
+noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in
+noyalib#296, and **noyalib#296 was merged to `main` the same day** (`ab4c235`,
+closing #294). Open here until a **release** carries it — crates.io is still on
+0.0.25, and yqr's rule is that a bug closes when the published crate fixes it,
+not when upstream `main` does (`yqr-f018` §3's "verified against the published
+crate, not the release notes")
 **Severity:** Low — the result is valid YAML and loads back correctly; what is
 wrong is a blank, trailing-whitespace line left at the edit site
 **Component:** noyalib's `Document::remove` (upstream), reached from yqr's
