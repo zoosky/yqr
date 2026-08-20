@@ -1125,6 +1125,13 @@ fn a_write_to_to_entries_is_refused_at_parse_with_a_reason() {
         (vec![".m | to_entries = 1"], "'='"),
         (vec![".m | to_entries += 1"], "'+='"),
         (vec!["del(.m | to_entries)"], "'del'"),
+        // The reorder verbs resolve their path through the write driver,
+        // which leaves an *absent* path alone at exit 0. A builtin is not
+        // absent but unwritable, so without a guard here the verb reported
+        // success for a reorder that did nothing -- exit 0, document
+        // unchanged, and with `-i` the file untouched and no complaint.
+        (vec!["swap(.m | to_entries; 0; 1)"], "'swap'"),
+        (vec!["move(to_entries; 0; 1)"], "'move'"),
     ] {
         let out = run(&args, "m:\n  a: 1\n");
         assert_eq!(out.status, 3, "{args:?} stdout: {}", out.stdout);

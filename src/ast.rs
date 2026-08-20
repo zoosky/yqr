@@ -260,10 +260,17 @@ impl Ast {
     /// The builtin this filter reaches, if any.
     ///
     /// A builtin computes a value that has no node in the source document, so
-    /// a filter containing one cannot name a thing to write to. Every
-    /// mutation site asks this before accepting a left-hand side, which is how
-    /// `to_entries = 1` is refused at parse with a reason rather than at eval
-    /// with a resolver error.
+    /// a filter containing one cannot name a thing to write to. All four
+    /// mutation sites — `=`, `+=`, `del(...)` and the reorder verbs — ask this
+    /// before accepting a left-hand side, which is how `to_entries = 1` is
+    /// refused at parse with a reason rather than at eval with a resolver
+    /// error.
+    ///
+    /// A new mutation form must ask too, and the reorder verb is why that is
+    /// worth saying out loud: an unresolvable reorder path is an *absent* one,
+    /// which the write driver is specified to leave alone at exit 0, so a
+    /// missing check there reports success for an edit that did nothing rather
+    /// than failing visibly.
     // Feature f017.
     #[must_use]
     pub fn builtin(&self) -> Option<Builtin> {

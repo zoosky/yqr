@@ -65,9 +65,12 @@ pub(crate) fn eval_traced(ast: &Ast, value: &Value, path: Option<&Path>) -> Resu
 /// stream alignment it is meant to replace. jq sorts object keys; here that
 /// difference is load-bearing rather than cosmetic (`yqr-f017` §4).
 ///
-/// A non-string key is carried through as itself rather than stringified, so
-/// `1: one` pairs as `key: 1`. yqr's mappings are `Value`-keyed, and inventing
-/// a string here would be the one place the model was flattened.
+/// The key is cloned, never re-typed. On a document that means it is always a
+/// string — `1: one` pairs as `key: "1"` — because the engine's typed mapping
+/// is string-keyed and the conversion at the parse boundary has already
+/// decided. yqr's own model is `Value`-keyed and would carry an `Int` here
+/// unchanged; re-deciding that in a builtin would be making the parse
+/// boundary's call a second time, in the wrong place and quietly.
 ///
 /// # Errors
 ///

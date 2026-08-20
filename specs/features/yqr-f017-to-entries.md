@@ -170,8 +170,10 @@ declining `remove_subtree` for the same reason (`yqr-b004` §7).
       `.["to_entries"]`, plus a corpus case.
 - [x] Non-mapping input is refused with a message naming the actual type,
       pinned for array / number / string / null.
-- [x] Every write form (`=`, `+=`, `del`) is refused at parse with a reason, at
-      all three mutation sites, via `Ast::builtin()`.
+- [x] Every write form is refused at parse with a reason, via `Ast::builtin()`
+      — at **four** sites, not the three §6 named: `=`, `+=`, `del(...)` and
+      the reorder verbs. §11.5 records why the fourth was the one worth
+      missing.
 - [x] The order property is pinned against a mapping whose keys are not in
       sorted order — `zebra`, `apple`, `mango`, which no sort in either
       direction produces — and again in the corpus against `web` / `db`.
@@ -262,3 +264,32 @@ That is twice in two features that shipping something exposed a defect
 underneath it, after `yqr-f019` §3.5. The pattern is the same both times: a
 shape nobody had produced before is a shape nobody had emitted, parsed, or
 edited before.
+
+### 11.5 The fourth mutation site, and why it hid
+
+§6 says `to_entries` "cannot appear on the left of `=`, `+=` or inside
+`del(...)`", and the first implementation guarded exactly those three. The
+reorder verbs are a fourth, and a code review found them.
+
+The failure was not a missing error — it was a **success**:
+
+```console
+$ yqr 'swap(.m | to_entries; 0; 1)' m.yaml
+m:
+  a: 1
+  b: 2
+$ echo $?
+0
+```
+
+Exit 0, document printed unchanged, and with `-i` the file left alone with no
+complaint. That is the plausible-wrong-output class `yqr-a001` exists to
+refuse, arrived at from an unusual direction: the write driver is *specified*
+to leave an **absent** path alone at exit 0, and a builtin path resolves to
+nothing, so it was read as absent. Absent and unwritable are different things,
+and only one of them deserves silence.
+
+The other three sites could not hide this way — each reaches a resolver that
+errors — which is exactly why this was the one to miss. The `Ast::builtin()`
+doc comment now says so, so the next mutation form added inherits the warning
+rather than the bug.

@@ -293,6 +293,15 @@ impl Parser {
         self.advance(); // the verb
         self.expect(&Token::LParen)?;
         let path = self.parse_pipeline()?;
+        // The fourth mutation site, and the one that hides a miss best: an
+        // unresolvable reorder path is an *absent* path, which the write
+        // driver is specified to leave alone at exit 0. A builtin is not
+        // absent — it is unwritable — so without this the verb reports
+        // success for a reorder that did nothing.
+        // Feature f017.
+        if let Some(b) = path.builtin() {
+            return Err(builtin_is_not_writable(b, op.word()));
+        }
         self.expect_semi(op)?;
         let from = self.parse_index(op)?;
         self.expect_semi(op)?;
@@ -989,6 +998,12 @@ mod tests {
             (".m | to_entries += 1", "'+='"),
             ("del(.m | to_entries)", "'del'"),
             ("to_entries = 1", "'='"),
+            // The reorder verbs are the fourth site, and the one where a
+            // missing guard hides: an unresolvable reorder path is an
+            // *absent* one, which the driver leaves alone at exit 0, so the
+            // failure mode is a success code for an edit that did nothing.
+            ("swap(.m | to_entries; 0; 1)", "'swap'"),
+            ("move(to_entries; 0; 1)", "'move'"),
         ] {
             let err = parse_program(filter).unwrap_err();
             assert!(
