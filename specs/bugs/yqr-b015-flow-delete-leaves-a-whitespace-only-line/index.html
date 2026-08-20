@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib&#x27;s Document::...">
+<meta name="description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line">
-<meta property="og:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib&#x27;s Document::...">
+<meta property="og:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line">
-<meta name="twitter:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib&#x27;s Document::...">
+<meta name="twitter:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib's Document::...",
+  "description": "Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...",
   "inLanguage": "en",
   "name": "Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b015-flow-delete-leaves-a-whitespace-only-line",
-  "wordCount": 623
+  "wordCount": 919
 }
 </script>
 <script type="application/ld+json">
@@ -3142,7 +3142,8 @@
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
             <p><strong>Status:</strong> Open — found 2026-08-20 while verifying <code>yqr-b011</code> against the
-noyalib 0.0.25 release; not yet filed upstream (§4)
+noyalib 0.0.25 release, <strong>filed the same day as noyalib#294 with a fix in
+noyalib#296</strong>; open here until a release carries it
 <strong>Severity:</strong> Low — the result is valid YAML and loads back correctly; what is
 wrong is a blank, trailing-whitespace line left at the edit site
 <strong>Component:</strong> noyalib’s <code>Document::remove</code> (upstream), reached from yqr’s
@@ -3190,17 +3191,45 @@ failure mode, not a cosmetic detail.</li>
 <li>It is at the edit site, which <code>yqr-a001</code> singles out as the one place an
 edit’s spelling has to be right.</li>
 </ul>
-<h2 id="4-route">4. Route<a class="heading-anchor" href="#4-route" aria-label="Link to this section"></a></h2>
-<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent, once the maintainer has
-had the four fixes of 0.0.25 land. The fix is the same shape as the one yqr’s
-<code>owned_line_span</code> makes on the block path: a removed member owns its line’s
-indentation when nothing else on that line survives, so the range should run
-from the line start rather than from the member’s first byte. The
-single-line case must stay as it is, which is what makes the condition “the
-member is alone on its line” rather than “the collection is wrapped”.</p>
-<p><strong>Not yet filed.</strong> Four yqr-authored fixes landed upstream on 2026-08-19; this
-is deliberately held until that release has settled rather than opened on top
-of it.</p>
+<h2 id="4-route-taken-2026-08-20">4. Route — taken 2026-08-20<a class="heading-anchor" href="#4-route-taken-2026-08-20" aria-label="Link to this section"></a></h2>
+<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent: filed as
+<strong>noyalib#294</strong> and fixed in <strong>noyalib#296</strong>. The estimate held — the fix is
+the same shape yqr’s <code>owned_line_span</code> makes on the block path, and the
+condition is “the member is alone on its line” rather than “the collection is
+wrapped”, so the single-line case is untouched.</p>
+<h3 id="4-1-the-argument">4.1 The argument<a class="heading-anchor" href="#4-1-the-argument" aria-label="Link to this section"></a></h3>
+<p>The one that carried it is upstream’s own inconsistency, the shape that carried
+<code>b010</code> and <code>b014</code>: noyalib’s <strong>block</strong> path already answers the identical
+question the other way for the same bytes. <code>owned_entry_range</code> takes a removed
+entry’s whole line, indentation included, so <code>ports:</code> / <code>- 80</code> / <code>- 443</code> minus
+<code>ports[0]</code> leaves no residue. Same operation, same question, opposite answers —
+and only because one path is written in terms of lines and the other in terms
+of separators. “PyYAML and yamllint dislike the output” is true and is the
+weaker half.</p>
+<h3 id="4-2-what-the-filing-declined-to-decide">4.2 What the filing declined to decide<a class="heading-anchor" href="#4-2-what-the-filing-declined-to-decide" aria-label="Link to this section"></a></h3>
+<p>Two shapes the patch deliberately leaves alone, both stated up front rather
+than left for the maintainer to find:</p>
+<ul>
+<li><strong>The last member keeps the comma on the line above.</strong> <code>[80,]</code> is valid — the
+entries after a <code>,</code> are optional in the flow productions — and both PyYAML
+and Psych read it back as <code>[80]</code>. Reaching up a line to delete a separator
+the removal does not own is reformatting, not removing.</li>
+<li><strong>A comment on the member’s line keeps the line.</strong> What a comment orphaned by
+a removal <em>means</em> is a semantics question of the <code>b010</code> kind, and a
+whitespace rule is the wrong instrument to settle it. Raised as a separate
+question rather than decided in passing.</li>
+</ul>
+<h3 id="4-3-verification-offered-with-the-patch">4.3 Verification offered with the patch<a class="heading-anchor" href="#4-3-verification-offered-with-the-patch" aria-label="Link to this section"></a></h3>
+<p>A 24-shape before/after battery (sequences and mappings, first/middle/last
+member, CRLF, tab indent, root-level, nested, no final newline, pre-existing
+blank lines, and each control): <strong>14 outputs fixed, 10 byte-identical</strong>, the 10
+being exactly the ones that should be. Every fixed output checked against
+PyYAML and Psych. The <code>fuzz_editors</code> invariants run over a generated corpus of
+336 accepted removals — re-parses, exactly one leaf fewer, no line gains
+trailing whitespace, CRLF stays CRLF — all holding, and on unpatched <code>main</code>
+only the whitespace invariant failing, which is what shows the change moves
+nothing else. libFuzzer itself was <strong>not</strong> run (<code>cargo-fuzz</code> is not installed
+locally and was not installed for this), and the PR says so.</p>
 <h2 id="5-reproduction">5. Reproduction<a class="heading-anchor" href="#5-reproduction" aria-label="Link to this section"></a></h2>
 <p>Pinned in <code>tests/cli.rs</code> (<code>a_wrapped_flow_collection_edits_only_at_the_site</code>
 covers the <code>set</code> half, which is correct). The delete half is <strong>not</strong> pinned
@@ -3247,7 +3276,19 @@ worse than the prose.</p>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-route">4. Route</a>
+                <a href="#4-route-taken-2026-08-20">4. Route — taken 2026-08-20</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-1-the-argument">4.1 The argument</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-2-what-the-filing-declined-to-decide">4.2 What the filing declined to decide</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#4-3-verification-offered-with-the-patch">4.3 Verification offered with the patch</a>
             </li>
         
             <li class="toc-level-2">

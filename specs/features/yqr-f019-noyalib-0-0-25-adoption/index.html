@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature f019 — Adopt noyalib 0.0.25: four bugs closed, and the delegation question answered",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f019-noyalib-0-0-25-adoption",
-  "wordCount": 1921
+  "wordCount": 1940
 }
 </script>
 <script type="application/ld+json">
@@ -3266,7 +3266,7 @@ ports: [$
 <p>Upstream’s, not yqr’s — the flow class is delegated to <code>Document::remove</code>
 (<code>f016</code> §5), and calling it directly produces the same bytes. It loads back
 correctly, so this is cosmetic; it was invisible until now for the plainest
-possible reason, that the file could not be parsed. Filed as <code>yqr-b015</code>.</p>
+possible reason, that the file could not be parsed. Filed as <code>yqr-b015</code>, and upstream the same day as noyalib#294 with a fix in noyalib#296.</p>
 <p>That is the second time in two releases that fixing a refusal exposed a
 defect behind it, and it is worth naming as a pattern rather than a
 coincidence: a parse refusal hides every downstream bug for that shape, so a
@@ -3350,7 +3350,8 @@ reason stated (§4).</li>
 The <code>m003</code> write-tier pins flipped, and regression tests added for the
 three bugs that had none (§5).</li>
 <li><input disabled="" type="checkbox" checked=""/>
-What §3.5 found filed as <code>yqr-b015</code> rather than left in this spec.</li>
+What §3.5 found filed as <code>yqr-b015</code> rather than left in this spec, and
+taken upstream as noyalib#294 / noyalib#296.</li>
 <li><input disabled="" type="checkbox" checked=""/>
 <code>b011</code>, <code>b012</code>, <code>b013</code>, <code>b014</code> moved to Resolved with the release
 recorded; <code>yqr-b000</code> summary updated.</li>

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-20T14:15:04Z",
+  "timestamp": "2026-08-20T16:24:17Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
@@ -68,7 +68,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "ce4103907b6b038a",
+      "content_hash": "7f73b01d51363f1b",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -143,7 +143,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b015-flow-delete-leaves-a-whitespace-only-line": {
-      "content_hash": "ded108935038add5",
+      "content_hash": "e0bbf5954feb0088",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -248,7 +248,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f019-noyalib-0-0-25-adoption": {
-      "content_hash": "e5656137b78afc98",
+      "content_hash": "069e641644be3231",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
