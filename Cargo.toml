@@ -9,8 +9,11 @@ repository = "https://github.com/zoosky/yqr"
 readme = "README.md"
 keywords = ["yaml", "jq", "cli", "query", "filter"]
 categories = ["command-line-utilities", "parsing"]
-# Dev-only files kept out of the published crate.
-exclude = [".agent/", ".github/", "specs/", "AGENT.md"]
+# Dev-only files kept out of the published crate: `docs/` is the website (its
+# theme assets alone outweigh the source), and CLAUDE.md is a symlink to
+# AGENT.md that needs its own entry, since exclude matches paths rather than
+# the files behind them. Guarded by the package-contents gate in local-ci.sh.
+exclude = [".agent/", ".github/", "docs/", "specs/", "AGENT.md", "CLAUDE.md"]
 
 [[bin]]
 name = "yqr"
