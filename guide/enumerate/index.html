@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validating YAML from the command line - yqr</title>
+    <title>Enumerating a mapping without losing the keys - yqr</title>
     
     
 
@@ -13,13 +13,10 @@
 
 
 
-<meta name="description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+<meta name="description" content="Iterating a mapping gives you the values and throws away the names. to_entries keeps both, so one filter can report what each value is about.">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;validate">
-
-
-
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;enumerate">
 
 
 
@@ -28,10 +25,13 @@
 
 
 
-<meta property="og:title" content="Validating YAML from the command line">
-<meta property="og:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+
+
+
+<meta property="og:title" content="Enumerating a mapping without losing the keys">
+<meta property="og:description" content="Iterating a mapping gives you the values and throws away the names. to_entries keeps both, so one filter can report what each value is about.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;validate">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;enumerate">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -41,8 +41,8 @@
 
 
 
-<meta name="twitter:title" content="Validating YAML from the command line">
-<meta name="twitter:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+<meta name="twitter:title" content="Enumerating a mapping without losing the keys">
+<meta name="twitter:description" content="Iterating a mapping gives you the values and throws away the names. to_entries keeps both, so one filter can report what each value is about.">
 
 
 
@@ -92,11 +92,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.",
+  "description": "Iterating a mapping gives you the values and throws away the names. to_entries keeps both, so one filter can report what each value is about.",
   "inLanguage": "en",
-  "name": "Validating YAML from the command line",
-  "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 858
+  "name": "Enumerating a mapping without losing the keys",
+  "url": "https://zoosky.github.io/yqr/guide/enumerate",
+  "wordCount": 843
 }
 </script>
 <script type="application/ld+json">
@@ -118,8 +118,8 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/guide/validate",
-      "name": "Validating YAML",
+      "item": "https://zoosky.github.io/yqr/guide/enumerate",
+      "name": "Enumerating mappings",
       "position": 3
     }
   ]
@@ -376,11 +376,11 @@
         <a href="&#x2f;yqr&#x2f;guide">Guide</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Validating YAML</span>
+    <span aria-current="page">Enumerating mappings</span>
 </nav>
 
 
-    <h1>Validating YAML from the command line</h1>
+    <h1>Enumerating a mapping without losing the keys</h1>
 
     
                 
@@ -401,27 +401,31 @@
     <ul>
     
         <li class="toc-level-1">
-            <a href="#validating-yaml">Validating YAML</a>
+            <a href="#enumerating-a-mapping">Enumerating a mapping</a>
         </li>
     
         <li class="toc-level-2">
-            <a href="#when-something-is-wrong">When something is wrong</a>
+            <a href="#to-entries">to_entries</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#the-order-is-your-file-s">The order is your file’s</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#it-is-a-query-not-a-place-to-write">It is a query, not a place to write</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#to-entries-on-anything-but-a-mapping">to_entries on anything but a mapping</a>
         </li>
     
         <li class="toc-level-2">
-            <a href="#the-file-your-engine-reads-and-nobody-else-does">The file your engine reads and nobody else does</a>
+            <a href="#key-reads-a-key-to-entries-reads-a-mapping">key(...) reads a key; to_entries reads a mapping</a>
         </li>
     
         <li class="toc-level-2">
-            <a href="#strict-and-the-bug-it-catches">--strict, and the bug it catches</a>
-        </li>
-    
-        <li class="toc-level-2">
-            <a href="#in-a-script">In a script</a>
-        </li>
-    
-        <li class="toc-level-2">
-            <a href="#reading-from-stdin">Reading from stdin</a>
+            <a href="#what-is-not-here-yet">What is not here yet</a>
         </li>
     
         <li class="toc-level-2">
@@ -439,138 +443,131 @@
                 
 
                 <div class="content prose">
-                    <h1 id="validating-yaml">Validating YAML<a class="heading-anchor" href="#validating-yaml" aria-label="Link to this section"></a></h1>
-<p>An edit went in – by hand, by a script, or by an agent. Is the file still
-correct?</p>
-<!-- Feature f012: the validate subcommand. -->
-<pre><code class="language-console">$ yqr validate deploy.yaml
-$ echo $?
-0
-</code></pre>
-<p>Silence and exit 0. That is the whole success case, which makes it easy to
-put in a script or a pre-commit hook.</p>
-<p>A pass here means more than “it parsed”. yqr checks that the parsed
-documents reproduce the input byte-for-byte, so a file that parses but
-round-trips differently is reported rather than waved through.</p>
-<h2 id="when-something-is-wrong">When something is wrong<a class="heading-anchor" href="#when-something-is-wrong" aria-label="Link to this section"></a></h2>
-<pre><code class="language-console">$ yqr validate broken.yaml
-error[Y001]: inconsistent indentation: token at a column that does not match any open block scope
-  --&gt; broken.yaml
-$ echo $?
-1
-</code></pre>
-<p>Diagnostics are compiler-shaped on purpose: an error code, the file, and
-where possible the line, column, and a pointer into the source. That is as
-readable for a person as it is parseable for whatever is running it.</p>
-<p>Several files at once works, and the exit code covers all of them:</p>
-<pre><code class="language-console">$ yqr validate deploy.yaml service.yaml configmap.yaml
-</code></pre>
-<p>Exit 0 when every input is valid, 1 when any input fails, and 5 when an
-input cannot be read at all – a missing file is a different problem from a
-malformed one, so it gets a different code.</p>
-<h2 id="the-file-your-engine-reads-and-nobody-else-does">The file your engine reads and nobody else does<a class="heading-anchor" href="#the-file-your-engine-reads-and-nobody-else-does" aria-label="Link to this section"></a></h2>
-<!-- Bug b014 §3.2: the Y103 check. -->
-<p>A mapping value on its own line has to be indented past its key. Some
-parsers – yqr’s included – read one that is not, which is worse than
-refusing it: the file works for you and fails for everyone else.</p>
-<pre><code class="language-console">$ cat workflow.yaml
-on:
-[]
-jobs: {}
-$ yqr validate workflow.yaml
-error[Y103]: block mapping value is not indented past its key
-  --&gt; workflow.yaml:2:1
-  |
-2 | []
-  | ^
-  = note: its key is at line 1, column 1, so the value must start at column 2 or deeper
-  = help: indent the value, or write it on the key's own line; noyalib reads this file but other YAML implementations reject it
-</code></pre>
-<p>This one is not a <code>--strict</code> opinion, so it is on by default: the document
-is invalid, not merely unusual. Python’s PyYAML and Ruby’s Psych both refuse
-that file.</p>
-<p>Two layouts look like this and are perfectly fine, so they are never
-flagged. A block sequence may sit at its key’s own column – the GitHub
-Actions and Ansible style:</p>
-<pre style="background-color:#2b303b;">
-<span style="color:#d08770;">on</span><span style="color:#c0c5ce;">:
-</span><span style="color:#c0c5ce;">- </span><span style="color:#a3be8c;">push
-</span><span style="color:#c0c5ce;">- </span><span style="color:#a3be8c;">pull_request
-</span></pre>
-<p>And a block scalar sets its own indentation, so its <code>|</code> may sit anywhere:</p>
-<pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">script</span><span style="color:#c0c5ce;">:
-</span><span style="color:#b48ead;">|
-</span><span style="color:#a3be8c;">  make build
-</span></pre>
-<h2 id="strict-and-the-bug-it-catches"><code>--strict</code>, and the bug it catches<a class="heading-anchor" href="#strict-and-the-bug-it-catches" aria-label="Link to this section"></a></h2>
-<p>Here is a file that is perfectly legal YAML and almost certainly a mistake:</p>
-<pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
-</span><span style="color:#bf616a;">port</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
-</span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">api
-</span></pre>
-<p><code>name</code> appears twice. The YAML spec says a mapping should not have
-duplicate keys, but almost every parser accepts it anyway and resolves
-last-wins. So does yqr:</p>
-<pre><code class="language-console">$ yqr validate dup.yaml
-$ echo $?
-0
+                    <h1 id="enumerating-a-mapping">Enumerating a mapping<a class="heading-anchor" href="#enumerating-a-mapping" aria-label="Link to this section"></a></h1>
+<p>The most ordinary shape in YAML is a mapping of named things – services,
+environments, jobs, hosts. Iterating one gives you the <strong>values</strong>:</p>
+<pre><code class="language-console">$ cat services.yaml
+services:
+  alpha:
+    domain: alpha.example.com
+  beta:
+    domain: beta.example.com
+  gamma:
+    tier: core
 
-$ yqr -r '.name' dup.yaml
-api
+$ yqr -r '.services[].domain' services.yaml
+alpha.example.com
+beta.example.com
+null
 </code></pre>
-<p>The first <code>name</code> is simply gone. No warning, no error – your data quietly
-lost a field. This is exactly the sort of thing a careless merge or a
-templating bug produces.</p>
-<p><code>--strict</code> turns it into an error:</p>
-<pre><code class="language-console">$ yqr validate --strict dup.yaml
-error[Y101]: duplicate mapping key "name"
-  --&gt; dup.yaml:3:1
-  |
-3 | name: api
-  | ^
-  = note: first occurrence at line 1, column 1
-  = help: later occurrences silently override earlier ones; remove or rename one
-$ echo $?
-1
+<p>That is the right data and it cannot say what it is about. The names are
+gone by the time the filter can use them.</p>
+<h2 id="to-entries"><code>to_entries</code><a class="heading-anchor" href="#to-entries" aria-label="Link to this section"></a></h2>
+<!-- Feature f017 -->
+<p><code>to_entries</code> turns a mapping into a list of pairs, so the name travels with
+the value:</p>
+<pre><code class="language-console">$ yqr '.services | to_entries' services.yaml
+- key: alpha
+  value:
+    domain: alpha.example.com
+- key: beta
+  value:
+    domain: beta.example.com
+- key: gamma
+  value:
+    tier: core
 </code></pre>
-<p>It points at the later occurrence, tells you where the first one was, and
-says what will happen if you leave it. The two are kept separate because
-they answer different questions: plain <code>validate</code> asks “will this file
-load”, <code>--strict</code> asks “will it load the way you think it will”.</p>
-<p><strong>Use <code>--strict</code> in CI.</strong> The cost is one flag; the thing it catches is
-silent data loss, which is the failure mode you find out about in
-production.</p>
-<h2 id="in-a-script">In a script<a class="heading-anchor" href="#in-a-script" aria-label="Link to this section"></a></h2>
-<p>The pattern that works:</p>
-<pre style="background-color:#2b303b;">
-<span style="color:#8fa1b3;">yqr</span><span style="color:#bf616a;"> -i </span><span style="color:#c0c5ce;">&#39;</span><span style="color:#a3be8c;">.spec.replicas = 5</span><span style="color:#c0c5ce;">&#39; deploy.yaml
-</span><span style="color:#8fa1b3;">yqr</span><span style="color:#c0c5ce;"> validate</span><span style="color:#bf616a;"> --strict</span><span style="color:#c0c5ce;"> deploy.yaml || </span><span style="color:#96b5b4;">exit</span><span style="color:#c0c5ce;"> 1
-</span></pre>
-<p>Edit, then check. yqr already refuses edits that would restructure the
-document, so this is a second net rather than the only one – but it also
-catches problems that were in the file before you touched it, which is
-worth knowing before you ship it.</p>
-<p>In a pre-commit hook, over everything that changed:</p>
-<pre style="background-color:#2b303b;">
-<span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> diff</span><span style="color:#bf616a;"> --cached --name-only --diff-filter</span><span style="color:#c0c5ce;">=ACM -- &#39;</span><span style="color:#a3be8c;">*.yaml</span><span style="color:#c0c5ce;">&#39; &#39;</span><span style="color:#a3be8c;">*.yml</span><span style="color:#c0c5ce;">&#39; \
-</span><span style="color:#c0c5ce;">  | </span><span style="color:#8fa1b3;">xargs</span><span style="color:#bf616a;"> -r</span><span style="color:#c0c5ce;"> yqr validate</span><span style="color:#bf616a;"> --strict
-</span></pre>
-<h2 id="reading-from-stdin">Reading from stdin<a class="heading-anchor" href="#reading-from-stdin" aria-label="Link to this section"></a></h2>
-<p>Same as everywhere else – omit the file, or pass <code>-</code>:</p>
-<pre><code class="language-console">$ kubectl get deploy web -o yaml | yqr validate --strict
-$ helm template ./chart | yqr validate --strict -
+<!-- Bug b016: the emitter's trailing space, pinned in tests/cli.rs. -->
+<p>One wart, so it does not surprise you in a diff: when a pair’s value is a
+mapping or a list, the <code>value:</code> line is printed with a trailing space. It is
+invisible, it loads back correctly, and it is a known issue in the emitter
+rather than something about these pairs – but if your editor strips trailing
+whitespace on save, that is what changed.</p>
+<p>It takes its input from the pipe rather than wrapping a path, so it is
+<code>&lt;path&gt; | to_entries</code>, not <code>to_entries(&lt;path&gt;)</code>. Iterate the pairs and reach
+into either half:</p>
+<pre><code class="language-console">$ yqr -r '.services | to_entries[] | .key' services.yaml
+alpha
+beta
+gamma
+
+$ yqr -r '.services | to_entries[] | .value.domain' services.yaml
+alpha.example.com
+beta.example.com
+null
 </code></pre>
-<p>The second one is a genuinely useful check: chart templating produces YAML
-through string interpolation, which is exactly the process most likely to
-emit a duplicate key.</p>
+<p><code>key</code> and <code>value</code> are the field names jq uses. They are worth nothing if
+they do not transfer, so they are the same here.</p>
+<h3 id="the-order-is-your-file-s">The order is your file’s<a class="heading-anchor" href="#the-order-is-your-file-s" aria-label="Link to this section"></a></h3>
+<p>Pairs come out in the order the entries were written, never sorted. That
+matters more than it sounds: the two streams above line up entry for entry,
+and they only line up because both keep document order and because a missing
+field yields <code>null</code> rather than being skipped. <code>gamma</code> has no <code>domain</code>, and
+it still gets a line.</p>
+<p>jq sorts object keys. yqr does not, and this is one of the places that
+difference is doing real work rather than being a footnote.</p>
+<h3 id="it-is-a-query-not-a-place-to-write">It is a query, not a place to write<a class="heading-anchor" href="#it-is-a-query-not-a-place-to-write" aria-label="Link to this section"></a></h3>
+<p>The pairs are a view yqr invents; they exist in no file, so there is nothing
+to write back to. Every write form is refused, with the reason:</p>
+<pre><code class="language-console">$ yqr '.services | to_entries = 1' services.yaml
+yqr: parse error: 'to_entries' computes a value rather than naming one in the
+document, so it cannot appear on the left of '=': there is nothing to write
+back to. Read it with a query, or address the entry itself by path
+</code></pre>
+<p>For the same reason its output is <strong>normalized rather than byte-preserved</strong>:
+comments and quote styles inside the printed pairs are yqr’s, not your
+file’s. Everywhere else yqr hands back your own bytes – see
+<a href="/yqr/guide/fidelity">byte-for-byte</a> – but that promise is about nodes your filter
+names, and these pairs are not in the document to be named.</p>
+<h3 id="to-entries-on-anything-but-a-mapping"><code>to_entries</code> on anything but a mapping<a class="heading-anchor" href="#to-entries-on-anything-but-a-mapping" aria-label="Link to this section"></a></h3>
+<p>Refused, naming what it actually got:</p>
+<pre><code class="language-console">$ yqr '.services.gamma.tier | to_entries' services.yaml
+yqr: runtime error: to_entries takes an object, but this is string; it turns a
+mapping's entries into {key, value} pairs, so there is nothing for it to
+enumerate here
+</code></pre>
+<p>A sequence is refused the same way. jq refuses both too.</p>
+<h2 id="key-reads-a-key-to-entries-reads-a-mapping"><code>key(...)</code> reads a key; <code>to_entries</code> reads a mapping<a class="heading-anchor" href="#key-reads-a-key-to-entries-reads-a-mapping" aria-label="Link to this section"></a></h2>
+<p>There are two ways to get at a key, and they are not the same thing.</p>
+<pre><code class="language-console">$ cat quoting.yaml
+m:
+  "quoted": 1
+  plain: 2
+
+$ yqr 'key(.m[])' quoting.yaml
+"quoted"
+plain
+
+$ yqr '.m | to_entries[] | .key' quoting.yaml
+quoted
+plain
+</code></pre>
+<p><code>key(...)</code> hands back the <strong>key token from your file</strong>, quotes and all,
+because it is a read of the document’s own bytes. <code>to_entries</code> hands back the
+<strong>decoded string</strong>, because its pairs are computed and have no bytes to
+show; yqr then spells that string however it needs to.</p>
+<p>The rule is one line: <code>key(...)</code> is what your file says, <code>to_entries</code> is what
+it means. Ask for raw output with <code>-r</code> and the difference disappears, since
+<code>-r</code> is a request for the value rather than the spelling:</p>
+<pre><code class="language-console">$ yqr -r 'key(.m[])' quoting.yaml
+quoted
+plain
+</code></pre>
+<p>Reach for <code>key(...)</code> when you are working on the document – renaming a key,
+or reporting exactly how one is written. Reach for <code>to_entries</code> when you are
+working on the data.</p>
+<h2 id="what-is-not-here-yet">What is not here yet<a class="heading-anchor" href="#what-is-not-here-yet" aria-label="Link to this section"></a></h2>
+<p><code>from_entries</code> – the inverse – is deliberately absent. It is only useful
+once a filter can <em>build</em> pairs, which needs object construction and <code>map</code>,
+and until then its only possible input is <code>to_entries</code>’ own unmodified
+output. <code>with_entries</code>, <code>select</code> and <code>map</code> are the same story: <code>to_entries</code>
+makes the pairing available, and transforming it is the next piece of
+language work.</p>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
 <ul>
-<li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – the edits worth validating
-after.</li>
-<li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – what “reproduces the input”
-means.</li>
+<li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – why a query that names a node
+gives you your own bytes back.</li>
+<li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – the write side.</li>
 </ul>
 
                 </div>
@@ -609,16 +606,11 @@ means.</li>
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    <a href="&#x2f;yqr&#x2f;guide&#x2f;kubernetes" class="nav-prev">
+    <a href="&#x2f;yqr&#x2f;guide&#x2f;validate" class="nav-prev">
         <span class="nav-label">&larr; Previous</span>
-        <span class="nav-title">Kubernetes manifests</span>
+        <span class="nav-title">Validating YAML</span>
     </a>
     
-    
-    <a href="&#x2f;yqr&#x2f;guide&#x2f;enumerate" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Enumerating mappings</span>
-    </a>
     
 </nav>
 

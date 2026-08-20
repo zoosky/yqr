@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Draft (scoped; not started) Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pulled from), yqr-f007 §7 &#x2f; yqr-a002 (the k...">
+<meta name="description" content="Status: Done — implemented 2026-08-20; §10&#x27;s open question settled in §11 Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pu...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f017-to-entries">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Feature f017 — `to_entries`: enumerate a mapping without losing the keys">
-<meta property="og:description" content="Status: Draft (scoped; not started) Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pulled from), yqr-f007 §7 &#x2f; yqr-a002 (the k...">
+<meta property="og:description" content="Status: Done — implemented 2026-08-20; §10&#x27;s open question settled in §11 Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pu...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f017-to-entries">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Feature f017 — `to_entries`: enumerate a mapping without losing the keys">
-<meta name="twitter:description" content="Status: Draft (scoped; not started) Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pulled from), yqr-f007 §7 &#x2f; yqr-a002 (the k...">
+<meta name="twitter:description" content="Status: Done — implemented 2026-08-20; §10&#x27;s open question settled in §11 Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pu...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Status: Draft (scoped; not started) Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pulled from), yqr-f007 §7 / yqr-a002 (the k...",
+  "description": "Status: Done — implemented 2026-08-20; §10's open question settled in §11 Epic: jq-style YAML processor (f001) — promoted out of the M2 builtin core Owner: yqr maintainers Related: yqr-r003 (the usage report that promoted this), yqr-r001 §5 (the builtin gap table this is the first entry pu...",
   "inLanguage": "en",
   "name": "Feature f017 — `to_entries`: enumerate a mapping without losing the keys",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f017-to-entries",
-  "wordCount": 1283
+  "wordCount": 2180
 }
 </script>
 <script type="application/ld+json">
@@ -300,6 +300,9 @@
                 
                     
                 
+                
+                    
+                
                  <li><a href="/yqr/" >Home</a></li>
                     
                     
@@ -335,6 +338,9 @@
                 
                  <li><a href="/yqr/demo" >yqr Demo</a></li>
                     
+                    
+                
+                
                     
                 
                 
@@ -526,6 +532,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -584,13 +593,6 @@
         
       
         
-        
-          
-        
-      
-        
-        
-          
         
       
         
@@ -681,6 +683,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -762,6 +777,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1009,6 +1027,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1109,6 +1130,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -1355,6 +1384,15 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space"
+                   class="sidebar-link">Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1509,6 +1547,12 @@
         
         
           
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1891,6 +1935,12 @@
               
               
             
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1901,6 +1951,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -2019,13 +2072,6 @@
         
       
         
-        
-          
-        
-      
-        
-        
-          
         
       
         
@@ -2041,6 +2087,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -2107,6 +2166,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2309,6 +2371,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -2456,8 +2521,6 @@
       
         
         
-          
-        
       
         
         
@@ -2467,6 +2530,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -2521,6 +2592,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2717,6 +2791,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -2858,7 +2935,13 @@
       
         
         
+      
+        
+        
           
+        
+      
+        
         
       
         
@@ -3054,8 +3137,14 @@
             
               
               
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing&#x2f;yqr-k001-content-plan"
                    class="sidebar-link">Marketing k001 — Content plan: four task pages on the fidelity axis</a>
+              
+            
+              
               
             
               
@@ -3141,14 +3230,15 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Draft (scoped; not started)
+            <p><strong>Status:</strong> Done — implemented 2026-08-20; §10’s open question settled in §11
 <strong>Epic:</strong> jq-style YAML processor (<code>f001</code>) — promoted out of the M2 builtin core
 <strong>Owner:</strong> yqr maintainers
 <strong>Related:</strong> <code>yqr-r003</code> (the usage report that promoted this), <code>yqr-r001</code> §5
 (the builtin gap table this is the first entry pulled from), <code>yqr-f007</code> §7 /
 <code>yqr-a002</code> (the <code>key(...)</code> selector that proves the plumbing), <code>yqr-a001</code> (the
 fidelity contract this deliberately steps outside of), <code>yqr-f001</code> (the M1/M2
-roadmap this jumps the queue of)</p>
+roadmap this jumps the queue of), <code>yqr-b016</code> (the emitter wart this feature’s
+own output made routine)</p>
 <h2 id="1-scope">1. Scope<a class="heading-anchor" href="#1-scope" aria-label="Link to this section"></a></h2>
 <p>One builtin: <code>to_entries</code>, which turns a mapping into a sequence of key/value
 pairs so a filter can act on both halves at once.</p>
@@ -3201,6 +3291,9 @@ $ yqr -r '.services | to_entries[] | .key'
 alpha
 beta
 </code></pre>
+<p>As shipped, each <code>value:</code> line above carries a <strong>trailing space</strong> — an emitter
+defect this shape reaches, not a property of the pairs. It is <code>yqr-b016</code>, and
+§11.4 records why it is carried rather than worked around.</p>
 <p><code>key</code> / <code>value</code> are jq’s field names, kept deliberately: the shape is worth
 nothing if it does not transfer.</p>
 <p>Order is the mapping’s <strong>document order</strong>, not sorted. yqr’s value model is
@@ -3262,29 +3355,40 @@ i.e. the identity function spelled in two builtins.</p>
 declining <code>remove_subtree</code> for the same reason (<code>yqr-b004</code> §7).</p>
 <h2 id="9-acceptance-criteria">9. Acceptance criteria<a class="heading-anchor" href="#9-acceptance-criteria" aria-label="Link to this section"></a></h2>
 <ul>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>.m | to_entries</code> yields one <code>{key, value}</code> mapping per entry, in
 document order.</li>
-<li><input disabled="" type="checkbox"/>
-<code>to_entries[]</code> parses and streams the pairs.</li>
-<li><input disabled="" type="checkbox"/>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>to_entries[]</code> parses and streams the pairs. So do <code>to_entries[].key</code> and
+<code>to_entries[0]</code> — the chain that follows a path now follows a builtin,
+which was §5’s one non-additive grammar change.</li>
+<li><input disabled="" type="checkbox" checked=""/>
 <code>.to_entries</code> still parses as a field access, with a test that would fail
-if the word were reserved.</li>
-<li><input disabled="" type="checkbox"/>
-Non-mapping input is refused with a message naming the actual type.</li>
-<li><input disabled="" type="checkbox"/>
-Every write form (<code>=</code>, <code>+=</code>, <code>del</code>) is refused at parse with a reason.</li>
-<li><input disabled="" type="checkbox"/>
+if the word were reserved — <code>.to_entries</code>, <code>.a.to_entries</code> and
+<code>.["to_entries"]</code>, plus a corpus case.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Non-mapping input is refused with a message naming the actual type,
+pinned for array / number / string / null.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Every write form is refused at parse with a reason, via <code>Ast::builtin()</code>
+— at <strong>four</strong> sites, not the three §6 named: <code>=</code>, <code>+=</code>, <code>del(...)</code> and
+the reorder verbs. §11.5 records why the fourth was the one worth
+missing.</li>
+<li><input disabled="" type="checkbox" checked=""/>
 The order property is pinned against a mapping whose keys are not in
-sorted order, so a future sort cannot land silently.</li>
-<li><input disabled="" type="checkbox"/>
+sorted order — <code>zebra</code>, <code>apple</code>, <code>mango</code>, which no sort in either
+direction produces — and again in the corpus against <code>web</code> / <code>db</code>.</li>
+<li><input disabled="" type="checkbox" checked=""/>
 The <code>yqr-r003</code> §2 task is a single yqr invocation, and that invocation is
-a corpus case.</li>
-<li><input disabled="" type="checkbox"/>
-<code>docs/content/guide/</code> gains the enumeration idiom (CLAUDE.md rule 15),
-alongside the <code>key(...)</code> two-stream form, with the difference stated.</li>
+a corpus case (<code>to_entries/pairs-a-named-mapping</code>, on the compose
+document’s named services). §11.2 states what “the task” now means
+precisely, since exact projection still needs M1/M2.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>docs/content/guide/enumerate.md</code> gains the enumeration idiom, the
+<code>key(...)</code> comparison with the difference stated, and <code>from_entries</code>’
+absence.</li>
 </ul>
-<h2 id="10-open-question">10. Open question<a class="heading-anchor" href="#10-open-question" aria-label="Link to this section"></a></h2>
+<h2 id="10-open-question-settled-in-11-1">10. Open question — settled in §11.1<a class="heading-anchor" href="#10-open-question-settled-in-11-1" aria-label="Link to this section"></a></h2>
 <p><strong>Whether <code>key(...)</code> and <code>to_entries</code> should stay two ways to enumerate.</strong>
 After this ships, <code>key(.m[])</code> and <code>.m | to_entries[] | .key</code> both produce a
 mapping’s keys. That is one more way than a small tool wants.</p>
@@ -3294,6 +3398,80 @@ string, because its output is a computed value with no bytes. So they differ
 exactly where fidelity does. That is a real distinction and also a subtle one,
 and it should be settled and documented in this feature rather than discovered
 by a user comparing two outputs that differ by a pair of quotes.</p>
+<h2 id="11-what-implementing-it-settled">11. What implementing it settled<a class="heading-anchor" href="#11-what-implementing-it-settled" aria-label="Link to this section"></a></h2>
+<h3 id="11-1-both-stay-and-the-difference-is-one-line">11.1 Both stay, and the difference is one line<a class="heading-anchor" href="#11-1-both-stay-and-the-difference-is-one-line" aria-label="Link to this section"></a></h3>
+<p>Measured rather than argued, on <code>m:</code> / <code>"quoted": 1</code> / <code>plain: 2</code>:</p>
+<table><thead><tr><th>filter</th><th>output</th></tr></thead><tbody>
+<tr><td><code>key(.m[])</code></td><td><code>"quoted"</code> / <code>plain</code></td></tr>
+<tr><td><code>.m | to_entries[] | .key</code></td><td><code>quoted</code> / <code>plain</code></td></tr>
+<tr><td>either, with <code>-r</code></td><td><code>quoted</code> / <code>plain</code></td></tr>
+</tbody></table>
+<p><code>key(...)</code> is what your file says; <code>to_entries</code> is what it means. The third row
+is what makes this teachable rather than a trap: <code>-r</code> collapses the difference,
+because asking for raw output <em>is</em> asking for the value rather than the
+spelling. A user who never leaves <code>-r</code> never meets the distinction, and one who
+does meets it with a rule that fits in a sentence.</p>
+<p>A third measurement fixes which side each is on. On <code>m:</code> / <code>"1": 3</code> both print
+<code>"1"</code> without <code>-r</code> — <code>key</code> because that is the token, <code>to_entries</code> because the
+renderer must quote a string that would otherwise re-type as a number. Same
+output, opposite reasons, and the reasons are what the guide teaches.</p>
+<p><code>docs/content/guide/enumerate.md</code> carries this as its own section, which is
+what §10 asked for.</p>
+<h3 id="11-2-what-the-r003-task-in-one-invocation-actually-delivers">11.2 What “the r003 task in one invocation” actually delivers<a class="heading-anchor" href="#11-2-what-the-r003-task-in-one-invocation-actually-delivers" aria-label="Link to this section"></a></h3>
+<p>Precisely: <code>.services | to_entries</code> puts the name and the value in one stream,
+so the <code>paste</code> of two aligned streams is gone and nothing has to hold the
+alignment property in its head. What it does <strong>not</strong> do is project — “the name
+and <em>just</em> the domain” is <code>with_entries</code> or object construction, both M1/M2 as
+<code>yqr-r001</code> has them and as §1 puts out of scope. The honest form of the claim
+is that the <em>pairing</em> is now internal to yqr; the <em>shaping</em> is still the
+language work this feature declined to pull forward.</p>
+<h3 id="11-3-the-key-is-a-string-and-that-was-decided-elsewhere">11.3 The key is a string, and that was decided elsewhere<a class="heading-anchor" href="#11-3-the-key-is-a-string-and-that-was-decided-elsewhere" aria-label="Link to this section"></a></h3>
+<p><code>to_entries</code> clones the key it is handed. On a parsed document that key is
+always a <code>Value::String</code>, including for <code>1:</code> and <code>true:</code>, because noyalib’s
+typed mapping is string-keyed and the conversion at the parse boundary has
+already decided (<code>yqr-b002</code> §2.7). Worth stating because the obvious reading of
+<code>Value::Mapping</code> — yqr’s own model <em>is</em> <code>Value</code>-keyed — suggests otherwise. A
+builtin that re-typed the key would be making the engine’s decision over again,
+in the wrong place and quietly.</p>
+<h3 id="11-4-what-the-first-output-found-yqr-b016">11.4 What the first output found: <code>yqr-b016</code><a class="heading-anchor" href="#11-4-what-the-first-output-found-yqr-b016" aria-label="Link to this section"></a></h3>
+<p><code>to_entries</code> produces a sequence of mappings whose values are mappings, and
+that shape hits an emitter defect: a block collection reached through a
+sequence item is written with a <strong>trailing space</strong> after its <code>key:</code>.
+Pre-existing, reachable through <code>--normalize</code> on any such document since long
+before this feature, and upstream — <code>render</code> calls <code>noyalib::to_string_value</code>
+and only trims the final newline.</p>
+<p>Filed as <code>yqr-b016</code> and <strong>not worked around</strong>. The obvious local fix — strip
+trailing whitespace per rendered line — silently changes a block scalar whose
+content legitimately ends a line with spaces (<code>"a␣␣\nb"</code> becomes <code>"a\nb"</code>),
+measured rather than assumed. Altering a string is strictly worse than a
+cosmetic space, so the output is pinned as it behaves in <code>tests/cli.rs</code> and the
+guide says so plainly.</p>
+<p>That is twice in two features that shipping something exposed a defect
+underneath it, after <code>yqr-f019</code> §3.5. The pattern is the same both times: a
+shape nobody had produced before is a shape nobody had emitted, parsed, or
+edited before.</p>
+<h3 id="11-5-the-fourth-mutation-site-and-why-it-hid">11.5 The fourth mutation site, and why it hid<a class="heading-anchor" href="#11-5-the-fourth-mutation-site-and-why-it-hid" aria-label="Link to this section"></a></h3>
+<p>§6 says <code>to_entries</code> “cannot appear on the left of <code>=</code>, <code>+=</code> or inside
+<code>del(...)</code>”, and the first implementation guarded exactly those three. The
+reorder verbs are a fourth, and a code review found them.</p>
+<p>The failure was not a missing error — it was a <strong>success</strong>:</p>
+<pre><code class="language-console">$ yqr 'swap(.m | to_entries; 0; 1)' m.yaml
+m:
+  a: 1
+  b: 2
+$ echo $?
+0
+</code></pre>
+<p>Exit 0, document printed unchanged, and with <code>-i</code> the file left alone with no
+complaint. That is the plausible-wrong-output class <code>yqr-a001</code> exists to
+refuse, arrived at from an unusual direction: the write driver is <em>specified</em>
+to leave an <strong>absent</strong> path alone at exit 0, and a builtin path resolves to
+nothing, so it was read as absent. Absent and unwritable are different things,
+and only one of them deserves silence.</p>
+<p>The other three sites could not hide this way — each reaches a resolver that
+errors — which is exactly why this was the one to miss. The <code>Ast::builtin()</code>
+doc comment now says so, so the next mutation form added inherits the warning
+rather than the bug.</p>
 
         </div>
         </accent-island>
@@ -3362,7 +3540,31 @@ by a user comparing two outputs that differ by a pair of quotes.</p>
             </li>
         
             <li class="toc-level-2">
-                <a href="#10-open-question">10. Open question</a>
+                <a href="#10-open-question-settled-in-11-1">10. Open question — settled in §11.1</a>
+            </li>
+        
+            <li class="toc-level-2">
+                <a href="#11-what-implementing-it-settled">11. What implementing it settled</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#11-1-both-stay-and-the-difference-is-one-line">11.1 Both stay, and the difference is one line</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#11-2-what-the-r003-task-in-one-invocation-actually-delivers">11.2 What “the r003 task in one invocation” actually delivers</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#11-3-the-key-is-a-string-and-that-was-decided-elsewhere">11.3 The key is a string, and that was decided elsewhere</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#11-4-what-the-first-output-found-yqr-b016">11.4 What the first output found: yqr-b016</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#11-5-the-fourth-mutation-site-and-why-it-hid">11.5 The fourth mutation site, and why it hid</a>
             </li>
         
         </ul>

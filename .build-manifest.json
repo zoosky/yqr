@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-20T16:24:17Z",
+  "timestamp": "2026-08-20T17:33:52Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
@@ -23,8 +23,13 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide": {
-      "content_hash": "8b7be74548e19ae1",
+      "content_hash": "4ba5b1cdc82e5e20",
       "template": "README.html.jinja",
+      "template_hash": "30406ea523c53def"
+    },
+    "/guide/enumerate": {
+      "content_hash": "86dfee146ec085cd",
+      "template": "enumerate.html.jinja",
       "template_hash": "30406ea523c53def"
     },
     "/guide/fidelity": {
@@ -68,7 +73,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/bugs/yqr-b000-bug-status": {
-      "content_hash": "7f73b01d51363f1b",
+      "content_hash": "161973a352424ec5",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -147,13 +152,18 @@
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
+    "/specs/bugs/yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space": {
+      "content_hash": "401cd5bcfcfde2a3",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
     "/specs/features": {
       "content_hash": "64caeda468267e11",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f0000-feature-status": {
-      "content_hash": "d20a2572c3c49b39",
+      "content_hash": "ed275229619580d0",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -238,7 +248,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/features/yqr-f017-to-entries": {
-      "content_hash": "3007740c34c11fd9",
+      "content_hash": "e8c5ad0e801c24d1",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },

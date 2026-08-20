@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Bug Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b000-bug-status",
-  "wordCount": 2731
+  "wordCount": 3014
 }
 </script>
 <script type="application/ld+json">
@@ -300,6 +300,9 @@
                 
                     
                 
+                
+                    
+                
                  <li><a href="/yqr/" >Home</a></li>
                     
                     
@@ -335,6 +338,9 @@
                 
                  <li><a href="/yqr/demo" >yqr Demo</a></li>
                     
+                    
+                
+                
                     
                 
                 
@@ -526,6 +532,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -584,13 +593,6 @@
         
       
         
-        
-          
-        
-      
-        
-        
-          
         
       
         
@@ -681,6 +683,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -762,6 +777,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;features"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -1009,6 +1027,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1109,6 +1130,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -1355,6 +1384,15 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space"
+                   class="sidebar-link">Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1509,6 +1547,12 @@
         
         
           
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1891,6 +1935,12 @@
               
               
             
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1901,6 +1951,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -2019,13 +2072,6 @@
         
       
         
-        
-          
-        
-      
-        
-        
-          
         
       
         
@@ -2041,6 +2087,19 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -2107,6 +2166,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2309,6 +2371,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -2456,8 +2521,6 @@
       
         
         
-          
-        
       
         
         
@@ -2467,6 +2530,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -2521,6 +2592,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2717,6 +2791,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -2858,7 +2935,13 @@
       
         
         
+      
+        
+        
           
+        
+      
+        
         
       
         
@@ -3054,8 +3137,14 @@
             
               
               
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing&#x2f;yqr-k001-content-plan"
                    class="sidebar-link">Marketing k001 — Content plan: four task pages on the fidelity axis</a>
+              
+            
+              
               
             
               
@@ -3147,6 +3236,7 @@ status tracker convention).</p>
 <p><strong>Status legend:</strong> Open · In Progress · Fixed · Resolved · Won’t Fix · Duplicate</p>
 <h2 id="open">Open<a class="heading-anchor" href="#open" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Bug</th><th>Title</th><th>Severity</th><th>Status</th><th>Related</th></tr></thead><tbody>
+<tr><td><a href="/yqr/specs/bugs/yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space">b016</a></td><td>An emitted block collection reached through a sequence item keeps a trailing space</td><td>Low</td><td>Open — <code>to_string_value</code> writes <code>value: </code> before a block collection whose indicator is reached through a <strong>sequence item</strong>, so the line carries a trailing space; the same mapping not reached through a sequence is correct. Valid YAML that loads back identically under PyYAML and Psych, which is why it is Low; what it breaks is <code>--normalize</code>’s claim to be a canonical form, since <code>git diff --check</code> and <code>yamllint</code> reject the output. Pre-existing and reachable through <code>--normalize</code> long before it was noticed — <code>yqr-f017</code> found it because <code>to_entries</code> output is exactly the shape (a sequence of mappings whose values are mappings), so <strong>most</strong> pairs carry one. Deliberately <strong>not</strong> worked around: stripping trailing whitespace per rendered line changes a block scalar whose content legitimately ends a line with spaces (<code>"a␣␣\\nb"</code> becomes <code>"a\\nb"</code>, measured), and silently altering a string is strictly worse than a cosmetic space. Pinned as it behaves in <code>tests/cli.rs</code> and stated in the guide. Not yet filed upstream — it batches naturally with <code>b015</code>, and two whitespace reports at once from the same reporter is worse than one then the other</td><td><code>yqr-f017</code>, <code>yqr-b015</code>, <code>yqr-a001</code></td></tr>
 <tr><td><a href="/yqr/specs/bugs/yqr-b015-flow-delete-leaves-a-whitespace-only-line">b015</a></td><td>Deleting a member of a wrapped flow collection leaves a whitespace-only line</td><td>Low</td><td>Open — <code>del(.ports[0])</code> on <code>ports: [</code> / <code>  80,</code> / <code>  443,</code> / <code>]</code> removes the member and its separator but leaves the line’s indentation, so a line that had no trailing whitespace now has two spaces of it. The result is valid YAML that loads back correctly, which is why the severity is Low; what it breaks is the diff, and <code>git diff --check</code>, <code>yamllint</code> and most pre-commit setups flag exactly this. Upstream’s, not yqr’s — the flow class is delegated to <code>Document::remove</code> (<code>yqr-f016</code> §5) and calling it directly produces the same bytes. Invisible until <code>yqr-b011</code> was fixed, for the plainest possible reason: the file could not be parsed. That is the second time in two releases that fixing a refusal exposed a defect behind it, which <code>yqr-f019</code> §3.5 names as a pattern — a read fix should be followed by walking the write verbs over the shape it unblocked. <strong>Filed 2026-08-20 as noyalib#294, with a fix proposed as noyalib#296</strong>, on the argument that carried <code>b010</code> and <code>b014</code>: noyalib’s own block path already answers the identical question the other way for the same bytes — <code>owned_entry_range</code> takes a removed entry’s whole line, indentation included — so this is the library disagreeing with itself rather than an external lint preference. The patch declines two adjacent shapes on purpose and says so: the last member keeps the comma on the line above (valid, and reaching up a line would be reformatting), and a comment on the member’s line keeps the line (a <code>b010</code>-class semantics question, not one for a whitespace rule)</td><td><code>yqr-b011</code>, <code>yqr-b006</code>, <code>yqr-b010</code>, <code>yqr-b014</code>, <code>yqr-f016</code>, <code>yqr-f019</code>, <code>yqr-a001</code></td></tr>
 </tbody></table>
 <h2 id="resolved">Resolved<a class="heading-anchor" href="#resolved" aria-label="Link to this section"></a></h2>
@@ -3168,9 +3258,16 @@ status tracker convention).</p>
 </tbody></table>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total bugs: 15</li>
-<li>Open: 1 — <code>b015</code>, and it is the residue of closing the other four.
+<li>Total bugs: 16</li>
+<li>Open: 2 — <code>b016</code> and <code>b015</code>, both trailing whitespace written by noyalib
+where a line should have ended, one on the emit path and one on the write
+path, and both found by producing a shape nobody had produced before.
 <ul>
+<li><strong>b016</strong> — the emitter writes <code>value: </code> before a block collection reached
+through a sequence item. Pre-existing and reachable through <code>--normalize</code>
+since long before <code>yqr-f017</code>, which found it because <code>to_entries</code> output
+is exactly that shape. Not worked around: a blanket line-strip in <code>render</code>
+was measured to change a block scalar’s value.</li>
 <li><strong>b015</strong> — deleting a member of a <em>wrapped</em> flow collection leaves the
 removed member’s indentation behind as a whitespace-only line. Upstream’s
 <code>Document::remove</code>, which yqr delegates the flow class to. Valid YAML that

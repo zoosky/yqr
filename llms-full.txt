@@ -730,6 +730,177 @@ Being straight about the edges, because finding them yourself is annoying:
 
 ---
 
+# Enumerating a mapping without losing the keys
+
+URL: /yqr/guide/enumerate
+
+# Enumerating a mapping
+
+The most ordinary shape in YAML is a mapping of named things -- services,
+environments, jobs, hosts. Iterating one gives you the **values**:
+
+```console
+$ cat services.yaml
+services:
+  alpha:
+    domain: alpha.example.com
+  beta:
+    domain: beta.example.com
+  gamma:
+    tier: core
+
+$ yqr -r '.services[].domain' services.yaml
+alpha.example.com
+beta.example.com
+null
+```
+
+That is the right data and it cannot say what it is about. The names are
+gone by the time the filter can use them.
+
+## `to_entries`
+
+<!-- Feature f017 -->
+
+`to_entries` turns a mapping into a list of pairs, so the name travels with
+the value:
+
+```console
+$ yqr '.services | to_entries' services.yaml
+- key: alpha
+  value:
+    domain: alpha.example.com
+- key: beta
+  value:
+    domain: beta.example.com
+- key: gamma
+  value:
+    tier: core
+```
+
+<!-- Bug b016: the emitter's trailing space, pinned in tests/cli.rs. -->
+One wart, so it does not surprise you in a diff: when a pair's value is a
+mapping or a list, the `value:` line is printed with a trailing space. It is
+invisible, it loads back correctly, and it is a known issue in the emitter
+rather than something about these pairs -- but if your editor strips trailing
+whitespace on save, that is what changed.
+
+It takes its input from the pipe rather than wrapping a path, so it is
+`<path> | to_entries`, not `to_entries(<path>)`. Iterate the pairs and reach
+into either half:
+
+```console
+$ yqr -r '.services | to_entries[] | .key' services.yaml
+alpha
+beta
+gamma
+
+$ yqr -r '.services | to_entries[] | .value.domain' services.yaml
+alpha.example.com
+beta.example.com
+null
+```
+
+`key` and `value` are the field names jq uses. They are worth nothing if
+they do not transfer, so they are the same here.
+
+### The order is your file's
+
+Pairs come out in the order the entries were written, never sorted. That
+matters more than it sounds: the two streams above line up entry for entry,
+and they only line up because both keep document order and because a missing
+field yields `null` rather than being skipped. `gamma` has no `domain`, and
+it still gets a line.
+
+jq sorts object keys. yqr does not, and this is one of the places that
+difference is doing real work rather than being a footnote.
+
+### It is a query, not a place to write
+
+The pairs are a view yqr invents; they exist in no file, so there is nothing
+to write back to. Every write form is refused, with the reason:
+
+```console
+$ yqr '.services | to_entries = 1' services.yaml
+yqr: parse error: 'to_entries' computes a value rather than naming one in the
+document, so it cannot appear on the left of '=': there is nothing to write
+back to. Read it with a query, or address the entry itself by path
+```
+
+For the same reason its output is **normalized rather than byte-preserved**:
+comments and quote styles inside the printed pairs are yqr's, not your
+file's. Everywhere else yqr hands back your own bytes -- see
+[byte-for-byte](fidelity) -- but that promise is about nodes your filter
+names, and these pairs are not in the document to be named.
+
+### `to_entries` on anything but a mapping
+
+Refused, naming what it actually got:
+
+```console
+$ yqr '.services.gamma.tier | to_entries' services.yaml
+yqr: runtime error: to_entries takes an object, but this is string; it turns a
+mapping's entries into {key, value} pairs, so there is nothing for it to
+enumerate here
+```
+
+A sequence is refused the same way. jq refuses both too.
+
+## `key(...)` reads a key; `to_entries` reads a mapping
+
+There are two ways to get at a key, and they are not the same thing.
+
+```console
+$ cat quoting.yaml
+m:
+  "quoted": 1
+  plain: 2
+
+$ yqr 'key(.m[])' quoting.yaml
+"quoted"
+plain
+
+$ yqr '.m | to_entries[] | .key' quoting.yaml
+quoted
+plain
+```
+
+`key(...)` hands back the **key token from your file**, quotes and all,
+because it is a read of the document's own bytes. `to_entries` hands back the
+**decoded string**, because its pairs are computed and have no bytes to
+show; yqr then spells that string however it needs to.
+
+The rule is one line: `key(...)` is what your file says, `to_entries` is what
+it means. Ask for raw output with `-r` and the difference disappears, since
+`-r` is a request for the value rather than the spelling:
+
+```console
+$ yqr -r 'key(.m[])' quoting.yaml
+quoted
+plain
+```
+
+Reach for `key(...)` when you are working on the document -- renaming a key,
+or reporting exactly how one is written. Reach for `to_entries` when you are
+working on the data.
+
+## What is not here yet
+
+`from_entries` -- the inverse -- is deliberately absent. It is only useful
+once a filter can *build* pairs, which needs object construction and `map`,
+and until then its only possible input is `to_entries`' own unmodified
+output. `with_entries`, `select` and `map` are the same story: `to_entries`
+makes the pairing available, and transforming it is the next piece of
+language work.
+
+## Next
+
+- [Byte-for-byte, explained](fidelity) -- why a query that names a node
+  gives you your own bytes back.
+- [Editing Kubernetes manifests](kubernetes) -- the write side.
+
+---
+
 # Validating YAML from the command line
 
 URL: /yqr/guide/validate
@@ -933,6 +1104,8 @@ build, and the output you see is the output it printed.
   replica counts so the diff is one line.
 - [Validating YAML](validate) -- checking a file is still correct after an
   edit, and catching the duplicate keys that silently eat your data.
+- [Enumerating mappings](enumerate) -- reporting what each value is about,
+  with `to_entries`, when iterating throws the names away.
 
 If you are arriving from another tool, [how yqr compares to
 yq](../compare/yq) is probably the faster orientation.
@@ -1901,6 +2074,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b016](yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space.md) | An emitted block collection reached through a sequence item keeps a trailing space | Low | Open — `to_string_value` writes `value: ` before a block collection whose indicator is reached through a **sequence item**, so the line carries a trailing space; the same mapping not reached through a sequence is correct. Valid YAML that loads back identically under PyYAML and Psych, which is why it is Low; what it breaks is `--normalize`'s claim to be a canonical form, since `git diff --check` and `yamllint` reject the output. Pre-existing and reachable through `--normalize` long before it was noticed — `yqr-f017` found it because `to_entries` output is exactly the shape (a sequence of mappings whose values are mappings), so **most** pairs carry one. Deliberately **not** worked around: stripping trailing whitespace per rendered line changes a block scalar whose content legitimately ends a line with spaces (`"a␣␣\\nb"` becomes `"a\\nb"`, measured), and silently altering a string is strictly worse than a cosmetic space. Pinned as it behaves in `tests/cli.rs` and stated in the guide. Not yet filed upstream — it batches naturally with `b015`, and two whitespace reports at once from the same reporter is worse than one then the other | `yqr-f017`, `yqr-b015`, `yqr-a001` |
 | [b015](yqr-b015-flow-delete-leaves-a-whitespace-only-line.md) | Deleting a member of a wrapped flow collection leaves a whitespace-only line | Low | Open — `del(.ports[0])` on `ports: [` / `  80,` / `  443,` / `]` removes the member and its separator but leaves the line's indentation, so a line that had no trailing whitespace now has two spaces of it. The result is valid YAML that loads back correctly, which is why the severity is Low; what it breaks is the diff, and `git diff --check`, `yamllint` and most pre-commit setups flag exactly this. Upstream's, not yqr's — the flow class is delegated to `Document::remove` (`yqr-f016` §5) and calling it directly produces the same bytes. Invisible until `yqr-b011` was fixed, for the plainest possible reason: the file could not be parsed. That is the second time in two releases that fixing a refusal exposed a defect behind it, which `yqr-f019` §3.5 names as a pattern — a read fix should be followed by walking the write verbs over the shape it unblocked. **Filed 2026-08-20 as noyalib#294, with a fix proposed as noyalib#296**, on the argument that carried `b010` and `b014`: noyalib's own block path already answers the identical question the other way for the same bytes — `owned_entry_range` takes a removed entry's whole line, indentation included — so this is the library disagreeing with itself rather than an external lint preference. The patch declines two adjacent shapes on purpose and says so: the last member keeps the comma on the line above (valid, and reaching up a line would be reformatting), and a comment on the member's line keeps the line (a `b010`-class semantics question, not one for a whitespace rule) | `yqr-b011`, `yqr-b006`, `yqr-b010`, `yqr-b014`, `yqr-f016`, `yqr-f019`, `yqr-a001` |
 
 ## Resolved
@@ -1924,8 +2098,15 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 15
-- Open: 1 — `b015`, and it is the residue of closing the other four.
+- Total bugs: 16
+- Open: 2 — `b016` and `b015`, both trailing whitespace written by noyalib
+  where a line should have ended, one on the emit path and one on the write
+  path, and both found by producing a shape nobody had produced before.
+  - **b016** — the emitter writes `value: ` before a block collection reached
+    through a sequence item. Pre-existing and reachable through `--normalize`
+    since long before `yqr-f017`, which found it because `to_entries` output
+    is exactly that shape. Not worked around: a blanket line-strip in `render`
+    was measured to change a block scalar's value.
   - **b015** — deleting a member of a *wrapped* flow collection leaves the
     removed member's indentation behind as a whitespace-only line. Upstream's
     `Document::remove`, which yqr delegates the flow class to. Valid YAML that
@@ -4923,6 +5104,112 @@ worse than the prose.
 
 ---
 
+# Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space
+
+URL: /yqr/specs/bugs/yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space
+
+# Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space
+
+**Status:** Open — found 2026-08-20 by `yqr-f017`'s first output; pre-existing
+and reachable through `--normalize` since long before it
+**Severity:** Low — the output is valid YAML that loads back correctly; what is
+wrong is a trailing space on a line that should not have one
+**Component:** noyalib's `to_string_value` (upstream), reached from yqr's
+`render` — the typed emitter used for **computed** and absent values
+**Related:** `yqr-f017` (the feature whose output made it routine),
+`yqr-b015` (the same defect class on the write path, and the same upstream
+function family), `yqr-a001` (why yqr cares about a space nobody reads)
+
+## 1. Summary
+
+When a block collection is the value of a mapping entry **reached through a
+sequence item**, the emitter writes the `key:` with a trailing space before the
+newline:
+
+```console
+$ printf 'x:\n  - key: a\n    value:\n      d: 1\n' | yqr --normalize '.' | sed -n l
+x:$
+  - key: a$
+    value: $
+      d: 1$
+```
+
+The space belongs before an inline scalar (`key: 1`). Here the value is on the
+following line, so nothing follows the colon and the space is left over.
+
+The same mapping *not* reached through a sequence is correct:
+
+```console
+$ printf 'x:\n  k:\n    d: 1\n' | yqr --normalize '.' | sed -n l
+x:$
+  k:$
+    d: 1$
+```
+
+## 2. It is upstream, and it is not about mappings
+
+`render` (`src/lib.rs`) calls `noyalib::to_string_value` and does nothing to
+the result but trim the final newline. Calling the emitter directly reproduces
+it, and the battery narrows the condition to the sequence item rather than to
+the value's kind:
+
+| input | emitted | trailing space |
+|---|---|---|
+| `x:` / `␣␣- key: a` / `␣␣␣␣value:` / `␣␣␣␣␣␣d: 1` | `value: ` | yes |
+| `x:` / `␣␣- key: a` / `␣␣␣␣value:` / `␣␣␣␣␣␣- 1` | `value: ` | yes |
+| `- a:` / `␣␣␣␣b: 1` | `- a: ` | yes |
+| `x:` / `␣␣- - 1` | `- ` | yes |
+| `x:` / `␣␣k:` / `␣␣␣␣d: 1` | `k:` | no |
+
+So it is any block collection written on the line below its indicator once a
+sequence is in the path, mapping value and nested sequence alike.
+
+## 3. Why it is worth tracking
+
+- Nothing misreads. Both PyYAML and Psych load the output to the same value,
+  and yqr reads it back unchanged.
+- But it is trailing whitespace, which `git diff --check`, `yamllint`'s
+  `trailing-spaces` and most pre-commit hooks reject. `yqr --normalize` is
+  offered as the canonicalizing pipeline; output a repo's own lint refuses is a
+  poor canonical form.
+- `yqr-f017` makes it routine rather than obscure: **every** `to_entries` pair
+  whose value is a mapping or a sequence has one, which is most of them, and it
+  lands on the line a reader is looking at.
+
+## 4. Why yqr does not work around it
+
+The obvious local fix — strip trailing whitespace from each rendered line — is
+**wrong**, and measurably so. A block scalar's content may legitimately end a
+line with spaces, and stripping changes the value:
+
+```text
+Value::String("a  \nb\n")  emits  "|\n  a  \n  b\n"     loads back as "a  \nb\n"
+after a blanket strip      "|\n  a\n  b\n"              loads back as "a\nb\n"
+```
+
+Silently altering a string is a strictly worse defect than a cosmetic space, so
+the workaround is refused and the bug is carried visibly instead. A narrower
+workaround — strip only lines that end in `:` — would be arguing with the
+emitter about YAML from outside it, which is the shape of thing that belongs
+upstream.
+
+`yqr-f017` pins the current output in `tests/cli.rs`
+(`to_entries_output_carries_the_emitters_trailing_space`) rather than hiding
+it, on the `yqr-m003` rule that a pin states what the bug does.
+
+## 5. Route
+
+Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent, and naturally batched
+with `yqr-b015`: both are trailing whitespace written by noyalib where a line
+should have ended, one on the write path and one on the emit path, and the
+same maintainer is holding both.
+
+Not yet filed — `b015` (noyalib#294 / #296) is open at the time of writing, and
+two whitespace reports at once from the same reporter is worse than one
+followed by the other.
+
+---
+
 # Feature Specs
 
 URL: /yqr/specs/features
@@ -4950,15 +5237,32 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
-| [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Draft (scoped, not started) |
+| [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Done |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 f017 is the one builtin **pulled forward** out of that queue, on field evidence
 rather than on the gap table: `yqr-r003` records an agent session that hit the
 "iterate a mapping and keep the keys" wall on a real file and left for a Python
 script. `key(...)` (`f007` §7) closed half of it after the fact; `to_entries`
-closes the other half, and turns out not to be gated on M1 object construction
-the way the queue assumed (`f017` §3).
+closes the other half, and turned out not to be gated on M1 object construction
+the way the queue assumed (`f017` §3) — the gate was construction *syntax*,
+which a builtin does not need since it builds a `Value` in Rust.
+
+f017 **done** (2026-08-20). The AST gains `Ast::Builtin`, a third recognition
+rule beside the `f007` selectors and reorder verbs and the only one that costs
+no `(`: a builtin is an identifier where a path was expected, and no yqr path
+can start with one. Its single non-additive grammar change is that the chain
+after a path now also follows a builtin, so `to_entries[]` and
+`to_entries[].key` parse. Every write form is refused at parse through
+`Ast::builtin()`, because the pairs exist in no file. §10's open question — two
+ways to enumerate keys — is **settled** in §11.1 and taught in the guide:
+`key(...)` is what your file says (the token, quotes included), `to_entries` is
+what it means (the decoded string), and `-r` collapses the difference because
+`-r` asks for the value rather than the spelling. What the feature's own first
+output found is filed as **`b016`**: the emitter writes a trailing space after
+`key:` when a block collection is reached through a sequence item, which is
+most `to_entries` pairs. Carried visibly rather than worked around — a blanket
+line-strip in `render` was measured to change `"a␣␣\nb"` into `"a\nb"`.
 
 ## Epic: Fidelity-first architecture (a001)
 
@@ -5155,11 +5459,10 @@ dashboard.
 ## Summary
 
 - Total features: 19
-- Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
-  scoped from the `yqr-r003` usage report)
+- Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 1 (f001 M0)
-- Done: 13 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-  f018, f019)
+- Done: 14 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f017, f018, f019)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
@@ -8549,14 +8852,15 @@ URL: /yqr/specs/features/yqr-f017-to-entries
 
 # Feature f017 — `to_entries`: enumerate a mapping without losing the keys
 
-**Status:** Draft (scoped; not started)
+**Status:** Done — implemented 2026-08-20; §10's open question settled in §11
 **Epic:** jq-style YAML processor (`f001`) — promoted out of the M2 builtin core
 **Owner:** yqr maintainers
 **Related:** `yqr-r003` (the usage report that promoted this), `yqr-r001` §5
 (the builtin gap table this is the first entry pulled from), `yqr-f007` §7 /
 `yqr-a002` (the `key(...)` selector that proves the plumbing), `yqr-a001` (the
 fidelity contract this deliberately steps outside of), `yqr-f001` (the M1/M2
-roadmap this jumps the queue of)
+roadmap this jumps the queue of), `yqr-b016` (the emitter wart this feature's
+own output made routine)
 
 ## 1. Scope
 
@@ -8626,6 +8930,10 @@ $ yqr -r '.services | to_entries[] | .key'
 alpha
 beta
 ```
+
+As shipped, each `value:` line above carries a **trailing space** — an emitter
+defect this shape reaches, not a property of the pairs. It is `yqr-b016`, and
+§11.4 records why it is carried rather than worked around.
 
 `key` / `value` are jq's field names, kept deliberately: the shape is worth
 nothing if it does not transfer.
@@ -8704,21 +9012,32 @@ declining `remove_subtree` for the same reason (`yqr-b004` §7).
 
 ## 9. Acceptance criteria
 
-- [ ] `.m | to_entries` yields one `{key, value}` mapping per entry, in
+- [x] `.m | to_entries` yields one `{key, value}` mapping per entry, in
       document order.
-- [ ] `to_entries[]` parses and streams the pairs.
-- [ ] `.to_entries` still parses as a field access, with a test that would fail
-      if the word were reserved.
-- [ ] Non-mapping input is refused with a message naming the actual type.
-- [ ] Every write form (`=`, `+=`, `del`) is refused at parse with a reason.
-- [ ] The order property is pinned against a mapping whose keys are not in
-      sorted order, so a future sort cannot land silently.
-- [ ] The `yqr-r003` §2 task is a single yqr invocation, and that invocation is
-      a corpus case.
-- [ ] `docs/content/guide/` gains the enumeration idiom (CLAUDE.md rule 15),
-      alongside the `key(...)` two-stream form, with the difference stated.
+- [x] `to_entries[]` parses and streams the pairs. So do `to_entries[].key` and
+      `to_entries[0]` — the chain that follows a path now follows a builtin,
+      which was §5's one non-additive grammar change.
+- [x] `.to_entries` still parses as a field access, with a test that would fail
+      if the word were reserved — `.to_entries`, `.a.to_entries` and
+      `.["to_entries"]`, plus a corpus case.
+- [x] Non-mapping input is refused with a message naming the actual type,
+      pinned for array / number / string / null.
+- [x] Every write form is refused at parse with a reason, via `Ast::builtin()`
+      — at **four** sites, not the three §6 named: `=`, `+=`, `del(...)` and
+      the reorder verbs. §11.5 records why the fourth was the one worth
+      missing.
+- [x] The order property is pinned against a mapping whose keys are not in
+      sorted order — `zebra`, `apple`, `mango`, which no sort in either
+      direction produces — and again in the corpus against `web` / `db`.
+- [x] The `yqr-r003` §2 task is a single yqr invocation, and that invocation is
+      a corpus case (`to_entries/pairs-a-named-mapping`, on the compose
+      document's named services). §11.2 states what "the task" now means
+      precisely, since exact projection still needs M1/M2.
+- [x] `docs/content/guide/enumerate.md` gains the enumeration idiom, the
+      `key(...)` comparison with the difference stated, and `from_entries`'
+      absence.
 
-## 10. Open question
+## 10. Open question — settled in §11.1
 
 **Whether `key(...)` and `to_entries` should stay two ways to enumerate.**
 After this ships, `key(.m[])` and `.m | to_entries[] | .key` both produce a
@@ -8730,6 +9049,102 @@ string, because its output is a computed value with no bytes. So they differ
 exactly where fidelity does. That is a real distinction and also a subtle one,
 and it should be settled and documented in this feature rather than discovered
 by a user comparing two outputs that differ by a pair of quotes.
+
+## 11. What implementing it settled
+
+### 11.1 Both stay, and the difference is one line
+
+Measured rather than argued, on `m:` / `"quoted": 1` / `plain: 2`:
+
+| filter | output |
+|---|---|
+| `key(.m[])` | `"quoted"` / `plain` |
+| `.m \| to_entries[] \| .key` | `quoted` / `plain` |
+| either, with `-r` | `quoted` / `plain` |
+
+`key(...)` is what your file says; `to_entries` is what it means. The third row
+is what makes this teachable rather than a trap: `-r` collapses the difference,
+because asking for raw output *is* asking for the value rather than the
+spelling. A user who never leaves `-r` never meets the distinction, and one who
+does meets it with a rule that fits in a sentence.
+
+A third measurement fixes which side each is on. On `m:` / `"1": 3` both print
+`"1"` without `-r` — `key` because that is the token, `to_entries` because the
+renderer must quote a string that would otherwise re-type as a number. Same
+output, opposite reasons, and the reasons are what the guide teaches.
+
+`docs/content/guide/enumerate.md` carries this as its own section, which is
+what §10 asked for.
+
+### 11.2 What "the r003 task in one invocation" actually delivers
+
+Precisely: `.services | to_entries` puts the name and the value in one stream,
+so the `paste` of two aligned streams is gone and nothing has to hold the
+alignment property in its head. What it does **not** do is project — "the name
+and *just* the domain" is `with_entries` or object construction, both M1/M2 as
+`yqr-r001` has them and as §1 puts out of scope. The honest form of the claim
+is that the *pairing* is now internal to yqr; the *shaping* is still the
+language work this feature declined to pull forward.
+
+### 11.3 The key is a string, and that was decided elsewhere
+
+`to_entries` clones the key it is handed. On a parsed document that key is
+always a `Value::String`, including for `1:` and `true:`, because noyalib's
+typed mapping is string-keyed and the conversion at the parse boundary has
+already decided (`yqr-b002` §2.7). Worth stating because the obvious reading of
+`Value::Mapping` — yqr's own model *is* `Value`-keyed — suggests otherwise. A
+builtin that re-typed the key would be making the engine's decision over again,
+in the wrong place and quietly.
+
+### 11.4 What the first output found: `yqr-b016`
+
+`to_entries` produces a sequence of mappings whose values are mappings, and
+that shape hits an emitter defect: a block collection reached through a
+sequence item is written with a **trailing space** after its `key:`.
+Pre-existing, reachable through `--normalize` on any such document since long
+before this feature, and upstream — `render` calls `noyalib::to_string_value`
+and only trims the final newline.
+
+Filed as `yqr-b016` and **not worked around**. The obvious local fix — strip
+trailing whitespace per rendered line — silently changes a block scalar whose
+content legitimately ends a line with spaces (`"a␣␣\nb"` becomes `"a\nb"`),
+measured rather than assumed. Altering a string is strictly worse than a
+cosmetic space, so the output is pinned as it behaves in `tests/cli.rs` and the
+guide says so plainly.
+
+That is twice in two features that shipping something exposed a defect
+underneath it, after `yqr-f019` §3.5. The pattern is the same both times: a
+shape nobody had produced before is a shape nobody had emitted, parsed, or
+edited before.
+
+### 11.5 The fourth mutation site, and why it hid
+
+§6 says `to_entries` "cannot appear on the left of `=`, `+=` or inside
+`del(...)`", and the first implementation guarded exactly those three. The
+reorder verbs are a fourth, and a code review found them.
+
+The failure was not a missing error — it was a **success**:
+
+```console
+$ yqr 'swap(.m | to_entries; 0; 1)' m.yaml
+m:
+  a: 1
+  b: 2
+$ echo $?
+0
+```
+
+Exit 0, document printed unchanged, and with `-i` the file left alone with no
+complaint. That is the plausible-wrong-output class `yqr-a001` exists to
+refuse, arrived at from an unusual direction: the write driver is *specified*
+to leave an **absent** path alone at exit 0, and a builtin path resolves to
+nothing, so it was read as absent. Absent and unwritable are different things,
+and only one of them deserves silence.
+
+The other three sites could not hide this way — each reaches a resolver that
+errors — which is exactly why this was the one to miss. The `Ast::builtin()`
+doc comment now says so, so the next mutation form added inherits the warning
+rather than the bug.
 
 ---
 

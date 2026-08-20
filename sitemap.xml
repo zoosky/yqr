@@ -21,6 +21,10 @@
     <lastmod>2026-08-20</lastmod>
   </url>
   <url>
+    <loc>https://zoosky.github.io/yqr/guide/enumerate</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+  <url>
     <loc>https://zoosky.github.io/yqr/guide/fidelity</loc>
     <lastmod>2026-08-20</lastmod>
   </url>
@@ -114,6 +118,10 @@
   </url>
   <url>
     <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b015-flow-delete-leaves-a-whitespace-only-line</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+  <url>
+    <loc>https://zoosky.github.io/yqr/specs/bugs/yqr-b016-emitted-block-collection-in-a-sequence-keeps-a-trailing-space</loc>
     <lastmod>2026-08-20</lastmod>
   </url>
   <url>
