@@ -1,5 +1,11 @@
 # Bug b012 — A new key cannot be inserted into a mapping whose keys all hold a `.`
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved — filed upstream 2026-08-19 as noyalib#288, fixed in
 noyalib#289, **released in noyalib 0.0.25** (2026-08-20) and verified against
 the published crate by `yqr-f019` §3.2. `.metadata.labels.<new> = ...` on a

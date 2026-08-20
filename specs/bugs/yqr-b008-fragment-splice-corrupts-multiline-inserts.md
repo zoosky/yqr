@@ -1,5 +1,11 @@
 # Bug b008 — hand-built fragments corrupt `+=` and new-key inserts of a multi-line string
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Fixed (2026-08-13) — both insert paths now route through noyalib's
 typed insertion tier (`insert_entry_value` / `push_back_value`), which owns the
 indentation and holds the splice to a load-back oracle. Shipped with the

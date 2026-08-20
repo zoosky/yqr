@@ -119,22 +119,41 @@ The split solves the packaging. Four review items are content, and stay open:
 
 - **A2** — authored `description:` frontmatter per page. Every `llms.txt`
   entry is still a mid-word truncation of the body. Blocked on the generator
-  preferring `description:` over body text (review item B1); the frontmatter
-  is inert until then, so the two land together.
+  preferring `description:` over body text (review item B1), and that block is
+  now **measured rather than assumed**: `compare/README.md`,
+  `guide/README.md` and `demo/README.md` already carry authored
+  `description:` frontmatter, and the published `llms.txt` shows body text for
+  all three. Writing nine more descriptions buys nothing until B1 ships.
 - **A3** — internal HTML comments survive into `llms-full.txt` as visible
   text, including one that leaks a `specs/marketing/...` path. This
   **conflicts with ground rule 19**, which requires exactly those comments in
   `docs/content/`; the rule's stated purpose is that they stay invisible, and
   `llms-full.txt` breaks that premise. Needs a decision, not a patch.
-- **A4** — `yqr-b001` is headed **Resolved** and then describes the broken
-  behaviour in the present tense for ~2000 words. A model landing mid-document
-  reports the inverse of the product claim. Now internal-only, which lowers
-  the stakes without removing them: the internal site is exactly what a local
-  model reads. Other resolved bug specs need the same check.
-- **A5** — `normalises` (compare/yq) against `normalized` (guide, specs).
+- **A4 — done.** See §8.
+- **A5 — done.** Two outliers, `normalises` in `compare/yq` and
+  `normalisation` in `yqr-k001`, now match the flag they describe
+  (`--normalize`). The wider `-ise`/`-ize` mix in the spec tree
+  (`behaviour` 49, `behavior` 18) is **not** swept: `yqr-m006` §4 says
+  existing documents are not rewritten for style alone.
 
-The generator items (B1–B5) belong to accent and are unaffected by this
-feature, except that B3's `llms` path-glob exclude is no longer needed by yqr.
+**B5 was half yqr's**, contrary to a first reading that assigned all of B1–B5
+to the generator. A section heading in `llms.txt` is the directory's index-page
+*title*, so `yqr Demo` against `yqr guide` was inconsistent because the demo
+page's `# yqr Demo` heading was written that way. Now `yqr demo`, matching
+`yqr guide` — product name lowercase, common noun sentence case.
+`compare/README.md` keeps its full descriptive title: it is correctly cased
+already and is the better page title, and shape consistency across three
+headings is not worth degrading it. What stays the generator's is the
+duplication — the index page appears as the heading *and* as its own first
+entry.
+
+The rest of B1–B5 belong to accent and are unaffected by this feature, except
+that B3's `llms` path-glob exclude is no longer needed by yqr. **B2 is
+confirmed the generator's by measurement**, not assumption: the pages carry
+`menu.order` (guide 2, compare 3, demo 4) and `llms.txt` publishes them in
+directory order — compare, demo, guide — so the ordering key the review asks
+for genuinely does not exist. yqr's only lever is renaming directories, which
+changes published URLs.
 
 ## 7. Acceptance criteria
 
@@ -150,3 +169,37 @@ feature, except that B3's `llms` path-glob exclude is no longer needed by yqr.
 - [x] `llms.txt` carries the synopsis (§4), with the exit codes measured
       against the binary.
 - [ ] §6's content items — tracked here, not silently dropped.
+
+## 8. Review item A4 — resolved-bug specs in the present tense
+
+`yqr-b001` is headed **Resolved** and then describes the broken behaviour in
+the present tense for ~2000 words: *"the round trip **rewrites the entire
+file**"*, *"the product promise is unmet today"*. A model landing mid-document
+reports the inverse of the product claim.
+
+Checking the other bug specs, as the review asked, found the same shape is
+**systemic rather than a b001 one-off** — `yqr-b010` opens *"noyalib's
+sequence-reorder mutators exchange the items' value bytes and nothing else"*,
+and the four specs resolved this week read the same way. Every bug spec is
+written in the present tense of the day it was filed, and every one of them
+outlives that day.
+
+So the fix is a convention, not fourteen rewrites:
+
+- **`b001` gets both**, because it is the one asserting a product-level
+  guarantee is broken, at 465 lines: a banner naming `f009` and the
+  `--normalize` opt-out, plus §1 and §2 past-tensed, plus a marker on §5
+  ("Observed behavior"), the other section long enough to be landed in.
+- **Every other resolved spec gets a one-line banner** directly under its
+  title, saying that yqr no longer behaves as described and pointing at
+  **Status** for what fixed it. Fourteen files, one uniform sentence.
+
+Past-tensing all fourteen bodies was considered and rejected: it is a large
+diff, a worse `git blame`, and it fights `yqr-m006` §4. It also would not
+fully solve the stated failure mode, since a model landing mid-document is
+reading whatever chunk it landed in either way. The banner is the review's own
+alternative and it is what the top of every chunked document carries.
+
+**The convention going forward:** a bug spec moving to Resolved gets the
+banner in the same change. Recorded here rather than in `AGENT.md`, because it
+is one line of bookkeeping rather than a ground rule.

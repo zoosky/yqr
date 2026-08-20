@@ -1,5 +1,15 @@
 # Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting
 
+> **Historical document. yqr does not behave this way.**
+>
+> Everything below describes yqr **before** `yqr-f009` (2026-07-11), and is
+> kept as the record of why byte fidelity became the default. Today
+> `yqr '.' f` reproduces `f` byte for byte with no flag. The lossy round trip
+> described here survives only behind the opt-in `--normalize`, and the
+> engine it analyses (`rust-yaml`) was removed from yqr entirely by
+> `yqr-m005`. Read any present-tense claim below as being about the
+> pre-`f009` product.
+
 **Status:** Resolved for the default read (`yqr-f009`, 2026-07-11). Byte fidelity is now the **default**: `yqr '.' f` is byte-for-byte identical to `f` (the §2/§12 north-star), served by the fidelity engine (`yqr-f002`) with no flag. The lossy *semantic* round trip described below still exists but is now **opt-in** via `--normalize` — by design, not a bug. Substrate history: `yqr-m005` (2026-07-10) moved the classic pipeline from rust-yaml to **noyalib**; the title's "rust-yaml" is historical. Earlier the byte-faithful path was opt-in via `--preserve` (`yqr-f005`), removed when it became the default.
 **Severity:** High — violated the core product guarantee ratified in `yqr-a001` (now met by default)
 **Owner:** yqr maintainers
@@ -10,46 +20,48 @@
 
 ## 1. Summary
 
-`yqr` loads YAML through `rust_yaml::Yaml::load_str` into a `rust_yaml::Value`
-tree, then re-serializes with `dump_str` (`src/lib.rs:27-56`). `Value` is a
-**purely semantic tree** — it records the *data* but none of the *source form*.
-As a result the round trip **rewrites the entire file**: comments, blank lines,
+`yqr` **used to load** YAML through `rust_yaml::Yaml::load_str` into a
+`rust_yaml::Value` tree, then re-serialize with `dump_str`. `Value` was a
+**purely semantic tree** — it recorded the *data* but none of the *source
+form*. So the round trip **rewrote the entire file**: comments, blank lines,
 indentation width, quote style, block-scalar style, flow style, line endings,
-and trailing whitespace are all normalized away, and several constructs
-(multi-document streams, anchors/aliases, out-of-range integers, BOM) are
+and trailing whitespace were all normalized away, and several constructs
+(multi-document streams, anchors/aliases, out-of-range integers, BOM) were
 **silently corrupted or dropped**.
 
-This directly breaks the non-negotiable guarantee in `yqr-a001` §1:
+That broke the non-negotiable guarantee in `yqr-a001` §1:
 
 > Comments, key ordering, and invisible characters … present in the input are
 > preserved in the output. yqr never rewrites bytes it did not change.
 
 The north-star acceptance test from `yqr-a001` §2 — `yqr '.' f` is byte-for-byte
-identical to `f` — **fails for 13 of 14 files** in the reproduction corpus
-below. The one "passing" file (BOM) only passes by accident and is actually
-corrupted (see §5.3).
+identical to `f` — **failed for 13 of 14 files** in the reproduction corpus
+below. The one "passing" file (BOM) passed by accident and was actually
+corrupted (see §5.3). All 14 pass today.
 
 ## 2. Impact
 
-- **The product promise is unmet today.** `yqr-a001` makes fidelity the top
+- **The product promise was unmet.** `yqr-a001` makes fidelity the top
   priority for Cohort B (Kubernetes / Helm / Ansible / CI config wranglers). A
-  tool that reformats a Helm `values.yaml` or a K8s manifest on every read is
-  unusable for that cohort — it vandalizes diffs and destroys human structure.
-- **It affects reads, not just `yqr .`.** Because the *read/query* path also
-  re-serializes (`render` calls `dump_str` per result — `src/lib.rs:49-52`),
-  even a projection such as `yqr '.spec.template' deploy.yaml` strips the
-  comments and formatting of the selected subtree (verified, §5.2).
-- **Some failures are data loss, not just cosmetic reformatting:**
-  - Multi-document input (`---`): only the **first** document survives; the rest
-    vanish with no error (§5.1 case 13).
-  - Anchors / aliases / merge keys: the `&anchor`/`*alias` relationship is
-    destroyed and `<<` merges are eagerly materialized (§5.1 case 09).
-  - Integers outside `i64` are coerced to `f64`, losing precision **and**
+  tool that reformatted a Helm `values.yaml` or a K8s manifest on every read
+  was unusable for that cohort — it vandalized diffs and destroyed human
+  structure.
+- **It affected reads, not just `yqr .`.** Because the *read/query* path also
+  re-serialized (`render` called `dump_str` per result), even a projection
+  such as `yqr '.spec.template' deploy.yaml` stripped the comments and
+  formatting of the selected subtree (verified, §5.2).
+- **Some failures were data loss, not just cosmetic reformatting:**
+  - Multi-document input (`---`): only the **first** document survived; the
+    rest vanished with no error (§5.1 case 13).
+  - Anchors / aliases / merge keys: the `&anchor`/`*alias` relationship was
+    destroyed and `<<` merges were eagerly materialized (§5.1 case 09).
+  - Integers outside `i64` were coerced to `f64`, losing precision **and**
     flipping the type (§5.2).
-  - A leading BOM is folded into the first key, so `.a` no longer matches (§5.3).
-- **No emitter setting fixes this.** The loss is structural — it happens during
-  `load`/`compose` before the emitter ever runs, and the emitter reconstructs
-  formatting from the `Value` alone. See §6 and §7.
+  - A leading BOM was folded into the first key, so `.a` no longer matched
+    (§5.3).
+- **No emitter setting could fix it.** The loss was structural — it happened
+  during `load`/`compose` before the emitter ever ran, and the emitter
+  reconstructed formatting from the `Value` alone. See §6 and §7.
 
 ## 3. Environment
 
@@ -91,6 +103,10 @@ inputs (each isolates one fidelity dimension):
 | `14-k8s` | realistic manifest (comments + blanks + nesting) |
 
 ## 5. Observed behavior (verified empirically)
+
+> Historical: measured against the pre-`yqr-f009` build described in §3. Every
+> case below passes today.
+
 
 `./target/debug/yqr '.' <file>` was run over every corpus file and the output
 diffed byte-for-byte against the input. **13 / 14 differ.**

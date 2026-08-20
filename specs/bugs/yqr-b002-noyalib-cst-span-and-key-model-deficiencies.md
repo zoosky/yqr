@@ -1,5 +1,11 @@
 # Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved — all seven fixes are now in the upstream **noyalib 0.0.14** release (2.1 shipped in 0.0.13; 2.2–2.7 folded into the v0.0.14 release, [noyalib#160](https://github.com/sebastienrousseau/noyalib/pull/160), whose CHANGELOG records the five CST `span_at` fixes, the scanner lone-CR fix, and loader `KeyCollision` parity). yqr now consumes them from the crates.io `noyalib = "0.0.14"` release; the `zoosky/noyalib` `feat/fidelity-span-fixes` git-dep is dropped (2026-07-10). See `yqr-m004`, `yqr-f004`.
 **Severity:** Medium — every hazard is contained by mitigations in yqr's engine adapter, and 2.2–2.7 are now fixed at the source in the released 0.0.14
 **Owner:** yqr maintainers

@@ -1,5 +1,11 @@
 # Bug b007 — Website: two internal links break under accent v0.23.1
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved
 **Severity:** Low
 **Related:** `yqr-f010` (the Accent CMS website), `.github/workflows/pages.yml`

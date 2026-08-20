@@ -1,5 +1,11 @@
 # Bug b013 — An inserted scalar is quoted because some unrelated line is quoted
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved — found 2026-08-18 by the `yqr-m003` write tier, filed
 upstream 2026-08-19 as noyalib#290 deliberately without a patch (§4.1), and
 fixed by the maintainer in **noyalib 0.0.25** (2026-08-20). Filing it as a

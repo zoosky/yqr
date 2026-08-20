@@ -24,7 +24,7 @@ exactly that thing.
 
 ## The short version
 
-yq **normalises** your file. yqr leaves it **byte-for-byte alone** apart
+yq **normalizes** your file. yqr leaves it **byte-for-byte alone** apart
 from the edit you asked for.
 
 That difference does not show up as broken YAML -- yq's output is correct.

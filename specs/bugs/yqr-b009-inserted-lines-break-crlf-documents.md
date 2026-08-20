@@ -1,5 +1,11 @@
 # Bug b009 — an inserted line ends with `\n`, giving a CRLF document mixed line endings
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved (2026-08-15) — fixed upstream by yqr's noyalib#261,
 released in **noyalib 0.0.22**; the local workaround it subsumes was deleted
 with `yqr-f015`. (Fixed 2026-08-13 in yqr by an `emit` pass that restored the

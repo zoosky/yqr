@@ -1,5 +1,11 @@
 # Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved — found 2026-08-20 while verifying `yqr-b011` against the
 noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in
 noyalib#296, merged as `ab4c235` and **released in noyalib 0.0.26** the same
