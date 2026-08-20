@@ -47,6 +47,12 @@
 
 21. **Admit when a file is not accessible**: If a file is not accessible — over the web, on disk, or because its format cannot be read with the available tooling — admit it and ask the user for help. Never silently work around it (e.g. by installing tools unprompted or reconstructing the contents from inference). This extends rule 20 from URLs to files of every kind.
 
+22. **Write in the Google developer documentation style** (<https://developers.google.com/style>): second person, active voice, present tense, sentence case headings, plain language, and the fewest words that stay accurate. This applies to everything you produce — specs, `docs/content/` pages, CLI output, commit messages, PR bodies, and code comments.
+
+    **Concise is not terse.** The specs under `specs/` exist to record why a decision was made, what was measured, and what was deliberately not done; that reasoning is the artifact. Cut the padding around an argument, never the argument. A finding stated in one sentence instead of three is better; a finding omitted is not.
+
+    Applies to text written from now on — existing documents are not rewritten for style alone. `yqr-m006` is the source of truth.
+
 ### Workflow for Every Change
 
 ```bash
