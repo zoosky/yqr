@@ -1,6 +1,6 @@
 [package]
 name = "yqr"
-version = "0.5.1"
+version = "0.6.0"
 edition = "2024"
 rust-version = "1.97"
 description = "A jq-style CLI for YAML: query and surgically edit while preserving comments, quoting, and formatting byte-for-byte"

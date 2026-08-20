@@ -4,7 +4,17 @@ All notable changes to `yqr` are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.6.0] - 2026-08-20
+
+Editing reaches the parts of a file a path cannot name. A path names a *value*,
+so a key, the comment documenting an entry, and the order of a list were all out
+of reach -- renaming a key meant deleting the entry and writing it back, which
+loses its position and its comments. This release adds `key(...)`,
+`line_comment(...)` / `head_comment(...)`, and `swap(...)` / `move(...)`; each
+rewrites exactly what it names and leaves the rest of the document
+byte-identical. `del` loses its last two refusals, `validate` gains a check for
+a value that is not indented past its key, and the YAML engine moves to noyalib
+0.0.24.
 
 ### Added
 
