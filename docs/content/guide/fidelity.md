@@ -33,8 +33,8 @@ $ echo $?
 
 No output, exit 0. The file went through yqr and came back identical, down
 to the byte. That holds for the awkward cases too -- CRLF line endings, a
-byte-order mark, trailing whitespace, tabs inside strings, multiple
-documents in one file.
+byte-order mark, trailing whitespace, tabs inside strings, a flow collection
+wrapped over several lines, multiple documents in one file.
 
 It is a good thing to try on your own gnarliest config file. If it comes
 back clean, everything below is safe.
@@ -63,6 +63,9 @@ Read it back with yqr and you get exactly that, including:
 - **Quote style** -- `'web'` stays single-quoted rather than becoming
   `"web"` or bare `web`.
 - **Scalar spelling** -- `0640` stays `0640`.
+<!-- Bug b011, fixed in noyalib 0.0.25. -->
+- **Line breaks inside a flow collection** -- a `ports:` or `args:` list
+  wrapped for width keeps its wrapping, closing bracket included.
 
 That last one is worth dwelling on.
 

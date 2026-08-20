@@ -1,8 +1,17 @@
 # Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
 
-**Status:** Open — **§3.2 fixed 2026-08-19** (route 3: `validate` reports it
-as `Y103`); §3.1, the upstream writer, **filed 2026-08-19 as noyalib#283 with a
-fix proposed as noyalib#284**, open until a release carries it
+**Status:** Resolved — both faces closed. §3.2, the validator false negative,
+was fixed 2026-08-19 (route 3: `validate` reports `Y103` in default mode).
+§3.1, the upstream writer, was filed 2026-08-19 as noyalib#283, fixed in
+noyalib#284 and **released in noyalib 0.0.25** (2026-08-20): `remove` now
+indents a sole-entry replacement past its key, matching what `delete_entry`
+already wrote, and both PyYAML and Psych accept the result. Verified against
+the published crate by `yqr-f019` §3.4, including the BOM, CRLF, head-comment
+and nested variants. noyalib's parser still *accepts* the shape, which is why
+§3.2's check stays: the leniency is what made the writer defect invisible, and
+yqr's validator is the only thing that reports it. The `yqr-f018` §5 revisit
+this bug gated was run in `yqr-f019` §4 — zero divergence, and the sole-entry
+delete stays in `delete_entry` on the standing `yqr-f007` §6 argument alone
 **Severity:** Medium — nothing in yqr writes this shape today, so there is no
 live corruption; what is live is the **validator false negative** in §3.2,
 and the fact that every guard in the write loop is blind to the shape

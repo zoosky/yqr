@@ -459,30 +459,34 @@ pub fn write_cases() -> Vec<WriteCase> {
             )]),
         },
         // -- new-key insertion ------------------------------------------------
-        // Bug b013: the inserted value is double-quoted although every sibling
-        // at the edit site is plain — the engine takes the document's dominant
-        // quote style, and dominance counts only quoted scalars against each
-        // other, so the two quoted numbers elsewhere in this manifest decide
-        // it. Pinned as it behaves; the case flips to plain when b013 is fixed.
+        // Bug b013: the inserted value takes the spelling of its neighbours,
+        // not of the document. Two quoted numbers elsewhere in this manifest
+        // (`value: "30"` in an env block, `cpu: "1"` in a resource limit) used
+        // to carry a document-wide dominance vote and quote this line; the
+        // vote is now scored at the edit site, where every sibling is plain.
         WriteCase {
             id: "write/insert/new-key-under-a-nested-mapping",
             doc: K8S_DEPLOYMENT,
             filter: ".spec.template.metadata.labels.tier = \"web\"",
             expect: WriteExpect::Rewrites(&[(
                 "        app: web\n",
-                "        app: web\n        tier: \"web\"\n",
+                "        app: web\n        tier: web\n",
             )]),
         },
-        // Bug b012: the same insert into `.metadata.labels` — whose keys all
-        // hold a `.` — is refused, because the engine composes each candidate
-        // anchor key back into a path string and re-parses it. The refusal is
-        // pinned rather than hidden: this is the standard Kubernetes label
-        // block, and the case turns into a `Rewrites` the day it is fixed.
+        // Bug b012: the same insert into `.metadata.labels`, whose keys all
+        // hold a `.`. The insert anchor used to be found by composing each
+        // candidate key back into a path string and re-parsing it, which no
+        // dotted key survives, so the standard Kubernetes label block refused
+        // every insertion. The anchor now comes from the span tree, so a key's
+        // spelling no longer decides whether it can be inserted beside.
         WriteCase {
-            id: "write/insert/refuses-a-mapping-whose-keys-hold-a-dot",
+            id: "write/insert/mapping-whose-keys-hold-a-dot",
             doc: K8S_DEPLOYMENT,
             filter: ".metadata.labels.tier = \"web\"",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "    app.kubernetes.io/component: frontend\n",
+                "    app.kubernetes.io/component: frontend\n    tier: web\n",
+            )]),
         },
         WriteCase {
             id: "write/insert/multi-line-string-value",
@@ -507,12 +511,9 @@ pub fn write_cases() -> Vec<WriteCase> {
             id: "write/append/sequence-item-at-the-site-indent",
             doc: APP_CONFIG,
             filter: ".features += \"billing\"",
-            // b013 again, on the append path and from a single quoted scalar
-            // (`zip: "007"`) four entries away from the sequence.
-            expect: WriteExpect::Rewrites(&[(
-                "  - audit-log\n",
-                "  - audit-log\n  - \"billing\"\n",
-            )]),
+            // b013 on the append path: a single quoted scalar (`zip: "007"`)
+            // four entries away used to decide this line's spelling.
+            expect: WriteExpect::Rewrites(&[("  - audit-log\n", "  - audit-log\n  - billing\n")]),
         },
         WriteCase {
             id: "write/append/multi-line-item-indents-for-its-site",

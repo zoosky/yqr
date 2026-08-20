@@ -1,7 +1,14 @@
 # Bug b013 — An inserted scalar is quoted because some unrelated line is quoted
 
-**Status:** Open — found 2026-08-18 by the `yqr-m003` write tier, **filed
-upstream 2026-08-19 as noyalib#290**, deliberately without a patch (§4.1)
+**Status:** Resolved — found 2026-08-18 by the `yqr-m003` write tier, filed
+upstream 2026-08-19 as noyalib#290 deliberately without a patch (§4.1), and
+fixed by the maintainer in **noyalib 0.0.25** (2026-08-20). Filing it as a
+question rather than a patch was the right call and got an answer: of the two
+options the issue offered, the maintainer took the second — score the vote at
+the **edit site** rather than teach the document-wide vote to count plain
+scalars. So an untouched line elsewhere no longer decides an insertion's
+spelling, while a quoted *neighbour* still carries, which is the behaviour the
+heuristic exists for. Verified against the published crate by `yqr-f019` §3.3
 **Severity:** Low — the value is correct and round-trips; what is wrong is the
 spelling at the edit site, which is the one place `yqr-a001` promises an edit
 looks like the file it lands in

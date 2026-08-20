@@ -152,6 +152,22 @@ const CORPUS: &[Case] = &[
             "nested: {list: [x, y], n: 1}\n",
         ),
     },
+    // A flow collection wrapped over several lines, with the closing indicator
+    // at the parent key's column. Every implementation but noyalib accepted
+    // this; noyalib refused to parse it at all (bug b011) until 0.0.25, so the
+    // round-trip property had no case for the shape.
+    Case {
+        name: "wrapped-flow",
+        input: concat!(
+            "ports: [\n",
+            "  80,\n",
+            "  443,\n",
+            "]\n",
+            "opts: {\n",
+            "  retries: 3,\n",
+            "}\n",
+        ),
+    },
     Case {
         name: "key-order",
         input: "zebra: 1\napple: 2\nmango: 3\n",

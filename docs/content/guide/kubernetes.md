@@ -287,22 +287,29 @@ Being straight about the edges, because finding them yourself is annoying:
 
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
-<!-- Bug b012: the sibling half of this, with the misleading diagnostic. -->
-- **Keys containing `.` or `[`** -- the Kubernetes
-  `app.kubernetes.io/name` style. Reading one works with the bracket form,
-  `.metadata.labels["app.kubernetes.io/name"]`; **writing** does not, and
-  neither does adding a plain-named key *next to* one:
+<!-- Bug b012 (fixed in noyalib 0.0.25) was the sibling half of this. -->
+- **Writing a key that contains `.` or `[`** -- the Kubernetes
+  `app.kubernetes.io/name` style. Reading one works with the bracket form:
+
+  ```console
+  $ yqr '.metadata.labels["app.kubernetes.io/name"]' deploy.yaml
+  web
+  ```
+
+  Changing, deleting or renaming it does not:
+
+  ```console
+  $ yqr '.metadata.labels["app.kubernetes.io/name"] = "api"' deploy.yaml
+  yqr: runtime error: cannot address key "app.kubernetes.io/name": it uses
+  characters the write path cannot express
+  ```
+
+  The edit is refused, so nothing is damaged. Adding a **plain-named key next
+  to** dotted ones does work, which is the common case:
 
   ```console
   $ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
-  yqr: runtime error: cannot insert key "tier": ... (every key is inherited
-  through a `<<` merge) ...
   ```
-
-  There is no `<<` in the file -- the message names the only cause its check
-  knows about. The edit is refused, so nothing is damaged, but the reason it
-  gives is not the reason. If your labels follow the `app.kubernetes.io/`
-  convention, treat that whole mapping as read-only for now.
 - **No arithmetic or builtins.** You cannot say "increment the replica
   count"; you say what it should become.
 

@@ -957,3 +957,85 @@ fn a_reorder_needs_a_file_for_in_place_like_every_other_edit() {
     let out = run(&["-i", "swap(.xs; 0; 1)"], "xs:\n  - a\n  - b\n");
     assert_eq!(out.status, 5, "stderr: {}", out.stderr);
 }
+
+// -- shapes unblocked by the noyalib 0.0.25 pin (`yqr-f019`) ----------------
+
+// Bug b011: a flow collection wrapped over several lines, with the closing
+// indicator at the parent key's column, is ordinary YAML that noyalib refused
+// to parse. The refusal was on the read path, so no filter ran at all.
+#[test]
+fn a_wrapped_flow_collection_reads_byte_for_byte() {
+    let doc = "ports: [\n  80,\n  443,\n]\nopts: {\n  retries: 3,\n}\n";
+    let out = run(&["."], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, doc, "identity must be byte-for-byte");
+
+    let out = run(&[".ports[1]"], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "443\n");
+}
+
+#[test]
+fn a_wrapped_flow_collection_edits_only_at_the_site() {
+    let doc = "ports: [\n  80,\n  443,\n]\n";
+    let out = run(&[".ports[1] = 8443"], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "ports: [\n  80,\n  8443,\n]\n");
+}
+
+// The narrow half of the b011 fix: only the closing *indicator* was exempted,
+// because a line opening with `]` or `}` cannot begin block content. Flow
+// *content* at or below the block's indent stays ambiguous with a sibling
+// block entry, and the yaml-test-suite marks it an error (9C9N, VJP3).
+#[test]
+fn under_indented_flow_content_is_still_refused() {
+    let out = run(&["."], "ports: [\n80,\n]\n");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("flow content must be indented"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+}
+
+// Bug b012: the insert anchor used to be found by composing a candidate key
+// back into a path string and re-parsing it, and a `.` in the key made that
+// round trip lossy — so no key could be inserted beside the Kubernetes label
+// block, and the refusal blamed a `<<` merge the document does not contain.
+#[test]
+fn a_key_inserts_into_a_mapping_whose_keys_hold_a_dot() {
+    let doc = "labels:\n  app.kubernetes.io/name: web\n  app.kubernetes.io/component: frontend\n";
+    let out = run(&[".labels.tier = \"web\""], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stdout,
+        "labels:\n  app.kubernetes.io/name: web\n  app.kubernetes.io/component: frontend\n  tier: web\n"
+    );
+}
+
+// Bug b013: an inserted scalar took the document's dominant quote style, and
+// the vote counted only quoted scalars against each other — so one quoted
+// scalar anywhere made every later insertion quoted. The vote is now scored at
+// the edit site, so a line the edit does not touch cannot decide its spelling.
+#[test]
+fn an_inserted_scalar_is_spelled_like_its_neighbours() {
+    let plain = "labels:\n  app: web\n";
+    let with_a_quote_elsewhere = "quoted: \"30\"\nlabels:\n  app: web\n";
+
+    let a = run(&[".labels.tier = \"web\""], plain);
+    assert_eq!(a.status, 0, "stderr: {}", a.stderr);
+    assert_eq!(a.stdout, "labels:\n  app: web\n  tier: web\n");
+
+    let b = run(&[".labels.tier = \"web\""], with_a_quote_elsewhere);
+    assert_eq!(b.status, 0, "stderr: {}", b.stderr);
+    assert_eq!(
+        b.stdout, "quoted: \"30\"\nlabels:\n  app: web\n  tier: web\n",
+        "an untouched line four lines up must not decide the edit's spelling"
+    );
+
+    // A quoted *neighbour* still carries, which is the behaviour the vote is
+    // for: matching the file's conventions at the place being edited.
+    let c = run(&[".labels.tier = \"web\""], "labels:\n  app: \"web\"\n");
+    assert_eq!(c.status, 0, "stderr: {}", c.stderr);
+    assert_eq!(c.stdout, "labels:\n  app: \"web\"\n  tier: \"web\"\n");
+}
