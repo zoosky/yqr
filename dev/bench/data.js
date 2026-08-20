@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787247309017,
+  "lastUpdate": 1787257831465,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1553,6 +1553,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 259032,
             "range": "± 11101",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "abaa8005a2d037d2f2342169be77982863c7fbc9",
+          "message": "chore(deps): adopt noyalib 0.0.26; close b015 (f020) (#86)\n\n0.0.26 carries one functional change: yqr's noyalib#296, a flow member alone\non its line takes the line with it. Verified against the published crate on\nb015's own reproduction -- first member, last member, flow mapping -- with the\noutputs loaded back under PyYAML and Psych, and all four controls checked\nbyte-identical to 0.0.25 (single line, opening indicator, closing indicator,\ncomment on the line).\n\nThe more interesting half is what the release does *not* carry. b016 is filed\nand fixed upstream (noyalib#297 / #298, green) but unmerged, so the pin in\ntests/cli.rs and the guide's trailing-space note both stay. f020 §5 says so\nexplicitly rather than letting it read as an oversight: a bug pinned as it\nbehaves is what tells the next bump whether the bump changed it, which is the\njob m003 asks of a pin.\n\nAlso lands the regression test b015 §5 deliberately deferred until a fix\nexisted -- pinning a whitespace-only line as expected output would have\ninvited a future reader to preserve it. Both halves go in, and the controls\nare the more valuable one: the positive test would pass on a fix that stripped\nwhitespace indiscriminately, and only the controls distinguish the rule that\nwas implemented from the easier one.",
+          "timestamp": "2026-08-20T22:29:06+02:00",
+          "tree_id": "8430704b2032a79ed5078c3362881bf0458f73aa",
+          "url": "https://github.com/zoosky/yqr/commit/abaa8005a2d037d2f2342169be77982863c7fbc9"
+        },
+        "date": 1787257829439,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 307,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3096,
+            "range": "± 82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 162513,
+            "range": "± 1113",
             "unit": "ns/iter"
           }
         ]
