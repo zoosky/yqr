@@ -117,13 +117,16 @@ Both sites build clean under `--strict-links`.
 
 The split solves the packaging. Four review items are content, and stay open:
 
-- **A2** — authored `description:` frontmatter per page. Every `llms.txt`
-  entry is still a mid-word truncation of the body. Blocked on the generator
-  preferring `description:` over body text (review item B1), and that block is
-  now **measured rather than assumed**: `compare/README.md`,
-  `guide/README.md` and `demo/README.md` already carry authored
-  `description:` frontmatter, and the published `llms.txt` shows body text for
-  all three. Writing nine more descriptions buys nothing until B1 ships.
+- **A2 — unblocked, and this spec had it wrong.** Recorded here as blocked on
+  the generator preferring an authored description over body text (review item
+  B1). It is not blocked: accent already prefers an authored entry text, and
+  the frontmatter key is **`lead:`**, not `description:`. yqr set
+  `description:`, which feeds the `<meta>` tags and is silently ignored by
+  `llms.txt`. Confirmed by experiment — adding one `lead:` line to
+  `guide/README.md` changed its published entry from a mid-word truncation to
+  that sentence. So A2 is a yqr edit that can be made today, tracked in
+  `yqr-b017` §2 along with the suggestion that accent fall back to
+  `description:` so the next person does not lose the same hour.
 - **A3** — internal HTML comments survive into `llms-full.txt` as visible
   text, including one that leaks a `specs/marketing/...` path. This
   **conflicts with ground rule 19**, which requires exactly those comments in
@@ -147,13 +150,12 @@ headings is not worth degrading it. What stays the generator's is the
 duplication — the index page appears as the heading *and* as its own first
 entry.
 
-The rest of B1–B5 belong to accent and are unaffected by this feature, except
-that B3's `llms` path-glob exclude is no longer needed by yqr. **B2 is
-confirmed the generator's by measurement**, not assumption: the pages carry
-`menu.order` (guide 2, compare 3, demo 4) and `llms.txt` publishes them in
-directory order — compare, demo, guide — so the ordering key the review asks
-for genuinely does not exist. yqr's only lever is renaming directories, which
-changes published URLs.
+The rest of B1–B5 were read against accent's source and are catalogued in
+**`yqr-b017`**, which finds two of the five are not defects at all: B1 (the
+feature exists under another key) and B4 (a documented `max_links_per_section`
+cap). B2 is confirmed real — the pages carry `menu.order` and `llms.txt`
+publishes directory order regardless. B3 half exists: the glob exclude covers
+both files already; demotion to `## Optional` does not.
 
 ## 7. Acceptance criteria
 
