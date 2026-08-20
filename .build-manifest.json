@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "timestamp": "2026-08-19T20:21:34Z",
+  "timestamp": "2026-08-20T11:23:56Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
       "template": "home.html.jinja",
-      "template_hash": "feec811eaced002c"
+      "template_hash": "8de952cf25fb29bb"
     },
     "/compare": {
       "content_hash": "9542d489afcefeb8",
@@ -248,7 +248,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/implementation/yqr-m001-ci-release-process": {
-      "content_hash": "d1d64650e2541ae9",
+      "content_hash": "52621bc66fbbaac0",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -263,7 +263,7 @@
       "template_hash": "117aada2113c9138"
     },
     "/specs/implementation/yqr-m004-crates-io-release-posture": {
-      "content_hash": "a99980fdb3fc1649",
+      "content_hash": "008f6b9587207f59",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
@@ -382,7 +382,7 @@
       ]
     },
     "home.html.jinja": {
-      "hash": "b5495e2a2c130f81",
+      "hash": "a4c995e0a2a1a64c",
       "includes": [
         "base.html.jinja"
       ]
@@ -502,5 +502,5 @@
     }
   },
   "config_hash": "15b0d9741eb486ff",
-  "theme_hash": "a666bbd1e9b5d213"
+  "theme_hash": "8a81b39b717d40c7"
 }

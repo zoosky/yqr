@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10). The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine consolidation, yqr-m005), leaving zero git deps, and the maintainer&#x27;s cargo publish has landed — cargo ins...">
+<meta name="description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Implementation m004 — crates.io release posture (git-dep fidelity backends)">
-<meta property="og:description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10). The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine consolidation, yqr-m005), leaving zero git deps, and the maintainer&#x27;s cargo publish has landed — cargo ins...">
+<meta property="og:description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Implementation m004 — crates.io release posture (git-dep fidelity backends)">
-<meta name="twitter:description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10). The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine consolidation, yqr-m005), leaving zero git deps, and the maintainer&#x27;s cargo publish has landed — cargo ins...">
+<meta name="twitter:description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...">
 
 
 
@@ -92,12 +92,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-19",
-  "description": "Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10). The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine consolidation, yqr-m005), leaving zero git deps, and the maintainer's cargo publish has landed — cargo ins...",
+  "dateModified": "2026-08-20",
+  "description": "Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...",
   "inLanguage": "en",
   "name": "Implementation m004 — crates.io release posture (git-dep fidelity backends)",
   "url": "https://zoosky.github.io/yqr/specs/implementation/yqr-m004-crates-io-release-posture",
-  "wordCount": 495
+  "wordCount": 916
 }
 </script>
 <script type="application/ld+json">
@@ -3047,9 +3047,9 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Done — yqr is <strong>published to crates.io</strong> (<code>0.2.1</code>, 2026-07-10). The dependency blockers were resolved (<code>noyalib</code> re-pinned to crates.io <code>0.0.14</code>; <code>rust-yaml-rt</code> removed via the single-engine consolidation, <code>yqr-m005</code>), leaving zero git deps, and the maintainer’s <code>cargo publish</code> has landed — <code>cargo install yqr</code> works.
+            <p><strong>Status:</strong> Done — yqr is <strong>published to crates.io</strong> (<code>0.2.1</code>, 2026-07-10; latest <code>0.6.0</code>, 2026-08-20). §6 records a packaging defect found in <code>0.6.0</code> and the guard added against it. The dependency blockers were resolved (<code>noyalib</code> re-pinned to crates.io <code>0.0.14</code>; <code>rust-yaml-rt</code> removed via the single-engine consolidation, <code>yqr-m005</code>), leaving zero git deps, and the maintainer’s <code>cargo publish</code> has landed — <code>cargo install yqr</code> works.
 <strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-07-10
+<strong>Last updated:</strong> 2026-08-20
 <strong>Related:</strong> <code>yqr-m005</code> (single-engine consolidation — removed the last git-dep), <code>yqr-f004</code> (engine parity — superseded), <code>yqr-m002</code> (engine seam), <code>yqr-b002</code> (the noyalib fixes), <code>yqr-b001</code></p>
 <h2 id="1-purpose">1. Purpose<a class="heading-anchor" href="#1-purpose" aria-label="Link to this section"></a></h2>
 <p>Record why yqr cannot currently be published to crates.io at <code>0.2.0</code>, and the
@@ -3102,6 +3102,49 @@ could not be published); <code>0.2.1</code> reconciled the version for crates.io
 <li><input disabled="" type="checkbox" checked=""/>
 <code>cargo publish</code> run by the maintainer; crates.io shows <code>0.2.1</code> (the reconciled version).</li>
 </ul>
+<h2 id="6-package-contents-added-2026-08-20">6. Package contents (added 2026-08-20)<a class="heading-anchor" href="#6-package-contents-added-2026-08-20" aria-label="Link to this section"></a></h2>
+<p><code>exclude</code> in <code>Cargo.toml</code> is the only thing standing between the working tree
+and the uploaded crate, and it is a <strong>denylist</strong> — a new top-level directory is
+published by default. <code>0.6.0</code> shipped yqr’s entire website that way.</p>
+<p><strong>What happened.</strong> The list read <code>[".agent/", ".github/", "specs/", "AGENT.md"]</code>, written before <code>docs/</code> existed. The Accent site landed after
+<code>0.5.1</code> (<code>yqr-f010</code>), so <code>0.6.0</code> was the first release to carry it: 84 files
+and 340 KB uncompressed, <strong>40% of the package</strong>, the largest single file in the
+crate being a 100 KB <code>og-image.png</code>. The agent guide rode along too, by a
+subtler route: <code>exclude</code> names <code>AGENT.md</code>, but <code>CLAUDE.md</code> is a <strong>symlink</strong> to
+it, and the symlink is a separate path that the denylist did not name — so the
+guide was published under the other name. Uncompressed package size went 863 KB
+with them, 493 KB without.</p>
+<p>Nothing is broken for users: the crate builds, and no license or dependency
+constraint is touched. It is dead weight in every <code>cargo install yqr</code>
+download, and <code>0.6.0</code> cannot be corrected — crates.io versions are immutable
+(yank yes, replace never), so the fix lands in the next release.</p>
+<p><strong>Why nothing caught it.</strong> <code>ci.yml</code> filters on Rust-relevant paths, so the PRs
+that added <code>docs/</code> never ran CI at all, and no gate anywhere looked at what
+<code>cargo publish</code> would upload. <code>cargo publish --dry-run</code> (§5) reports the file
+count but was last run for <code>0.2.1</code>, when the answer was still right.</p>
+<p><strong>Fix.</strong></p>
+<ol>
+<li><code>exclude</code> gains <code>"docs/"</code> and <code>"CLAUDE.md"</code>.</li>
+<li><code>local-ci.sh</code> gains a <code>package contents</code> gate that fails when <code>cargo package --list</code> names anything under <code>docs/</code>, <code>specs/</code>, <code>.github/</code>, <code>.agent/</code>, or
+the two agent guides. It lives there rather than in <code>ci.yml</code> deliberately:
+the failure mode is a <em>docs-only</em> change, which <code>ci.yml</code> is configured to
+skip. <code>yqr-m001</code> §3 already runs <code>local-ci.sh</code> before tagging, so the gate
+sits on the release path by construction.</li>
+</ol>
+<p>The denylist stays a denylist rather than becoming an <code>include</code> allowlist: an
+allowlist that omits a new source directory produces a crate that does not
+build, which is a worse failure than one that is too large.</p>
+<h3 id="6-1-acceptance-criteria">6.1 Acceptance criteria<a class="heading-anchor" href="#6-1-acceptance-criteria" aria-label="Link to this section"></a></h3>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>docs/</code> and <code>CLAUDE.md</code> excluded from the published crate.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>cargo package --list</code> names no dev-only path (36 files, 493 KB).</li>
+<li><input disabled="" type="checkbox" checked=""/>
+<code>local-ci.sh</code> fails when a dev-only path re-enters the package.</li>
+<li><input disabled="" type="checkbox"/>
+Confirmed against crates.io on the next release after <code>0.6.0</code>.</li>
+</ul>
 
         </div>
         </accent-island>
@@ -3153,6 +3196,14 @@ could not be published); <code>0.2.1</code> reconciled the version for crates.io
                 <a href="#5-acceptance-criteria">5. Acceptance criteria</a>
             </li>
         
+            <li class="toc-level-2">
+                <a href="#6-package-contents-added-2026-08-20">6. Package contents (added 2026-08-20)</a>
+            </li>
+        
+            <li class="toc-level-3">
+                <a href="#6-1-acceptance-criteria">6.1 Acceptance criteria</a>
+            </li>
+        
         </ul>
 
         
@@ -3165,31 +3216,31 @@ could not be published); <code>0.2.1</code> reconciled the version for crates.io
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
   </ul>
@@ -3220,7 +3271,7 @@ could not be published); <code>0.2.1</code> reconciled the version for crates.io
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-19</span>
+        <span>Site last updated: 2026-08-20</span>
         
     </footer>
 

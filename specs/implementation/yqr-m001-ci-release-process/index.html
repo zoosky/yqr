@@ -92,12 +92,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-19",
+  "dateModified": "2026-08-20",
   "description": "Status: In Progress (documents the shipped pipeline; §5 records the gaps) Owner: yqr maintainers Last updated: 2026-07-29 Related: yqr-m004 (crates.io release posture), yqr-m003 (the shared corpus the test job runs), yqr-f010 (the website workflow)",
   "inLanguage": "en",
   "name": "Implementation m001 — CI pipeline and release process",
   "url": "https://zoosky.github.io/yqr/specs/implementation/yqr-m001-ci-release-process",
-  "wordCount": 1006
+  "wordCount": 1043
 }
 </script>
 <script type="application/ld+json">
@@ -3152,10 +3152,11 @@ docs.rs built it (a failed docs.rs build is invisible from the repo).</li>
 </ul>
 <h2 id="4-local-mirror">4. Local mirror<a class="heading-anchor" href="#4-local-mirror" aria-label="Link to this section"></a></h2>
 <p><code>bash .github/scripts/local-ci.sh</code> runs a superset of <code>ci.yml</code>: fmt, clippy,
-build, test, test (all features), <code>cargo bench --no-run</code>, <code>cargo doc --no-deps</code>, and <code>cargo audit</code> when it is installed. Running it before
-pushing is the cheapest way to avoid a red PR — <code>cargo bench --no-run</code> in
-particular catches bench targets broken by a refactor, which <code>cargo test</code>
-never compiles.</p>
+build, test, test (all features), <code>cargo bench --no-run</code>, <code>cargo doc --no-deps</code>, a package-contents check, and <code>cargo audit</code> when it is installed.
+Running it before pushing is the cheapest way to avoid a red PR — <code>cargo bench --no-run</code> in particular catches bench targets broken by a refactor, which
+<code>cargo test</code> never compiles. The package-contents gate fails when <code>cargo package --list</code> names a dev-only path; it can only live here, because the
+change that trips it is a docs-only one that <code>ci.yml</code> skips by design
+(<code>yqr-m004</code> §6).</p>
 <h2 id="5-known-gaps">5. Known gaps<a class="heading-anchor" href="#5-known-gaps" aria-label="Link to this section"></a></h2>
 <h3 id="5-1-no-tag-triggered-release-workflow">5.1 No tag-triggered release workflow<a class="heading-anchor" href="#5-1-no-tag-triggered-release-workflow" aria-label="Link to this section"></a></h3>
 <p>Nothing builds or attaches binaries, so users install via <code>cargo install yqr</code> or build from source; there is no <code>curl | sh</code> path and no
@@ -3257,31 +3258,31 @@ alert.</p>
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a001-fidelity-surgical-edit">Architecture a001 — Fidelity-First, Surgical-Edit Model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;architecture&#x2f;yqr-a002-non-value-addressing-grammar">Architecture a002 — Addressing what is not a value: comments, keys, and sequence order</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b000-bug-status">Bug Status Tracker</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b001-roundtrip-discards-whitespace-and-formatting">Bug b001 — Round-trip through `rust-yaml` discards whitespace, comments, and formatting</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
     <li class="recent-docs-item">
       <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b002-noyalib-cst-span-and-key-model-deficiencies">Bug b002 — noyalib CST deficiencies: span boundaries, duplicate-key policy, and the string-only key model</a>
       
-      <time class="recent-docs-date" datetime="2026-08-19">2026-08-19</time>
+      <time class="recent-docs-date" datetime="2026-08-20">2026-08-20</time>
     </li>
     
   </ul>
@@ -3312,7 +3313,7 @@ alert.</p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.24.0 (e7098dc)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-19</span>
+        <span>Site last updated: 2026-08-20</span>
         
     </footer>
 
