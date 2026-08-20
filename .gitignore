@@ -8,6 +8,8 @@ Cargo.lock.orig
 
 # Accent CMS website build artifacts (docs/ is the site root)
 docs/output/
+# The internal docs+specs site (specs/config.yaml, port 4401) builds here.
+specs/output/
 docs/.build-manifest.json
 docs/.media-cache/
 docs/.diagram-cache/

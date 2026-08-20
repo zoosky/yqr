@@ -416,9 +416,12 @@ passes are equivalent today — yqr has no `[features]` section since
 
 ### Website (`.github/workflows/pages.yml`)
 
-Builds the Accent CMS site from `docs/` with `specs/` mounted at `/specs`
-and deploys it to `gh-pages`, preserving the benchmark dashboard under
-`dev/`. Pull requests build and verify without deploying. See `yqr-f010`.
+Builds the **public** Accent CMS site from `docs/` and deploys it to
+`gh-pages`, preserving the benchmark dashboard under `dev/`. Pull requests
+build and verify without deploying. The spec tree is not part of this site:
+it has its own local-only site, `specs/config.yaml` on port 4401, which
+nothing deploys. Run it with `cd specs && accent serve`. See `yqr-f010` and
+`yqr-f021`.
 
 ### Release Process
 

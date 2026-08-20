@@ -1,0 +1,105 @@
+# Accent CMS configuration for the yqr **internal** site.
+#
+# There are two sites in this repository, and this is the private one:
+#
+#   docs/config.yaml   the public site deployed to GitHub Pages. Usage
+#                      documentation only.
+#   specs/config.yaml  this file. The same usage documentation *plus* the
+#                      spec tree at /specs. Never deployed; run it locally.
+#
+# The split exists because the spec tree is written for contributors. It uses
+# internal identifiers (`yqr-b010`, `noyalib#296`, section numbers), records
+# decisions that were later reversed, and carries resolved bug reports that
+# describe behaviour the product no longer has. Published alongside the guide
+# it made `llms-full.txt` mostly spec text, so a context-limited reader
+# truncated inside a bug report rather than after the usage documentation.
+# See `yqr-f021`.
+#
+# Content comes from `../docs/content`, so the two sites serve the same guide
+# from the same files. Edit a page once; both pick it up.
+#
+# Run it:
+#
+#   cd specs && accent serve            https://127.0.0.1:4401/
+#   cd specs && accent build --clean    writes ./output (git-ignored)
+#
+# `accent serve` binds HTTPS with a cached self-signed certificate since
+# v0.24.0, so the browser warns once until you trust it. Pass `--no-tls` for
+# cleartext, which is what scripted browsers need.
+#
+# No path prefix here. The public site is served under /yqr/ on GitHub Pages
+# and derives that prefix from its `site.url`; this one is served at the root
+# of a local port, so its URL has no path component.
+
+server:
+  address: "127.0.0.1"
+  port: 4401
+
+content:
+  directory: "../docs/content"
+  mounts:
+    # The spec tree, served as-is. Every category directory (features, bugs,
+    # architecture, implementation, research, marketing) carries a README.md
+    # index so it appears as a sidebar section.
+    #
+    # `../specs` rather than `.`: this config and the build output live in
+    # `specs/`, and mounting the directory onto itself would walk them.
+    - source: ../specs
+      mount: /specs
+      default_template: docs
+
+theme:
+  name: "default"
+  directory: "../docs/themes"
+
+site:
+  name: "yqr (internal)"
+  url: http://127.0.0.1:4401
+  description: "yqr internal site -- the usage documentation plus the full feature, bug, architecture, implementation and research spec tree."
+
+code:
+  theme: "base16-ocean.dark"
+
+markdown:
+  tables: true
+  footnotes: true
+  strikethrough: true
+  tasklists: true
+  heading_attributes: true
+  wikilinks: true
+  smart_punctuation: true
+  math: true
+  definition_lists: true
+  gfm: true
+  superscript: true
+  subscript: true
+  metadata_blocks: true
+
+# Server-side diagram rendering, matching the public site so a diagram that
+# renders here renders there.
+diagrams:
+  render_mode: server
+
+# Kept enabled, unlike the public site's narrower set: feeding the whole spec
+# tree to a local model is a reason this site exists. Nothing publishes these
+# files, so their breadth costs nothing.
+llms:
+  enabled: true
+  description: |
+    yqr is a jq-style query and editing tool for YAML written in Rust.
+    This is the internal site: the usage documentation plus the complete
+    spec tree -- features, bugs, architecture, implementation decisions and
+    research. Written for contributors, not for users. The public site is
+    https://zoosky.github.io/yqr.
+  exclude_paths:
+    - "/tags/*"
+
+search:
+  exclude:
+    - "/404"
+    - "/tags/*"
+
+dev:
+  hot_reload: true
+  browser_reload: true
+  debounce_ms: 50

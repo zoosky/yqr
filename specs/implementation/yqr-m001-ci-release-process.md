@@ -65,7 +65,8 @@ Three workflows live in `.github/workflows/`. There are no others.
 
 ### 2.3 `pages.yml` — website
 
-Builds the Accent CMS site from `docs/` (with `specs/` mounted at `/specs`)
+Builds the public Accent CMS site from `docs/` (the spec tree is not part
+of it -- `yqr-f021`)
 and deploys it to `gh-pages`. Documented in `yqr-f010`; the accent binary is
 pinned by `ACCENT_VERSION` and the build runs with `--strict-links`.
 
