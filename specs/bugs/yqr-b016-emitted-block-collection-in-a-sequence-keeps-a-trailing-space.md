@@ -1,7 +1,9 @@
 # Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space
 
-**Status:** Open — found 2026-08-20 by `yqr-f017`'s first output; pre-existing
-and reachable through `--normalize` since long before it
+**Status:** Open — found 2026-08-20 by `yqr-f017`'s first output, pre-existing
+and reachable through `--normalize` since long before it, **filed the same day
+as noyalib#297 with a fix in noyalib#298**; open here until a release carries
+it. The filing found a **second** source this spec had missed — see §6
 **Severity:** Low — the output is valid YAML that loads back correctly; what is
 wrong is a trailing space on a line that should not have one
 **Component:** noyalib's `to_string_value` (upstream), reached from yqr's
@@ -87,13 +89,60 @@ upstream.
 (`to_entries_output_carries_the_emitters_trailing_space`) rather than hiding
 it, on the `yqr-m003` rule that a pin states what the bug does.
 
-## 5. Route
+## 5. Route — taken 2026-08-20
 
-Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent, and naturally batched
-with `yqr-b015`: both are trailing whitespace written by noyalib where a line
-should have ended, one on the write path and one on the emit path, and the
-same maintainer is holding both.
+Upstream, on the `yqr-b004` §5 `PR-with-fix` precedent: filed as
+**noyalib#297** and fixed in **noyalib#298**, independent of `b015`
+(noyalib#294 / #296) — both touch trailing whitespace but in different files,
+and either can land first.
 
-Not yet filed — `b015` (noyalib#294 / #296) is open at the time of writing, and
-two whitespace reports at once from the same reporter is worse than one
-followed by the other.
+## 6. What the filing found that this spec had not
+
+### 6.1 A second, larger source
+
+The indicator is not the only place noyalib emits trailing whitespace. A block
+scalar's content loop writes the block's indent before **every** line including
+empty ones, leaving the indent standing on a line that holds nothing:
+
+```text
+"k: |\n  a\n\n  b\n"   emits   "k: |\n  a\n␣␣\n  b\n"
+```
+
+Across noyalib's own fixture corpus this accounts for **36 documents to the
+indicator's 9** — so a report naming only the indicator would have described
+the smaller half and implied the rest was clean.
+
+Found by holding the fix to a property (*no emitted line carries trailing
+whitespace*) rather than to the reproduction. The reproduction was satisfied
+after the first fix; the property was not, and the gap was the second source.
+That is the transferable part: a fix measured against the case that prompted it
+stops exactly where that case stops.
+
+### 6.2 The same cause, three times over
+
+Both faces are duplicated logic that drifted from a sibling already applying
+the rule. `write_mapping` has always written `key:` without a space before a
+block value; `write_sequence` carries its own copy of the key-writing — twice —
+and neither consulted `needs_block_layout`. The block-scalar content loop
+exists in **three** identical copies (`|` auto, `|` explicit, `>`), so the rule
+was missing from all three and fixing any one would have left the others
+writing it.
+
+The patch therefore extracts a rule per site rather than patching the callers,
+which is what makes the fix a fix rather than a round of whack-a-mole:
+`indicator_takes_a_space` and `write_block_scalar_body`, one each, used by
+every caller.
+
+### 6.3 What the differential run measured
+
+384 documents, ~12.5k emitted lines: dangling indicators 9 docs → 0, leftover
+trailing whitespace 45 docs → 0. Two rows matter as much: emissions that fail
+to re-parse (5 docs) and that re-parse to a different value (4 docs) are the
+**same sets** before and after — pre-existing, unrelated, and untouched. They
+are noted to the maintainer as unexamined rather than left implied.
+
+§4's refusal to work around it held up under measurement and is pinned as two
+control tests upstream, including an all-spaces content line — which is
+distinguishable from an emitted indent only by what the string says, and is
+precisely why the rule keys on `line.is_empty()` rather than on how the
+emitted line looks.

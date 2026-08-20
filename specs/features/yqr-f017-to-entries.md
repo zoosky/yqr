@@ -253,7 +253,9 @@ Pre-existing, reachable through `--normalize` on any such document since long
 before this feature, and upstream — `render` calls `noyalib::to_string_value`
 and only trims the final newline.
 
-Filed as `yqr-b016` and **not worked around**. The obvious local fix — strip
+Filed as `yqr-b016`, upstream as noyalib#297 with a fix in noyalib#298 — which
+turned up a second and larger source of the same defect that `b016` §6.1
+records — and **not worked around** in yqr. The obvious local fix — strip
 trailing whitespace per rendered line — silently changes a block scalar whose
 content legitimately ends a line with spaces (`"a␣␣\nb"` becomes `"a\nb"`),
 measured rather than assumed. Altering a string is strictly worse than a
