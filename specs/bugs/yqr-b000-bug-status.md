@@ -10,7 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b015](yqr-b015-flow-delete-leaves-a-whitespace-only-line.md) | Deleting a member of a wrapped flow collection leaves a whitespace-only line | Low | Open — `del(.ports[0])` on `ports: [` / `  80,` / `  443,` / `]` removes the member and its separator but leaves the line's indentation, so a line that had no trailing whitespace now has two spaces of it. The result is valid YAML that loads back correctly, which is why the severity is Low; what it breaks is the diff, and `git diff --check`, `yamllint` and most pre-commit setups flag exactly this. Upstream's, not yqr's — the flow class is delegated to `Document::remove` (`yqr-f016` §5) and calling it directly produces the same bytes. Invisible until `yqr-b011` was fixed, for the plainest possible reason: the file could not be parsed. That is the second time in two releases that fixing a refusal exposed a defect behind it, which `yqr-f019` §3.5 names as a pattern — a read fix should be followed by walking the write verbs over the shape it unblocked. Not yet filed upstream, deliberately held until 0.0.25's four fixes have settled | `yqr-b011`, `yqr-b006`, `yqr-f016`, `yqr-f019`, `yqr-a001` |
+| [b015](yqr-b015-flow-delete-leaves-a-whitespace-only-line.md) | Deleting a member of a wrapped flow collection leaves a whitespace-only line | Low | Open — `del(.ports[0])` on `ports: [` / `  80,` / `  443,` / `]` removes the member and its separator but leaves the line's indentation, so a line that had no trailing whitespace now has two spaces of it. The result is valid YAML that loads back correctly, which is why the severity is Low; what it breaks is the diff, and `git diff --check`, `yamllint` and most pre-commit setups flag exactly this. Upstream's, not yqr's — the flow class is delegated to `Document::remove` (`yqr-f016` §5) and calling it directly produces the same bytes. Invisible until `yqr-b011` was fixed, for the plainest possible reason: the file could not be parsed. That is the second time in two releases that fixing a refusal exposed a defect behind it, which `yqr-f019` §3.5 names as a pattern — a read fix should be followed by walking the write verbs over the shape it unblocked. **Filed 2026-08-20 as noyalib#294, with a fix proposed as noyalib#296**, on the argument that carried `b010` and `b014`: noyalib's own block path already answers the identical question the other way for the same bytes — `owned_entry_range` takes a removed entry's whole line, indentation included — so this is the library disagreeing with itself rather than an external lint preference. The patch declines two adjacent shapes on purpose and says so: the last member keeps the comma on the line above (valid, and reaching up a line would be reformatting), and a comment on the member's line keeps the line (a `b010`-class semantics question, not one for a whitespace rule) | `yqr-b011`, `yqr-b006`, `yqr-b010`, `yqr-b014`, `yqr-f016`, `yqr-f019`, `yqr-a001` |
 
 ## Resolved
 
@@ -40,8 +40,10 @@ status tracker convention).
     `Document::remove`, which yqr delegates the flow class to. Valid YAML that
     loads back correctly, so Low; what it breaks is the diff, which is the one
     thing yqr promises to keep small. Unreachable until `b011` was fixed —
-    the file could not be parsed — and not yet filed upstream, deliberately
-    held until 0.0.25's four fixes have settled.
+    the file could not be parsed. Filed 2026-08-20 as noyalib#294 with a fix
+    in noyalib#296, on the same self-inconsistency argument that carried
+    `b010` and `b014`: the block path already takes a removed entry's whole
+    line, indentation included.
 - **noyalib 0.0.25 (2026-08-20) closed four at once** — `b011`, `b012`, `b013`
   and `b014` §3.1, all filed upstream on 2026-08-19, all released the next
   morning in [noyalib#287](https://github.com/sebastienrousseau/noyalib/pull/287)

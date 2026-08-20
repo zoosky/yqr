@@ -165,7 +165,7 @@ ports: [$
 Upstream's, not yqr's — the flow class is delegated to `Document::remove`
 (`f016` §5), and calling it directly produces the same bytes. It loads back
 correctly, so this is cosmetic; it was invisible until now for the plainest
-possible reason, that the file could not be parsed. Filed as `yqr-b015`.
+possible reason, that the file could not be parsed. Filed as `yqr-b015`, and upstream the same day as noyalib#294 with a fix in noyalib#296.
 
 That is the second time in two releases that fixing a refusal exposed a
 defect behind it, and it is worth naming as a pattern rather than a
@@ -254,7 +254,8 @@ were pinned upstream or unreachable):
       reason stated (§4).
 - [x] The `m003` write-tier pins flipped, and regression tests added for the
       three bugs that had none (§5).
-- [x] What §3.5 found filed as `yqr-b015` rather than left in this spec.
+- [x] What §3.5 found filed as `yqr-b015` rather than left in this spec, and
+      taken upstream as noyalib#294 / noyalib#296.
 - [x] `b011`, `b012`, `b013`, `b014` moved to Resolved with the release
       recorded; `yqr-b000` summary updated.
 - [x] Full suite green on the new pin with yqr's own code unchanged;
