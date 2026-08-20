@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-20T20:29:24Z",
+  "timestamp": "2026-08-20T20:36:01Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
@@ -294,6 +294,11 @@
     },
     "/specs/implementation/yqr-m005-single-engine-noyalib": {
       "content_hash": "5e994bee20c631c5",
+      "template": "docs.html.jinja",
+      "template_hash": "117aada2113c9138"
+    },
+    "/specs/implementation/yqr-m006-writing-style": {
+      "content_hash": "f4cbaa49262f4f35",
       "template": "docs.html.jinja",
       "template_hash": "117aada2113c9138"
     },
