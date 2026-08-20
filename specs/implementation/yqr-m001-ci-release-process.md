@@ -115,10 +115,13 @@ Notes that only live here:
 
 `bash .github/scripts/local-ci.sh` runs a superset of `ci.yml`: fmt, clippy,
 build, test, test (all features), `cargo bench --no-run`, `cargo doc
---no-deps`, and `cargo audit` when it is installed. Running it before
-pushing is the cheapest way to avoid a red PR — `cargo bench --no-run` in
-particular catches bench targets broken by a refactor, which `cargo test`
-never compiles.
+--no-deps`, a package-contents check, and `cargo audit` when it is installed.
+Running it before pushing is the cheapest way to avoid a red PR — `cargo bench
+--no-run` in particular catches bench targets broken by a refactor, which
+`cargo test` never compiles. The package-contents gate fails when `cargo
+package --list` names a dev-only path; it can only live here, because the
+change that trips it is a docs-only one that `ci.yml` skips by design
+(`yqr-m004` §6).
 
 ## 5. Known gaps
 

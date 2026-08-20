@@ -365,7 +365,7 @@ cargo +nightly install cargo-doc-md
 The following should pass in CI:
 
 ```bash
-bash .github/scripts/local-ci.sh   # fmt, clippy, build, test (x2), bench compile, doc, audit
+bash .github/scripts/local-ci.sh   # fmt, clippy, build, test (x2), bench compile, doc, package contents, audit
 ```
 
 ## GitHub Actions Workflows
@@ -422,7 +422,8 @@ nothing and attaches no binaries. Full checklist and rationale in
 
 ```bash
 # 1. CHANGELOG.md: [Unreleased] becomes [X.Y.Z] - YYYY-MM-DD
-# 2. Bump version in Cargo.toml
+# 2. Bump version in Cargo.toml AND softwareVersion in the JSON-LD
+#    (docs/themes/default/templates/home.html.jinja)
 # 3. cargo check  (updates Cargo.lock)
 # 4. bash .github/scripts/local-ci.sh
 git add CHANGELOG.md Cargo.toml Cargo.lock
@@ -452,9 +453,12 @@ it is a separately authorized step — never inferred from an instruction to
   ```
 
 - It is a superset of `ci.yml`: it adds `cargo bench --no-run`, `cargo doc
-  --no-deps`, and `cargo audit`. The bench compile matters — `cargo test`
-  never builds bench targets, so a bench broken by a refactor surfaces only
-  here or on `main`.
+  --no-deps`, a package-contents check, and `cargo audit`. The bench compile
+  matters — `cargo test` never builds bench targets, so a bench broken by a
+  refactor surfaces only here or on `main`. The package-contents check fails
+  when `cargo package --list` names a dev-only path (`docs/`, `specs/`,
+  `CLAUDE.md`, ...); `ci.yml` cannot catch that, since the change that causes
+  it touches no Rust path.
 - **Docs/specs-only PRs**: CI and benchmarks skip when no Rust-relevant path
   changes, so those PRs show no CI check at all. No `cargo` run is needed
   for markdown-only changes; do rebuild the site (`cd docs && accent build

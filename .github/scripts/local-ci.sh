@@ -36,6 +36,19 @@ cargo bench --no-run
 echo "=== doc ==="
 cargo doc --no-deps
 
+# What `cargo publish` would upload. ci.yml cannot catch this: a change that
+# adds files under docs/ touches no Rust-relevant path, so CI never runs for
+# it, and the crate silently grows. yqr shipped its whole website in 0.6.0
+# this way (yqr-m004 s6).
+echo "=== package contents ==="
+if stray=$(cargo package --list --allow-dirty 2>/dev/null |
+    grep -E '^(docs|specs|[.]github|[.]agent)/|^(CLAUDE|AGENT)[.]md$'); then
+  echo "error: dev-only files would be published to crates.io:" >&2
+  echo "$stray" | sed 's/^/  /' >&2
+  echo "Add them to \`exclude\` in Cargo.toml." >&2
+  exit 1
+fi
+
 # cargo audit is opt-in locally because the advisory DB fetch needs the network.
 if command -v cargo-audit >/dev/null 2>&1; then
   echo "=== audit ==="

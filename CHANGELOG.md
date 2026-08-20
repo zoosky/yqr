@@ -4,6 +4,22 @@ All notable changes to `yqr` are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **The published crate no longer carries the website.** `cargo install yqr` and
+  `cargo add yqr` downloaded yqr's rendered documentation site along with the
+  source -- 84 files and 340 KB, 40% of the 0.6.0 package, the largest single
+  file being a social-card PNG. The `exclude` list in `Cargo.toml` predates the
+  site and never gained `docs/`; the agent guide shipped too, because the list
+  names `AGENT.md` and not the `CLAUDE.md` symlink pointing at it. Nothing was
+  broken by it -- the crate builds either way -- but every download paid for it.
+  0.6.0 itself cannot be corrected, since a published version is immutable. The
+  release gate now fails when `cargo package --list` names a dev-only path, so
+  this cannot come back quietly: the change that causes it is a docs-only one,
+  which CI is configured to skip.
+
 ## [0.6.0] - 2026-08-20
 
 Editing reaches the parts of a file a path cannot name. A path names a *value*,

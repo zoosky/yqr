@@ -1,8 +1,8 @@
 # Implementation m004 — crates.io release posture (git-dep fidelity backends)
 
-**Status:** Done — yqr is **published to crates.io** (`0.2.1`, 2026-07-10). The dependency blockers were resolved (`noyalib` re-pinned to crates.io `0.0.14`; `rust-yaml-rt` removed via the single-engine consolidation, `yqr-m005`), leaving zero git deps, and the maintainer's `cargo publish` has landed — `cargo install yqr` works.
+**Status:** Done — yqr is **published to crates.io** (`0.2.1`, 2026-07-10; latest `0.6.0`, 2026-08-20). §6 records a packaging defect found in `0.6.0` and the guard added against it. The dependency blockers were resolved (`noyalib` re-pinned to crates.io `0.0.14`; `rust-yaml-rt` removed via the single-engine consolidation, `yqr-m005`), leaving zero git deps, and the maintainer's `cargo publish` has landed — `cargo install yqr` works.
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-10
+**Last updated:** 2026-08-20
 **Related:** `yqr-m005` (single-engine consolidation — removed the last git-dep), `yqr-f004` (engine parity — superseded), `yqr-m002` (engine seam), `yqr-b002` (the noyalib fixes), `yqr-b001`
 
 ## 1. Purpose
@@ -59,3 +59,50 @@ crates.io release cannot express.
 - [x] `rust-yaml-rt` git-dep eliminated (backend removed, `yqr-m005`).
 - [x] `cargo publish --dry-run` passes with no git-dep error.
 - [x] `cargo publish` run by the maintainer; crates.io shows `0.2.1` (the reconciled version).
+
+## 6. Package contents (added 2026-08-20)
+
+`exclude` in `Cargo.toml` is the only thing standing between the working tree
+and the uploaded crate, and it is a **denylist** — a new top-level directory is
+published by default. `0.6.0` shipped yqr's entire website that way.
+
+**What happened.** The list read `[".agent/", ".github/", "specs/",
+"AGENT.md"]`, written before `docs/` existed. The Accent site landed after
+`0.5.1` (`yqr-f010`), so `0.6.0` was the first release to carry it: 84 files
+and 340 KB uncompressed, **40% of the package**, the largest single file in the
+crate being a 100 KB `og-image.png`. The agent guide rode along too, by a
+subtler route: `exclude` names `AGENT.md`, but `CLAUDE.md` is a **symlink** to
+it, and the symlink is a separate path that the denylist did not name — so the
+guide was published under the other name. Uncompressed package size went 863 KB
+with them, 493 KB without.
+
+Nothing is broken for users: the crate builds, and no license or dependency
+constraint is touched. It is dead weight in every `cargo install yqr`
+download, and `0.6.0` cannot be corrected — crates.io versions are immutable
+(yank yes, replace never), so the fix lands in the next release.
+
+**Why nothing caught it.** `ci.yml` filters on Rust-relevant paths, so the PRs
+that added `docs/` never ran CI at all, and no gate anywhere looked at what
+`cargo publish` would upload. `cargo publish --dry-run` (§5) reports the file
+count but was last run for `0.2.1`, when the answer was still right.
+
+**Fix.**
+
+1. `exclude` gains `"docs/"` and `"CLAUDE.md"`.
+2. `local-ci.sh` gains a `package contents` gate that fails when `cargo package
+   --list` names anything under `docs/`, `specs/`, `.github/`, `.agent/`, or
+   the two agent guides. It lives there rather than in `ci.yml` deliberately:
+   the failure mode is a *docs-only* change, which `ci.yml` is configured to
+   skip. `yqr-m001` §3 already runs `local-ci.sh` before tagging, so the gate
+   sits on the release path by construction.
+
+The denylist stays a denylist rather than becoming an `include` allowlist: an
+allowlist that omits a new source directory produces a crate that does not
+build, which is a worse failure than one that is too large.
+
+### 6.1 Acceptance criteria
+
+- [x] `docs/` and `CLAUDE.md` excluded from the published crate.
+- [x] `cargo package --list` names no dev-only path (36 files, 493 KB).
+- [x] `local-ci.sh` fails when a dev-only path re-enters the package.
+- [ ] Confirmed against crates.io on the next release after `0.6.0`.
