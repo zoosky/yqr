@@ -79,6 +79,7 @@ dependency/release timing.
 | [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr used to refuse | Done |
 | [f018](yqr-f018-noyalib-0-0-24-adoption.md) | Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question | Done |
 | [f019](yqr-f019-noyalib-0-0-25-adoption.md) | Adopt noyalib 0.0.25: four bugs closed, and the delegation question answered | Done |
+| [f020](yqr-f020-noyalib-0-0-26-adoption.md) | Adopt noyalib 0.0.26: the wrapped-flow delete, and the one bug it does not carry | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -155,7 +156,7 @@ defects on its first run, `b012` and `b013`. f008
 (`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
 order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
 (done) → f016 (done) → f007 remainder (done) → f018 (done) → f019 (done)
-→ M2 → f008.
+→ f020 (done) → M2 → f008.
 
 f018 **done**: 0.0.24 published 2026-08-18 carrying one functional change, the
 fix for yqr's noyalib#280 — a sole entry's head comment now goes with the
@@ -192,6 +193,21 @@ disagreements stop, which is when it looks safest and is worth the least. The
 release supplied its own evidence: verifying `b011` walked the write verbs over
 the shape it unblocked and found `b015`, an upstream defect reaching yqr's
 output through the flow class, which *is* delegated.
+
+f020 **done**: 0.0.26 published 2026-08-20 carrying one functional change,
+yqr's noyalib#296 — a flow member alone on its line takes the line with it,
+closing `b015`. Verified against the published crate on its own reproduction
+with all four controls, and the outputs loaded back under PyYAML and Psych.
+Its more interesting half is what the release does **not** carry: `b016` is
+filed and fixed upstream (noyalib#297 / #298, green) but unmerged, so the pin
+in `tests/cli.rs` and the guide's trailing-space note both stay. §5 states that
+explicitly rather than letting it read as an oversight — a bug pinned as it
+behaves is what tells the *next* bump whether the bump changed it, which is
+exactly the job `m003` asks of a pin. The feature also carries the regression
+test `b015` §5 deliberately deferred until a fix existed, controls included:
+the positive test would pass on a fix that stripped whitespace
+indiscriminately, and only the controls distinguish the rule that was
+implemented from the easier one.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -231,11 +247,11 @@ dashboard.
 
 ## Summary
 
-- Total features: 19
+- Total features: 20
 - Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 1 (f001 M0)
-- Done: 14 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-  f017, f018, f019)
+- Done: 15 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f017, f018, f019, f020)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

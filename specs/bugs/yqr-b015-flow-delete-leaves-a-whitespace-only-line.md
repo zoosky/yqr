@@ -1,12 +1,11 @@
 # Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line
 
-**Status:** Open — found 2026-08-20 while verifying `yqr-b011` against the
+**Status:** Resolved — found 2026-08-20 while verifying `yqr-b011` against the
 noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in
-noyalib#296, and **noyalib#296 was merged to `main` the same day** (`ab4c235`,
-closing #294). Open here until a **release** carries it — crates.io is still on
-0.0.25, and yqr's rule is that a bug closes when the published crate fixes it,
-not when upstream `main` does (`yqr-f018` §3's "verified against the published
-crate, not the release notes")
+noyalib#296, merged as `ab4c235` and **released in noyalib 0.0.26** the same
+evening. Verified against the published crate by `yqr-f020` §3, controls
+included, with the outputs loaded back under PyYAML and Psych. yqr pins 0.0.26,
+and the regression test §5 deferred until a fix existed is now in `tests/cli.rs`
 **Severity:** Low — the result is valid YAML and loads back correctly; what is
 wrong is a blank, trailing-whitespace line left at the edit site
 **Component:** noyalib's `Document::remove` (upstream), reached from yqr's
@@ -114,11 +113,20 @@ only the whitespace invariant failing, which is what shows the change moves
 nothing else. libFuzzer itself was **not** run (`cargo-fuzz` is not installed
 locally and was not installed for this), and the PR says so.
 
-## 5. Reproduction
+## 5. Reproduction — pinned 2026-08-20, once the fix existed
 
-Pinned in `tests/cli.rs` (`a_wrapped_flow_collection_edits_only_at_the_site`
-covers the `set` half, which is correct). The delete half is **not** pinned
-yet — pinning a whitespace-only line as expected output invites a future reader
-to preserve it. It goes in as a regression test with the fix, per `yqr-m003`'s
-rule that a pin states what the bug does, and this one's shape makes the pin
-worse than the prose.
+At filing time the delete half was deliberately **not** pinned: pinning a
+whitespace-only line as expected output invites a future reader to preserve it,
+and this bug's shape made the pin worse than the prose. With noyalib 0.0.26
+released, the pin states the right thing, so `tests/cli.rs` gains both halves
+(`yqr-f020` §4):
+
+- `deleting_from_a_wrapped_flow_collection_takes_the_whole_line` — first
+  member, last member, and the flow-mapping form; each asserts the exact bytes
+  *and* that no line carries trailing whitespace.
+- `a_flow_delete_leaves_a_line_it_does_not_own_standing` — the four controls:
+  single-line, opening indicator, closing indicator, comment.
+
+The controls are the more valuable half. The first test would pass on a fix
+that stripped whitespace indiscriminately; only the controls distinguish the
+rule that was implemented from the one that would have been easier to write.
