@@ -998,6 +998,81 @@ fn under_indented_flow_content_is_still_refused() {
     );
 }
 
+// Bug b015: deleting a member of a wrapped flow collection left the removed
+// member's indentation behind as a whitespace-only line. Upstream's, through
+// the flow class yqr delegates (`yqr-f016` §5); fixed by yqr's noyalib#296 and
+// released in noyalib 0.0.26. Unreachable before b011, because the file could
+// not be parsed at all — which is why this test arrives two releases after the
+// delete path it covers.
+#[test]
+fn deleting_from_a_wrapped_flow_collection_takes_the_whole_line() {
+    for (filter, doc, want) in [
+        (
+            "del(.ports[0])",
+            "ports: [\n  80,\n  443,\n]\n",
+            "ports: [\n  443,\n]\n",
+        ),
+        // The last member leaves the line above alone, comma and all: a
+        // trailing comma before `]` is valid, and reaching up a line to delete
+        // a separator the removal does not own would be reformatting.
+        (
+            "del(.ports[1])",
+            "ports: [\n  80,\n  443,\n]\n",
+            "ports: [\n  80,\n]\n",
+        ),
+        (
+            "del(.cfg.a)",
+            "cfg: {\n  a: 1,\n  b: 2,\n}\n",
+            "cfg: {\n  b: 2,\n}\n",
+        ),
+    ] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{filter}: stderr: {}", out.stderr);
+        assert_eq!(out.stdout, want, "{filter}");
+        assert!(
+            !out.stdout
+                .lines()
+                .any(|l| !l.is_empty() && l != l.trim_end()),
+            "{filter}: left trailing whitespace: {:?}",
+            out.stdout
+        );
+    }
+}
+
+#[test]
+fn a_flow_delete_leaves_a_line_it_does_not_own_standing() {
+    // The rule is "the member is alone on its line", not "the collection is
+    // wrapped". Each of these keeps its line because something else survives
+    // on it, and each is the control for the test above.
+    for (filter, doc, want) in [
+        // single line: nothing to take
+        ("del(.ports[0])", "ports: [80, 443]\n", "ports: [443]\n"),
+        // the opening indicator holds the line
+        (
+            "del(.ports[0])",
+            "ports: [80,\n  443,\n]\n",
+            "ports: [\n  443,\n]\n",
+        ),
+        // the closing indicator holds it
+        (
+            "del(.ports[1])",
+            "ports: [\n  80,\n  443]\n",
+            "ports: [\n  80,\n  ]\n",
+        ),
+        // a comment holds it — what an orphaned comment means is a semantics
+        // question, not one for a whitespace rule to settle
+        (
+            "del(.ports[0])",
+            "ports: [\n  80, # http\n  443,\n]\n",
+            "ports: [\n  # http\n  443,\n]\n",
+        ),
+    ] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{filter}: stderr: {}", out.stderr);
+        assert_eq!(out.stdout, want, "{filter}");
+    }
+}
+
 // Bug b012: the insert anchor used to be found by composing a candidate key
 // back into a path string and re-parsing it, and a `.` in the key made that
 // round trip lossy — so no key could be inserted beside the Kubernetes label

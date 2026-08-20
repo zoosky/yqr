@@ -41,6 +41,15 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **Deleting from a wrapped flow collection no longer leaves a blank line.**
+  `del(.ports[0])` on a `ports:` list broken across lines removed the member
+  and its separator but left the line's indentation behind, so a line that had
+  no trailing whitespace ended up with two spaces of it. The result always
+  loaded correctly -- what it broke was the diff, which `git diff --check` and
+  `yamllint` reject. The member now takes its whole line when nothing else is
+  on it; a line still holding an opening or closing bracket, a sibling member,
+  or a comment keeps standing. Arrives with the YAML engine moving to noyalib
+  0.0.26, and is yqr's own contribution upstream.
 - **A flow collection wrapped over several lines can be read at all.** A
   `ports:` or `args:` list broken across lines for width -- ordinary YAML that
   PyYAML, Psych and libyaml all accept -- was refused outright, so no filter
