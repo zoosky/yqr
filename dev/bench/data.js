@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787207891412,
+  "lastUpdate": 1787225095706,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1427,6 +1427,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 256322,
             "range": "± 1356",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "21e91118dfd4259c7d11cd87227b19aed0335a20",
+          "message": "fix(release): keep the website out of the published crate (m004 s6) (#80)\n\nexclude in Cargo.toml is a denylist, so a new top-level directory ships by\ndefault. The Accent site landed after 0.5.1, making 0.6.0 the first release\nto carry it: 84 files and 340 KB, 40% of the package. The agent guide went\ntoo, since exclude names AGENT.md and not the CLAUDE.md symlink to it.\n\nAdd docs/ and CLAUDE.md to exclude, and gate it in local-ci.sh: ci.yml\nfilters on Rust-relevant paths, so the change that trips this is exactly the\none CI is configured to skip. local-ci.sh already sits on the release path\n(m001 s3), so the gate runs before every tag.\n\nAlso bumps softwareVersion in the site JSON-LD to 0.6.0, missed in the\nrelease, and adds that step to AGENT.md's release summary -- it was in\nm001 s3 but not in the summary that gets read.",
+          "timestamp": "2026-08-20T13:23:41+02:00",
+          "tree_id": "7cbb267255c30a940b0bb47fec7dee7a8a8cbfa7",
+          "url": "https://github.com/zoosky/yqr/commit/21e91118dfd4259c7d11cd87227b19aed0335a20"
+        },
+        "date": 1787225094086,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 349,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3134,
+            "range": "± 170",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 161056,
+            "range": "± 7004",
             "unit": "ns/iter"
           }
         ]
