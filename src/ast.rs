@@ -194,6 +194,38 @@ pub enum Rhs {
     Path(Ast),
 }
 
+/// A named function that takes its input from the pipe rather than from a
+/// path it wraps.
+///
+/// The distinction from [`Target`] matters at both ends of the compiler. A
+/// *selector* like `key(...)` wraps a path, is recognised by the `(` that
+/// follows the word, and addresses something attached to a node in the source
+/// document. A *builtin* takes whatever the pipe hands it, is recognised by
+/// being an identifier where a path was expected, and computes a value that
+/// has no node in the document at all.
+///
+/// Neither costs a reserved word: every yqr path begins with `.`, so an
+/// identifier can never start a path, and `.to_entries` goes on reading a
+/// field named `to_entries` exactly as `.key` and `.del` still do.
+// Feature f017.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Builtin {
+    /// `to_entries` — a mapping becomes a sequence of `{key, value}` pairs,
+    /// in the mapping's own order.
+    ToEntries,
+}
+
+impl Builtin {
+    /// The builtin's spelling, for diagnostics and for matching the word the
+    /// user typed.
+    #[must_use]
+    pub fn word(self) -> &'static str {
+        match self {
+            Builtin::ToEntries => "to_entries",
+        }
+    }
+}
+
 /// A node in a compiled filter.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Ast {
@@ -209,6 +241,9 @@ pub enum Ast {
     Pipe(Box<Ast>, Box<Ast>),
     /// `f?` — run `f`, suppressing any runtime error to an empty stream.
     Optional(Box<Ast>),
+    /// `to_entries` — a builtin, computing a value rather than selecting one.
+    // Feature f017.
+    Builtin(Builtin),
 }
 
 impl Ast {
@@ -220,5 +255,23 @@ impl Ast {
     /// Convenience constructor for an optional node.
     pub fn optional(inner: Ast) -> Ast {
         Ast::Optional(Box::new(inner))
+    }
+
+    /// The builtin this filter reaches, if any.
+    ///
+    /// A builtin computes a value that has no node in the source document, so
+    /// a filter containing one cannot name a thing to write to. Every
+    /// mutation site asks this before accepting a left-hand side, which is how
+    /// `to_entries = 1` is refused at parse with a reason rather than at eval
+    /// with a resolver error.
+    // Feature f017.
+    #[must_use]
+    pub fn builtin(&self) -> Option<Builtin> {
+        match self {
+            Ast::Builtin(b) => Some(*b),
+            Ast::Pipe(lhs, rhs) => lhs.builtin().or_else(|| rhs.builtin()),
+            Ast::Optional(inner) => inner.builtin(),
+            Ast::Identity | Ast::Field(_) | Ast::Index(_) | Ast::Iterate => None,
+        }
     }
 }

@@ -1,13 +1,14 @@
 # Feature f017 — `to_entries`: enumerate a mapping without losing the keys
 
-**Status:** Draft (scoped; not started)
+**Status:** Done — implemented 2026-08-20; §10's open question settled in §11
 **Epic:** jq-style YAML processor (`f001`) — promoted out of the M2 builtin core
 **Owner:** yqr maintainers
 **Related:** `yqr-r003` (the usage report that promoted this), `yqr-r001` §5
 (the builtin gap table this is the first entry pulled from), `yqr-f007` §7 /
 `yqr-a002` (the `key(...)` selector that proves the plumbing), `yqr-a001` (the
 fidelity contract this deliberately steps outside of), `yqr-f001` (the M1/M2
-roadmap this jumps the queue of)
+roadmap this jumps the queue of), `yqr-b016` (the emitter wart this feature's
+own output made routine)
 
 ## 1. Scope
 
@@ -77,6 +78,10 @@ $ yqr -r '.services | to_entries[] | .key'
 alpha
 beta
 ```
+
+As shipped, each `value:` line above carries a **trailing space** — an emitter
+defect this shape reaches, not a property of the pairs. It is `yqr-b016`, and
+§11.4 records why it is carried rather than worked around.
 
 `key` / `value` are jq's field names, kept deliberately: the shape is worth
 nothing if it does not transfer.
@@ -155,21 +160,30 @@ declining `remove_subtree` for the same reason (`yqr-b004` §7).
 
 ## 9. Acceptance criteria
 
-- [ ] `.m | to_entries` yields one `{key, value}` mapping per entry, in
+- [x] `.m | to_entries` yields one `{key, value}` mapping per entry, in
       document order.
-- [ ] `to_entries[]` parses and streams the pairs.
-- [ ] `.to_entries` still parses as a field access, with a test that would fail
-      if the word were reserved.
-- [ ] Non-mapping input is refused with a message naming the actual type.
-- [ ] Every write form (`=`, `+=`, `del`) is refused at parse with a reason.
-- [ ] The order property is pinned against a mapping whose keys are not in
-      sorted order, so a future sort cannot land silently.
-- [ ] The `yqr-r003` §2 task is a single yqr invocation, and that invocation is
-      a corpus case.
-- [ ] `docs/content/guide/` gains the enumeration idiom (CLAUDE.md rule 15),
-      alongside the `key(...)` two-stream form, with the difference stated.
+- [x] `to_entries[]` parses and streams the pairs. So do `to_entries[].key` and
+      `to_entries[0]` — the chain that follows a path now follows a builtin,
+      which was §5's one non-additive grammar change.
+- [x] `.to_entries` still parses as a field access, with a test that would fail
+      if the word were reserved — `.to_entries`, `.a.to_entries` and
+      `.["to_entries"]`, plus a corpus case.
+- [x] Non-mapping input is refused with a message naming the actual type,
+      pinned for array / number / string / null.
+- [x] Every write form (`=`, `+=`, `del`) is refused at parse with a reason, at
+      all three mutation sites, via `Ast::builtin()`.
+- [x] The order property is pinned against a mapping whose keys are not in
+      sorted order — `zebra`, `apple`, `mango`, which no sort in either
+      direction produces — and again in the corpus against `web` / `db`.
+- [x] The `yqr-r003` §2 task is a single yqr invocation, and that invocation is
+      a corpus case (`to_entries/pairs-a-named-mapping`, on the compose
+      document's named services). §11.2 states what "the task" now means
+      precisely, since exact projection still needs M1/M2.
+- [x] `docs/content/guide/enumerate.md` gains the enumeration idiom, the
+      `key(...)` comparison with the difference stated, and `from_entries`'
+      absence.
 
-## 10. Open question
+## 10. Open question — settled in §11.1
 
 **Whether `key(...)` and `to_entries` should stay two ways to enumerate.**
 After this ships, `key(.m[])` and `.m | to_entries[] | .key` both produce a
@@ -181,3 +195,70 @@ string, because its output is a computed value with no bytes. So they differ
 exactly where fidelity does. That is a real distinction and also a subtle one,
 and it should be settled and documented in this feature rather than discovered
 by a user comparing two outputs that differ by a pair of quotes.
+
+## 11. What implementing it settled
+
+### 11.1 Both stay, and the difference is one line
+
+Measured rather than argued, on `m:` / `"quoted": 1` / `plain: 2`:
+
+| filter | output |
+|---|---|
+| `key(.m[])` | `"quoted"` / `plain` |
+| `.m \| to_entries[] \| .key` | `quoted` / `plain` |
+| either, with `-r` | `quoted` / `plain` |
+
+`key(...)` is what your file says; `to_entries` is what it means. The third row
+is what makes this teachable rather than a trap: `-r` collapses the difference,
+because asking for raw output *is* asking for the value rather than the
+spelling. A user who never leaves `-r` never meets the distinction, and one who
+does meets it with a rule that fits in a sentence.
+
+A third measurement fixes which side each is on. On `m:` / `"1": 3` both print
+`"1"` without `-r` — `key` because that is the token, `to_entries` because the
+renderer must quote a string that would otherwise re-type as a number. Same
+output, opposite reasons, and the reasons are what the guide teaches.
+
+`docs/content/guide/enumerate.md` carries this as its own section, which is
+what §10 asked for.
+
+### 11.2 What "the r003 task in one invocation" actually delivers
+
+Precisely: `.services | to_entries` puts the name and the value in one stream,
+so the `paste` of two aligned streams is gone and nothing has to hold the
+alignment property in its head. What it does **not** do is project — "the name
+and *just* the domain" is `with_entries` or object construction, both M1/M2 as
+`yqr-r001` has them and as §1 puts out of scope. The honest form of the claim
+is that the *pairing* is now internal to yqr; the *shaping* is still the
+language work this feature declined to pull forward.
+
+### 11.3 The key is a string, and that was decided elsewhere
+
+`to_entries` clones the key it is handed. On a parsed document that key is
+always a `Value::String`, including for `1:` and `true:`, because noyalib's
+typed mapping is string-keyed and the conversion at the parse boundary has
+already decided (`yqr-b002` §2.7). Worth stating because the obvious reading of
+`Value::Mapping` — yqr's own model *is* `Value`-keyed — suggests otherwise. A
+builtin that re-typed the key would be making the engine's decision over again,
+in the wrong place and quietly.
+
+### 11.4 What the first output found: `yqr-b016`
+
+`to_entries` produces a sequence of mappings whose values are mappings, and
+that shape hits an emitter defect: a block collection reached through a
+sequence item is written with a **trailing space** after its `key:`.
+Pre-existing, reachable through `--normalize` on any such document since long
+before this feature, and upstream — `render` calls `noyalib::to_string_value`
+and only trims the final newline.
+
+Filed as `yqr-b016` and **not worked around**. The obvious local fix — strip
+trailing whitespace per rendered line — silently changes a block scalar whose
+content legitimately ends a line with spaces (`"a␣␣\nb"` becomes `"a\nb"`),
+measured rather than assumed. Altering a string is strictly worse than a
+cosmetic space, so the output is pinned as it behaves in `tests/cli.rs` and the
+guide says so plainly.
+
+That is twice in two features that shipping something exposed a defect
+underneath it, after `yqr-f019` §3.5. The pattern is the same both times: a
+shape nobody had produced before is a shape nobody had emitted, parsed, or
+edited before.

@@ -1039,3 +1039,131 @@ fn an_inserted_scalar_is_spelled_like_its_neighbours() {
     assert_eq!(c.status, 0, "stderr: {}", c.stderr);
     assert_eq!(c.stdout, "labels:\n  app: \"web\"\n  tier: \"web\"\n");
 }
+
+// -- Feature f017: to_entries -----------------------------------------------
+
+#[test]
+fn to_entries_pairs_a_mapping_in_document_order() {
+    // `zebra` first is the file's order, not sorted order.
+    let out = run(
+        [".m | to_entries"].as_slice(),
+        "m:\n  zebra: 1\n  apple: 2\n",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stdout,
+        "- key: zebra\n  value: 1\n- key: apple\n  value: 2\n"
+    );
+}
+
+#[test]
+fn to_entries_makes_the_r003_task_one_invocation() {
+    // The task that sent an agent to a Python script (`yqr-r003` §2): report
+    // each named entry's name alongside a field of its value. `.services[]`
+    // iterates the values, so the names were gone.
+    let doc = "services:\n  alpha:\n    domain: alpha.example.com\n  beta:\n    domain: beta.example.com\n  gamma:\n    tier: core\n";
+
+    let keys = run(&["-r", ".services | to_entries[] | .key"], doc);
+    assert_eq!(keys.stdout, "alpha\nbeta\ngamma\n");
+
+    // The missing-field entry still emits one line, so the halves of the pair
+    // stay in step — the `yqr-r003` §5 property, now inside a single filter.
+    let domains = run(&["-r", ".services | to_entries[] | .value.domain"], doc);
+    assert_eq!(
+        domains.stdout,
+        "alpha.example.com\nbeta.example.com\nnull\n"
+    );
+}
+
+// Bug b016: the emitter writes `value: ` with a trailing space before a block
+// collection reached through a sequence item, so every pair whose value is a
+// mapping or a sequence carries one. Pre-existing and reachable through
+// `--normalize` on any such document; `to_entries` output is the shape that
+// makes it routine. Pinned as it behaves -- the space goes when b016 is fixed.
+#[test]
+fn to_entries_output_carries_the_emitters_trailing_space() {
+    let out = run(&[".m | to_entries"], "m:\n  a:\n    x: 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "- key: a\n  value: \n    x: 1\n");
+}
+
+#[test]
+fn to_entries_reads_a_key_as_a_value_where_key_reads_it_as_a_token() {
+    // The two ways to enumerate keys are not redundant, and this is exactly
+    // where they part: `key(...)` emits the document's own key token, quotes
+    // included, while `to_entries` yields the decoded string and lets the
+    // renderer spell it. `-r` collapses the difference, because asking for raw
+    // output is asking for the value rather than the spelling.
+    let doc = "m:\n  \"quoted\": 1\n  plain: 2\n";
+
+    let token = run(&["key(.m[])"], doc);
+    assert_eq!(token.stdout, "\"quoted\"\nplain\n");
+
+    let decoded = run(&[".m | to_entries[] | .key"], doc);
+    assert_eq!(decoded.stdout, "quoted\nplain\n");
+
+    for filter in ["key(.m[])", ".m | to_entries[] | .key"] {
+        let raw = run(&["-r", filter], doc);
+        assert_eq!(raw.stdout, "quoted\nplain\n", "-r {filter}");
+    }
+}
+
+#[test]
+fn to_entries_on_a_non_mapping_names_the_type_and_exits_five() {
+    let out = run(&[".m | to_entries"], "m:\n  - 1\n");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("to_entries takes an object") && out.stderr.contains("array"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn a_write_to_to_entries_is_refused_at_parse_with_a_reason() {
+    for (args, op) in [
+        (vec![".m | to_entries = 1"], "'='"),
+        (vec![".m | to_entries += 1"], "'+='"),
+        (vec!["del(.m | to_entries)"], "'del'"),
+    ] {
+        let out = run(&args, "m:\n  a: 1\n");
+        assert_eq!(out.status, 3, "{args:?} stdout: {}", out.stdout);
+        assert!(
+            out.stderr.contains("to_entries") && out.stderr.contains(op),
+            "{args:?}: unexpected stderr: {}",
+            out.stderr
+        );
+    }
+}
+
+#[test]
+fn to_entries_is_still_an_ordinary_field_name() {
+    // The word costs no reserved identifier: a path starts with '.', so an
+    // identifier there can only be a field.
+    let out = run(&["-r", ".to_entries"], "to_entries: hi\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "hi\n");
+}
+
+#[test]
+fn to_entries_works_on_the_normalize_pipeline_too() {
+    // It computes a value, so there is nothing for the byte path to slice and
+    // nothing for `--normalize` to lose.
+    let out = run(
+        &["--normalize", "-r", ".m | to_entries[] | .key"],
+        "m:\n  a: 1\n  b: 2\n",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a\nb\n");
+}
+
+#[test]
+fn to_entries_with_parentheses_says_it_takes_none() {
+    let out = run(&["to_entries(.m)"], "m:\n  a: 1\n");
+    assert_eq!(out.status, 3);
+    assert!(
+        out.stderr.contains("takes no arguments"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+}

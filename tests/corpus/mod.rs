@@ -216,6 +216,51 @@ pub fn classic_cases() -> Vec<Case> {
             filter: ".replicaCount",
             expect: Expect::Raw("2\n"),
         },
+        // -- to_entries (f017) ------------------------------------------------
+        // The `yqr-r003` task, which sent an agent to a Python script: for
+        // each named entry, report the name alongside a field of its value.
+        // `.services[]` iterates the *values*, so the names were gone by the
+        // time anything could use them; this is that task as one filter.
+        Case {
+            id: "to_entries/pairs-a-named-mapping",
+            doc: DOCKER_COMPOSE,
+            filter: ".services | to_entries",
+            expect: Expect::Values(
+                "- key: web\n  value:\n    image: nginx:1.27\n    ports:\n      - \"80:80\"\n      - \"443:443\"\n    depends_on:\n      - db\n    environment:\n      NGINX_HOST: example.com\n      NGINX_PORT: \"80\"\n- key: db\n  value:\n    image: postgres:16\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n    environment:\n      POSTGRES_PASSWORD: secret\n",
+            ),
+        },
+        Case {
+            id: "to_entries/keys-come-out-in-document-order",
+            doc: DOCKER_COMPOSE,
+            // `web` before `db` is the file's order and not sorted order, so
+            // a future sort cannot land here quietly.
+            filter: ".services | to_entries[] | .key",
+            expect: Expect::Raw("web\ndb\n"),
+        },
+        Case {
+            id: "to_entries/reaches-the-value-half-of-the-pair",
+            doc: DOCKER_COMPOSE,
+            filter: ".services | to_entries[] | .value.image",
+            expect: Expect::Raw("nginx:1.27\npostgres:16\n"),
+        },
+        Case {
+            id: "to_entries/refuses-a-sequence",
+            doc: DOCKER_COMPOSE,
+            filter: ".services.web.ports | to_entries",
+            expect: Expect::Err(5),
+        },
+        Case {
+            id: "to_entries/is-not-a-place-to-write",
+            doc: DOCKER_COMPOSE,
+            filter: ".services | to_entries = 1",
+            expect: Expect::Err(3),
+        },
+        Case {
+            id: "to_entries/is-still-an-ordinary-field-name",
+            doc: DOCKER_COMPOSE,
+            filter: ".services.to_entries",
+            expect: Expect::Values("null"),
+        },
         // -- multi-document (classic loads the first document) ----------------
         Case {
             id: "multidoc/classic-first-document",
