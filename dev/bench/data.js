@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787225095706,
+  "lastUpdate": 1787235378716,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1469,6 +1469,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 161056,
             "range": "± 7004",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f16be0c9d4b86010607c332ca48bf6a5544425e4",
+          "message": "chore(deps): adopt noyalib 0.0.25; close b011, b012, b013, b014 (f019) (#81)\n\nnoyalib 0.0.25 carries all four of yqr's then-open engine bugs, filed\nupstream on 2026-08-19 and released the next morning as noyalib#287. Three\nare yqr's own commits, cherry-picked with authorship intact; the fourth is\nb013, the one filed deliberately without a patch because the dominance\nheuristic has a public API attached and what it counts was the maintainer's\ncall. The second of the two options the issue offered was taken: the quote\nvote is now scored at the edit site.\n\nEach fix is verified against the published crate on the reproduction its bug\nstates, not from the release notes (f019 §3). b014's writer half is not\nreachable from yqr, so it is measured by calling Document::remove directly,\nwith the BOM, CRLF, head-comment and nested variants, and the output checked\nagainst PyYAML and Psych.\n\nThe two m003 write-tier cases that pinned b012 and b013 as-they-behaved are\nflipped, and the three bugs that had no yqr-side test gain one: a wrapped-flow\nfidelity case, and five CLI tests covering the wrapped-flow read and edit, the\nstill-refused under-indented content, the dotted-key insert, and the quote\nstyle in all three positions.\n\nf019 §4 discharges what f018 §5 deferred to this release: the sole-entry\ndelegation revisit comes back zero divergence -- 382 tests, both f018 §4.1\nfailures gone -- and the class stays in delete_entry anyway, for the first\ntime on the standing f007 §6 argument alone. All four divergences to date were\nfound by having a second implementation to disagree, so deleting one ends that\nexactly when the disagreements stop.\n\nVerifying b011 walked the write verbs over the shape it unblocked and found\nb015: deleting a member of a wrapped flow collection leaves the removed\nmember's indentation behind as a whitespace-only line. Upstream's, through the\nflow class yqr does delegate. Filed as a spec, not yet upstream.",
+          "timestamp": "2026-08-20T16:14:50+02:00",
+          "tree_id": "6de07e0d629c0082b5611ebafce26828303a0a39",
+          "url": "https://github.com/zoosky/yqr/commit/f16be0c9d4b86010607c332ca48bf6a5544425e4"
+        },
+        "date": 1787235376028,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 496,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5100,
+            "range": "± 153",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 255882,
+            "range": "± 3365",
             "unit": "ns/iter"
           }
         ]
