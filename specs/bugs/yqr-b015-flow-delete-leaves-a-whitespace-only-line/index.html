@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...">
+<meta name="description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296, and noyalib#296 was merged to `main` the same day (ab4c235, closing #294). Open here until a release carries it — crates.io is still on 0.0...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line">
-<meta property="og:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...">
+<meta property="og:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296, and noyalib#296 was merged to `main` the same day (ab4c235, closing #294). Open here until a release carries it — crates.io is still on 0.0...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line">
-<meta name="twitter:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...">
+<meta name="twitter:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296, and noyalib#296 was merged to `main` the same day (ab4c235, closing #294). Open here until a release carries it — crates.io is still on 0.0...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296; open here until a release carries it Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-...",
+  "description": "Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in noyalib#296, and noyalib#296 was merged to `main` the same day (ab4c235, closing #294). Open here until a release carries it — crates.io is still on 0.0...",
   "inLanguage": "en",
   "name": "Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b015-flow-delete-leaves-a-whitespace-only-line",
-  "wordCount": 919
+  "wordCount": 967
 }
 </script>
 <script type="application/ld+json">
@@ -3231,8 +3231,12 @@
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
             <p><strong>Status:</strong> Open — found 2026-08-20 while verifying <code>yqr-b011</code> against the
-noyalib 0.0.25 release, <strong>filed the same day as noyalib#294 with a fix in
-noyalib#296</strong>; open here until a release carries it
+noyalib 0.0.25 release, filed the same day as noyalib#294 with a fix in
+noyalib#296, and <strong>noyalib#296 was merged to <code>main</code> the same day</strong> (<code>ab4c235</code>,
+closing #294). Open here until a <strong>release</strong> carries it — crates.io is still on
+0.0.25, and yqr’s rule is that a bug closes when the published crate fixes it,
+not when upstream <code>main</code> does (<code>yqr-f018</code> §3’s “verified against the published
+crate, not the release notes”)
 <strong>Severity:</strong> Low — the result is valid YAML and loads back correctly; what is
 wrong is a blank, trailing-whitespace line left at the edit site
 <strong>Component:</strong> noyalib’s <code>Document::remove</code> (upstream), reached from yqr’s
