@@ -1,7 +1,14 @@
 # Bug b012 — A new key cannot be inserted into a mapping whose keys all hold a `.`
 
-**Status:** Open — filed upstream 2026-08-19 as noyalib#288 with a fix
-proposed as noyalib#289; open here until a release carries it
+**Status:** Resolved — filed upstream 2026-08-19 as noyalib#288, fixed in
+noyalib#289, **released in noyalib 0.0.25** (2026-08-20) and verified against
+the published crate by `yqr-f019` §3.2. `.metadata.labels.<new> = ...` on a
+Kubernetes manifest writes, and the `<<` merge diagnostic is gone with the
+refusal that produced it. The `yqr-f007` §6 addressing limit it sat on top of
+is **not** closed by this: `set`, `del`, `key(...)` and the reorder verbs still
+route a key through `parse_query_path`, so writing an *existing* dotted key is
+still refused — now saying so accurately ("it uses characters the write path
+cannot express")
 **Severity:** Medium — a refusal, not damage (exit 5, file untouched), but the
 shape is the standard Kubernetes label/annotation block, and the diagnostic
 names a cause that is not present in the document

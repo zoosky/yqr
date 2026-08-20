@@ -39,15 +39,14 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.22 release: 0.0.18 brought the CST mutation API bug b004
-# catalogued as missing, 0.0.19 shipped yqr's remove()-trivia fix, 0.0.21
-# fixed three silent-corruption cases in the mutators plus two Emit defects,
-# two of which were reachable from yqr's own assignment path, and 0.0.22
-# shipped yqr's fix for splices assuming `\n` — the bug b009 workaround this
-# pin lets yqr delete. (0.0.20 was merged upstream but never tagged, so it
-# never reached crates.io; the published sequence is 0.0.19 -> 0.0.21.) See
-# research r002 and bugs b002/b004/b008/b009.
-noyalib = "0.0.24"
+# crates.io 0.0.25 release, which carries all four of yqr's then-open engine
+# bugs: b011 (a wrapped flow collection could not be parsed at all), b012 (no
+# key could be inserted beside a dotted one), b013 (an inserted scalar took a
+# document-wide quote style) and b014's writer half (a sole-entry replacement
+# was written at its key's own column, which two other implementations reject).
+# Three of the four are yqr's own commits upstream. Earlier pins and what each
+# bought are in features f013-f019; see research r002 and the bug specs.
+noyalib = "0.0.25"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"

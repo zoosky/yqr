@@ -118,13 +118,14 @@ impl NoyalibWriter {
         // explicitly instead, which is the only spelling an empty block
         // collection has.
         //
-        // yqr does this itself rather than delegating, and the head comment is
-        // why: upstream's sole-entry path replaces the *collection's* span,
-        // which begins below the entry's comment run, stranding a comment that
-        // described the entry above an empty `{}` (`yqr-f016` §4.4, filed as
-        // noyalib#280). This module already computes the range that includes
-        // that run, so it gets the case right by construction.
-        // Feature f007 / f016 §5.
+        // yqr does this itself rather than delegating. Both case-specific
+        // reasons are now retired — upstream stopped stranding the entry's
+        // head comment in 0.0.23 (noyalib#280, `yqr-f016` §4.4) and stopped
+        // writing the replacement at the key's own column in 0.0.25
+        // (noyalib#284, `yqr-b014`) — so what keeps it here is the standing
+        // argument: a second implementation of the same operation is what made
+        // every one of those divergences visible before it reached a user.
+        // Feature f007 / f016 §5 / f019 §4.
         let empty_collection = if parent_len(&doc_value, parent_segs) == Some(1) {
             Some(match last {
                 PathSeg::Key(_) => "{}",
@@ -635,9 +636,13 @@ mod tests {
         // and both PyYAML and Ruby's Psych reject — so the re-parse guard
         // cannot catch it and `-i` would write an unreadable file at exit 0.
         //
-        // These two tests are also the whole of what upstream's sole-entry
-        // `remove` gets wrong as of 0.0.24: routing this class to it fails
-        // here and nowhere else (`yqr-f018` §4, filed as `yqr-b014`).
+        // These two tests were the whole of what upstream's sole-entry
+        // `remove` got wrong through 0.0.24 (`yqr-f018` §4, filed as
+        // `yqr-b014`); 0.0.25 fixes it and routing the class to it now passes
+        // everywhere. The class stays here regardless — `yqr-f019` §4 re-ran
+        // the measurement and kept it on the `yqr-f007` §6 argument, that a
+        // second implementation is what made all four such divergences
+        // visible in the first place.
         let out = del(".on[0]", "on:\n- push\njobs: {}\n").unwrap();
         assert_eq!(out, "on:\n  []\njobs: {}\n");
     }

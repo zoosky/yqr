@@ -378,9 +378,9 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "noyalib"
-version = "0.0.24"
+version = "0.0.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "665102745aff776f400df932eaabb91860795fd6cff70ed9fc12c9298160e5eb"
+checksum = "39e4b278236e6bc151420f042b7ec16f3902a8b534f8a605a6277d85c1430e51"
 dependencies = [
  "hashbrown",
  "indexmap",

@@ -61,6 +61,7 @@ dependency/release timing.
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
 | [f016](yqr-f016-noyalib-0-0-23-adoption.md) | Adopt noyalib 0.0.23: the extended `remove`, and the two deletes yqr used to refuse | Done |
 | [f018](yqr-f018-noyalib-0-0-24-adoption.md) | Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question | Done |
+| [f019](yqr-f019-noyalib-0-0-25-adoption.md) | Adopt noyalib 0.0.25: four bugs closed, and the delegation question answered | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -136,7 +137,8 @@ seven refusals now cover every shipped edit, and the tier found two upstream
 defects on its first run, `b012` and `b013`. f008
 (`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
 order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
-(done) → f016 (done) → f007 remainder (done) → f018 (done) → M2 → f008.
+(done) → f016 (done) → f007 remainder (done) → f018 (done) → f019 (done)
+→ M2 → f008.
 
 f018 **done**: 0.0.24 published 2026-08-18 carrying one functional change, the
 fix for yqr's noyalib#280 — a sole entry's head comment now goes with the
@@ -151,6 +153,28 @@ both PyYAML and Psych reject. The class stays in `delete_entry` on that
 finding, and the finding is filed as **`b014`**, whose live half is a false
 negative in yqr's own `validate` (it walks noyalib's tree, so it inherits the
 leniency).
+
+f019 **done**: 0.0.25 published 2026-08-20 carrying **all four** of yqr's open
+engine bugs, filed upstream the previous day and released the next morning as
+noyalib#287, "four fixes from @zoosky". Three are yqr's commits cherry-picked
+with authorship intact (`b011` the wrapped flow parse, `b012` the insert
+anchor, `b014` the sole-entry indent); the fourth is `b013`, the one filed
+deliberately *without* a patch because the dominance heuristic has a public API
+attached — the maintainer took the second of the two options the issue offered
+and scored the quote vote at the edit site. Each was verified against the
+published crate on its own reproduction rather than from the release notes, the
+two `m003` write-tier cases that pinned `b012`/`b013` as-they-behaved were
+flipped, and the three bugs that had no yqr-side test gained one. The feature's
+real content is §4: the `f018` §5 delegation revisit, which this release was
+the trigger for. It comes back **zero divergence** — 382 tests, both `f018`
+§4.1 failures gone — and the sole-entry delete stays in `delete_entry` anyway,
+for the first time on the standing `f007` §6 argument alone. The argument that
+carried it is that all four divergences to date were found *by* having a second
+implementation to disagree, so deleting one ends that exactly when the
+disagreements stop, which is when it looks safest and is worth the least. The
+release supplied its own evidence: verifying `b011` walked the write verbs over
+the shape it unblocked and found `b015`, an upstream defect reaching yqr's
+output through the flow class, which *is* delegated.
 
 ## Epic: Editing-loop tooling (f012)
 
@@ -190,12 +214,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 18
+- Total features: 19
 - Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
   scoped from the `yqr-r003` usage report)
 - In Progress: 1 (f001 M0)
-- Done: 12 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-  f018)
+- Done: 13 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f018, f019)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later

@@ -8,6 +8,39 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **A flow collection wrapped over several lines can be read at all.** A
+  `ports:` or `args:` list broken across lines for width -- ordinary YAML that
+  PyYAML, Psych and libyaml all accept -- was refused outright, so no filter
+  ran and `validate` called the file unreadable. The engine's rule that flow
+  content must be indented past the surrounding block was reaching the closing
+  `]` or `}`, which is an indicator rather than content and cannot be
+  ambiguous with anything. Under-indented flow *content* is still refused,
+  which is what the rule is for.
+- **A key can be added next to a Kubernetes-style dotted one.**
+  `.metadata.labels.tier = "web"` was refused on any mapping whose keys all
+  contain a `.` -- the standard `app.kubernetes.io/` label block -- and the
+  message blamed a `<<` merge the file did not contain. The engine picked the
+  indentation anchor by composing a candidate key back into a path string and
+  re-parsing it, which no dotted key survives; it now reads the anchor from the
+  span tree, so a key's spelling no longer decides whether one can be inserted
+  beside it. Changing or deleting a dotted key is still refused, and now says
+  why.
+- **An inserted value is spelled like its neighbours, not like the file.** A
+  new key or an appended item took the document's *dominant* quote style, and
+  the vote counted only quoted scalars against each other -- so one
+  `value: "30"` in an env block made every later insertion quoted, however
+  plain the lines around it. The vote is now scored at the edit site. A quoted
+  neighbour still carries, which is what the behaviour is for.
+- **An empty collection left by a delete is indented past its key.** Removing
+  the sole item of a block sequence written at its key's own column -- the
+  GitHub Actions `on:` / `- push` idiom -- produced `on:` / `[]` on the engine's
+  own delete path, which both PyYAML and Psych reject. yqr's delete already
+  wrote the indented form; the engine now agrees, and `validate` continues to
+  report the shape as `Y103` wherever it comes from.
+
+  All four fixes arrive with the YAML engine moving to noyalib 0.0.25. Three
+  of them are yqr's own contributions upstream.
+
 - **The published crate no longer carries the website.** `cargo install yqr` and
   `cargo add yqr` downloaded yqr's rendered documentation site along with the
   source -- 84 files and 340 KB, 40% of the 0.6.0 package, the largest single

@@ -1,7 +1,12 @@
 # Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all
 
-**Status:** Open — filed upstream 2026-08-19 as noyalib#285 with a
-fix proposed as noyalib#286; open here until a release carries it
+**Status:** Resolved — filed upstream 2026-08-19 as noyalib#285, fixed in
+noyalib#286, **released in noyalib 0.0.25** (2026-08-20) and verified against
+the published crate by `yqr-f019` §3.1. yqr pins 0.0.25; a wrapped flow
+collection now reads byte-for-byte, and under-indented flow *content* is still
+refused, which is the narrowing that makes the fix spec-conformant rather than
+a relaxation. Fixing the read exposed a delete defect behind it, filed as
+`yqr-b015`
 **Severity:** Medium — an input yqr refuses outright, on the **read** path, so
 no filter runs; not silent, but a hard "cannot open your file"
 **Component:** noyalib's parser (upstream), reached through every yqr entry
