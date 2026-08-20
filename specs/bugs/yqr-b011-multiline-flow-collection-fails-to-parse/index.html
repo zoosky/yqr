@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (u...">
+<meta name="description" content="Status: Resolved — filed upstream 2026-08-19 as noyalib#285, fixed in noyalib#286, released in noyalib 0.0.25 (2026-08-20) and verified against the published crate by yqr-f019 §3.1. yqr pins 0.0.25; a wrapped flow collection now reads byte-for-byte, and under-indented flow content is still ref...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all">
-<meta property="og:description" content="Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (u...">
+<meta property="og:description" content="Status: Resolved — filed upstream 2026-08-19 as noyalib#285, fixed in noyalib#286, released in noyalib 0.0.25 (2026-08-20) and verified against the published crate by yqr-f019 §3.1. yqr pins 0.0.25; a wrapped flow collection now reads byte-for-byte, and under-indented flow content is still ref...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b011-multiline-flow-collection-fails-to-parse">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all">
-<meta name="twitter:description" content="Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard &quot;cannot open your file&quot; Component: noyalib&#x27;s parser (u...">
+<meta name="twitter:description" content="Status: Resolved — filed upstream 2026-08-19 as noyalib#285, fixed in noyalib#286, released in noyalib 0.0.25 (2026-08-20) and verified against the published crate by yqr-f019 §3.1. yqr pins 0.0.25; a wrapped flow collection now reads byte-for-byte, and under-indented flow content is still ref...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Status: Open — filed upstream 2026-08-19 as noyalib#285 with a fix proposed as noyalib#286; open here until a release carries it Severity: Medium — an input yqr refuses outright, on the read path, so no filter runs; not silent, but a hard \"cannot open your file\" Component: noyalib's parser (u...",
+  "description": "Status: Resolved — filed upstream 2026-08-19 as noyalib#285, fixed in noyalib#286, released in noyalib 0.0.25 (2026-08-20) and verified against the published crate by yqr-f019 §3.1. yqr pins 0.0.25; a wrapped flow collection now reads byte-for-byte, and under-indented flow content is still ref...",
   "inLanguage": "en",
   "name": "Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b011-multiline-flow-collection-fails-to-parse",
-  "wordCount": 1099
+  "wordCount": 1145
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,12 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -514,6 +520,12 @@
   
     
     
+  
+    
+    
+  
+    
+    
       
       
       
@@ -566,6 +578,14 @@
         
       
         
+        
+      
+        
+        
+      
+        
+        
+          
         
       
         
@@ -796,6 +816,9 @@
             
               
               
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link">Feature Status Tracker</a>
               
@@ -906,6 +929,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f018-noyalib-0-0-24-adoption"
                    class="sidebar-link">Feature f018 — Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f019-noyalib-0-0-25-adoption"
+                   class="sidebar-link">Feature f019 — Adopt noyalib 0.0.25: four bugs closed, and the delegation question answered</a>
               
             
               
@@ -1075,6 +1104,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -1312,6 +1349,15 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line"
+                   class="sidebar-link">Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1463,6 +1509,12 @@
         
         
           
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1833,6 +1885,12 @@
               
               
             
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1845,6 +1903,12 @@
     
       
       
+      
+        
+        
+      
+        
+        
       
         
         
@@ -2043,6 +2107,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2380,6 +2450,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2445,6 +2521,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2770,6 +2852,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2834,6 +2922,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -3047,8 +3141,13 @@
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Open — filed upstream 2026-08-19 as noyalib#285 with a
-fix proposed as noyalib#286; open here until a release carries it
+            <p><strong>Status:</strong> Resolved — filed upstream 2026-08-19 as noyalib#285, fixed in
+noyalib#286, <strong>released in noyalib 0.0.25</strong> (2026-08-20) and verified against
+the published crate by <code>yqr-f019</code> §3.1. yqr pins 0.0.25; a wrapped flow
+collection now reads byte-for-byte, and under-indented flow <em>content</em> is still
+refused, which is the narrowing that makes the fix spec-conformant rather than
+a relaxation. Fixing the read exposed a delete defect behind it, filed as
+<code>yqr-b015</code>
 <strong>Severity:</strong> Medium — an input yqr refuses outright, on the <strong>read</strong> path, so
 no filter runs; not silent, but a hard “cannot open your file”
 <strong>Component:</strong> noyalib’s parser (upstream), reached through every yqr entry

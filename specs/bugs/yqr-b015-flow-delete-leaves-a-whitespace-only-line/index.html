@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementation m004 — crates.io release posture (git-dep fidelity backends) - yqr</title>
+    <title>Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line - yqr</title>
     
     
 
@@ -12,10 +12,10 @@
 
 
 
-<meta name="description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...">
+<meta name="description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib&#x27;s Document::...">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture">
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line">
 
 
 
@@ -29,10 +29,10 @@
 
 
 
-<meta property="og:title" content="Implementation m004 — crates.io release posture (git-dep fidelity backends)">
-<meta property="og:description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...">
+<meta property="og:title" content="Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line">
+<meta property="og:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib&#x27;s Document::...">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -42,8 +42,8 @@
 
 
 
-<meta name="twitter:title" content="Implementation m004 — crates.io release posture (git-dep fidelity backends)">
-<meta name="twitter:description" content="Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...">
+<meta name="twitter:title" content="Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line">
+<meta name="twitter:description" content="Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib&#x27;s Document::...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Status: Done — yqr is published to crates.io (0.2.1, 2026-07-10; latest 0.6.0, 2026-08-20). §6 records a packaging defect found in 0.6.0 and the guard added against it. The dependency blockers were resolved (noyalib re-pinned to crates.io 0.0.14; rust-yaml-rt removed via the single-engine cons...",
+  "description": "Status: Open — found 2026-08-20 while verifying yqr-b011 against the noyalib 0.0.25 release; not yet filed upstream (§4) Severity: Low — the result is valid YAML and loads back correctly; what is wrong is a blank, trailing-whitespace line left at the edit site Component: noyalib's Document::...",
   "inLanguage": "en",
-  "name": "Implementation m004 — crates.io release posture (git-dep fidelity backends)",
-  "url": "https://zoosky.github.io/yqr/specs/implementation/yqr-m004-crates-io-release-posture",
-  "wordCount": 916
+  "name": "Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line",
+  "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b015-flow-delete-leaves-a-whitespace-only-line",
+  "wordCount": 623
 }
 </script>
 <script type="application/ld+json">
@@ -119,14 +119,14 @@
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/implementation",
-      "name": "Implementation Specs",
+      "item": "https://zoosky.github.io/yqr/specs/bugs",
+      "name": "Bug Specs",
       "position": 3
     },
     {
       "@type": "ListItem",
-      "item": "https://zoosky.github.io/yqr/specs/implementation/yqr-m004-crates-io-release-posture",
-      "name": "Implementation m004 — crates.io release posture (git-dep fidelity backends)",
+      "item": "https://zoosky.github.io/yqr/specs/bugs/yqr-b015-flow-delete-leaves-a-whitespace-only-line",
+      "name": "Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line",
       "position": 4
     }
   ]
@@ -1245,7 +1245,7 @@
       
       
         <details class="sidebar-section"
-          >
+          open>
           <summary class="sidebar-section-title">Bug Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs"
@@ -1350,7 +1350,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line"
-                   class="sidebar-link">Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line</a>
+                   class="sidebar-link active">Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line</a>
               
             
               
@@ -2102,7 +2102,7 @@
       
       
         <details class="sidebar-section"
-          open>
+          >
           <summary class="sidebar-section-title">Implementation Specs</summary>
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
@@ -2243,7 +2243,7 @@
               
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m004-crates-io-release-posture"
-                   class="sidebar-link active">Implementation m004 — crates.io release posture (git-dep fidelity backends)</a>
+                   class="sidebar-link">Implementation m004 — crates.io release posture (git-dep fidelity backends)</a>
               
             
               
@@ -3130,115 +3130,84 @@
         <a href="&#x2f;yqr&#x2f;specs">yqr Specs</a>
         <span aria-hidden="true">/</span>
     
-        <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation">Implementation Specs</a>
+        <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs">Bug Specs</a>
         <span aria-hidden="true">/</span>
     
-    <span aria-current="page">Implementation m004 — crates.io release posture (git-dep fidelity backends)</span>
+    <span aria-current="page">Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line</span>
 </nav>
 
 
-        <h1>Implementation m004 — crates.io release posture (git-dep fidelity backends)</h1>
+        <h1>Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line</h1>
 
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
-            <p><strong>Status:</strong> Done — yqr is <strong>published to crates.io</strong> (<code>0.2.1</code>, 2026-07-10; latest <code>0.6.0</code>, 2026-08-20). §6 records a packaging defect found in <code>0.6.0</code> and the guard added against it. The dependency blockers were resolved (<code>noyalib</code> re-pinned to crates.io <code>0.0.14</code>; <code>rust-yaml-rt</code> removed via the single-engine consolidation, <code>yqr-m005</code>), leaving zero git deps, and the maintainer’s <code>cargo publish</code> has landed — <code>cargo install yqr</code> works.
-<strong>Owner:</strong> yqr maintainers
-<strong>Last updated:</strong> 2026-08-20
-<strong>Related:</strong> <code>yqr-m005</code> (single-engine consolidation — removed the last git-dep), <code>yqr-f004</code> (engine parity — superseded), <code>yqr-m002</code> (engine seam), <code>yqr-b002</code> (the noyalib fixes), <code>yqr-b001</code></p>
-<h2 id="1-purpose">1. Purpose<a class="heading-anchor" href="#1-purpose" aria-label="Link to this section"></a></h2>
-<p>Record why yqr cannot currently be published to crates.io at <code>0.2.0</code>, and the
-exact conditions that unblock it. crates.io <strong>rejects git dependencies</strong> — every
-declared dependency (optional included) must resolve to a published version, and
-the <code>git</code>/<code>branch</code> spec is stripped on publish. <code>f004</code> made both fidelity
-backends part of the default build, and both are pinned to unreleased fork
-branches, so <code>cargo publish</code> fails at the manifest-verification step:</p>
-<pre><code>error: all dependencies must have a version requirement specified when publishing.
-       dependency `noyalib` does not specify a version
+            <p><strong>Status:</strong> Open — found 2026-08-20 while verifying <code>yqr-b011</code> against the
+noyalib 0.0.25 release; not yet filed upstream (§4)
+<strong>Severity:</strong> Low — the result is valid YAML and loads back correctly; what is
+wrong is a blank, trailing-whitespace line left at the edit site
+<strong>Component:</strong> noyalib’s <code>Document::remove</code> (upstream), reached from yqr’s
+<code>del</code> — the flow class is delegated by <code>yqr-f016</code> §5
+<strong>Related:</strong> <code>yqr-b011</code> (the parse refusal that hid this), <code>yqr-f019</code> §3.5
+(where it was found), <code>yqr-b006</code> (the same defect class on the block path,
+which yqr fixed by keeping its own implementation), <code>yqr-a001</code></p>
+<h2 id="1-summary">1. Summary<a class="heading-anchor" href="#1-summary" aria-label="Link to this section"></a></h2>
+<p>Deleting a member of a flow collection that is spread over several lines
+removes the member’s bytes and its separator, but leaves the line’s
+indentation behind:</p>
+<pre><code class="language-console">$ printf 'ports: [\n  80,\n  443,\n]\n' | yqr 'del(.ports[0])' | sed -n l
+ports: [$
+  $
+  443,$
+]$
 </code></pre>
-<p><code>rust-yaml-rt</code> fails identically. This is a release-channel constraint, not a
-code defect: the crate builds, tests (156 passing), and is GitHub-released.</p>
-<h2 id="2-blocking-dependencies-both-resolved">2. Blocking dependencies (both resolved)<a class="heading-anchor" href="#2-blocking-dependencies-both-resolved" aria-label="Link to this section"></a></h2>
-<table><thead><tr><th>Dependency</th><th>Current pin (<code>Cargo.toml</code>)</th><th>crates.io state</th></tr></thead><tbody>
-<tr><td><code>noyalib</code> ✅ <strong>resolved</strong></td><td><code>noyalib = "0.0.14"</code> (crates.io)</td><td><strong>0.0.14 released</strong> with b002 2.2–2.7; upstream release <a href="https://github.com/sebastienrousseau/noyalib/pull/160">noyalib#160</a> merged. git-dep dropped 2026-07-10</td></tr>
-<tr><td><code>rust-yaml-rt</code> ✅ <strong>resolved (removed)</strong></td><td><em>(dependency removed)</em></td><td>yqr consolidated on a single engine (<code>yqr-m005</code>): the rust-yaml fork backend and its git-dep were deleted, so there is nothing left to publish</td></tr>
-</tbody></table>
-<p>Historical note: <code>0.1.1</code> published cleanly because it predates <code>f004</code> —
-<code>noyalib</code> was <code>"0.0.13"</code> (a real version, optional/off) and <code>rust-yaml-rt</code> did
-not exist. Adding the two fork backends as defaults is precisely what a
-crates.io release cannot express.</p>
-<h2 id="3-unblock-conditions-all-required">3. Unblock conditions (all required)<a class="heading-anchor" href="#3-unblock-conditions-all-required" aria-label="Link to this section"></a></h2>
-<ol>
-<li>✅ <strong>Done (2026-07-10) — noyalib on crates.io with the fixes.</strong> <a href="https://github.com/sebastienrousseau/noyalib/pull/160">noyalib#160</a>
-released v0.0.14 (folding in b002 2.2–2.7); yqr is re-pinned to
-<code>noyalib = "0.0.14"</code> and the <code>git</code>/<code>branch</code> spec is dropped.</li>
-<li>✅ <strong>Done (2026-07-10) — no git-dep backend.</strong> Rather than find a crates.io
-home for <code>RoundTripDocument</code>, yqr <strong>removed</strong> the rust-yaml fork backend and
-consolidated on noyalib (<code>yqr-m005</code>), eliminating the git dependency outright.</li>
-<li>✅ <strong>Done (2026-07-10) — published.</strong> <code>cargo publish --dry-run</code> passed (zero
-git deps) and the maintainer ran <code>cargo publish</code>; crates.io serves <code>0.2.1</code>.</li>
-</ol>
-<h2 id="4-release-state">4. Release state<a class="heading-anchor" href="#4-release-state" aria-label="Link to this section"></a></h2>
+<p>The <code>  </code> on line 2 is all that is left of <code>  80,</code>. The same happens when the
+removed member is the last one, and on the mapping form:</p>
+<pre><code class="language-text">del(.ports[1])   ports: [ / ␣␣80, / ␣␣ / ]
+del(.cfg.a)      cfg: { / ␣␣ / ␣␣b: 2, / }
+</code></pre>
+<p>A single-line flow collection is unaffected — <code>ports: [80, 443]</code> becomes
+<code>ports: [443]</code>, which is correct and has been since <code>yqr-f016</code>.</p>
+<h2 id="2-it-is-upstream-s">2. It is upstream’s<a class="heading-anchor" href="#2-it-is-upstream-s" aria-label="Link to this section"></a></h2>
+<p>yqr delegates the whole flow class to <code>Document::remove</code> (<code>yqr-f016</code> §5, and
+<code>src/fidelity/write/delete.rs</code> says so at the call site). Calling it directly
+on noyalib 0.0.25 produces the same bytes:</p>
+<pre><code class="language-text">remove("ports[0]") on "ports: [\n  80,\n  443,\n]\n"
+  -&gt; "ports: [\n  \n  443,\n]\n"
+</code></pre>
+<p>So this is not yqr’s splice, and the fix belongs upstream — the same shape of
+finding as <code>yqr-b006</code>, which was the block path’s version of exactly this
+question (what trivia belongs to a removed entry) and which yqr answered in its
+own code because it owns that path.</p>
+<h2 id="3-why-it-is-worth-tracking-rather-than-shrugging-at">3. Why it is worth tracking rather than shrugging at<a class="heading-anchor" href="#3-why-it-is-worth-tracking-rather-than-shrugging-at" aria-label="Link to this section"></a></h2>
 <ul>
-<li><strong>GitHub release <code>v0.2.0</code></strong> is live: <a href="https://github.com/zoosky/yqr/releases/tag/v0.2.0">https://github.com/zoosky/yqr/releases/tag/v0.2.0</a>
-(tag <code>v0.2.0</code> → commit <code>c9e432f</code>). This is independent of crates.io and valid.</li>
-<li><strong>crates.io</strong> now serves <strong>0.2.1</strong> — the first crates.io release, carrying the
-single-engine consolidation. <code>0.2.0</code> was GitHub-only (its git-dep backends
-could not be published); <code>0.2.1</code> reconciled the version for crates.io.</li>
+<li>It loads back correctly under every implementation, so nothing is broken and
+nothing is silently wrong. That is the whole reason the severity is Low.</li>
+<li>But it introduces <strong>trailing whitespace on a line that had none</strong>, which
+<code>git diff --check</code>, <code>editorconfig-checker</code>, <code>yamllint</code> (<code>trailing-spaces</code>)
+and most pre-commit setups flag. A tool whose promise is “the diff is one
+line” producing a diff that fails the repo’s own lint is the promise’s
+failure mode, not a cosmetic detail.</li>
+<li>It is at the edit site, which <code>yqr-a001</code> singles out as the one place an
+edit’s spelling has to be right.</li>
 </ul>
-<h2 id="5-acceptance-criteria">5. Acceptance criteria<a class="heading-anchor" href="#5-acceptance-criteria" aria-label="Link to this section"></a></h2>
-<ul>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>noyalib</code> re-pinned to a crates.io version carrying b002 2.2–2.7 (0.0.14+).</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>rust-yaml-rt</code> git-dep eliminated (backend removed, <code>yqr-m005</code>).</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>cargo publish --dry-run</code> passes with no git-dep error.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>cargo publish</code> run by the maintainer; crates.io shows <code>0.2.1</code> (the reconciled version).</li>
-</ul>
-<h2 id="6-package-contents-added-2026-08-20">6. Package contents (added 2026-08-20)<a class="heading-anchor" href="#6-package-contents-added-2026-08-20" aria-label="Link to this section"></a></h2>
-<p><code>exclude</code> in <code>Cargo.toml</code> is the only thing standing between the working tree
-and the uploaded crate, and it is a <strong>denylist</strong> — a new top-level directory is
-published by default. <code>0.6.0</code> shipped yqr’s entire website that way.</p>
-<p><strong>What happened.</strong> The list read <code>[".agent/", ".github/", "specs/", "AGENT.md"]</code>, written before <code>docs/</code> existed. The Accent site landed after
-<code>0.5.1</code> (<code>yqr-f010</code>), so <code>0.6.0</code> was the first release to carry it: 84 files
-and 340 KB uncompressed, <strong>40% of the package</strong>, the largest single file in the
-crate being a 100 KB <code>og-image.png</code>. The agent guide rode along too, by a
-subtler route: <code>exclude</code> names <code>AGENT.md</code>, but <code>CLAUDE.md</code> is a <strong>symlink</strong> to
-it, and the symlink is a separate path that the denylist did not name — so the
-guide was published under the other name. Uncompressed package size went 863 KB
-with them, 493 KB without.</p>
-<p>Nothing is broken for users: the crate builds, and no license or dependency
-constraint is touched. It is dead weight in every <code>cargo install yqr</code>
-download, and <code>0.6.0</code> cannot be corrected — crates.io versions are immutable
-(yank yes, replace never), so the fix lands in the next release.</p>
-<p><strong>Why nothing caught it.</strong> <code>ci.yml</code> filters on Rust-relevant paths, so the PRs
-that added <code>docs/</code> never ran CI at all, and no gate anywhere looked at what
-<code>cargo publish</code> would upload. <code>cargo publish --dry-run</code> (§5) reports the file
-count but was last run for <code>0.2.1</code>, when the answer was still right.</p>
-<p><strong>Fix.</strong></p>
-<ol>
-<li><code>exclude</code> gains <code>"docs/"</code> and <code>"CLAUDE.md"</code>.</li>
-<li><code>local-ci.sh</code> gains a <code>package contents</code> gate that fails when <code>cargo package --list</code> names anything under <code>docs/</code>, <code>specs/</code>, <code>.github/</code>, <code>.agent/</code>, or
-the two agent guides. It lives there rather than in <code>ci.yml</code> deliberately:
-the failure mode is a <em>docs-only</em> change, which <code>ci.yml</code> is configured to
-skip. <code>yqr-m001</code> §3 already runs <code>local-ci.sh</code> before tagging, so the gate
-sits on the release path by construction.</li>
-</ol>
-<p>The denylist stays a denylist rather than becoming an <code>include</code> allowlist: an
-allowlist that omits a new source directory produces a crate that does not
-build, which is a worse failure than one that is too large.</p>
-<h3 id="6-1-acceptance-criteria">6.1 Acceptance criteria<a class="heading-anchor" href="#6-1-acceptance-criteria" aria-label="Link to this section"></a></h3>
-<ul>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>docs/</code> and <code>CLAUDE.md</code> excluded from the published crate.</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>cargo package --list</code> names no dev-only path (36 files, 493 KB).</li>
-<li><input disabled="" type="checkbox" checked=""/>
-<code>local-ci.sh</code> fails when a dev-only path re-enters the package.</li>
-<li><input disabled="" type="checkbox"/>
-Confirmed against crates.io on the next release after <code>0.6.0</code>.</li>
-</ul>
+<h2 id="4-route">4. Route<a class="heading-anchor" href="#4-route" aria-label="Link to this section"></a></h2>
+<p>Upstream, on the <code>yqr-b004</code> §5 <code>PR-with-fix</code> precedent, once the maintainer has
+had the four fixes of 0.0.25 land. The fix is the same shape as the one yqr’s
+<code>owned_line_span</code> makes on the block path: a removed member owns its line’s
+indentation when nothing else on that line survives, so the range should run
+from the line start rather than from the member’s first byte. The
+single-line case must stay as it is, which is what makes the condition “the
+member is alone on its line” rather than “the collection is wrapped”.</p>
+<p><strong>Not yet filed.</strong> Four yqr-authored fixes landed upstream on 2026-08-19; this
+is deliberately held until that release has settled rather than opened on top
+of it.</p>
+<h2 id="5-reproduction">5. Reproduction<a class="heading-anchor" href="#5-reproduction" aria-label="Link to this section"></a></h2>
+<p>Pinned in <code>tests/cli.rs</code> (<code>a_wrapped_flow_collection_edits_only_at_the_site</code>
+covers the <code>set</code> half, which is correct). The delete half is <strong>not</strong> pinned
+yet — pinning a whitespace-only line as expected output invites a future reader
+to preserve it. It goes in as a regression test with the fix, per <code>yqr-m003</code>’s
+rule that a pin states what the bug does, and this one’s shape makes the pin
+worse than the prose.</p>
 
         </div>
         </accent-island>
@@ -3250,16 +3219,11 @@ Confirmed against crates.io on the next release after <code>0.6.0</code>.</li>
 
 <nav class="page-nav" aria-label="Page navigation">
     
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m003-shared-corpus" class="nav-prev">
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml" class="nav-prev">
         <span class="nav-label">&larr; Previous</span>
-        <span class="nav-title">Implementation m003 — Shared real-world corpus for validation and benchmarks</span>
+        <span class="nav-title">Bug b014 — An empty collection written at its key&#x27;s own column is invalid YAML that noyalib accepts</span>
     </a>
     
-    
-    <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation&#x2f;yqr-m005-single-engine-noyalib" class="nav-next">
-        <span class="nav-label">Next &rarr;</span>
-        <span class="nav-title">Implementation m005 — Single YAML engine: consolidation on noyalib</span>
-    </a>
     
 </nav>
 
@@ -3271,31 +3235,23 @@ Confirmed against crates.io on the next release after <code>0.6.0</code>.</li>
         <ul>
         
             <li class="toc-level-2">
-                <a href="#1-purpose">1. Purpose</a>
+                <a href="#1-summary">1. Summary</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#2-blocking-dependencies-both-resolved">2. Blocking dependencies (both resolved)</a>
+                <a href="#2-it-is-upstream-s">2. It is upstream’s</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#3-unblock-conditions-all-required">3. Unblock conditions (all required)</a>
+                <a href="#3-why-it-is-worth-tracking-rather-than-shrugging-at">3. Why it is worth tracking rather than shrugging at</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#4-release-state">4. Release state</a>
+                <a href="#4-route">4. Route</a>
             </li>
         
             <li class="toc-level-2">
-                <a href="#5-acceptance-criteria">5. Acceptance criteria</a>
-            </li>
-        
-            <li class="toc-level-2">
-                <a href="#6-package-contents-added-2026-08-20">6. Package contents (added 2026-08-20)</a>
-            </li>
-        
-            <li class="toc-level-3">
-                <a href="#6-1-acceptance-criteria">6.1 Acceptance criteria</a>
+                <a href="#5-reproduction">5. Reproduction</a>
             </li>
         
         </ul>

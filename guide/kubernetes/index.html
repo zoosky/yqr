@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 1682
+  "wordCount": 1665
 }
 </script>
 <script type="application/ld+json">
@@ -151,6 +151,12 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -655,21 +661,23 @@ stdin. That is deliberate; there is nothing to write back to.</p>
 <li><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
 is not supported yet.</li>
 </ul>
-<!-- Bug b012: the sibling half of this, with the misleading diagnostic. -->
+<!-- Bug b012 (fixed in noyalib 0.0.25) was the sibling half of this. -->
 <ul>
 <li>
-<p><strong>Keys containing <code>.</code> or <code>[</code></strong> – the Kubernetes
-<code>app.kubernetes.io/name</code> style. Reading one works with the bracket form,
-<code>.metadata.labels["app.kubernetes.io/name"]</code>; <strong>writing</strong> does not, and
-neither does adding a plain-named key <em>next to</em> one:</p>
-<pre><code class="language-console">$ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
-yqr: runtime error: cannot insert key "tier": ... (every key is inherited
-through a `&lt;&lt;` merge) ...
+<p><strong>Writing a key that contains <code>.</code> or <code>[</code></strong> – the Kubernetes
+<code>app.kubernetes.io/name</code> style. Reading one works with the bracket form:</p>
+<pre><code class="language-console">$ yqr '.metadata.labels["app.kubernetes.io/name"]' deploy.yaml
+web
 </code></pre>
-<p>There is no <code>&lt;&lt;</code> in the file – the message names the only cause its check
-knows about. The edit is refused, so nothing is damaged, but the reason it
-gives is not the reason. If your labels follow the <code>app.kubernetes.io/</code>
-convention, treat that whole mapping as read-only for now.</p>
+<p>Changing, deleting or renaming it does not:</p>
+<pre><code class="language-console">$ yqr '.metadata.labels["app.kubernetes.io/name"] = "api"' deploy.yaml
+yqr: runtime error: cannot address key "app.kubernetes.io/name": it uses
+characters the write path cannot express
+</code></pre>
+<p>The edit is refused, so nothing is damaged. Adding a <strong>plain-named key next
+to</strong> dotted ones does work, which is the common case:</p>
+<pre><code class="language-console">$ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
+</code></pre>
 </li>
 <li>
 <p><strong>No arithmetic or builtins.</strong> You cannot say “increment the replica

@@ -12,7 +12,7 @@
 
 
 
-<meta name="description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 with a fix proposed as noyalib#284, open until a release carries it Severity: Medium — nothing in yqr writes this shape today, so there is no live corrupti...">
+<meta name="description" content="Status: Resolved — both faces closed. §3.2, the validator false negative, was fixed 2026-08-19 (route 3: validate reports Y103 in default mode). §3.1, the upstream writer, was filed 2026-08-19 as noyalib#283, fixed in noyalib#284 and released in noyalib 0.0.25 (2026-08-20): remove now indents...">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml">
@@ -30,7 +30,7 @@
 
 
 <meta property="og:title" content="Bug b014 — An empty collection written at its key&#x27;s own column is invalid YAML that noyalib accepts">
-<meta property="og:description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 with a fix proposed as noyalib#284, open until a release carries it Severity: Medium — nothing in yqr writes this shape today, so there is no live corrupti...">
+<meta property="og:description" content="Status: Resolved — both faces closed. §3.2, the validator false negative, was fixed 2026-08-19 (route 3: validate reports Y103 in default mode). §3.1, the upstream writer, was filed 2026-08-19 as noyalib#283, fixed in noyalib#284 and released in noyalib 0.0.25 (2026-08-20): remove now indents...">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml">
 <meta property="og:site_name" content="yqr">
@@ -43,7 +43,7 @@
 
 
 <meta name="twitter:title" content="Bug b014 — An empty collection written at its key&#x27;s own column is invalid YAML that noyalib accepts">
-<meta name="twitter:description" content="Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 with a fix proposed as noyalib#284, open until a release carries it Severity: Medium — nothing in yqr writes this shape today, so there is no live corrupti...">
+<meta name="twitter:description" content="Status: Resolved — both faces closed. §3.2, the validator false negative, was fixed 2026-08-19 (route 3: validate reports Y103 in default mode). §3.1, the upstream writer, was filed 2026-08-19 as noyalib#283, fixed in noyalib#284 and released in noyalib 0.0.25 (2026-08-20): remove now indents...">
 
 
 
@@ -93,11 +93,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-20",
-  "description": "Status: Open — §3.2 fixed 2026-08-19 (route 3: validate reports it as Y103); §3.1, the upstream writer, filed 2026-08-19 as noyalib#283 with a fix proposed as noyalib#284, open until a release carries it Severity: Medium — nothing in yqr writes this shape today, so there is no live corrupti...",
+  "description": "Status: Resolved — both faces closed. §3.2, the validator false negative, was fixed 2026-08-19 (route 3: validate reports Y103 in default mode). §3.1, the upstream writer, was filed 2026-08-19 as noyalib#283, fixed in noyalib#284 and released in noyalib 0.0.25 (2026-08-20): remove now indents...",
   "inLanguage": "en",
   "name": "Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts",
   "url": "https://zoosky.github.io/yqr/specs/bugs/yqr-b014-empty-collection-at-the-keys-column-is-invalid-yaml",
-  "wordCount": 1487
+  "wordCount": 1592
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,12 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -514,6 +520,12 @@
   
     
     
+  
+    
+    
+  
+    
+    
       
       
       
@@ -566,6 +578,14 @@
         
       
         
+        
+      
+        
+        
+      
+        
+        
+          
         
       
         
@@ -796,6 +816,9 @@
             
               
               
+            
+              
+              
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f0000-feature-status"
                    class="sidebar-link">Feature Status Tracker</a>
               
@@ -906,6 +929,12 @@
               
                 <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f018-noyalib-0-0-24-adoption"
                    class="sidebar-link">Feature f018 — Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question</a>
+              
+            
+              
+              
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f019-noyalib-0-0-25-adoption"
+                   class="sidebar-link">Feature f019 — Adopt noyalib 0.0.25: four bugs closed, and the delegation question answered</a>
               
             
               
@@ -1075,6 +1104,14 @@
         
         
           
+        
+      
+        
+        
+          
+        
+      
+        
         
       
         
@@ -1312,6 +1349,15 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line"
+                   class="sidebar-link">Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line</a>
+              
+            
+              
+              
+            
+              
+              
             
               
               
@@ -1463,6 +1509,12 @@
         
         
           
+        
+      
+        
+        
+      
+        
         
       
         
@@ -1833,6 +1885,12 @@
               
               
             
+              
+              
+            
+              
+              
+            
           </div>
         </details>
       
@@ -1845,6 +1903,12 @@
     
       
       
+      
+        
+        
+      
+        
+        
       
         
         
@@ -2043,6 +2107,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2380,6 +2450,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2445,6 +2521,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -2770,6 +2852,12 @@
       
         
         
+      
+        
+        
+      
+        
+        
           
         
       
@@ -2834,6 +2922,12 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
+            
+              
+              
             
               
               
@@ -3048,9 +3142,18 @@
         <accent-island data-component="copy-code" data-hydrate="load">
         <div class="content prose">
             <h1 id="bug-b014-an-empty-collection-written-at-its-key-s-own-column-is-invalid-yaml-that-noyalib-accepts">Bug b014 — An empty collection written at its key’s own column is invalid YAML that noyalib accepts<a class="heading-anchor" href="#bug-b014-an-empty-collection-written-at-its-key-s-own-column-is-invalid-yaml-that-noyalib-accepts" aria-label="Link to this section"></a></h1>
-<p><strong>Status:</strong> Open — <strong>§3.2 fixed 2026-08-19</strong> (route 3: <code>validate</code> reports it
-as <code>Y103</code>); §3.1, the upstream writer, <strong>filed 2026-08-19 as noyalib#283 with a
-fix proposed as noyalib#284</strong>, open until a release carries it
+<p><strong>Status:</strong> Resolved — both faces closed. §3.2, the validator false negative,
+was fixed 2026-08-19 (route 3: <code>validate</code> reports <code>Y103</code> in default mode).
+§3.1, the upstream writer, was filed 2026-08-19 as noyalib#283, fixed in
+noyalib#284 and <strong>released in noyalib 0.0.25</strong> (2026-08-20): <code>remove</code> now
+indents a sole-entry replacement past its key, matching what <code>delete_entry</code>
+already wrote, and both PyYAML and Psych accept the result. Verified against
+the published crate by <code>yqr-f019</code> §3.4, including the BOM, CRLF, head-comment
+and nested variants. noyalib’s parser still <em>accepts</em> the shape, which is why
+§3.2’s check stays: the leniency is what made the writer defect invisible, and
+yqr’s validator is the only thing that reports it. The <code>yqr-f018</code> §5 revisit
+this bug gated was run in <code>yqr-f019</code> §4 — zero divergence, and the sole-entry
+delete stays in <code>delete_entry</code> on the standing <code>yqr-f007</code> §6 argument alone
 <strong>Severity:</strong> Medium — nothing in yqr writes this shape today, so there is no
 live corruption; what is live is the <strong>validator false negative</strong> in §3.2,
 and the fact that every guard in the write loop is blind to the shape
@@ -3205,6 +3308,11 @@ interpreters.</p>
         <span class="nav-title">Bug b013 — An inserted scalar is quoted because some unrelated line is quoted</span>
     </a>
     
+    
+    <a href="&#x2f;yqr&#x2f;specs&#x2f;bugs&#x2f;yqr-b015-flow-delete-leaves-a-whitespace-only-line" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Bug b015 — Deleting a member of a wrapped flow collection leaves a whitespace-only line</span>
+    </a>
     
 </nav>
 

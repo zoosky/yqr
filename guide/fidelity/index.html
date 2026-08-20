@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 660
+  "wordCount": 697
 }
 </script>
 <script type="application/ld+json">
@@ -151,6 +151,12 @@
                 
                 
                 
+                
+                
+                    
+                
+                
+                    
                 
                 
                     
@@ -444,8 +450,8 @@ $ echo $?
 </code></pre>
 <p>No output, exit 0. The file went through yqr and came back identical, down
 to the byte. That holds for the awkward cases too – CRLF line endings, a
-byte-order mark, trailing whitespace, tabs inside strings, multiple
-documents in one file.</p>
+byte-order mark, trailing whitespace, tabs inside strings, a flow collection
+wrapped over several lines, multiple documents in one file.</p>
 <p>It is a good thing to try on your own gnarliest config file. If it comes
 back clean, everything below is safe.</p>
 <h2 id="what-survives">What survives<a class="heading-anchor" href="#what-survives" aria-label="Link to this section"></a></h2>
@@ -469,6 +475,11 @@ trip:</p>
 <li><strong>Quote style</strong> – <code>'web'</code> stays single-quoted rather than becoming
 <code>"web"</code> or bare <code>web</code>.</li>
 <li><strong>Scalar spelling</strong> – <code>0640</code> stays <code>0640</code>.</li>
+</ul>
+<!-- Bug b011, fixed in noyalib 0.0.25. -->
+<ul>
+<li><strong>Line breaks inside a flow collection</strong> – a <code>ports:</code> or <code>args:</code> list
+wrapped for width keeps its wrapping, closing bracket included.</li>
 </ul>
 <p>That last one is worth dwelling on.</p>
 <h2 id="why-0640-is-not-640">Why <code>0640</code> is not <code>640</code><a class="heading-anchor" href="#why-0640-is-not-640" aria-label="Link to this section"></a></h2>
