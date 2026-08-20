@@ -9,7 +9,7 @@
 
 use crate::Value;
 
-use crate::ast::{Ast, Rhs};
+use crate::ast::{Ast, Builtin, Rhs};
 use crate::error::{Result, YqrError};
 use crate::fidelity::{Path, PathSeg};
 
@@ -46,7 +46,57 @@ pub(crate) fn eval_traced(ast: &Ast, value: &Value, path: Option<&Path>) -> Resu
             Ok(vs) => Ok(vs),
             Err(_) => Ok(Vec::new()),
         },
+        // A builtin computes its output, so it has no source node and hands
+        // on `None` — which is exactly the provenance the renderer needs to
+        // fall back to the typed emitter (`yqr-f017` §6).
+        Ast::Builtin(Builtin::ToEntries) => Ok(vec![(to_entries(value)?, None)]),
     }
+}
+
+/// `to_entries` — a mapping becomes a sequence of `{key, value}` pairs.
+///
+/// The field names are jq's, kept deliberately: a shape nobody can transfer to
+/// the tool next door is worth much less than one they can.
+///
+/// Order is the mapping's own, not sorted. yqr's value model is
+/// insertion-ordered all the way from the parser, and the pairing this builtin
+/// exists to provide is only sound if the pairs come out in the order the
+/// entries were written — a sorted `to_entries` would silently break the
+/// stream alignment it is meant to replace. jq sorts object keys; here that
+/// difference is load-bearing rather than cosmetic (`yqr-f017` §4).
+///
+/// The key is cloned, never re-typed. On a document that means it is always a
+/// string — `1: one` pairs as `key: "1"` — because the engine's typed mapping
+/// is string-keyed and the conversion at the parse boundary has already
+/// decided. yqr's own model is `Value`-keyed and would carry an `Int` here
+/// unchanged; re-deciding that in a builtin would be making the parse
+/// boundary's call a second time, in the wrong place and quietly.
+///
+/// # Errors
+///
+/// Returns an error naming the actual type when the input is not a mapping;
+/// jq refuses the same inputs.
+// Feature f017.
+fn to_entries(value: &Value) -> Result<Value> {
+    let Value::Mapping(map) = value else {
+        return Err(YqrError::eval(format!(
+            "to_entries takes an object, but this is {}; \
+             it turns a mapping's entries into {{key, value}} pairs, so there \
+             is nothing for it to enumerate here",
+            type_name(value)
+        )));
+    };
+
+    Ok(Value::Sequence(
+        map.iter()
+            .map(|(k, v)| {
+                let mut pair = crate::value::Mapping::new();
+                pair.insert(Value::String("key".to_string()), k.clone());
+                pair.insert(Value::String("value".to_string()), v.clone());
+                Value::Mapping(pair)
+            })
+            .collect(),
+    ))
 }
 
 fn type_name(v: &Value) -> &'static str {
@@ -508,5 +558,97 @@ mod tests {
         let value = load("items:\n  - 1\n  - 2\n");
         let path = crate::ast::Rhs::Path(crate::parser::parse(".items[]").expect("valid"));
         assert!(matches!(resolve_rhs(&path, &value), Err(YqrError::Eval(_))));
+    }
+
+    // -- Feature f017: to_entries ------------------------------------------
+
+    #[test]
+    fn to_entries_pairs_each_key_with_its_value() {
+        let out = run(".m | to_entries", "m:\n  a: 1\n  b: two\n").unwrap();
+        assert_eq!(out.len(), 1, "one sequence, not one output per entry");
+        assert_eq!(
+            out[0],
+            load("- key: a\n  value: 1\n- key: b\n  value: two\n")
+        );
+    }
+
+    #[test]
+    fn to_entries_keeps_document_order_not_sorted_order() {
+        // The keys are deliberately not in sorted order, and not in reverse
+        // either, so neither a forward nor a backward sort could pass. jq
+        // sorts object keys; the §2 pairing this builtin exists for is only
+        // sound if these come out as written.
+        let out = run(
+            ".m | to_entries[] | .key",
+            "m:\n  zebra: 1\n  apple: 2\n  mango: 3\n",
+        )
+        .unwrap();
+        let keys: Vec<&str> = out
+            .iter()
+            .map(|v| match v {
+                Value::String(s) => s.as_str(),
+                other => panic!("expected a string key, got {other:?}"),
+            })
+            .collect();
+        assert_eq!(keys, ["zebra", "apple", "mango"]);
+    }
+
+    #[test]
+    fn to_entries_output_is_computed_so_it_carries_no_provenance() {
+        // The pairs exist in no file, so there is no span to slice. This is
+        // what routes the result through the typed renderer rather than
+        // through the byte path (`yqr-f017` §6).
+        let traced = run_traced(".m | to_entries", "m:\n  a: 1\n");
+        assert_eq!(traced.len(), 1);
+        assert!(
+            traced[0].1.is_none(),
+            "a computed value must not claim a source path"
+        );
+    }
+
+    #[test]
+    fn to_entries_streams_its_pairs_when_iterated() {
+        let out = run(".m | to_entries[]", "m:\n  a: 1\n  b: 2\n").unwrap();
+        assert_eq!(out.len(), 2);
+        assert_eq!(out[0], load("key: a\nvalue: 1\n"));
+        assert_eq!(out[1], load("key: b\nvalue: 2\n"));
+    }
+
+    #[test]
+    fn to_entries_carries_the_key_it_was_given_without_re_typing_it() {
+        // A YAML key that looks like a number or a boolean arrives here as a
+        // *string*, and not because of anything this builtin does: the engine's
+        // typed mapping is string-keyed (`yqr-b002` §2.7), so the conversion at
+        // the parse boundary has already decided. `to_entries` clones the key
+        // it is handed and does not re-type it, which is what keeps this the
+        // engine's decision to change rather than one buried in a builtin.
+        let out = run(".m | to_entries[] | .key", "m:\n  1: one\n  true: yes\n").unwrap();
+        assert_eq!(
+            out,
+            vec![Value::String("1".into()), Value::String("true".into())]
+        );
+    }
+
+    #[test]
+    fn to_entries_on_a_non_mapping_names_the_actual_type() {
+        for (yaml, want) in [
+            ("m:\n  - 1\n", "array"),
+            ("m: 1\n", "number"),
+            ("m: hi\n", "string"),
+            ("m:\n", "null"),
+        ] {
+            let err = run(".m | to_entries", yaml).unwrap_err();
+            let msg = err.to_string();
+            assert!(
+                msg.contains(want),
+                "{yaml:?}: message should name {want}, got {msg}"
+            );
+        }
+    }
+
+    #[test]
+    fn to_entries_of_an_empty_mapping_is_an_empty_sequence() {
+        let out = run(".m | to_entries", "m: {}\n").unwrap();
+        assert_eq!(out, vec![Value::Sequence(Vec::new())]);
     }
 }

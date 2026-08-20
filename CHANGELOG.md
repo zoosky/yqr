@@ -6,6 +6,39 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **`to_entries`: enumerate a mapping without losing the keys.** Iterating a
+  mapping gives you its *values*, so on the most ordinary YAML layout there is
+  -- a mapping of named things -- yqr could produce the data and not say what
+  it was about. `to_entries` turns the mapping into a list of `{key, value}`
+  pairs, so one filter carries both halves:
+
+  ```console
+  $ yqr -r '.services | to_entries[] | .key' compose.yaml
+  web
+  db
+  ```
+
+  It takes its input from the pipe rather than wrapping a path, so it is
+  `<path> | to_entries`; `to_entries[]` streams the pairs. `key` and `value`
+  are jq's field names, kept so the shape transfers. Pairs come out in **your
+  file's order**, never sorted -- jq sorts object keys, and here that
+  difference is load-bearing rather than cosmetic.
+
+  The word costs no reserved identifier: every yqr path starts with `.`, so
+  `.to_entries` still reads a field called `to_entries`.
+
+  Because the pairs are computed, they exist in no file: the output is
+  normalized rather than byte-preserved, and every write form (`=`, `+=`,
+  `del`) is refused at parse with the reason. `from_entries` is deliberately
+  absent until a filter can *build* pairs, which needs object construction.
+
+  There are now two ways to reach a key, and they differ exactly where fidelity
+  does: `key(...)` gives you the token from your file, quotes included, while
+  `to_entries` gives the decoded string. `-r` collapses the difference, since
+  asking for raw output is asking for the value rather than the spelling.
+
 ### Fixed
 
 - **A flow collection wrapped over several lines can be read at all.** A

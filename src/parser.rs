@@ -15,7 +15,8 @@
 //! rhs      := number | Str | 'true' | 'false' | 'null'   ; scalar literal
 //!           | pipeline                         ; a '.'-rooted path
 //! pipeline := term ('|' term)*
-//! term     := path ('?')*
+//! term     := (path | builtin chain) ('?')*
+//! builtin  := 'to_entries'                    ; takes its input from the pipe
 //! path     := '.' component* | '.'            ; leading dot, then chained steps
 //! component:= Ident                           ; .foo
 //!           | '.' Ident                       ; chained .bar
@@ -26,7 +27,7 @@
 //! ```
 
 use crate::Value;
-use crate::ast::{Ast, FOOT_COMMENT_REFUSAL, Mutation, Program, ReorderOp, Rhs, Target};
+use crate::ast::{Ast, Builtin, FOOT_COMMENT_REFUSAL, Mutation, Program, ReorderOp, Rhs, Target};
 use crate::error::{Result, YqrError};
 use crate::lexer::{Token, lex};
 
@@ -99,6 +100,33 @@ const SELECTORS: &[(&str, SelectorBuilder)] = &[
 // Feature f007.
 const REORDERS: &[(&str, ReorderOp)] = &[("swap", ReorderOp::Swap), ("move", ReorderOp::Move)];
 
+/// Every builtin, paired with the node it compiles to.
+///
+/// Recognized wherever a term may start, which is the difference from
+/// [`SELECTORS`] and [`REORDERS`]: those are function words, spotted by the
+/// `(` after them, while a builtin is spotted by being an identifier where a
+/// path was expected. All three rest on the same property — a yqr path always
+/// begins with `.`, so none of these words is reserved and `.to_entries` still
+/// reads a field.
+// Feature f017.
+const BUILTINS: &[(&str, Builtin)] = &[("to_entries", Builtin::ToEntries)];
+
+/// Why a builtin cannot be written to, spelled out per builtin.
+///
+/// The pairs `to_entries` produces are a view yqr invented; they exist in no
+/// file, so there is no byte range an assignment could land in. Refused at
+/// parse rather than at eval, so the message can say *that* instead of
+/// reporting a path that resolved to nothing (`yqr-a002` §8's pattern).
+// Feature f017.
+fn builtin_is_not_writable(b: Builtin, op: &str) -> YqrError {
+    YqrError::parse(format!(
+        "'{}' computes a value rather than naming one in the document, so it \
+         cannot appear on the left of '{op}': there is nothing to write back to. \
+         Read it with a query, or address the entry itself by path",
+        b.word()
+    ))
+}
+
 struct Parser {
     tokens: Vec<Token>,
     pos: usize,
@@ -154,6 +182,9 @@ impl Parser {
         match self.peek() {
             Some(Token::Eq) => {
                 self.advance();
+                if let Some(b) = target.path().builtin() {
+                    return Err(builtin_is_not_writable(b, "="));
+                }
                 let rhs = self.parse_rhs()?;
                 Ok(Program::Mutate(Mutation::Assign { target, rhs }))
             }
@@ -171,6 +202,9 @@ impl Parser {
                             .expect("a non-Value target has a selector name")
                     )));
                 };
+                if let Some(b) = path.builtin() {
+                    return Err(builtin_is_not_writable(b, "+="));
+                }
                 let rhs = self.parse_rhs()?;
                 Ok(Program::Mutate(Mutation::Append { path, rhs }))
             }
@@ -242,6 +276,9 @@ impl Parser {
                     .to_string(),
             ));
         }
+        if let Some(b) = target.path().builtin() {
+            return Err(builtin_is_not_writable(b, "del"));
+        }
         Ok(Program::Mutate(Mutation::Delete { target }))
     }
 
@@ -256,6 +293,15 @@ impl Parser {
         self.advance(); // the verb
         self.expect(&Token::LParen)?;
         let path = self.parse_pipeline()?;
+        // The fourth mutation site, and the one that hides a miss best: an
+        // unresolvable reorder path is an *absent* path, which the write
+        // driver is specified to leave alone at exit 0. A builtin is not
+        // absent — it is unwritable — so without this the verb reports
+        // success for a reorder that did nothing.
+        // Feature f017.
+        if let Some(b) = path.builtin() {
+            return Err(builtin_is_not_writable(b, op.word()));
+        }
         self.expect_semi(op)?;
         let from = self.parse_index(op)?;
         self.expect_semi(op)?;
@@ -353,12 +399,58 @@ impl Parser {
     }
 
     fn parse_term(&mut self) -> Result<Ast> {
-        let mut node = self.parse_path()?;
+        let mut node = match self.builtin_at_cursor() {
+            Some(b) => self.parse_builtin(b)?,
+            None => self.parse_path()?,
+        };
         while matches!(self.peek(), Some(Token::Question)) {
             self.advance();
             node = Ast::optional(node);
         }
         Ok(node)
+    }
+
+    /// The builtin the cursor sits on, if it sits on one.
+    ///
+    /// No lookahead past the word is needed, and that is the point: a builtin
+    /// is an identifier appearing where a path was expected, and a path can
+    /// never start with one because every path starts with `.`.
+    // Feature f017.
+    fn builtin_at_cursor(&self) -> Option<Builtin> {
+        let Some(Token::Ident(word)) = self.peek() else {
+            return None;
+        };
+        BUILTINS
+            .iter()
+            .find(|(name, _)| name == word)
+            .map(|(_, b)| *b)
+    }
+
+    /// Consume a builtin word and whatever path steps are chained onto it.
+    ///
+    /// `to_entries[]` has to mean "the builtin, then iterate", so the chain
+    /// that follows a path also follows a builtin — the pairs are an ordinary
+    /// sequence once produced, and indexing into them should not need a pipe.
+    // Feature f017.
+    fn parse_builtin(&mut self, b: Builtin) -> Result<Ast> {
+        self.advance(); // the builtin word
+
+        // `to_entries(...)` is a plausible thing to type, coming from a
+        // language where every builtin takes parentheses. Naming the mistake
+        // beats reporting an unexpected '('.
+        if matches!(self.peek(), Some(Token::LParen)) {
+            return Err(YqrError::parse(format!(
+                "'{}' takes no arguments: it reads whatever the pipe hands it. \
+                 Write '<path> | {}' instead of '{}(<path>)'",
+                b.word(),
+                b.word(),
+                b.word()
+            )));
+        }
+
+        let mut steps = vec![Ast::Builtin(b)];
+        self.parse_chain(&mut steps)?;
+        Ok(fold_steps(steps))
     }
 
     fn parse_path(&mut self) -> Result<Ast> {
@@ -376,7 +468,17 @@ impl Parser {
             _ => {}
         }
 
-        // Chained components.
+        self.parse_chain(&mut steps)?;
+        Ok(fold_steps(steps))
+    }
+
+    /// Consume the chained components that may follow a path's first
+    /// component or a builtin: `[...]`, `.field`, `.[...]`.
+    ///
+    /// Shared by both so that `to_entries[].key` and `.a[].key` cannot drift
+    /// apart in what they accept.
+    // Feature f017: extracted from `parse_path` so a builtin can take a chain.
+    fn parse_chain(&mut self, steps: &mut Vec<Ast>) -> Result<()> {
         loop {
             match self.peek() {
                 Some(Token::LBracket) => steps.push(self.parse_bracket()?),
@@ -400,8 +502,7 @@ impl Parser {
                 _ => break,
             }
         }
-
-        Ok(fold_steps(steps))
+        Ok(())
     }
 
     fn parse_bracket(&mut self) -> Result<Ast> {
@@ -819,5 +920,116 @@ mod tests {
     fn the_read_only_entry_point_rejects_a_reorder() {
         let text = format!("{}", parse("swap(.xs; 0; 1)").unwrap_err());
         assert!(text.contains("mutation"), "got: {text}");
+    }
+
+    // -- Feature f017: the to_entries builtin ------------------------------
+
+    #[test]
+    fn parses_a_builtin_in_term_position() {
+        assert_eq!(
+            parse(".m | to_entries").unwrap(),
+            Ast::pipe(Ast::Field("m".into()), Ast::Builtin(Builtin::ToEntries))
+        );
+    }
+
+    #[test]
+    fn a_builtin_takes_a_chain_the_way_a_path_does() {
+        // `to_entries[]` must be "the builtin, then iterate" rather than a
+        // parse error, and `to_entries[].key` must keep going.
+        assert_eq!(
+            parse("to_entries[]").unwrap(),
+            Ast::pipe(Ast::Builtin(Builtin::ToEntries), Ast::Iterate)
+        );
+        assert_eq!(
+            parse("to_entries[].key").unwrap(),
+            Ast::pipe(
+                Ast::pipe(Ast::Builtin(Builtin::ToEntries), Ast::Iterate),
+                Ast::Field("key".into())
+            )
+        );
+        assert_eq!(
+            parse("to_entries[0]").unwrap(),
+            Ast::pipe(Ast::Builtin(Builtin::ToEntries), Ast::Index(0))
+        );
+    }
+
+    #[test]
+    fn a_builtin_takes_the_optional_suffix() {
+        assert_eq!(
+            parse("to_entries?").unwrap(),
+            Ast::optional(Ast::Builtin(Builtin::ToEntries))
+        );
+    }
+
+    #[test]
+    fn to_entries_costs_no_reserved_word() {
+        // The whole reason the word is safe: a path starts with '.', so an
+        // identifier there can only be a field name. This test fails the day
+        // someone reserves it.
+        assert_eq!(
+            parse(".to_entries").unwrap(),
+            Ast::Field("to_entries".into())
+        );
+        assert_eq!(
+            parse(".a.to_entries").unwrap(),
+            Ast::pipe(Ast::Field("a".into()), Ast::Field("to_entries".into()))
+        );
+        assert_eq!(
+            parse(".[\"to_entries\"]").unwrap(),
+            Ast::Field("to_entries".into())
+        );
+    }
+
+    #[test]
+    fn a_builtin_called_with_parentheses_is_told_it_takes_none() {
+        let err = parse("to_entries(.m)").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("takes no arguments"), "{msg}");
+        assert!(
+            msg.contains(".m | to_entries") || msg.contains("| to_entries"),
+            "{msg}"
+        );
+    }
+
+    #[test]
+    fn every_write_form_refuses_a_builtin_at_parse() {
+        for (filter, op) in [
+            (".m | to_entries = 1", "'='"),
+            (".m | to_entries += 1", "'+='"),
+            ("del(.m | to_entries)", "'del'"),
+            ("to_entries = 1", "'='"),
+            // The reorder verbs are the fourth site, and the one where a
+            // missing guard hides: an unresolvable reorder path is an
+            // *absent* one, which the driver leaves alone at exit 0, so the
+            // failure mode is a success code for an edit that did nothing.
+            ("swap(.m | to_entries; 0; 1)", "'swap'"),
+            ("move(to_entries; 0; 1)", "'move'"),
+        ] {
+            let err = parse_program(filter).unwrap_err();
+            assert!(
+                matches!(err, YqrError::Parse(_)),
+                "{filter}: expected a parse error, got {err:?}"
+            );
+            let msg = err.to_string();
+            assert!(
+                msg.contains("to_entries") && msg.contains(op),
+                "{filter}: message should name the builtin and {op}, got {msg}"
+            );
+            assert!(
+                msg.contains("nothing to write back to"),
+                "{filter}: message should say why, got {msg}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_builtin_query_is_a_query_program() {
+        assert_eq!(
+            parse_program(".m | to_entries").unwrap(),
+            Program::Query(Target::Value(Ast::pipe(
+                Ast::Field("m".into()),
+                Ast::Builtin(Builtin::ToEntries)
+            )))
+        );
     }
 }

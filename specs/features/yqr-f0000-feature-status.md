@@ -10,15 +10,32 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
-| [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Draft (scoped, not started) |
+| [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Done |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
 f017 is the one builtin **pulled forward** out of that queue, on field evidence
 rather than on the gap table: `yqr-r003` records an agent session that hit the
 "iterate a mapping and keep the keys" wall on a real file and left for a Python
 script. `key(...)` (`f007` §7) closed half of it after the fact; `to_entries`
-closes the other half, and turns out not to be gated on M1 object construction
-the way the queue assumed (`f017` §3).
+closes the other half, and turned out not to be gated on M1 object construction
+the way the queue assumed (`f017` §3) — the gate was construction *syntax*,
+which a builtin does not need since it builds a `Value` in Rust.
+
+f017 **done** (2026-08-20). The AST gains `Ast::Builtin`, a third recognition
+rule beside the `f007` selectors and reorder verbs and the only one that costs
+no `(`: a builtin is an identifier where a path was expected, and no yqr path
+can start with one. Its single non-additive grammar change is that the chain
+after a path now also follows a builtin, so `to_entries[]` and
+`to_entries[].key` parse. Every write form is refused at parse through
+`Ast::builtin()`, because the pairs exist in no file. §10's open question — two
+ways to enumerate keys — is **settled** in §11.1 and taught in the guide:
+`key(...)` is what your file says (the token, quotes included), `to_entries` is
+what it means (the decoded string), and `-r` collapses the difference because
+`-r` asks for the value rather than the spelling. What the feature's own first
+output found is filed as **`b016`**: the emitter writes a trailing space after
+`key:` when a block collection is reached through a sequence item, which is
+most `to_entries` pairs. Carried visibly rather than worked around — a blanket
+line-strip in `render` was measured to change `"a␣␣\nb"` into `"a\nb"`.
 
 ## Epic: Fidelity-first architecture (a001)
 
@@ -215,11 +232,10 @@ dashboard.
 ## Summary
 
 - Total features: 19
-- Draft: 2 (f008 — computed updates, gated on `f001` M2; f017 — `to_entries`,
-  scoped from the `yqr-r003` usage report)
+- Draft: 1 (f008 — computed updates, gated on `f001` M2)
 - In Progress: 1 (f001 M0)
-- Done: 13 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-  f018, f019)
+- Done: 14 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f017, f018, f019)
 - Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
