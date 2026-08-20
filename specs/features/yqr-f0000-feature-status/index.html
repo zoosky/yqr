@@ -97,7 +97,7 @@
   "inLanguage": "en",
   "name": "Feature Status Tracker",
   "url": "https://zoosky.github.io/yqr/specs/features/yqr-f0000-feature-status",
-  "wordCount": 2511
+  "wordCount": 2701
 }
 </script>
 <script type="application/ld+json">
@@ -158,6 +158,9 @@
                 
                 
                 
+                
+                
+                    
                 
                 
                     
@@ -535,6 +538,9 @@
   
     
     
+  
+    
+    
       
       
       
@@ -593,6 +599,11 @@
         
       
         
+        
+      
+        
+        
+          
         
       
         
@@ -957,6 +968,12 @@
             
               
               
+                <a href="&#x2f;yqr&#x2f;specs&#x2f;features&#x2f;yqr-f020-noyalib-0-0-26-adoption"
+                   class="sidebar-link">Feature f020 — Adopt noyalib 0.0.26: the wrapped-flow delete, and the one bug it does not carry</a>
+              
+            
+              
+              
             
               
               
@@ -1135,6 +1152,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1523,6 +1543,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1547,6 +1570,9 @@
         
         
           
+        
+      
+        
         
       
         
@@ -1941,6 +1967,9 @@
               
               
             
+              
+              
+            
           </div>
         </details>
       
@@ -1956,6 +1985,9 @@
     
       
       
+      
+        
+        
       
         
         
@@ -2166,6 +2198,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;implementation"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2524,6 +2559,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -2592,6 +2630,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;research"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -2938,6 +2979,9 @@
       
         
         
+      
+        
+        
           
         
       
@@ -3005,6 +3049,9 @@
           <div class="sidebar-children">
             <a href="&#x2f;yqr&#x2f;specs&#x2f;marketing"
                class="sidebar-link">Overview</a>
+            
+              
+              
             
               
               
@@ -3297,6 +3344,7 @@ dependency/release timing.</p>
 <tr><td><a href="/yqr/specs/features/yqr-f016-noyalib-0-0-23-adoption">f016</a></td><td>Adopt noyalib 0.0.23: the extended <code>remove</code>, and the two deletes yqr used to refuse</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f018-noyalib-0-0-24-adoption">f018</a></td><td>Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question</td><td>Done</td></tr>
 <tr><td><a href="/yqr/specs/features/yqr-f019-noyalib-0-0-25-adoption">f019</a></td><td>Adopt noyalib 0.0.25: four bugs closed, and the delegation question answered</td><td>Done</td></tr>
+<tr><td><a href="/yqr/specs/features/yqr-f020-noyalib-0-0-26-adoption">f020</a></td><td>Adopt noyalib 0.0.26: the wrapped-flow delete, and the one bug it does not carry</td><td>Done</td></tr>
 </tbody></table>
 <p>Progress: f006 shipped on noyalib 0.0.14’s first-class, re-parse-guarded mutators
 (<code>set_value</code>/<code>insert_entry</code>/<code>push_back</code>/<code>remove</code>) — <code>=</code>, <code>+=</code>, new-key assign,
@@ -3373,7 +3421,7 @@ defects on its first run, <code>b012</code> and <code>b013</code>. f008
 (<code>|=</code> computed updates) is gated on <code>f001</code> M2 (arithmetic/builtins). Priority
 order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
 (done) → f016 (done) → f007 remainder (done) → f018 (done) → f019 (done)
-→ M2 → f008.</p>
+→ f020 (done) → M2 → f008.</p>
 <p>f018 <strong>done</strong>: 0.0.24 published 2026-08-18 carrying one functional change, the
 fix for yqr’s noyalib#280 — a sole entry’s head comment now goes with the
 entry. The pin moved, the suite is green untouched, and the lockfile <em>loses</em> a
@@ -3408,6 +3456,20 @@ disagreements stop, which is when it looks safest and is worth the least. The
 release supplied its own evidence: verifying <code>b011</code> walked the write verbs over
 the shape it unblocked and found <code>b015</code>, an upstream defect reaching yqr’s
 output through the flow class, which <em>is</em> delegated.</p>
+<p>f020 <strong>done</strong>: 0.0.26 published 2026-08-20 carrying one functional change,
+yqr’s noyalib#296 — a flow member alone on its line takes the line with it,
+closing <code>b015</code>. Verified against the published crate on its own reproduction
+with all four controls, and the outputs loaded back under PyYAML and Psych.
+Its more interesting half is what the release does <strong>not</strong> carry: <code>b016</code> is
+filed and fixed upstream (noyalib#297 / #298, green) but unmerged, so the pin
+in <code>tests/cli.rs</code> and the guide’s trailing-space note both stay. §5 states that
+explicitly rather than letting it read as an oversight — a bug pinned as it
+behaves is what tells the <em>next</em> bump whether the bump changed it, which is
+exactly the job <code>m003</code> asks of a pin. The feature also carries the regression
+test <code>b015</code> §5 deliberately deferred until a fix existed, controls included:
+the positive test would pass on a fix that stripped whitespace
+indiscriminately, and only the controls distinguish the rule that was
+implemented from the easier one.</p>
 <h2 id="epic-editing-loop-tooling-f012">Epic: Editing-loop tooling (f012)<a class="heading-anchor" href="#epic-editing-loop-tooling-f012" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Feature</th><th>Title</th><th>Status</th></tr></thead><tbody>
 <tr><td><a href="/yqr/specs/features/yqr-f012-validate-command">f012</a></td><td><code>yqr validate</code>: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, <code>--strict</code>)</td><td>Done</td></tr>
@@ -3440,11 +3502,11 @@ base URL, and deploys to <code>gh-pages</code> while preserving the benchmark
 dashboard.</p>
 <h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to this section"></a></h2>
 <ul>
-<li>Total features: 19</li>
+<li>Total features: 20</li>
 <li>Draft: 1 (f008 — computed updates, gated on <code>f001</code> M2)</li>
 <li>In Progress: 1 (f001 M0)</li>
-<li>Done: 14 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-f017, f018, f019)</li>
+<li>Done: 15 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+f017, f018, f019, f020)</li>
 <li>Superseded: 3 (f003, f004 — single-engine consolidation, <code>yqr-m005</code>; f005 —
 fidelity-by-default flip, <code>yqr-f009</code>)</li>
 <li>Released in <code>v0.3.0</code>: f002 (fidelity engine) and f005 (<code>--preserve</code>, later
