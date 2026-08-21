@@ -1,4 +1,7 @@
 ---
+# Every command and its output on this page was run against yq v4.53.3 and
+# a real yqr build. Re-measure rather than re-assert when yq changes; see
+# yqr-k001. Traceability: Feature f007.
 title: yqr and yq -- what actually changes in your file
 lead: >-
   What yq and yqr each do to your file's formatting, on a read and on an edit, measured side by side.
@@ -16,10 +19,6 @@ Let's get the important part out of the way first: **yq is a good tool.** It
 is mature, it does far more than yqr does, and if you need to build new
 documents, evaluate expressions, or convert between formats, you should
 reach for it and not for this.
-
-<!-- Every command and its output on this page was run against yq v4.53.3
-     and a real yqr build. Re-measure rather than re-assert when yq changes;
-     see specs/marketing/yqr-k001-content-plan.md. -->
 
 There is one thing yqr does that yq does not, and this page is about
 exactly that thing.
@@ -165,8 +164,6 @@ If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.
 
 ## Where the shapes differ on purpose
-
-<!-- Feature f007 -->
 
 Both tools can rename a key, edit a comment, and reorder a list. The
 spellings are not the same, and the differences are deliberate.

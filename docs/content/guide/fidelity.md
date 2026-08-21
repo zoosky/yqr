@@ -1,4 +1,6 @@
 ---
+# Traceability: Feature f009 made fidelity the default; f002 is the read
+# floor. Bug b011 (wrapped flow collections) fixed in noyalib 0.0.25.
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -16,8 +18,6 @@ Most YAML tools work by parsing your file into data, doing something to the
 data, and printing the data back out. That last step is where formatting
 goes to die: the printer has opinions about quoting and indentation, and
 your file comes back wearing them.
-
-<!-- Feature f009 made fidelity the default; f002 is the read floor. -->
 
 yqr does something different. Nodes you did not touch are emitted as **the
 original bytes from your file**, sliced straight out of the source. There is
@@ -65,7 +65,6 @@ Read it back with yqr and you get exactly that, including:
 - **Quote style** -- `'web'` stays single-quoted rather than becoming
   `"web"` or bare `web`.
 - **Scalar spelling** -- `0640` stays `0640`.
-<!-- Bug b011, fixed in noyalib 0.0.25. -->
 - **Line breaks inside a flow collection** -- a `ports:` or `args:` list
   wrapped for width keeps its wrapping, closing bracket included.
 
