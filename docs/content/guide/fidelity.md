@@ -1,5 +1,7 @@
 ---
 title: Byte-for-byte YAML editing, explained
+lead: >-
+  Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
 description: >-
   What yqr preserves when it reads and edits YAML, how to test it with the
   identity filter, and when you want the --normalize pipeline instead.

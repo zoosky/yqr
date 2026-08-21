@@ -3,6 +3,8 @@
 # people actually search for rather than a section label. The brand is supplied
 # separately -- base.html.jinja appends " - yqr", and og:site_name is "yqr".
 title: jq for YAML -- query and edit without reformatting
+lead: >-
+  A jq-style query and editing tool for YAML: reads give back your own bytes, edits change only what you name.
 description: >-
   yqr is a jq-style command-line tool for YAML. Query any field, edit a file in
   place, and keep every comment, anchor, quote style and blank line

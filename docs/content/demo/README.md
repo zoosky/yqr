@@ -1,4 +1,6 @@
 ---
+lead: >-
+  A runnable script that walks yqr's query and edit surface against sample files you can inspect afterwards.
 menu:
   order: 4
 ---

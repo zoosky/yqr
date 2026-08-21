@@ -63,6 +63,23 @@ falling back to the body. It costs one line, breaks nothing (`lead:` still
 wins), and removes a silent failure whose symptom is indistinguishable from
 "the feature does not exist" — which is exactly how it was diagnosed here.
 
+### 2.1 The 120-character budget binds authored text too
+
+`truncate_lead` applies `LEAD_TRUNCATE = 120` (`llmstxt.rs:29`) to whatever
+`Page::lead()` returns, authored or derived, cutting at character 119 with no
+word-boundary handling. A 140-character authored sentence is therefore
+published cut mid-word, exactly like a body excerpt.
+
+That makes "author a `lead:`" a fix only for someone who happens to write
+short enough. Nothing warns, and the symptom is identical to not having
+authored one at all. yqr's nine leads were written to the budget and measured
+(99–115 characters), which is not a thing an author should have to know.
+
+**Suggested, and smaller than it sounds:** truncate on a word boundary. It
+does not raise the limit or change the contract; it stops the output looking
+like the author wrote half a sentence. Not filed with the accentcms report —
+found after it went out (§8).
+
 ## 3. B2 — a real gap: sections are alphabetical, `menu.order` is ignored
 
 `src/render/llmstxt.rs:84` groups pages into a `BTreeMap` keyed by the

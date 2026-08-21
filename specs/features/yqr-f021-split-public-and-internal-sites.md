@@ -115,18 +115,9 @@ Both sites build clean under `--strict-links`.
 
 ## 6. What this does not fix
 
-The split solves the packaging. Four review items are content, and stay open:
+The split solves the packaging. Of the four content items, three are done and one needs a decision:
 
-- **A2 — unblocked, and this spec had it wrong.** Recorded here as blocked on
-  the generator preferring an authored description over body text (review item
-  B1). It is not blocked: accent already prefers an authored entry text, and
-  the frontmatter key is **`lead:`**, not `description:`. yqr set
-  `description:`, which feeds the `<meta>` tags and is silently ignored by
-  `llms.txt`. Confirmed by experiment — adding one `lead:` line to
-  `guide/README.md` changed its published entry from a mid-word truncation to
-  that sentence. So A2 is a yqr edit that can be made today, tracked in
-  `yqr-b017` §2 along with the suggestion that accent fall back to
-  `description:` so the next person does not lose the same hour.
+- **A2 — done.** See §9.
 - **A3** — internal HTML comments survive into `llms-full.txt` as visible
   text, including one that leaks a `specs/marketing/...` path. This
   **conflicts with ground rule 19**, which requires exactly those comments in
@@ -205,3 +196,37 @@ alternative and it is what the top of every chunked document carries.
 **The convention going forward:** a bug spec moving to Resolved gets the
 banner in the same change. Recorded here rather than in `AGENT.md`, because it
 is one line of bookkeeping rather than a ground rule.
+
+## 9. Review item A2 — authored entries
+
+Every `llms.txt` entry was the page body's first ~120 characters, truncated
+mid-word. Six of the eight were unreadable as summaries; the spec entries were
+worse, but the split had already removed those.
+
+This spec first recorded A2 as **blocked** on the generator preferring an
+authored description over body text. That was wrong, and `yqr-b017` §2 records
+the correction: accent already prefers an authored entry text. The frontmatter
+key is **`lead:`**, not `description:`. yqr had set `description:` on eight
+pages, which feeds the `<meta>` tags and is silently ignored by `llms.txt`, so
+the pages carried a good sentence and published a truncated excerpt anyway.
+
+All nine public pages now carry a `lead:` saying what the page **answers**,
+which is the form the review asked for. Zero entries end in an ellipsis.
+
+### 9.1 The 120-character budget is real, and it binds authored text too
+
+`truncate_lead` applies `LEAD_TRUNCATE = 120` to whatever `Page::lead()`
+returns, authored or derived, and cuts at character 119 with no word-boundary
+handling. So a 140-character authored sentence is published cut mid-word
+exactly like a body excerpt — the fix is only a fix if the sentence fits.
+
+Every lead here was written to that budget and measured against it (99–115
+characters). Recorded because it is invisible: nothing warns, and the symptom
+is identical to not having authored one.
+
+### 9.2 What did not change
+
+`description:` still wins the `<meta>` chain, so the meta descriptions of the
+eight pages that had one are byte-identical. The demo index, which had neither
+a `description:` nor a `title:`, gains a meta description it previously
+lacked — an improvement, and the only rendered-page change in this item.
