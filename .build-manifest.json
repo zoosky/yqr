@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-20T20:58:40Z",
+  "timestamp": "2026-08-21T06:34:03Z",
   "pages": {
     "/": {
       "content_hash": "343b704b48f68933",
@@ -13,12 +13,12 @@
       "template_hash": "30406ea523c53def"
     },
     "/compare/yq": {
-      "content_hash": "85cf435bcfc80e4d",
+      "content_hash": "f07118366e463d55",
       "template": "yq.html.jinja",
       "template_hash": "30406ea523c53def"
     },
     "/demo": {
-      "content_hash": "37e6d9ce844f7e18",
+      "content_hash": "b7e67f8bdc7199a5",
       "template": "README.html.jinja",
       "template_hash": "30406ea523c53def"
     },
