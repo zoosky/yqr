@@ -9,7 +9,7 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 
 | Feature | Title | Status |
 |---------|-------|--------|
-| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open) |
+| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress — **re-scope proposed in `yqr-a003`**: M0 done, M1–M4 measured at 2 of ~29 and not being worked; a003 proposes closing this as Superseded |
 | [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Done |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
