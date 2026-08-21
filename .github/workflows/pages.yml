@@ -19,10 +19,11 @@ name: Website
 # preserves that directory.
 #
 # The accent binary is fetched from the upstream GitHub release and verified
-# against the published checksums. Requires accent >= v0.24.0 (base-path
+# against the published checksums. Requires accent >= v0.25.0 (base-path
 # support and --strict-links from v0.23.1, which fails the build if any
 # internal link target is missing from the output; v0.24.0 stops raw HTML in
-# a page body being indexed as searchable text);
+# a page body being indexed as searchable text; v0.25.0 fixes the five
+# llms.txt findings yqr filed as accentcms b190 -- see yqr-f024);
 # keep ACCENT_VERSION in sync with the version used for local development
 # (accent --version). See docs/config.yaml for the full rationale.
 on:
@@ -47,7 +48,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  ACCENT_VERSION: v0.24.0
+  ACCENT_VERSION: v0.25.0
   SITE_URL: https://zoosky.github.io/yqr
 
 jobs:

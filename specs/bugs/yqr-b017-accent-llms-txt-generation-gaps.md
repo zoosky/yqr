@@ -1,8 +1,17 @@
 # Bug b017 — accent's `llms.txt` generation: one defect, two gaps, two non-defects
 
-**Status:** Open — measured 2026-08-20 against `accentcms` `b2c2eec3`
-(master), **filed upstream 2026-08-21 as accentcms `b190` (the three defects)
-and `f328` (the demotion gap), in accentcms#1240**
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
+**Status:** Resolved — measured 2026-08-20 against `accentcms` `b2c2eec3`,
+filed 2026-08-21 as accentcms `b190` (five findings, two measured non-defects)
+and `f328` (the demotion gap), and **released in accent 0.25.0** the same day.
+All five findings verified against the released binary by `yqr-f024` §2, per
+finding. `f328` stays open upstream and yqr does not need it — `yqr-f021` moved
+the spec tree to its own site
 **Severity:** Low — nothing is wrong with the published site; what is affected
 is how well a machine reader can use `llms.txt`
 **Component:** `accentcms`, `src/render/llmstxt.rs` and `src/config/llms.rs`

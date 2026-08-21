@@ -262,6 +262,7 @@ sized schema follow-up (`--schema`) stays open in the spec's §5.1.
 | [f010](yqr-f010-accent-website.md) | Accent CMS website over docs/ and specs/, deployed to GitHub Pages | Done |
 | [f021](yqr-f021-split-public-and-internal-sites.md) | Split the public site from the spec site | Done |
 | [f022](yqr-f022-traceability-out-of-published-pages.md) | Move docs traceability out of the published page body | Done |
+| [f024](yqr-f024-accent-0-25-0-adoption.md) | Adopt accent 0.25.0: the five `llms.txt` findings, fixed | Done |
 
 Progress: the site builds from `docs/` (the home page is a real CMS page:
 original hand-authored markup in `content/index.md` with the design as a
@@ -276,12 +277,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 23
+- Total features: 24
 - Draft: 1 (f008 — computed updates, gated on a value-producing right-hand
   side; `yqr-a003` retired the `f001` M2 framing)
 - In Progress: 0
-- Done: 18 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-  f017, f018, f019, f020, f021, f022, f023)
+- Done: 19 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f017, f018, f019, f020, f021, f022, f023, f024)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
