@@ -2,7 +2,7 @@
 menu:
   order: 5
 ---
-# yqr Specs
+# yqr specs
 
 The living issue tracker and design record for yqr. Every feature, bug,
 architecture decision, implementation convention, and research note lives
