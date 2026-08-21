@@ -9,10 +9,18 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 
 | Feature | Title | Status |
 |---------|-------|--------|
-| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress — **re-scope proposed in `yqr-a003`**: M0 done, M1–M4 measured at 2 of ~29 and not being worked; a003 proposes closing this as Superseded |
+| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open — re-scope proposed in [a003](../architecture/yqr-a003-what-yqr-is.md)) |
 | [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Done |
 
 Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
+**Re-scope proposed (2026-08-21).** [a003](../architecture/yqr-a003-what-yqr-is.md)
+observes that `a001`'s reprioritization was recorded in `r001` §9 and in
+`f001`'s own §2/§3, but never in §7 — so the milestone list still sequences
+M1–M4 as near-term work that nothing is doing. Measured the same day, `f001`
+§7 is 4 of 31 while `a001`'s priorities are complete. a003 proposes closing
+`f001` as Superseded and turning M1–M4 into a menu; f001's status does not
+move until that is ratified.
+
 f017 is the one builtin **pulled forward** out of that queue, on field evidence
 rather than on the gap table: `yqr-r003` records an agent session that hit the
 "iterate a mapping and keep the keys" wall on a real file and left for a Python
