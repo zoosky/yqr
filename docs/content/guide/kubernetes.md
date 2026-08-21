@@ -1,5 +1,7 @@
 ---
 title: Editing Kubernetes manifests without reformatting them
+lead: >-
+  How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.
 description: >-
   Bump an image tag or replica count in a Kubernetes manifest so the git
   diff is exactly one line, with comments and formatting left alone.

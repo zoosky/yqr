@@ -1,8 +1,10 @@
 ---
+lead: >-
+  A runnable script that walks yqr's query and edit surface against sample files you can inspect afterwards.
 menu:
   order: 4
 ---
-# yqr Demo
+# yqr demo
 
 A runnable showcase of yqr, a jq-style query & transform tool for YAML.
 

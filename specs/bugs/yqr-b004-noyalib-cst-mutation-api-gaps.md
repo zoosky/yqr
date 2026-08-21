@@ -1,5 +1,11 @@
 # Bug b004 — noyalib CST mutation-API gaps: comment editing, key rename, sequence reorder, nested/multi-line delete
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved (2026-08-02) — every gap below ships in **noyalib
 0.0.18** (crates.io 2026-07-31, GitHub release `v0.0.18` the same day),
 and yqr is pinned to it as of `yqr-f013`. Verified against the published

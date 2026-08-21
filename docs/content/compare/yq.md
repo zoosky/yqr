@@ -1,5 +1,7 @@
 ---
 title: yqr and yq -- what actually changes in your file
+lead: >-
+  What yq and yqr each do to your file's formatting, on a read and on an edit, measured side by side.
 description: >-
   A measured comparison of yqr and yq: both edit YAML well, but only one
   leaves every untouched byte alone. Run against yq v4.53.3.
@@ -24,7 +26,7 @@ exactly that thing.
 
 ## The short version
 
-yq **normalises** your file. yqr leaves it **byte-for-byte alone** apart
+yq **normalizes** your file. yqr leaves it **byte-for-byte alone** apart
 from the edit you asked for.
 
 That difference does not show up as broken YAML -- yq's output is correct.

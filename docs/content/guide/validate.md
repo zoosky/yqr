@@ -1,5 +1,7 @@
 ---
 title: Validating YAML from the command line
+lead: >-
+  How to check a file is still correct after an edit, what each exit code means, and how duplicate keys are reported.
 description: >-
   Check a YAML file is still correct after an edit, with compiler-style
   diagnostics -- and use --strict to catch duplicate keys that silently

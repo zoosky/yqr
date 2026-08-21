@@ -1,5 +1,11 @@
 # Bug b011 — A multi-line flow collection is valid YAML that yqr cannot read at all
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved — filed upstream 2026-08-19 as noyalib#285, fixed in
 noyalib#286, **released in noyalib 0.0.25** (2026-08-20) and verified against
 the published crate by `yqr-f019` §3.1. yqr pins 0.0.25; a wrapped flow

@@ -1,5 +1,7 @@
 ---
 title: Enumerating a mapping without losing the keys
+lead: >-
+  How to report what each entry of a mapping is about, with `to_entries`, when iterating throws the keys away.
 description: >-
   Iterating a mapping gives you the values and throws away the names.
   to_entries keeps both, so one filter can report what each value is about.

@@ -1,5 +1,11 @@
 # Bug b005 — `cargo audit` fails on `crossbeam-epoch` advisory (via `criterion`)
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved
 **Severity:** Low
 **Related:** `yqr-m001` (CI/release), `.agent/skills/dep-upgrade`

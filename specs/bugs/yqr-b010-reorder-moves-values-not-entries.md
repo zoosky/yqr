@@ -1,5 +1,11 @@
 # Bug b010 — `swap_items` / `move_item` move values, not entries: every comment stays behind
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved (2026-08-17) — the maintainer took the semantics yqr
 argued for; the fix is yqr's own commit `d397330`, landed via upstream #271 and
 **released in noyalib 0.0.23**. Adopted by `yqr-f016`, which verified it

@@ -1,5 +1,7 @@
 ---
 title: yqr guide
+lead: >-
+  Where to start: four task-shaped pages covering byte-for-byte reads, surgical edits, validation and enumeration.
 description: >-
   Practical guides for yqr: what byte-for-byte editing means, editing
   Kubernetes manifests without reformatting them, validating YAML, and

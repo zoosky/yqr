@@ -1,5 +1,7 @@
 ---
 title: How yqr compares to other YAML tools
+lead: >-
+  Where yqr differs from the YAML tools you already have, measured against real files rather than argued.
 description: >-
   Honest comparisons between yqr and the other tools you might reach for,
   measured against real files rather than argued from feature lists.

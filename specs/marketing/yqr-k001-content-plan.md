@@ -31,7 +31,7 @@ quoting, key order and indentation. On scalar reads it matches yqr exactly:
 `0640` stays `0640`, `1.10` stays `1.10`. yq is a careful, capable tool and
 the pages must say so.
 
-Where the two genuinely differ is whole-file normalisation. Identity
+Where the two genuinely differ is whole-file normalization. Identity
 round-trip (`'.'`) over a file with anchors and blank lines:
 
 | | result |

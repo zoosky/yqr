@@ -1,5 +1,11 @@
 # Bug b006 — Structural delete mishandles comments, blank lines, and same-column sequences
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved
 **Severity:** High
 **Related:** `yqr-f007` (structural delete — the shipped code these defects live

@@ -1,5 +1,11 @@
 # Bug b014 — An empty collection written at its key's own column is invalid YAML that noyalib accepts
 
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
 **Status:** Resolved — both faces closed. §3.2, the validator false negative,
 was fixed 2026-08-19 (route 3: `validate` reports `Y103` in default mode).
 §3.1, the upstream writer, was filed 2026-08-19 as noyalib#283, fixed in
