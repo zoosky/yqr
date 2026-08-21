@@ -1,7 +1,7 @@
 # Architecture a003 — What yqr is: a fidelity-first editor with a query language
 
-**Status:** Proposed — the decision in §4 needs ratifying before `yqr-f001`
-can be closed
+**Status:** Accepted — ratified 2026-08-21; `yqr-f001` closed as Superseded
+and §7's consequences carried out in the same change
 **Owner:** yqr maintainers
 **Last updated:** 2026-08-21
 **Related:** `yqr-f001` (the roadmap this re-scopes), `yqr-a001` (the decision
@@ -155,14 +155,13 @@ to repeat it.
 
 ## 7. Acceptance criteria
 
-- [ ] §4's decision ratified or rejected. If rejected, `f001` needs a schedule
-      and an owner rather than a status.
-- [ ] `yqr-f001` set to Superseded; §1's summary sentence and §4/§6's rust-yaml
-      references corrected or marked historical; M0 preserved as the record of
-      the foundation.
-- [ ] `yqr-r001` re-labelled from Draft to a status that says "reference", so
-      it stops reading as pending work.
-- [ ] `yqr-f008`'s gate restated in terms of what it needs rather than which
+- [x] §4's decision ratified (2026-08-21).
+- [x] `yqr-f001` set to Superseded; §1's summary sentence and §4/§6's rust-yaml
+      references marked historical; M0 preserved as the record of the
+      foundation, M1–M4 re-labelled as the menu §4 makes them.
+- [x] `yqr-r001` re-labelled from Draft to Historical (reference), so it stops
+      reading as pending work.
+- [x] `yqr-f008`'s gate restated in terms of what it needs rather than which
       milestone it sits behind.
-- [ ] The feature tracker shows no feature In Progress without someone working
+- [x] The feature tracker shows no feature In Progress without someone working
       on it.

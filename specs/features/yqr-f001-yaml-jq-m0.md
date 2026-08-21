@@ -1,8 +1,16 @@
 # Feature f001 — `yqr`: a Swiss Army knife for YAML
 
-Status: **In progress** (foundation landed)
+Status: **Superseded** by `yqr-a003` (ratified 2026-08-21). M0 landed and is
+the foundation everything since is built on; §7's M1–M4 are **no longer a
+plan** — `yqr-a003` §4 turns them into a menu, and `yqr-r001` is the catalogue.
 Owner: yqr maintainers
-Last updated: 2026-06-21
+Last updated: 2026-08-21 (superseded; the body below is left as written except
+where marked, and describes the product as of 2026-06-21)
+
+> **Historical in three places, marked inline:** §1's summary sentence
+> (superseded by `yqr-a001`'s byte-exact guarantee), §4 and §6 (they describe
+> rust-yaml, removed by `yqr-m005`), and §7's milestone framing. §2 and §3 were
+> amended for `a001` at the time and stand.
 
 ## 1. Summary
 
@@ -14,6 +22,11 @@ document, and emits the resulting value(s) back as YAML (or raw text).
 The goal is feature parity with the most commonly used subset of jq, operating
 natively on YAML so that comments-free round-tripping, key ordering, and YAML
 scalar types are preserved as faithfully as the underlying parser allows.
+
+> **Superseded (`yqr-a001`, `yqr-a003`).** The sentence above is the original
+> goal and is no longer yqr's. Fidelity does not depend on "what the parser
+> allows": `yqr '.' f` reproduces `f` byte for byte, and jq parity is not a
+> goal at all. See `yqr-a003` §4.
 
 ## 2. Goals
 
@@ -42,6 +55,10 @@ scalar types are preserved as faithfully as the underlying parser allows.
 > `yqr-r001` §9).
 
 ## 4. Dependencies & toolchain
+
+> **Historical.** This section and §6 describe the rust-yaml engine, which
+> `yqr-m005` removed. yqr's engine is noyalib, converted to yqr's own `Value`
+> at the parse/emit boundary. Left as written for the record.
 
 - Language: Rust, edition 2024, targeting the **1.97** toolchain
   (`rust-version` pinned in `Cargo.toml`; `rust-toolchain.toml` requests 1.97).
@@ -105,6 +122,14 @@ right filter and concatenates; iteration (`.[]`) explodes a collection into the
 stream; `?` swallows errors from its operand, yielding an empty stream instead.
 
 ## 7. Milestones
+
+> **Historical framing.** M0 shipped and is the foundation. M1–M4 are **not a
+> plan** — `yqr-a003` §4 turns them into a menu of jq capabilities yqr may
+> adopt, each needing its own spec and a reason. Read the list below as a
+> catalogue, and `yqr-r001` as the maintained version of it. Several entries
+> have since shipped through other specs (`to_entries` as `f017`, `=` as
+> `f006`) or are satisfied by a different route (M3's comment-preserving mode,
+> now the default).
 
 ### M0 — Foundation (this change) ✅
 - Project scaffold, dependencies, toolchain pin.

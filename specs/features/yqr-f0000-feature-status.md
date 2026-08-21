@@ -9,17 +9,20 @@ this file in the same change that advances a feature (CLAUDE.md rule 17).
 
 | Feature | Title | Status |
 |---------|-------|--------|
-| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | In Progress (M0 done; M1+ open — re-scope proposed in [a003](../architecture/yqr-a003-what-yqr-is.md)) |
+| [f001](yqr-f001-yaml-jq-m0.md) | yqr: a Swiss Army knife for YAML (M0 foundation) | Superseded ([a003](../architecture/yqr-a003-what-yqr-is.md)) |
 | [f017](yqr-f017-to-entries.md) | `to_entries`: enumerate a mapping without losing the keys | Done |
 
-Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI); M1-M4 open.
-**Re-scope proposed (2026-08-21).** [a003](../architecture/yqr-a003-what-yqr-is.md)
-observes that `a001`'s reprioritization was recorded in `r001` §9 and in
-`f001`'s own §2/§3, but never in §7 — so the milestone list still sequences
-M1–M4 as near-term work that nothing is doing. Measured the same day, `f001`
-§7 is 4 of 31 while `a001`'s priorities are complete. a003 proposes closing
-`f001` as Superseded and turning M1–M4 into a menu; f001's status does not
-move until that is ratified.
+Progress: M0 foundation landed (lexer/parser/eval/CLI, tests, CI). M1-M4 are
+no longer a plan -- see the re-scope note below.
+**Re-scoped and closed (2026-08-21).** [a003](../architecture/yqr-a003-what-yqr-is.md)
+found that `a001`'s reprioritization was recorded in `r001` §9 and in `f001`'s
+own §2/§3 but never in §7, so the milestone list went on sequencing M1–M4 as
+near-term work that nothing was doing. Measured the same day, `f001` §7 was 4
+of 31 while `a001`'s priorities were complete. **Ratified**: `f001` is
+Superseded, M1–M4 are a menu rather than a plan, and `r001` is the catalogue
+they are drawn from. The bar for adopting one is `r003`'s — field evidence
+plus a check that the feature is not gated on machinery yqr declined to
+build.
 
 f017 is the one builtin **pulled forward** out of that queue, on field evidence
 rather than on the gap table: `yqr-r003` records an agent session that hit the
@@ -80,7 +83,7 @@ dependency/release timing.
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | Done (all four `b004` gaps: structural delete, **key rename**, **comment editing** and **sequence reorder**) |
-| [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on `f001` M2) |
+| [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on a value-producing right-hand side) |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
@@ -161,7 +164,9 @@ sides and keys holding `.` or `[`. The third of those, a write tier for the
 shared corpus, was **closed 2026-08-18** (`m003` §3–§6): 31 write cases plus
 seven refusals now cover every shipped edit, and the tier found two upstream
 defects on its first run, `b012` and `b013`. f008
-(`|=` computed updates) is gated on `f001` M2 (arithmetic/builtins). Priority
+(`|=` computed updates) is gated on a value-producing right-hand side —
+arithmetic, or a builtin that returns one (`yqr-a003` retired the M2
+framing; `yqr-a001` §6 already settles the semantics). Priority
 order: f006 (done) → f007 delete (done) → f013 (done) → f014 (done) → f015
 (done) → f016 (done) → f007 remainder (done) → f018 (done) → f019 (done)
 → f020 (done) → M2 → f008.
@@ -258,12 +263,14 @@ dashboard.
 ## Summary
 
 - Total features: 22
-- Draft: 1 (f008 — computed updates, gated on `f001` M2)
-- In Progress: 1 (f001 M0)
+- Draft: 1 (f008 — computed updates, gated on a value-producing right-hand
+  side; `yqr-a003` retired the `f001` M2 framing)
+- In Progress: 0
 - Done: 17 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
   f017, f018, f019, f020, f021, f022)
-- Superseded: 3 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
-  fidelity-by-default flip, `yqr-f009`)
+- Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
+  fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
+  landed and M1–M4 retired as a plan)
 - Released in `v0.3.0`: f002 (fidelity engine) and f005 (`--preserve`, later
   superseded by f009 which makes fidelity the default)
 - Released in `v0.4.0`: f006 (write tier — assignment, `+=`, new-key, `del`,
