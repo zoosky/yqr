@@ -20,22 +20,20 @@ Exit codes:
 Source:    https://github.com/zoosky/yqr
 Package:   https://crates.io/crates/yqr
 
-## How yqr compares to other YAML tools
-
-- [How yqr compares to other YAML tools](/yqr/compare): Where yqr differs from the YAML tools you already have, measured against real files rather than argued.
-- [yqr and yq -- what actually changes in your file](/yqr/compare/yq): What yq and yqr each do to your file's formatting, on a read and on an edit, measured side by side.
-
-## yqr demo
-
-- [yqr demo](/yqr/demo): A runnable script that walks yqr's query and edit surface against sample files you can inspect afterwards.
-
 ## yqr guide
 
 - [Byte-for-byte YAML editing, explained](/yqr/guide/fidelity): Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
 - [Editing Kubernetes manifests without reformatting them](/yqr/guide/kubernetes): How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.
 - [Enumerating a mapping without losing the keys](/yqr/guide/enumerate): How to report what each entry of a mapping is about, with `to_entries`, when iterating throws the keys away.
 - [Validating YAML from the command line](/yqr/guide/validate): How to check a file is still correct after an edit, what each exit code means, and how duplicate keys are reported.
-- [yqr guide](/yqr/guide): Where to start: four task-shaped pages covering byte-for-byte reads, surgical edits, validation and enumeration.
+
+## How yqr compares to other YAML tools
+
+- [yqr and yq -- what actually changes in your file](/yqr/compare/yq): What yq and yqr each do to your file's formatting, on a read and on an edit, measured side by side.
+
+## yqr demo
+
+- [yqr demo](/yqr/demo): A runnable script that walks yqr's query and edit surface against sample files you can inspect afterwards.
 
 ## Optional
 
