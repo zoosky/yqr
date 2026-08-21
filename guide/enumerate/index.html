@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Enumerating a mapping without losing the keys",
   "url": "https://zoosky.github.io/yqr/guide/enumerate",
-  "wordCount": 828
+  "wordCount": 762
 }
 </script>
 <script type="application/ld+json">
@@ -224,7 +224,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">5 min read</span>
+                    <span class="reading-time">4 min read</span>
                 </div>
                 
 
@@ -310,11 +310,6 @@ the value:</p>
   value:
     tier: core
 </code></pre>
-<p>One wart, so it does not surprise you in a diff: when a pair’s value is a
-mapping or a list, the <code>value:</code> line is printed with a trailing space. It is
-invisible, it loads back correctly, and it is a known issue in the emitter
-rather than something about these pairs – but if your editor strips trailing
-whitespace on save, that is what changed.</p>
 <p>It takes its input from the pipe rather than wrapping a path, so it is
 <code>&lt;path&gt; | to_entries</code>, not <code>to_entries(&lt;path&gt;)</code>. Iterate the pairs and reach
 into either half:</p>
