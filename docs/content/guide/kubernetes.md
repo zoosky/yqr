@@ -1,4 +1,7 @@
 ---
+# Traceability: Feature f007 (structural edits -- key rename, comment
+# editing, reorder). Bug b012, the dotted-key insert, was the sibling half
+# of the limitation section; fixed in noyalib 0.0.25.
 title: Editing Kubernetes manifests without reformatting them
 lead: >-
   How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.
@@ -122,8 +125,6 @@ used to be refused:
 
 ## Editing a comment
 
-<!-- Feature f007 -->
-
 Two selectors, wrapping a path the same way `key(...)` does:
 
 ```console
@@ -166,8 +167,6 @@ error: a comment *below* an entry belongs to whatever follows it about as
 often as to the entry itself, so there is no unambiguous block to address.
 
 ## Renaming a key
-
-<!-- Feature f007 -->
 
 A path names a *value*, so there is no path that means "the key of this
 entry". `key(...)` wraps one and names the key instead:
@@ -218,8 +217,6 @@ cannot be addressed by the path syntax at all, so `key(...)` on one reports
 renames; it is the same one listed below.
 
 ## Reordering a list
-
-<!-- Feature f007 -->
 
 An ordering is the one thing here with no node to name -- there is no path
 that means "third". So it is a verb with arguments rather than a selector
@@ -289,7 +286,6 @@ Being straight about the edges, because finding them yourself is annoying:
 
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
-<!-- Bug b012 (fixed in noyalib 0.0.25) was the sibling half of this. -->
 - **Writing a key that contains `.` or `[`** -- the Kubernetes
   `app.kubernetes.io/name` style. Reading one works with the bracket form:
 

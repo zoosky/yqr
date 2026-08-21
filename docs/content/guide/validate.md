@@ -1,4 +1,6 @@
 ---
+# Traceability: Feature f012 (the validate subcommand); bug b014 §3.2 is
+# the Y103 check.
 title: Validating YAML from the command line
 lead: >-
   How to check a file is still correct after an edit, what each exit code means, and how duplicate keys are reported.
@@ -15,8 +17,6 @@ menu:
 
 An edit went in -- by hand, by a script, or by an agent. Is the file still
 correct?
-
-<!-- Feature f012: the validate subcommand. -->
 
 ```console
 $ yqr validate deploy.yaml
@@ -57,7 +57,6 @@ malformed one, so it gets a different code.
 
 ## The file your engine reads and nobody else does
 
-<!-- Bug b014 §3.2: the Y103 check. -->
 
 A mapping value on its own line has to be indented past its key. Some
 parsers -- yqr's included -- read one that is not, which is worse than

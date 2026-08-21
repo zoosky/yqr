@@ -2,6 +2,13 @@
 # `title` drives <title>, og:title and twitter:title, so it carries the words
 # people actually search for rather than a section label. The brand is supplied
 # separately -- base.html.jinja appends " - yqr", and og:site_name is "yqr".
+# Home page -- the pitch, the three outcome cards, and the worked examples.
+# `process.markdown: false` below passes this markup to the browser untouched,
+# so the body is hand-authored HTML rather than rendered markdown. The theme
+# provides the header menu and footer; the design lives in
+# themes/default/templates/home.html.jinja.
+# Traceability: yqr-b001, yqr-f003, yqr-m002; features f006 (the write tier)
+# and f012 (validate) are the two the worked examples demonstrate.
 title: jq for YAML -- query and edit without reformatting
 lead: >-
   A jq-style query and editing tool for YAML: reads give back your own bytes, edits change only what you name.
@@ -16,15 +23,6 @@ template: home
 process:
   markdown: false
 ---
-<!--
-  Home page -- the pitch, the three outcome cards, and the worked examples.
-  `process.markdown: false` in the frontmatter above passes this markup to
-  the browser untouched, so what follows is hand-authored HTML rather than
-  rendered markdown.
-  The theme provides the header menu and footer; the page design lives in
-  themes/default/templates/home.html.jinja.
-  Feature/spec traceability: yqr-b001, yqr-f003, yqr-m002
--->
   <div class="hero">
     <h1>Query and edit YAML from the command line.</h1>
     <p class="hero-lede">Chart a path to any field in a manifest — and edit
@@ -125,7 +123,6 @@ spec:
       fidelity mode, and validation.
     </div>
 
-    <!-- Feature f006: write tier v1 (value assignment + in-place edits) -->
     <div class="callout" id="edits">
       <strong class="callout-title">It edits, too — and only the bytes you target.</strong>
       Give it a mutating filter and yqr changes just that node, leaving every
@@ -151,7 +148,6 @@ spec:
 <span class="prompt">$</span> git diff deploy.yaml   <span class="filter"># one line</span></pre>
     </div>
 
-    <!-- Feature f012: the validate subcommand -->
     <div class="callout" id="validate">
       <strong class="callout-title">Validate after every edit.</strong>
       One command answers whether a file is still correct YAML — and a

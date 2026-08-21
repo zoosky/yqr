@@ -115,20 +115,18 @@ Both sites build clean under `--strict-links`.
 
 ## 6. What this does not fix
 
-The split solves the packaging. Of the four content items, three are done and one needs a decision:
+The split solved the packaging. All four content items are now done, three of them in `yqr-f021` and A3 in `yqr-f022`:
 
 - **A2 — done.** See §9.
-- **A3** — internal HTML comments survive into `llms-full.txt` as visible
-  text, including one that leaks a `specs/marketing/...` path. This
-  **conflicts with ground rule 19**, which requires exactly those comments in
-  `docs/content/`; the rule's stated purpose is that they stay invisible, and
-  `llms-full.txt` breaks that premise. Needs a decision, not a patch.
-- **A4 — done.** See §8.
-- **A5 — done.** Two outliers, `normalises` in `compare/yq` and
-  `normalisation` in `yqr-k001`, now match the flag they describe
-  (`--normalize`). The wider `-ise`/`-ize` mix in the spec tree
-  (`behaviour` 49, `behavior` 18) is **not** swept: `yqr-m006` §4 says
-  existing documents are not rewritten for style alone.
+- **A3 — done.** Internal HTML comments were published as visible text in
+  `llms-full.txt`, one of them naming a `specs/marketing/...` path. This
+  conflicted with ground rule 19, which *required* those comments — so it
+  needed a decision rather than a patch, and the decision was that the rule
+  was wrong: its stated mechanism, invisibility, held for a browser and for
+  nothing else. Fixed in `yqr-f022` by moving traceability into the page's
+  **frontmatter**, which is stripped before the body is published, so it is
+  invisible to every consumer and still greppable. The generator half is filed
+  upstream as accent `b190` §5.
 
 **B5 was half yqr's**, contrary to a first reading that assigned all of B1–B5
 to the generator. A section heading in `llms.txt` is the directory's index-page
