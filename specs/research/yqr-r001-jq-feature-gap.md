@@ -1,8 +1,14 @@
 # Research r001 — jq Feature-Gap Analysis
 
-**Status:** Draft
+**Status:** Historical — kept as **reference**, not as a plan (`yqr-a003`,
+2026-08-21). §3's inventory and §5's gap table are still the catalogue of what
+yqr does and does not have from jq, and `yqr-a003` §4 makes that catalogue the
+menu future language work is drawn from. What is superseded is §7's
+prioritization, by this document's own §9 and by `yqr-a001`; §8's open
+questions are Resolved and say so.
 **Owner:** yqr maintainers
-**Last updated:** 2026-06-26
+**Last updated:** 2026-08-21 (status only; the analysis is as of 2026-06-26 and
+its "current state" columns describe that baseline, not today)
 **Baseline analyzed:** commit `e234b55` (v0.1.1), branch `main`
 
 ## 1. Purpose

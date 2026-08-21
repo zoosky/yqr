@@ -13,7 +13,7 @@ design), `yqr-b004` (noyalib 0.0.14 mutation-API gaps), `yqr.f001` (M1 literals)
 > tier** epic. f006 (this spec) ships the value-replacement core on noyalib
 > 0.0.14's first-class mutators; `f007` covers the structural edits that lack a
 > first-class API today (the `b004` gaps); `f008` adds `|=` computed updates
-> once `f001` M2 lands. The epic thesis lives in §1.
+> once a value-producing right-hand side exists. The epic thesis lives in §1.
 
 ## 1. Thesis — where yqr wins (epic-level)
 
@@ -73,7 +73,8 @@ pipeline is never used for edits).
   subject of **`yqr-f007`**. In f006 each errors with a message naming the
   limitation.
 - **`|=` update with a computed RHS** — needs the expression evaluator on the
-  right (arithmetic/builtins, `f001` M2), tracked as **`yqr-f008`**. In f006 a
+  right (arithmetic or a builtin returning a value), tracked as
+  **`yqr-f008`**. In f006 a
   `|=` filter errors with a clear "not yet supported" message.
 - **Fragment auto-quoting** (`b004` 2.5) — avoided in f006 by routing all scalar
   writes through `set_value` rather than the raw `fragment` mutators.
@@ -154,10 +155,12 @@ dependencies and release timing:
   reorder, nested/multi-line delete), gated on **upstream noyalib PRs**; yqr uses
   raw `replace_span` fallbacks only where it must, behind the same integrity
   guard.
-- **`f008` — computed updates (`|=`).** Gated on **`f001` M2**
+- **`f008` — computed updates (`|=`).** Gated on a **value-producing
+  right-hand side**
   (arithmetic/builtins) providing the right-hand evaluator.
 
-Priority order: f006 → f007 → (`f001` M2) → f008.
+Priority order: f006 → f007 → (a value-producing right-hand side) → f008.
+(`yqr-a003` retired the `f001` M2 framing; the dependency is unchanged.)
 
 ## 10. Implementation build sequence
 
