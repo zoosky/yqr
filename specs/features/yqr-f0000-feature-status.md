@@ -91,6 +91,7 @@ dependency/release timing.
 | [f018](yqr-f018-noyalib-0-0-24-adoption.md) | Adopt noyalib 0.0.24: the sole-entry head comment, and what is left of the delegation question | Done |
 | [f019](yqr-f019-noyalib-0-0-25-adoption.md) | Adopt noyalib 0.0.25: four bugs closed, and the delegation question answered | Done |
 | [f020](yqr-f020-noyalib-0-0-26-adoption.md) | Adopt noyalib 0.0.26: the wrapped-flow delete, and the one bug it does not carry | Done |
+| [f023](yqr-f023-noyalib-0-0-27-adoption.md) | Adopt noyalib 0.0.27: the last open engine bug | Done |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -207,6 +208,19 @@ release supplied its own evidence: verifying `b011` walked the write verbs over
 the shape it unblocked and found `b015`, an upstream defect reaching yqr's
 output through the flow class, which *is* delegated.
 
+f023 **done**: 0.0.27 published 2026-08-21 carrying yqr's noyalib#298, which
+closes `b016` -- and with it every bug yqr has filed against this engine is
+fixed in a published release: b011-b014 in 0.0.25, b015 in 0.0.26, b016 in
+0.0.27. Six bugs, three releases, four days, five of the six fixed by yqr's
+own commits upstream. The release also carries two loader changes that are not
+yqr's (alias resolution on the replay branch, and only a plain `<<` being a
+merge key), verified against yqr's merge-key and alias behaviour rather than
+assumed harmless because they came from elsewhere. The feature's own lesson is
+about the pin: `f017` recorded `b016` *as it behaved* on the `m003` rule, and
+this bump came back with exactly one failing test -- the pin saying the bump
+had changed something. Without it the fix would have landed silently and the
+guide would still apologise for a wart that no longer exists.
+
 f020 **done**: 0.0.26 published 2026-08-20 carrying one functional change,
 yqr's noyalib#296 — a flow member alone on its line takes the line with it,
 closing `b015`. Verified against the published crate on its own reproduction
@@ -262,12 +276,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 22
+- Total features: 23
 - Draft: 1 (f008 — computed updates, gated on a value-producing right-hand
   side; `yqr-a003` retired the `f001` M2 framing)
 - In Progress: 0
-- Done: 17 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-  f017, f018, f019, f020, f021, f022)
+- Done: 18 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
+  f017, f018, f019, f020, f021, f022, f023)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

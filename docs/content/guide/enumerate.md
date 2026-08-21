@@ -1,7 +1,7 @@
 ---
 # Traceability: Feature f017 (to_entries).
-# Bug b016 -- the emitter's trailing space, pinned in tests/cli.rs; the
-# wart paragraph below goes when a noyalib release carries the fix.
+# Bug b016 -- the emitter's trailing space, fixed in noyalib 0.0.27; the wart
+# paragraph that stood here is gone with it.
 title: Enumerating a mapping without losing the keys
 lead: >-
   How to report what each entry of a mapping is about, with `to_entries`, when iterating throws the keys away.
@@ -54,12 +54,6 @@ $ yqr '.services | to_entries' services.yaml
   value:
     tier: core
 ```
-
-One wart, so it does not surprise you in a diff: when a pair's value is a
-mapping or a list, the `value:` line is printed with a trailing space. It is
-invisible, it loads back correctly, and it is a known issue in the emitter
-rather than something about these pairs -- but if your editor strips trailing
-whitespace on save, that is what changed.
 
 It takes its input from the pipe rather than wrapping a path, so it is
 `<path> | to_entries`, not `to_entries(<path>)`. Iterate the pairs and reach

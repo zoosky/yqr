@@ -1150,16 +1150,45 @@ fn to_entries_makes_the_r003_task_one_invocation() {
     );
 }
 
-// Bug b016: the emitter writes `value: ` with a trailing space before a block
-// collection reached through a sequence item, so every pair whose value is a
-// mapping or a sequence carries one. Pre-existing and reachable through
-// `--normalize` on any such document; `to_entries` output is the shape that
-// makes it routine. Pinned as it behaves -- the space goes when b016 is fixed.
+// Bug b016: the emitter used to write `value: ` with a trailing space before a
+// block collection reached through a sequence item, so every pair whose value
+// was a mapping or a sequence carried one. Fixed upstream by yqr's
+// noyalib#298, released in noyalib 0.0.27. This test was the pin that told
+// this bump the bump had changed something (`yqr-f023`).
 #[test]
-fn to_entries_output_carries_the_emitters_trailing_space() {
+fn to_entries_output_carries_no_trailing_whitespace() {
     let out = run(&[".m | to_entries"], "m:\n  a:\n    x: 1\n");
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-    assert_eq!(out.stdout, "- key: a\n  value: \n    x: 1\n");
+    assert_eq!(out.stdout, "- key: a\n  value:\n    x: 1\n");
+    assert!(
+        !out.stdout
+            .lines()
+            .any(|l| !l.is_empty() && l != l.trim_end()),
+        "no line may carry trailing whitespace: {:?}",
+        out.stdout
+    );
+}
+
+// The other half of b016: a block scalar's empty line carried the block's
+// indent. Reachable through `--normalize` on any document with one.
+#[test]
+fn an_empty_block_scalar_line_carries_no_indent() {
+    let out = run(&["--normalize", "."], "k: |\n  a\n\n  b\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "k: |\n  a\n\n  b\n");
+}
+
+// The control b016 turned on: whitespace a string owns must survive, which is
+// why the fix keys on what the string holds rather than on how the line looks.
+#[test]
+fn trailing_spaces_that_belong_to_a_string_survive() {
+    let doc = "k: \"a  \\nb\\n\"\n";
+    let out = run(&["--normalize", "-r", ".k"], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stdout, "a  \nb\n\n",
+        "the string's own spaces must survive"
+    );
 }
 
 #[test]

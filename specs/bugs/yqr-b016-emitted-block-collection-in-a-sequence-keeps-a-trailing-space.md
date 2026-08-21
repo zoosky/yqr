@@ -1,9 +1,18 @@
 # Bug b016 — An emitted block collection reached through a sequence item keeps a trailing space
 
-**Status:** Open — found 2026-08-20 by `yqr-f017`'s first output, pre-existing
-and reachable through `--normalize` since long before it, **filed the same day
-as noyalib#297 with a fix in noyalib#298**; open here until a release carries
-it. The filing found a **second** source this spec had missed — see §6
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
+**Status:** Resolved — found 2026-08-20 by `yqr-f017`'s first output,
+pre-existing and reachable through `--normalize` since long before it, filed
+2026-08-21 as noyalib#297 with a fix in noyalib#298, and **released in noyalib
+0.0.27** the same day. Verified against the published crate by `yqr-f023` §2.1,
+both faces, with the controls byte-identical to 0.0.26. The pin `yqr-f017`
+left in `tests/cli.rs` is what caught the change; it is now flipped and joined
+by the block-scalar face and the string-owns-whitespace control
 **Severity:** Low — the output is valid YAML that loads back correctly; what is
 wrong is a trailing space on a line that should not have one
 **Component:** noyalib's `to_string_value` (upstream), reached from yqr's

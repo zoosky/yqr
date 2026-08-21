@@ -39,16 +39,14 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.26 release, which carries yqr's fix for b015 — a delete from a
-# wrapped flow collection left the removed member's indentation behind as a
-# whitespace-only line. 0.0.25 before it carried all four of yqr's then-open
-# engine bugs (b011 a wrapped flow could not be parsed at all, b012 no key
-# could be inserted beside a dotted one, b013 an inserted scalar took a
-# document-wide quote style, b014's writer half wrote a sole-entry replacement
-# at its key's own column). b016 is filed and fixed upstream but **not** in
-# this release. Earlier pins and what each bought are in features f013-f020;
-# see research r002 and the bug specs.
-noyalib = "0.0.26"
+# crates.io 0.0.27 release, which carries yqr's fix for b016 -- the serializer
+# wrote trailing whitespace in two places, a dangling indicator before a block
+# collection reached through a sequence item and the indent before an empty
+# block-scalar line. With it, every bug yqr has filed against this engine is
+# fixed in a published release: b011-b014 in 0.0.25, b015 in 0.0.26, b016 in
+# 0.0.27. Earlier pins and what each bought are in features f013-f023; see
+# research r002 and the bug specs.
+noyalib = "0.0.27"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
