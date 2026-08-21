@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787257831465,
+  "lastUpdate": 1787349001390,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1595,6 +1595,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 162513,
             "range": "± 1113",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "555bc8ce9d46d700cc1e1ac4661ef6f62f818022",
+          "message": "chore(deps): adopt noyalib 0.0.27; close b016 (f023) (#93)\n\n0.0.27 carries yqr's noyalib#298, which closes b016 -- and with it every bug\nyqr has filed against this engine is fixed in a published release: b011-b014\nin 0.0.25, b015 in 0.0.26, b016 in 0.0.27. Six bugs, three releases, four\ndays, five of the six fixed by yqr's own commits upstream.\n\nBoth faces verified against the published crate. The dangling indicator, which\nf017's output made routine, and the empty block-scalar line, reachable through\n--normalize on any document with one. The controls hold: a pair whose value is\nan inline scalar or an empty collection is byte-identical to 0.0.26, which is\nthe line the fix had to draw.\n\nThe release also carries two loader changes that are not yqr's -- aliases\nresolving on the streaming replay branch, and only a plain << counting as a\nmerge key. Both land in territory yqr tests, so they are verified rather than\nassumed harmless for coming from elsewhere: merge-and-alias documents still\nround-trip byte-exact, inherited and own keys still resolve, and the corpus\ncase asserting a merge-produced key owns no token in the file still passes.\n\nThe feature's own lesson is about the pin. f017 recorded b016 as it behaved\nrather than working around it, on the m003 rule, and this bump came back with\nexactly one failing test -- the pin saying the bump had changed something.\nWithout it the fix would have landed silently and the guide would still carry\na paragraph apologising for a wart that no longer exists.\n\nThat test is now flipped and renamed to what it asserts, joined by the\nblock-scalar face and by the control the fix turned on: whitespace a string\nowns survives, which is why the fix keys on what the string holds rather than\non how the emitted line looks.",
+          "timestamp": "2026-08-21T23:48:29+02:00",
+          "tree_id": "eb7c1a58f1162396f762cdb9e02b9fb46fa19620",
+          "url": "https://github.com/zoosky/yqr/commit/555bc8ce9d46d700cc1e1ac4661ef6f62f818022"
+        },
+        "date": 1787348999486,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 505,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5589,
+            "range": "± 52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 260145,
+            "range": "± 2333",
             "unit": "ns/iter"
           }
         ]
