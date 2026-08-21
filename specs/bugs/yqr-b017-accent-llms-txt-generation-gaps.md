@@ -1,7 +1,8 @@
 # Bug b017 — accent's `llms.txt` generation: one defect, two gaps, two non-defects
 
-**Status:** Open — measured 2026-08-20 against `accentcms` `1bdd4cc` (the
-`accent 0.24.0` line); not yet filed upstream
+**Status:** Open — measured 2026-08-20 against `accentcms` `b2c2eec3`
+(master), **filed upstream 2026-08-21 as accentcms `b190` (the three defects)
+and `f328` (the demotion gap), in accentcms#1240**
 **Severity:** Low — nothing is wrong with the published site; what is affected
 is how well a machine reader can use `llms.txt`
 **Component:** `accentcms`, `src/render/llmstxt.rs` and `src/config/llms.rs`
@@ -170,10 +171,26 @@ this spec corrects — it was recorded as blocked on B1, and it is not.
 
 ## 8. Route
 
-Upstream, on the `yqr-b007` precedent (`accentcms` has issues enabled). One
-issue covering §3, §4 and §6 — a gap, a papercut and a defect in the same
-file — with §2 and §5 stated as measured non-defects, since a report that
-listed five bugs where two do not exist would waste the maintainer's time and
-cost the other three their credibility.
+Taken 2026-08-21, and by accentcms's own convention rather than as an issue:
+that repository tracks bugs as specs under `specs/bugs/` and features under
+`specs/features/`, so the report is **accentcms `b190`** and the demotion gap
+is **accentcms `f328`**, both in accentcms#1240.
 
-Not yet filed.
+The split follows §8's reasoning. `b190` carries §3, §4 and §6 — a missing
+key, a papercut and a defect in the same twenty lines — and states §2 and §5
+as measured non-defects, since a report listing five bugs where two do not
+exist would waste the maintainer's time and cost the other three their
+credibility. The demotion gap became `f328` rather than a fourth bullet,
+because it is a feature request and does not belong beside defects.
+
+Two things the filing added that this spec lacked:
+
+- **`b131` is the precedent for the `description:` fallback.** accentcms
+  already fixed the mirror of §2 — `resolve_description` was taught to consult
+  the typed `lead:` field, on the grounds that a page should not author the
+  same sentence twice. The same argument runs the other way, which turns a
+  suggestion into a consistency argument against their own code.
+- **`f122` (Open) adds a third field to the same chain**, a `summary`
+  frontmatter key that is specified to take precedence over `lead` and
+  `description` in `llms.txt`. Whichever of the two ships second has to check
+  the other's assumptions; `f328` says so rather than leaving it to collide.
