@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 1665
+  "wordCount": 1639
 }
 </script>
 <script type="application/ld+json">
@@ -374,7 +374,6 @@ separator goes with the item, so you never get <code>[, 443]</code> or <code>[80
 </li>
 </ul>
 <h2 id="editing-a-comment">Editing a comment<a class="heading-anchor" href="#editing-a-comment" aria-label="Link to this section"></a></h2>
-<!-- Feature f007 -->
 <p>Two selectors, wrapping a path the same way <code>key(...)</code> does:</p>
 <pre><code class="language-console">$ yqr 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
 $ yqr 'head_comment(.spec) = "why this exists"' deploy.yaml
@@ -408,7 +407,6 @@ the YAML engine attaches leading comments to mapping keys only.</li>
 error: a comment <em>below</em> an entry belongs to whatever follows it about as
 often as to the entry itself, so there is no unambiguous block to address.</p>
 <h2 id="renaming-a-key">Renaming a key<a class="heading-anchor" href="#renaming-a-key" aria-label="Link to this section"></a></h2>
-<!-- Feature f007 -->
 <p>A path names a <em>value</em>, so there is no path that means “the key of this
 entry”. <code>key(...)</code> wraps one and names the key instead:</p>
 <pre><code class="language-console">$ yqr 'key(.metadata.name)' deploy.yaml
@@ -447,7 +445,6 @@ cannot be addressed by the path syntax at all, so <code>key(...)</code> on one r
 <code>null</code> like any other keyless node. That limitation is not specific to
 renames; it is the same one listed below.</p>
 <h2 id="reordering-a-list">Reordering a list<a class="heading-anchor" href="#reordering-a-list" aria-label="Link to this section"></a></h2>
-<!-- Feature f007 -->
 <p>An ordering is the one thing here with no node to name – there is no path
 that means “third”. So it is a verb with arguments rather than a selector
 wrapping a path, and the arguments are separated by <code>;</code>:</p>
@@ -498,11 +495,10 @@ stdin. That is deliberate; there is nothing to write back to.</p>
 <h2 id="what-is-not-here-yet">What is not here yet<a class="heading-anchor" href="#what-is-not-here-yet" aria-label="Link to this section"></a></h2>
 <p>Being straight about the edges, because finding them yourself is annoying:</p>
 <ul>
-<li><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
-is not supported yet.</li>
-</ul>
-<!-- Bug b012 (fixed in noyalib 0.0.25) was the sibling half of this. -->
-<ul>
+<li>
+<p><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
+is not supported yet.</p>
+</li>
 <li>
 <p><strong>Writing a key that contains <code>.</code> or <code>[</code></strong> – the Kubernetes
 <code>app.kubernetes.io/name</code> style. Reading one works with the bracket form:</p>

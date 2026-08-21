@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "yqr and yq -- what actually changes in your file",
   "url": "https://zoosky.github.io/yqr/compare/yq",
-  "wordCount": 1096
+  "wordCount": 1063
 }
 </script>
 <script type="application/ld+json">
@@ -286,9 +286,6 @@
 is mature, it does far more than yqr does, and if you need to build new
 documents, evaluate expressions, or convert between formats, you should
 reach for it and not for this.</p>
-<!-- Every command and its output on this page was run against yq v4.53.3
-     and a real yqr build. Re-measure rather than re-assert when yq changes;
-     see specs/marketing/yqr-k001-content-plan.md. -->
 <p>There is one thing yqr does that yq does not, and this page is about
 exactly that thing.</p>
 <h2 id="the-short-version">The short version<a class="heading-anchor" href="#the-short-version" aria-label="Link to this section"></a></h2>
@@ -402,7 +399,6 @@ the yq side of the line.</li>
 <p>If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.</p>
 <h2 id="where-the-shapes-differ-on-purpose">Where the shapes differ on purpose<a class="heading-anchor" href="#where-the-shapes-differ-on-purpose" aria-label="Link to this section"></a></h2>
-<!-- Feature f007 -->
 <p>Both tools can rename a key, edit a comment, and reorder a list. The
 spellings are not the same, and the differences are deliberate.</p>
 <p>yq spells a rename <code>(.a | key) = "z"</code> and a comment edit <code>.a line_comment="hi"</code> – two different shapes, and the one that works for

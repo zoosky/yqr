@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
   "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 858
+  "wordCount": 843
 }
 </script>
 <script type="application/ld+json">
@@ -276,7 +276,6 @@
                     <h1 id="validating-yaml">Validating YAML<a class="heading-anchor" href="#validating-yaml" aria-label="Link to this section"></a></h1>
 <p>An edit went in – by hand, by a script, or by an agent. Is the file still
 correct?</p>
-<!-- Feature f012: the validate subcommand. -->
 <pre><code class="language-console">$ yqr validate deploy.yaml
 $ echo $?
 0
@@ -303,7 +302,6 @@ readable for a person as it is parseable for whatever is running it.</p>
 input cannot be read at all – a missing file is a different problem from a
 malformed one, so it gets a different code.</p>
 <h2 id="the-file-your-engine-reads-and-nobody-else-does">The file your engine reads and nobody else does<a class="heading-anchor" href="#the-file-your-engine-reads-and-nobody-else-does" aria-label="Link to this section"></a></h2>
-<!-- Bug b014 §3.2: the Y103 check. -->
 <p>A mapping value on its own line has to be indented past its key. Some
 parsers – yqr’s included – read one that is not, which is worse than
 refusing it: the file works for you and fails for everyone else.</p>

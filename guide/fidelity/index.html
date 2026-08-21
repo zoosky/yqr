@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 697
+  "wordCount": 676
 }
 </script>
 <script type="application/ld+json">
@@ -278,7 +278,6 @@
 data, and printing the data back out. That last step is where formatting
 goes to die: the printer has opinions about quoting and indentation, and
 your file comes back wearing them.</p>
-<!-- Feature f009 made fidelity the default; f002 is the read floor. -->
 <p>yqr does something different. Nodes you did not touch are emitted as <strong>the
 original bytes from your file</strong>, sliced straight out of the source. There is
 no printer involved, so there are no opinions to apply.</p>
@@ -315,9 +314,6 @@ trip:</p>
 <li><strong>Quote style</strong> – <code>'web'</code> stays single-quoted rather than becoming
 <code>"web"</code> or bare <code>web</code>.</li>
 <li><strong>Scalar spelling</strong> – <code>0640</code> stays <code>0640</code>.</li>
-</ul>
-<!-- Bug b011, fixed in noyalib 0.0.25. -->
-<ul>
 <li><strong>Line breaks inside a flow collection</strong> – a <code>ports:</code> or <code>args:</code> list
 wrapped for width keeps its wrapping, closing bracket included.</li>
 </ul>

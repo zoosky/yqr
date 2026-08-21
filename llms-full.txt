@@ -28,10 +28,6 @@ is mature, it does far more than yqr does, and if you need to build new
 documents, evaluate expressions, or convert between formats, you should
 reach for it and not for this.
 
-<!-- Every command and its output on this page was run against yq v4.53.3
-     and a real yqr build. Re-measure rather than re-assert when yq changes;
-     see specs/marketing/yqr-k001-content-plan.md. -->
-
 There is one thing yqr does that yq does not, and this page is about
 exactly that thing.
 
@@ -177,8 +173,6 @@ one of them is a scalpel with a very short blade.
 
 ## Where the shapes differ on purpose
 
-<!-- Feature f007 -->
-
 Both tools can rename a key, edit a comment, and reorder a list. The
 spellings are not the same, and the differences are deliberate.
 
@@ -283,8 +277,6 @@ data, and printing the data back out. That last step is where formatting
 goes to die: the printer has opinions about quoting and indentation, and
 your file comes back wearing them.
 
-<!-- Feature f009 made fidelity the default; f002 is the read floor. -->
-
 yqr does something different. Nodes you did not touch are emitted as **the
 original bytes from your file**, sliced straight out of the source. There is
 no printer involved, so there are no opinions to apply.
@@ -331,7 +323,6 @@ Read it back with yqr and you get exactly that, including:
 - **Quote style** -- `'web'` stays single-quoted rather than becoming
   `"web"` or bare `web`.
 - **Scalar spelling** -- `0640` stays `0640`.
-<!-- Bug b011, fixed in noyalib 0.0.25. -->
 - **Line breaks inside a flow collection** -- a `ports:` or `args:` list
   wrapped for width keeps its wrapping, closing bracket included.
 
@@ -530,8 +521,6 @@ used to be refused:
 
 ## Editing a comment
 
-<!-- Feature f007 -->
-
 Two selectors, wrapping a path the same way `key(...)` does:
 
 ```console
@@ -574,8 +563,6 @@ error: a comment *below* an entry belongs to whatever follows it about as
 often as to the entry itself, so there is no unambiguous block to address.
 
 ## Renaming a key
-
-<!-- Feature f007 -->
 
 A path names a *value*, so there is no path that means "the key of this
 entry". `key(...)` wraps one and names the key instead:
@@ -626,8 +613,6 @@ cannot be addressed by the path syntax at all, so `key(...)` on one reports
 renames; it is the same one listed below.
 
 ## Reordering a list
-
-<!-- Feature f007 -->
 
 An ordering is the one thing here with no node to name -- there is no path
 that means "third". So it is a verb with arguments rather than a selector
@@ -697,7 +682,6 @@ Being straight about the edges, because finding them yourself is annoying:
 
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
-<!-- Bug b012 (fixed in noyalib 0.0.25) was the sibling half of this. -->
 - **Writing a key that contains `.` or `[`** -- the Kubernetes
   `app.kubernetes.io/name` style. Reading one works with the bracket form:
 
@@ -760,8 +744,6 @@ gone by the time the filter can use them.
 
 ## `to_entries`
 
-<!-- Feature f017 -->
-
 `to_entries` turns a mapping into a list of pairs, so the name travels with
 the value:
 
@@ -778,7 +760,6 @@ $ yqr '.services | to_entries' services.yaml
     tier: core
 ```
 
-<!-- Bug b016: the emitter's trailing space, pinned in tests/cli.rs. -->
 One wart, so it does not surprise you in a diff: when a pair's value is a
 mapping or a list, the `value:` line is printed with a trailing space. It is
 invisible, it loads back correctly, and it is a known issue in the emitter
@@ -910,8 +891,6 @@ URL: /yqr/guide/validate
 An edit went in -- by hand, by a script, or by an agent. Is the file still
 correct?
 
-<!-- Feature f012: the validate subcommand. -->
-
 ```console
 $ yqr validate deploy.yaml
 $ echo $?
@@ -951,7 +930,6 @@ malformed one, so it gets a different code.
 
 ## The file your engine reads and nobody else does
 
-<!-- Bug b014 §3.2: the Y103 check. -->
 
 A mapping value on its own line has to be indented past its key. Some
 parsers -- yqr's included -- read one that is not, which is worse than

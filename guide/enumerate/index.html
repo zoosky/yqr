@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Enumerating a mapping without losing the keys",
   "url": "https://zoosky.github.io/yqr/guide/enumerate",
-  "wordCount": 843
+  "wordCount": 828
 }
 </script>
 <script type="application/ld+json">
@@ -297,7 +297,6 @@ null
 <p>That is the right data and it cannot say what it is about. The names are
 gone by the time the filter can use them.</p>
 <h2 id="to-entries"><code>to_entries</code><a class="heading-anchor" href="#to-entries" aria-label="Link to this section"></a></h2>
-<!-- Feature f017 -->
 <p><code>to_entries</code> turns a mapping into a list of pairs, so the name travels with
 the value:</p>
 <pre><code class="language-console">$ yqr '.services | to_entries' services.yaml
@@ -311,7 +310,6 @@ the value:</p>
   value:
     tier: core
 </code></pre>
-<!-- Bug b016: the emitter's trailing space, pinned in tests/cli.rs. -->
 <p>One wart, so it does not surprise you in a diff: when a pair’s value is a
 mapping or a list, the <code>value:</code> line is printed with a trailing space. It is
 invisible, it loads back correctly, and it is a known issue in the emitter
