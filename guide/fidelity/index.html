@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 676
+  "wordCount": 891
 }
 </script>
 <script type="application/ld+json">
@@ -224,7 +224,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">4 min read</span>
+                    <span class="reading-time">5 min read</span>
                 </div>
                 
 
@@ -256,6 +256,10 @@
     
         <li class="toc-level-2">
             <a href="#editing-works-the-same-way">Editing works the same way</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#a-write-that-changes-nothing-changes-nothing">A write that changes nothing changes nothing</a>
         </li>
     
         <li class="toc-level-2">
@@ -367,6 +371,28 @@ file – all still the original bytes.</p>
 it and exits 5 rather than emitting something surprising. With <code>-i</code> the
 file is left untouched on refusal, so a failed edit never leaves you with a
 half-written file.</p>
+<p>An entry that a <code>&lt;&lt;</code> merge or an alias produced is one of those refusals.
+You can <em>read</em> <code>.web.mode</code> – it resolves to <code>0640</code> through the merge – but
+there is no <code>mode</code> entry under <code>web</code> to write to, so <code>.web.mode = 416</code>
+exits 5 rather than inventing one. Set the value on the anchor, or add an
+explicit <code>mode:</code> under <code>web</code> first.</p>
+<h2 id="a-write-that-changes-nothing-changes-nothing">A write that changes nothing changes nothing<a class="heading-anchor" href="#a-write-that-changes-nothing-changes-nothing" aria-label="Link to this section"></a></h2>
+<p>Assigning a value that is already there does not rewrite it. yqr writes
+<em>values</em>, and a value does not carry its own spelling – so re-emitting
+<code>0640</code> would print <code>640</code>, exactly the way <code>--normalize</code> does. Instead the
+write is skipped:</p>
+<pre><code class="language-console">$ yqr '.defaults.mode = .defaults.mode' config.yaml | sed -n 2p
+  mode: 0640      # octal, on purpose
+</code></pre>
+<p>The same holds for comments. <code>#tight</code> and <code># tight</code> say the same thing, so
+writing a comment’s own text back leaves the line alone – which means you
+can read a comment and feed it straight back:</p>
+<pre><code class="language-console">$ yqr 'line_comment(.defaults.mode) = "octal, on purpose"' config.yaml | sed -n 2p
+  mode: 0640      # octal, on purpose
+</code></pre>
+<p>Anything yqr can tell apart still writes normally. This is a guard against
+rewriting bytes you did not ask to change, not a limit on what you can
+edit.</p>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
 <ul>
 <li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – this applied to a real

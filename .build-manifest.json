@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-22T06:06:22Z",
+  "timestamp": "2026-08-22T14:12:04Z",
   "pages": {
     "/": {
       "content_hash": "19ead5a6f3a94722",
@@ -33,12 +33,12 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/fidelity": {
-      "content_hash": "f14b11d1a80c11ad",
+      "content_hash": "0a8da1155aa1b488",
       "template": "fidelity.html.jinja",
       "template_hash": "30406ea523c53def"
     },
     "/guide/kubernetes": {
-      "content_hash": "1152e8d25ccda524",
+      "content_hash": "3b6074f1c952839e",
       "template": "kubernetes.html.jinja",
       "template_hash": "30406ea523c53def"
     },
