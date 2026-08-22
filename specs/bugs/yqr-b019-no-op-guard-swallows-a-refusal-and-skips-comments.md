@@ -149,6 +149,31 @@ outside the sequence. Left as a known gap rather than covered approximately —
 the residue is a *silent skip*, which is the status quo, not a new wrong
 answer.
 
+> **Closed 2026-08-22**, in `yqr-b020`'s review, which called it what it is: a
+> live false success, where the write "succeeds" exactly when it would have
+> been refused. That the residue was the status quo made it survivable, not
+> acceptable.
+>
+> The framing above is what kept it open, and it was too narrow. Both rules
+> ask one question — *do the resolved bytes start before the earliest point
+> this node's own bytes could?* — and only the **floor** differs. For a
+> mapping entry it is the key. For a sequence item it is the end of the item
+> ahead of it, or the sequence's own start for the first. That is not the
+> "nearest ancestor key" guess: it is the item's own container, so an anchor
+> outside the sequence and an anchor in an earlier sibling are caught by the
+> same comparison, and it cannot false-positive, because an item's bytes never
+> precede its neighbour's.
+>
+> One shape still clears its floor honestly: an item of a sequence that is
+> *itself* borrowed (`b: *x`, `.b[0]`), where the floor is measured inside the
+> anchor. `value_is_borrowed` walks the ancestors for it — bytes inside a node
+> that is not its owner's are not their own either — and the four shapes are
+> pinned by `an_alias_valued_sequence_item_is_refused_whatever_the_value`.
+>
+> The check is still yqr's rather than upstream's answer. `resolve_span`
+> computes `through_alias` exactly and keeps it private; if that is ever
+> exposed, it replaces the floor rule outright.
+
 ## 7. Reproduction
 
 ```console

@@ -1720,3 +1720,91 @@ fn a_mappings_own_entry_is_untouched_by_the_merged_key_check() {
     );
     assert_eq!(run(&[".a = null"], implicit).stdout, implicit);
 }
+
+// Bug b019, the gap its §6 recorded and left open: an alias-valued *sequence
+// item* has no key to measure against, so the no-op guard skipped straight
+// past the refusal -- `.b[0] = 2` exited 5 while `.b[0] = 1` exited 0 with the
+// alias untouched, the write "succeeding" only where it would have been
+// refused. Closed by measuring an item against the floor its own bytes cannot
+// start before: the end of the item ahead of it, or the sequence's own start.
+#[test]
+fn an_alias_valued_sequence_item_is_refused_whatever_the_value() {
+    let shapes: &[(&str, &str, &str)] = &[
+        (
+            "anchor outside the sequence",
+            "a: &x\n  - 1\nb: *x\n",
+            ".b[0]",
+        ),
+        (
+            "anchor in an earlier sibling",
+            "b:\n  - &x 1\n  - *x\n",
+            ".b[1]",
+        ),
+        (
+            "anchor nested in an earlier sibling",
+            "b:\n  - inner:\n      - &x 1\n  - *x\n",
+            ".b[1]",
+        ),
+        (
+            "anchor in an earlier entry",
+            "a:\n  - &x 1\nb:\n  - *x\n",
+            ".b[0]",
+        ),
+    ];
+    for (what, doc, path) in shapes {
+        // The value that matches is the one that used to slip through.
+        for filter in [format!("{path} = 1"), format!("{path} |= .")] {
+            let out = run(&[filter.as_str()], doc);
+            assert_eq!(out.status, 5, "{what}: {filter}: {}", out.stderr);
+            assert_eq!(out.stdout, "", "{what}: {filter} writes nothing");
+        }
+        // And the differing value refuses as it always did.
+        let filter = format!("{path} = 99");
+        assert_eq!(run(&[filter.as_str()], doc).status, 5, "{what}: {filter}");
+    }
+}
+
+#[test]
+fn a_sequence_items_own_bytes_are_still_its_own() {
+    // The boundary for the floor rule. An item that clears its floor is not
+    // borrowed, including one that carries an anchor -- writing `1` over
+    // `&x 1` changes nothing and must stay a no-op, which is the whole point
+    // of the guard the floor rule sits inside.
+    for (doc, filter) in [
+        ("a:\n  - 1\n  - 2\n", ".a[0] = 1"),
+        ("a:\n  - 1\n  - 2\n", ".a[1] = 2"),
+        ("a:\n  - &x 1\n  - 2\nb: *x\n", ".a[0] = 1"),
+        ("a: [1, 2]\n", ".a[1] = 2"),
+        ("a:\n  - k: 1\n", ".a[0].k = 1"),
+    ] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{filter}: {}", out.stderr);
+        assert_eq!(out.stdout, doc, "{filter} must be byte-identical");
+    }
+}
+
+#[test]
+fn the_merged_key_message_names_only_a_remedy_that_works() {
+    // b020's first wording offered "add an explicit entry here to override
+    // it", which this very check refuses -- and inserting a sibling is
+    // refused too unless the mapping already owns one. Only the anchor route
+    // is named now, and it is asserted to work rather than asserted to exist.
+    let doc = "base: &m\n  k: 1\nc:\n  <<: *m\n";
+    let out = run(&[".c.k = 9"], doc);
+    assert_eq!(out.status, 5);
+    assert!(
+        out.stderr.contains("Assign where the key is defined"),
+        "{}",
+        out.stderr
+    );
+    assert!(
+        !out.stderr.contains("override"),
+        "no remedy yqr declines: {}",
+        out.stderr
+    );
+    assert_eq!(
+        run(&[".base.k = 9"], doc).stdout,
+        "base: &m\n  k: 9\nc:\n  <<: *m\n",
+        "and the remedy it does name works"
+    );
+}

@@ -662,16 +662,42 @@ impl NoyalibWriter {
         {
             return Ok(Some(Borrowed::Key));
         }
-        // Bytes that lie *before* the key naming them cannot be that entry's
-        // own. YAML requires an anchor to precede every alias to it, so a
-        // value span ahead of its key belongs to the anchor and was reached by
-        // resolving an alias through.
-        let (Some((value_start, _)), Some((key_start, _))) =
-            (d.span_at(&path_str), d.key_span(&path_str))
-        else {
+        // Everything below asks one question: do the resolved bytes start
+        // before the earliest point this node's own bytes could? YAML requires
+        // an anchor to precede every alias to it, so bytes ahead of that floor
+        // are some other node's, reached by resolving an alias through.
+        let Some((value_start, _)) = d.span_at(&path_str) else {
             return Ok(None);
         };
-        Ok((value_start < key_start).then_some(Borrowed::Value))
+        let floor = match path.segments().last() {
+            // A mapping entry's value cannot precede its own key.
+            Some(PathSeg::Key(_)) => d.key_span(&path_str).map(|(start, _)| start),
+            // A sequence item has no key, so the floor is the end of the item
+            // before it — or, for the first, where the sequence itself starts.
+            // Both are the item's own container, which is why an anchor
+            // *outside* the sequence and one in an earlier sibling are caught
+            // by the same comparison. An anchor reached through the sequence's
+            // own parent is not, and cannot be: see `value_is_borrowed`.
+            Some(PathSeg::Index(i)) => {
+                let neighbour = match i.checked_sub(1) {
+                    Some(prev) => rebased(path, Some(PathSeg::Index(prev))),
+                    None => rebased(path, None),
+                };
+                let neighbour = super::noyalib::to_noyalib_path(&neighbour);
+                neighbour.and_then(|n| d.span_at(&n)).map(|(start, end)| {
+                    if i.checked_sub(1).is_some() {
+                        end
+                    } else {
+                        start
+                    }
+                })
+            }
+            // The root has nothing to precede.
+            None => None,
+        };
+        Ok(floor
+            .filter(|floor| value_start < *floor)
+            .map(|_| Borrowed::Value))
     }
 
     /// Bounds-checked shared document accessor (used by the structural-delete
@@ -701,7 +727,11 @@ impl FidelityWriter for NoyalibWriter {
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
         let path_str = noyalib_path(path)?;
         // A merged-in key is refused either way; what yqr owns here is the
-        // *reason*. Upstream's resolver returns the same `None` for a key a
+        // *reason*. Only the anchor route is named, because it is the only one
+        // that works: writing an *overriding* entry here is this very check,
+        // and inserting a sibling is refused too unless the mapping already
+        // owns one (both measured). Naming a remedy the tool declines would be
+        // worse than naming none. Creating the override is `yqr-f025`. Upstream's resolver returns the same `None` for a key a
         // merge produced as for one that does not exist, so `set_value`
         // reports `path not found` for a path yqr had just read a value from —
         // one tool contradicting itself. Its own `rename_key` words this
@@ -714,8 +744,7 @@ impl FidelityWriter for NoyalibWriter {
             return Err(YqrError::eval(format!(
                 "cannot assign at {path_str:?}: the mapping has no {key:?} entry of its own \
                  to write; it is merged in from elsewhere, through a `<<` merge key or an \
-                 alias. Assign where the key is defined, or add an explicit {key:?} entry \
-                 here to override it"
+                 alias. Assign where the key is defined instead"
             )));
         }
         // Same scalar-only limit as the insert paths, checked here rather than
@@ -729,7 +758,21 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn value_is_borrowed(&self, doc: usize, path: &Path) -> Result<bool> {
-        Ok(self.borrowed_site(doc, path)?.is_some())
+        // A node inside bytes that are not their owner's is not its own
+        // either, so every ancestor counts, not just the addressed node.
+        // `.b[0]` over `b: *x` is the case that needs it: the item clears its
+        // own floor because the floor is measured inside the anchor's
+        // sequence, and it is the *sequence* that is borrowed.
+        let mut probe = path.clone();
+        loop {
+            if self.borrowed_site(doc, &probe)?.is_some() {
+                return Ok(true);
+            }
+            if probe.is_root() {
+                return Ok(false);
+            }
+            probe = rebased(&probe, None);
+        }
     }
 
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
@@ -907,6 +950,26 @@ impl FidelityWriter for NoyalibWriter {
     /// only be a rewrite waiting to disagree with it.
     fn emit(&self) -> String {
         self.docs.iter().map(ToString::to_string).collect()
+    }
+}
+
+/// `path` with its last segment replaced by `seg`, or dropped when `seg` is
+/// `None` — the parent path and the sibling path, which [`Path`] has no
+/// accessors for because nothing before the borrowed-site check needed to walk
+/// *upwards*.
+///
+/// The root has no last segment, so both forms return it unchanged.
+// Bug b019.
+fn rebased(path: &Path, seg: Option<PathSeg>) -> Path {
+    let segments = path.segments();
+    let keep = segments.len().saturating_sub(1);
+    let mut out = Path::root();
+    for s in &segments[..keep] {
+        out = out.child(s.clone());
+    }
+    match seg {
+        Some(s) => out.child(s),
+        None => out,
     }
 }
 
@@ -1661,6 +1724,11 @@ mod tests {
             ("m: &m\n  k: 1\nc: *m\n", ".c.k", Some(Borrowed::Key)),
             ("a: &x 1\nb: *x\n", ".b", Some(Borrowed::Value)),
             ("a: &x 1\nb:\n  c: *x\n", ".b.c", Some(Borrowed::Value)),
+            // A sequence item measured against its floor rather than a key.
+            ("b:\n  - &x 1\n  - *x\n", ".b[1]", Some(Borrowed::Value)),
+            ("a:\n  - &x 1\nb:\n  - *x\n", ".b[0]", Some(Borrowed::Value)),
+            ("a:\n  - &x 1\n  - 2\n", ".a[0]", None),
+            ("a:\n  - 1\n  - 2\n", ".a[1]", None),
             ("n: 0640\n", ".n", None),
             ("a:\nb: 1\n", ".a", None),
         ];
@@ -1694,6 +1762,14 @@ mod tests {
                 ".c.k",
             ),
             ("a key an alias expanded", "m: &m\n  k: 1\nc: *m\n", ".c.k"),
+            // Not borrowed by its *own* measurement — it clears the floor,
+            // because the floor is inside the anchor's sequence. This is the
+            // case the ancestor walk exists for: the borrowing is at `b`.
+            (
+                "an item of an aliased sequence",
+                "a: &x\n  - 1\nb: *x\n",
+                ".b[0]",
+            ),
         ];
         let own: &[(&str, &str, &str)] = &[
             ("a plain scalar", "n: 0640\n", ".n"),

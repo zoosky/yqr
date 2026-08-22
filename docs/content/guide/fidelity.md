@@ -147,14 +147,13 @@ than inventing one:
 
 ```console
 $ yqr '.web.mode = 416' config.yaml
-yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode"
-entry of its own to write; it is merged in from elsewhere, through a `<<`
-merge key or an alias. Assign where the key is defined, or add an explicit
-"mode" entry here to override it
+yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode" entry of its own to write; it is merged in from elsewhere, through a `<<` merge key or an alias. Assign where the key is defined instead
 ```
 
-Both of those work: `.defaults.mode = 416` changes it for everything that
-inherits, and adding `mode:` under `web` overrides it for `web` alone.
+So `.defaults.mode = 416` is the edit, and it changes the value for
+everything that inherits the anchor. Writing an entry under `web` that
+overrides the merge for `web` alone is a different edit, and one yqr cannot
+make yet.
 
 ## A write that changes nothing changes nothing
 

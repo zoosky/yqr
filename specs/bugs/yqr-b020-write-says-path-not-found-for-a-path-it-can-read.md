@@ -84,6 +84,22 @@ Option 2 is the same shape as `yqr-b012` and most of the noyalib bugs yqr has
 filed: the library's own code already knows the answer at the point it gives
 the wrong one. Measure it against noyalib's current source before filing.
 
+## 5. Reproduction
+
+```console
+$ printf 'base: &m\n  k: 1\nc:\n  <<: *m\n' | yqr '.c.k = 9'
+yqr: runtime error: cannot assign at "c.k": YAML parse error: path not found: c.k
+```
+
+Control — the alias face of the same refusal, which words it well:
+
+```console
+$ printf 'a: &x 1\nb: *x\n' | yqr '.b = 2'
+yqr: runtime error: cannot assign at "b": YAML parse error: cannot set `b`: its
+value is (or resolves through) an alias reference; edit the anchor definition
+or replace the alias explicitly
+```
+
 ## 6. What the measurement changed
 
 Measured, as §4 asked. Two findings moved the decision to option 1.
@@ -138,7 +154,8 @@ managed to notice:
   exactly the shapes with no key token of their own, so there is no
   merged-in key this misses. It never falls through.
 - **The value's bytes are the anchor's** (a value span ahead of its own key).
-  This one has the sequence-item gap `yqr-b019` §6 records.
+  This one had the sequence-item gap `yqr-b019` §6 recorded, closed in this
+  bug's own review — it was a live false success, not a tolerable residue.
 
 Taking the message over for **both** would give the alias class two voices.
 Taking it over for the **first** gives each fact one voice, which is what
@@ -164,18 +181,16 @@ deliberately does not reach it, and a test pins that. It is filed as
 key, the entry is really there — so it is a write yqr should probably be able
 to make, not a sentence to re-word.
 
-## 5. Reproduction
+## 7. What the review of the fix changed
 
-```console
-$ printf 'base: &m\n  k: 1\nc:\n  <<: *m\n' | yqr '.c.k = 9'
-yqr: runtime error: cannot assign at "c.k": YAML parse error: path not found: c.k
-```
+The first wording offered two remedies and only one of them exists.
+*"Add an explicit `k` entry here to override it"* is refused by this very
+check, and inserting some other key is refused too unless the mapping already
+owns an entry to anchor against — both measured, and both refusals leak
+upstream API names into user-facing output, which is the thing §6.2's
+interception exists to avoid. The message now names the anchor route only, and
+a test asserts that route *works* rather than that the sentence exists.
+Creating the override is filed as `yqr-f025`.
 
-Control — the alias face of the same refusal, which words it well:
-
-```console
-$ printf 'a: &x 1\nb: *x\n' | yqr '.b = 2'
-yqr: runtime error: cannot assign at "b": YAML parse error: cannot set `b`: its
-value is (or resolves through) an alias reference; edit the anchor definition
-or replace the alias explicitly
-```
+The same review closed `yqr-b019`'s sequence-item gap (see its §6) and found
+`yqr-b021`.
