@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-21",
+  "dateModified": "2026-08-22",
   "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 1639
+  "wordCount": 1854
 }
 </script>
 <script type="application/ld+json">
@@ -224,7 +224,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">9 min read</span>
+                    <span class="reading-time">10 min read</span>
                 </div>
                 
 
@@ -252,6 +252,10 @@
     
         <li class="toc-level-2">
             <a href="#other-edits-you-can-make-today">Other edits you can make today</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#computing-a-new-value-from-the-old-one">Computing a new value from the old one</a>
         </li>
     
         <li class="toc-level-2">
@@ -373,6 +377,25 @@ left behind describing an empty collection.</p>
 separator goes with the item, so you never get <code>[, 443]</code> or <code>[80, ]</code>.</p>
 </li>
 </ul>
+<h2 id="computing-a-new-value-from-the-old-one">Computing a new value from the old one<a class="heading-anchor" href="#computing-a-new-value-from-the-old-one" aria-label="Link to this section"></a></h2>
+<!-- Feature f008 -->
+<p><code>=</code> writes what you tell it. <code>|=</code> runs a filter on the value that is already
+there and writes the result, so you can say “one more than this” without
+knowing what “this” is:</p>
+<pre><code class="language-console">$ yqr -i '.spec.replicas |= (. + 1)' deploy.yaml
+</code></pre>
+<p>Inside the filter, <code>.</code> is the value at the path – not the document. Arithmetic
+is <code>+ - * / %</code>, with the usual precedence and parentheses.</p>
+<p>Numbers keep their type. <code>replicas: 3</code> doubled is <code>6</code>, never <code>6.0</code>, and a
+division only becomes a fraction when it genuinely is one:</p>
+<pre><code class="language-console">$ yqr '.n |= (. / 2)' &lt;&lt;&lt; 'n: 4'      # n: 2
+$ yqr '.n |= (. / 2)' &lt;&lt;&lt; 'n: 3'      # n: 1.5
+</code></pre>
+<p>That is the same rule that keeps <code>0640</code> from becoming <code>640</code> on a read. An
+integer result too large for 64 bits is an error rather than a silent widening
+to a float, because widening is exactly the precision loss the rule prevents.</p>
+<p><code>|=</code> writes wherever <code>=</code> writes – a scalar, in place. A filter returning a
+list or a mapping is refused, the same way assigning one is.</p>
 <h2 id="editing-a-comment">Editing a comment<a class="heading-anchor" href="#editing-a-comment" aria-label="Link to this section"></a></h2>
 <p>Two selectors, wrapping a path the same way <code>key(...)</code> does:</p>
 <pre><code class="language-console">$ yqr 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
@@ -516,8 +539,9 @@ to</strong> dotted ones does work, which is the common case:</p>
 </code></pre>
 </li>
 <li>
-<p><strong>No arithmetic or builtins.</strong> You cannot say “increment the replica
-count”; you say what it should become.</p>
+<p><strong>No builtins beyond <code>to_entries</code>.</strong> There is no <code>select</code>, no <code>map</code>, and no
+string interpolation, so a filter cannot yet pick entries by a condition or
+reshape them.</p>
 </li>
 </ul>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
@@ -587,7 +611,7 @@ count”; you say what it should become.</p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-21</span>
+        <span>Site last updated: 2026-08-22</span>
         
     </footer>
 

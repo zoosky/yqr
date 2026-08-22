@@ -251,6 +251,35 @@ used to be refused:
 - **An item of a flow collection** like `ports: [80, 443]`. Exactly one
   separator goes with the item, so you never get `[, 443]` or `[80, ]`.
 
+## Computing a new value from the old one
+
+
+`=` writes what you tell it. `|=` runs a filter on the value that is already
+there and writes the result, so you can say "one more than this" without
+knowing what "this" is:
+
+```console
+$ yqr -i '.spec.replicas |= (. + 1)' deploy.yaml
+```
+
+Inside the filter, `.` is the value at the path -- not the document. Arithmetic
+is `+ - * / %`, with the usual precedence and parentheses.
+
+Numbers keep their type. `replicas: 3` doubled is `6`, never `6.0`, and a
+division only becomes a fraction when it genuinely is one:
+
+```console
+$ yqr '.n |= (. / 2)' <<< 'n: 4'      # n: 2
+$ yqr '.n |= (. / 2)' <<< 'n: 3'      # n: 1.5
+```
+
+That is the same rule that keeps `0640` from becoming `640` on a read. An
+integer result too large for 64 bits is an error rather than a silent widening
+to a float, because widening is exactly the precision loss the rule prevents.
+
+`|=` writes wherever `=` writes -- a scalar, in place. A filter returning a
+list or a mapping is refused, the same way assigning one is.
+
 ## Editing a comment
 
 Two selectors, wrapping a path the same way `key(...)` does:
@@ -436,8 +465,9 @@ Being straight about the edges, because finding them yourself is annoying:
   ```console
   $ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
   ```
-- **No arithmetic or builtins.** You cannot say "increment the replica
-  count"; you say what it should become.
+- **No builtins beyond `to_entries`.** There is no `select`, no `map`, and no
+  string interpolation, so a filter cannot yet pick entries by a condition or
+  reshape them.
 
 ## Next
 
