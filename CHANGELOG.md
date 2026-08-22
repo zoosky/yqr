@@ -8,6 +8,30 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Added
 
+- **Compute a new value from the old one: `|=`.** `=` writes what you tell it;
+  `|=` runs a filter on the value already there and writes the result. The
+  limitation the Kubernetes guide named -- *"you cannot say 'increment the
+  replica count'; you say what it should become"* -- is gone:
+
+  ```console
+  $ yqr -i '.spec.replicas |= (. + 1)' deploy.yaml
+  ```
+
+  Inside the filter, `.` is the value at the path, not the document.
+
+- **Arithmetic: `+ - * / %`,** with the usual precedence and parentheses,
+  usable in any filter rather than only on the right of `|=`.
+
+  **Numbers keep their type.** `replicas: 3` doubled is `6`, never `6.0`, and
+  a division becomes a fraction only when it genuinely is one -- `4 / 2` is
+  `2`, `3 / 2` is `1.5`. That is the same rule that keeps `0640` from becoming
+  `640` on a read. An integer result too large for 64 bits is an error rather
+  than a silent widening to a float, because widening is exactly the precision
+  loss the rule prevents.
+
+  `+` also concatenates strings. Mixing a string and a number is refused,
+  naming both types, rather than coerced.
+
 - **`to_entries`: enumerate a mapping without losing the keys.** Iterating a
   mapping gives you its *values*, so on the most ordinary YAML layout there is
   -- a mapping of named things -- yqr could produce the data and not say what

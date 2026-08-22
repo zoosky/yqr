@@ -551,6 +551,32 @@ pub fn write_cases() -> Vec<WriteCase> {
                 "  pullPolicy: IfNotPresent\n  digest: \"1234\"\n",
             )]),
         },
+        // -- computed update (f008) -------------------------------------------
+        // The limitation the Kubernetes guide named until now: "you cannot say
+        // increment the replica count; you say what it should become".
+        WriteCase {
+            id: "write/update/increment-a-scalar",
+            doc: K8S_DEPLOYMENT,
+            filter: ".spec.replicas |= (. + 1)",
+            expect: WriteExpect::Rewrites(&[("  replicas: 3\n", "  replicas: 4\n")]),
+        },
+        // The identity update is a no-op by construction: `set_value` would
+        // re-emit the scalar from its typed value and canonicalise the
+        // spelling, so an update that computes the value already there is
+        // skipped rather than written (`yqr-b018`).
+        WriteCase {
+            id: "write/update/identity-is-byte-identical",
+            doc: HELM_VALUES,
+            filter: ".replicaCount |= .",
+            expect: WriteExpect::Unchanged,
+        },
+        // `|=` inherits `=`'s scalar boundary: a collection result is refused.
+        WriteCase {
+            id: "write/update/refuses-a-collection-result",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels |= to_entries",
+            expect: WriteExpect::Err(5),
+        },
         // -- append -----------------------------------------------------------
         WriteCase {
             id: "write/append/sequence-item-at-the-site-indent",

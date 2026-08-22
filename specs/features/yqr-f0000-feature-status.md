@@ -83,7 +83,7 @@ dependency/release timing.
 |---------|-------|--------|
 | [f006](yqr-f006-fidelity-write-tier.md) | Write tier v1: value assignment and in-place edits (`--in-place`) | Done |
 | [f007](yqr-f007-write-tier-structural-edits.md) | Write tier: structural edits (the `b004` gaps) | Done (all four `b004` gaps: structural delete, **key rename**, **comment editing** and **sequence reorder**) |
-| [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Draft (stub — gated on a value-producing right-hand side) |
+| [f008](yqr-f008-write-tier-computed-updates.md) | Write tier: computed updates (`\|=`) | Done |
 | [f013](yqr-f013-noyalib-0-0-18-adoption.md) | Adopt noyalib 0.0.18: pin bump and the released CST mutation API | Done |
 | [f014](yqr-f014-noyalib-0-0-21-adoption.md) | Adopt noyalib 0.0.21: the silent-corruption fixes and the typed insertion tier | Done |
 | [f015](yqr-f015-noyalib-0-0-22-adoption.md) | Adopt noyalib 0.0.22: delete the CRLF workaround the upstream fix subsumes | Done |
@@ -278,11 +278,10 @@ dashboard.
 ## Summary
 
 - Total features: 24
-- Draft: 1 (f008 — computed updates, gated on a value-producing right-hand
-  side; `yqr-a003` retired the `f001` M2 framing)
+- Draft: 0
 - In Progress: 0
-- Done: 19 (f002, f006, f007, f009, f010, f011, f012, f013, f014, f015, f016,
-  f017, f018, f019, f020, f021, f022, f023, f024)
+- Done: 20 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+  f016, f017, f018, f019, f020, f021, f022, f023, f024)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

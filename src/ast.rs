@@ -117,6 +117,23 @@ pub enum Mutation {
         /// The item to append.
         rhs: Rhs,
     },
+    /// `<path> |= <filter>` — replace the value at `path` with the result of
+    /// running `filter` on that value.
+    ///
+    /// The difference from [`Mutation::Assign`] is one word: `=` evaluates its
+    /// right-hand side against the **document**, `|=` against the **node**.
+    /// Everything else — the single-node contract, the guarded write, the
+    /// absent-path skip — is shared.
+    ///
+    /// Value-only. jq has no update form for a key or a comment, and neither
+    /// has an obvious meaning: a key is not a value the filter could receive.
+    // Feature f008.
+    Update {
+        /// The left-hand path selecting the node to update.
+        path: Ast,
+        /// The filter to run on that node's current value.
+        rhs: Ast,
+    },
     /// `del(<target>)` — remove the block entry at a path.
     Delete {
         /// The target selecting what to remove.
@@ -244,6 +261,50 @@ pub enum Ast {
     /// `to_entries` — a builtin, computing a value rather than selecting one.
     // Feature f017.
     Builtin(Builtin),
+    /// A scalar literal in filter position, e.g. the `1` in `. + 1`.
+    ///
+    /// Distinct from [`Rhs::Literal`], which is an assignment's right-hand
+    /// side rather than a filter: this one is a node the evaluator can reach
+    /// inside a larger expression.
+    // Feature f008.
+    Literal(Value),
+    /// `a <op> b` — arithmetic over two sub-filters, each evaluated against
+    /// the same input.
+    // Feature f008.
+    Binary(BinOp, Box<Ast>, Box<Ast>),
+}
+
+/// An arithmetic operator.
+///
+/// Deliberately only arithmetic: comparisons and boolean operators are a
+/// separate menu item (`yqr-f008` §6), and `|=` does not need them.
+// Feature f008.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BinOp {
+    /// `+` — addition, or string concatenation.
+    Add,
+    /// `-` — subtraction.
+    Sub,
+    /// `*` — multiplication.
+    Mul,
+    /// `/` — division.
+    Div,
+    /// `%` — remainder.
+    Rem,
+}
+
+impl BinOp {
+    /// The operator's spelling, for diagnostics.
+    #[must_use]
+    pub fn symbol(self) -> &'static str {
+        match self {
+            BinOp::Add => "+",
+            BinOp::Sub => "-",
+            BinOp::Mul => "*",
+            BinOp::Div => "/",
+            BinOp::Rem => "%",
+        }
+    }
 }
 
 impl Ast {
@@ -260,11 +321,11 @@ impl Ast {
     /// The builtin this filter reaches, if any.
     ///
     /// A builtin computes a value that has no node in the source document, so
-    /// a filter containing one cannot name a thing to write to. All four
-    /// mutation sites — `=`, `+=`, `del(...)` and the reorder verbs — ask this
-    /// before accepting a left-hand side, which is how `to_entries = 1` is
-    /// refused at parse with a reason rather than at eval with a resolver
-    /// error.
+    /// a filter containing one cannot name a thing to write to. All five
+    /// mutation sites — `=`, `+=`, `|=`, `del(...)` and the reorder verbs —
+    /// ask this before accepting a left-hand side, which is how
+    /// `to_entries = 1` is refused at parse with a reason rather than at eval
+    /// with a resolver error.
     ///
     /// A new mutation form must ask too, and the reorder verb is why that is
     /// worth saying out loud: an unresolvable reorder path is an *absent* one,
@@ -278,7 +339,8 @@ impl Ast {
             Ast::Builtin(b) => Some(*b),
             Ast::Pipe(lhs, rhs) => lhs.builtin().or_else(|| rhs.builtin()),
             Ast::Optional(inner) => inner.builtin(),
-            Ast::Identity | Ast::Field(_) | Ast::Index(_) | Ast::Iterate => None,
+            Ast::Binary(_, lhs, rhs) => lhs.builtin().or_else(|| rhs.builtin()),
+            Ast::Identity | Ast::Field(_) | Ast::Index(_) | Ast::Iterate | Ast::Literal(_) => None,
         }
     }
 }
