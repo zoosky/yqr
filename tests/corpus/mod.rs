@@ -491,6 +491,16 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: ".replicaCount = 2",
             expect: WriteExpect::Unchanged,
         },
+        // Bug b018: the case the one above could not catch. `2` is already
+        // canonical, so it stayed byte-identical even while the guard was
+        // missing; a scalar whose spelling the typed model cannot carry is
+        // what exposes it.
+        WriteCase {
+            id: "write/assign/idempotent-write-keeps-a-non-canonical-spelling",
+            doc: K8S_DEPLOYMENT,
+            filter: ".spec.template.spec.containers[1].ports[0].containerPort = 9090",
+            expect: WriteExpect::Unchanged,
+        },
         // Bug b008: a multi-line string is a block scalar whose continuation
         // lines belong to the *insertion site's* indentation, not to the
         // rendering's. Getting this wrong re-parses as extra nodes.

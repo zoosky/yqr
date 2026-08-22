@@ -240,6 +240,41 @@ pub fn apply(mutation: &Mutation, input: &str) -> Result<String> {
 ///
 /// A document whose target does not resolve is left untouched (a no-op, not an
 /// error); an `Err` means the edit was attempted and refused by the re-parse
+/// Write `new` at `path`, unless it is already what is there.
+///
+/// **A write that changes nothing must not rewrite anything.** `set_value`
+/// re-emits a scalar from the typed model, and the model cannot carry a
+/// number's spelling — so writing `0640` back as the same `Int` emits `640`,
+/// and a `1.10` version pin comes back `1.1`. On an edit that changed nothing,
+/// that is `yqr-a001` §1's own counter-example: *yqr never rewrites bytes it
+/// did not change*.
+///
+/// The comparison is the typed model's, and that is **why** it works rather
+/// than a limitation to work around: the model cannot tell `0640` from `640`,
+/// so equal-by-value is exactly the set of cases where re-emitting would lose
+/// a spelling. Where the model *can* tell two values apart, they are not
+/// equal and the write proceeds.
+///
+/// A skip is a **success**. `.n = .n` is a no-op, not a refusal, matching the
+/// absent-path rule.
+///
+/// Shared by `=` and `|=`, which reach it by different resolvers and would
+/// otherwise carry a copy of this rule each — the shape that let the `=` half
+/// go unguarded while `|=` was fixed (`yqr-b018`).
+// Feature f006 / f008; bug b018.
+fn set_value_unless_unchanged(
+    writer: &mut dyn FidelityWriter,
+    doc: usize,
+    path: &Path,
+    new: &Value,
+    current: &Value,
+) -> Result<()> {
+    if new == current {
+        return Ok(());
+    }
+    writer.set_value(doc, path, new)
+}
+
 /// guard.
 fn apply_to_doc(
     writer: &mut dyn FidelityWriter,
@@ -261,7 +296,10 @@ fn apply_to_doc(
             };
             let rhs_value = resolve_rhs(rhs, value)?;
             match target {
-                AssignTarget::Existing(target) => writer.set_value(doc, &target, &rhs_value),
+                AssignTarget::Existing { path, current } => {
+                    set_value_unless_unchanged(writer, doc, &path, &rhs_value, &current)
+                }
+                // Nothing to compare against: the key is not there yet.
                 AssignTarget::NewKey { parent, key } => {
                     writer.insert_key(doc, &parent, &key, &rhs_value)
                 }
@@ -332,21 +370,7 @@ fn apply_to_doc(
                 return Ok(());
             };
             let updated = eval_single(rhs, &current, "the update filter")?;
-            // A write that changes nothing must not rewrite anything.
-            // `set_value` re-emits the scalar from the typed value, which
-            // canonicalises its spelling -- so writing `0640` back as the same
-            // `Int` would emit `640`, losing the leading zero on the very
-            // example `yqr-a001` uses. Skipping the no-op keeps `.n |= .`
-            // byte-exact by construction rather than by luck.
-            //
-            // `=` has the same hazard and does not guard it (`.n = .n` on
-            // `0640` emits `640`); that is pre-existing and filed as
-            // `yqr-b018` rather than widened into this feature.
-            // Feature f008.
-            if updated == current {
-                return Ok(());
-            }
-            writer.set_value(doc, &target, &updated)
+            set_value_unless_unchanged(writer, doc, &target, &updated, &current)
         }
         Mutation::Append { path, rhs } => {
             let Some(target) = resolve_target(path, value)? else {
@@ -1426,12 +1450,32 @@ mod tests {
     }
 
     #[test]
-    fn unaddressable_key_is_reported() {
-        // A dotted key cannot be expressed in the string-path grammar.
-        let err = apply(
+    fn a_no_op_write_is_skipped_before_the_key_is_addressed() {
+        // The `yqr-b018` guard runs before the writer, so an assignment that
+        // changes nothing succeeds even at a key the write path cannot
+        // express. That is deliberate: nothing needed writing, so no
+        // limitation was reached. The sibling test below keeps the refusal
+        // pinned for the case where something *does* need writing.
+        let out = apply(
             &Mutation::Assign {
                 target: Target::Value(crate::parser::parse(r#".["a.b"]"#).expect("valid")),
                 rhs: Rhs::Literal(Value::Int(1)),
+            },
+            "'a.b': 1\n",
+        )
+        .expect("a write that changes nothing cannot fail");
+        assert_eq!(out, "'a.b': 1\n", "and it must not touch the bytes");
+    }
+
+    #[test]
+    fn unaddressable_key_is_reported() {
+        // A dotted key cannot be expressed in the string-path grammar. The
+        // value differs from the one in the document, so the write is really
+        // attempted and the limitation is really reached.
+        let err = apply(
+            &Mutation::Assign {
+                target: Target::Value(crate::parser::parse(r#".["a.b"]"#).expect("valid")),
+                rhs: Rhs::Literal(Value::Int(2)),
             },
             "'a.b': 1\n",
         )

@@ -65,6 +65,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **An assignment that changes nothing no longer re-spells the value.**
+  `.n = .n` on `n: 0640` wrote `n: 640`, and a `1.10` version pin came back
+  `1.1`. yqr writes a scalar from its parsed value, and that value cannot
+  carry the spelling -- so an edit that changed nothing still rewrote the
+  line, which is the one thing yqr promises never to do. A write whose new
+  value is already the value in the file is now skipped, for both `=` and
+  `|=`. Quoted strings were never affected.
+
 - **Deleting from a wrapped flow collection no longer leaves a blank line.**
   `del(.ports[0])` on a `ports:` list broken across lines removed the member
   and its separator but left the line's indentation behind, so a line that had

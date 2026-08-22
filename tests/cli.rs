@@ -1497,3 +1497,54 @@ fn integer_overflow_in_division_is_an_error_not_a_crash() {
         out.stderr
     );
 }
+
+// Bug b018: an assignment whose value is already the value in the file used to
+// re-emit the scalar, canonicalising its spelling. `set_value` writes from the
+// typed model, which cannot carry `0640`'s leading zero or `1.10`'s trailing
+// one -- so a write that changed nothing turned `0640` into `640`, on
+// `yqr-a001` §1's own counter-example.
+#[test]
+fn an_assignment_that_changes_nothing_changes_nothing() {
+    for doc in [
+        "n: 0640\n",   // octal file mode: the fidelity guide's example
+        "v: 1.10\n",   // a version pin
+        "q: \"30\"\n", // a quoted number, which was never affected
+        "big: 9223372036854775807\n",
+        "f: 1.0\n",
+    ] {
+        let key = doc.split(':').next().expect("a key");
+        let filter = format!(".{key} = .{key}");
+        let out = run(&[filter.as_str()], doc);
+        assert_eq!(
+            out.status, 0,
+            "{filter}: a no-op is a success: {}",
+            out.stderr
+        );
+        assert_eq!(out.stdout, doc, "{filter} must be byte-identical");
+    }
+}
+
+#[test]
+fn the_no_op_guard_does_not_block_a_real_write() {
+    // The guard keys on value equality, so anything the typed model *can*
+    // tell apart still writes.
+    let out = run(&[".n = 641"], "n: 0640\n");
+    assert_eq!(out.stdout, "n: 641\n", "stderr: {}", out.stderr);
+
+    let same_number_new_spelling = run(&[".n = 640"], "n: 0640\n");
+    assert_eq!(
+        same_number_new_spelling.stdout, "n: 0640\n",
+        "asking for the value that is already there is a no-op, however it is spelled"
+    );
+}
+
+#[test]
+fn both_assignment_forms_share_the_no_op_guard() {
+    // `=` and `|=` reach it by different resolvers; the rule lives in one
+    // place so they cannot drift.
+    for filter in [".n = .n", ".n |= ."] {
+        let out = run(&[filter], "n: 0640\n");
+        assert_eq!(out.status, 0, "{filter}: {}", out.stderr);
+        assert_eq!(out.stdout, "n: 0640\n", "{filter}");
+    }
+}
