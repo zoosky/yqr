@@ -1,7 +1,14 @@
 # Bug b018 — `.n = .n` rewrites `0640` as `640`: an assignment that changes nothing still re-spells the scalar
 
-**Status:** Open — found 2026-08-22 by `yqr-f008`'s first acceptance test; the
-`|=` half is fixed there, the `=` half is this bug
+
+> **Historical: resolved.** yqr no longer behaves as described below. The
+> **Status** line records what fixed it and when; the rest is kept as the
+> reproduction and the reasoning, written in the present tense of the time it
+> was filed.
+
+**Status:** Resolved — 2026-08-22. Found by `yqr-f008`'s first acceptance
+test, which fixed the `|=` half; the `=` half is fixed here, and the rule now
+lives in **one** place both operators reach
 **Severity:** Medium — silent, at exit 0, on the example the product's own
 documentation uses to explain why yqr exists
 **Component:** `src/fidelity/write.rs`, the `Mutation::Assign` /
@@ -104,7 +111,65 @@ $ printf 'v: 1.10\n' | yqr '.v = .v'      # v: 1.1     -- same class
 $ printf 'q: "30"\n' | yqr '.q = .q'      # q: "30"    -- strings unaffected
 ```
 
-Not pinned in `tests/cli.rs` yet: a test asserting `640` would read as the
-intended behaviour. It goes in as a regression test with the fix, on
-`yqr-m003`'s rule that a pin states what the bug does and this one's shape
-makes the pin worse than the prose — the same call `yqr-b015` §5 made.
+Pinned with the fix rather than before it, on `yqr-b015` §5's call: a test
+asserting `640` would have read as the intended behaviour. Six hold it: three
+CLI tests, one unit test, and two corpus cases (one per operator).
+
+The CLI test walks five spellings, and **three** of them are the pin —
+`0640` → `640`, `1.10` → `1.1`, and `1.0` → `1` all reproduce with the guard
+removed. The other two are controls, not coverage: a quoted `"30"` and
+`i64::MAX` survive either way, and they are in the table to record §2's point
+that the bug is narrower than "assignment re-canonicalises scalars".
+
+The corpus cases needed a document to hold a spelling the typed model cannot
+carry, which none had; `APP_CONFIG` gained `file_mode: 0640` for it. The first
+attempt targeted an already-canonical `containerPort: 9090` and passed with the
+guard removed — a case that pins nothing, caught in review.
+
+## 7. What the fix turned up
+
+### 7.1 The rule is now in one place, which is the actual fix
+
+`f008` guarded `|=` inline and `=` was left unguarded — two operators, one
+rule, one copy each, and the copy that did not exist was the bug. Rather than
+add a second copy, both now go through `set_value_unless_unchanged`, reached
+by their different resolvers.
+
+That is the same argument yqr made against accentcms in `b190` §1 and §5 a day
+earlier — duplicated logic drifting from a sibling that already applies the
+rule. Worth noting that the project produced an instance of it while filing
+one.
+
+`AssignTarget::Existing` changed from a bare `Path` to `{ path, current }`,
+because the guard needs to know what is there. That is the honest model:
+"this node exists" is less than the resolver actually knows.
+
+### 7.2 A no-op now wins over an unaddressable key
+
+`.["a.b"] = 1` on a document where `a.b` is already `1` used to fail with
+*"cannot address key … characters the write path cannot express"*
+(`yqr-f007` §6's limit). It now succeeds, because the guard runs before the
+writer and nothing needed writing.
+
+Deliberate, and the reasoning is the same as the absent-path skip: no
+limitation was reached, because no write was attempted. The refusal still
+fires the moment the value actually differs, and **both halves are pinned** —
+`a_no_op_write_is_skipped_before_the_key_is_addressed` and
+`unaddressable_key_is_reported`, the latter now asking for a value that
+differs so it really reaches the writer.
+
+Recorded rather than absorbed, because it is a behaviour change outside this
+bug's statement, found by an existing test rather than a new one.
+
+### 7.3 The guard was placed too early, and §7.2 is why that was missed
+
+§7.2 reads as though "the guard runs before the writer" were the design. It is
+not — it was where one refusal happened to land, and generalising it silently
+swallowed the others. An alias site refuses whatever value it is handed, so
+`.b = 1` over `b: *x` went from exit 5 to exit 0 with the alias still in place.
+
+`yqr-b019` corrects the ordering and states the line: the guard may skip past
+yqr's own **expressive** limits, because the document already holds what was
+asked for, but not past a property of the **document**, where writing would
+have done real work. §7.2's outcome stands under that rule; the alias one does
+not.

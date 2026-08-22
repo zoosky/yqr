@@ -108,6 +108,27 @@ pub(crate) trait FidelityWriter {
     /// value is a collection, or the edit would re-parse differently.
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
 
+    /// Whether the value at `path` lives elsewhere in the document rather than
+    /// at the entry the path names: an alias reference resolved through to its
+    /// anchor, or an entry a `<<` merge produced.
+    ///
+    /// The no-op guard consults this before it skips a write. A borrowed value
+    /// compares equal to the literal it points at, so value-equality alone
+    /// would call an edit a no-op when writing it would replace a reference
+    /// with a literal — a real change, and one the writer refuses rather than
+    /// performs.
+    ///
+    /// `false` means *not established*, not *proven own*: the caller's fallback
+    /// is to attempt the write, where the writer's own refusals apply. That
+    /// direction is the safe one, and it is why this reports a bool rather than
+    /// an error — the diagnostic stays the writer's.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when `doc` is out of range.
+    // Bug b019.
+    fn value_is_borrowed(&self, doc: usize, path: &Path) -> Result<bool>;
+
     /// Insert a new `key: value` entry into the mapping at `parent`.
     ///
     /// The implementation places and spells `value`; callers pass a value, not
@@ -159,6 +180,21 @@ pub(crate) trait FidelityWriter {
     /// of comment, or the block above it is not the entry's to rewrite.
     fn set_comment(&mut self, doc: usize, path: &Path, kind: CommentKind, text: &str)
     -> Result<()>;
+
+    /// The body [`set_comment`](Self::set_comment) would be replacing at
+    /// `path`, or `None` when there is none — or when the site is one this
+    /// writer would refuse, so a caller cannot mistake a refusal for a match.
+    ///
+    /// The body is spelled as the read path reports it (no `#`, one leading
+    /// space dropped), which is what makes reading a comment and writing it
+    /// straight back a no-op.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when `doc` is out of range.
+    // Bug b019.
+    fn current_comment(&self, doc: usize, path: &Path, kind: CommentKind)
+    -> Result<Option<String>>;
 
     /// Remove a comment attached to the entry at `path`.
     ///
@@ -236,6 +272,73 @@ pub fn apply(mutation: &Mutation, input: &str) -> Result<String> {
     Ok(writer.emit())
 }
 
+/// Write `new` at `path`, unless it is already what is there.
+///
+/// **A write that changes nothing must not rewrite anything.** `set_value`
+/// re-emits a scalar from the typed model, and the model cannot carry a
+/// number's spelling — so writing `0640` back as the same `Int` emits `640`,
+/// and a `1.10` version pin comes back `1.1`. On an edit that changed nothing,
+/// that is `yqr-a001` §1's own counter-example: *yqr never rewrites bytes it
+/// did not change*.
+///
+/// The comparison is the typed model's, and that is **why** it works rather
+/// than a limitation to work around: the model cannot tell `0640` from `640`,
+/// so equal-by-value is exactly the set of cases where re-emitting would lose
+/// a spelling. Where the model *can* tell two values apart, they are not
+/// equal and the write proceeds.
+///
+/// A skip is a **success**. `.n = .n` is a no-op, not a refusal, matching the
+/// absent-path rule.
+///
+/// That premise fails where the value is **borrowed** — an alias reference, or
+/// an entry a `<<` merge produced. There the model compares equal to a literal
+/// the entry only points at, so skipping would swallow a write that had real
+/// work to do: `.b = 1` over `b: *x` leaves a reference behind, and a later
+/// edit to the anchor moves `b` with it. So the borrowed check runs *first*
+/// and a borrowed site falls through to the writer, which refuses it in its
+/// own words rather than in a copy of them kept here.
+///
+/// Shared by `=` and `|=`, which reach it by different resolvers and would
+/// otherwise carry a copy of this rule each — the shape that let the `=` half
+/// go unguarded while `|=` was fixed (`yqr-b018`).
+// Feature f006 / f008; bugs b018, b019.
+fn set_value_unless_unchanged(
+    writer: &mut dyn FidelityWriter,
+    doc: usize,
+    path: &Path,
+    new: &Value,
+    current: &Value,
+) -> Result<()> {
+    if new == current && !writer.value_is_borrowed(doc, path)? {
+        return Ok(());
+    }
+    writer.set_value(doc, path, new)
+}
+
+/// Write the `kind` comment at `path`, unless it already says that.
+///
+/// The value guard's rule, on the other thing a write can re-spell. `#tight`
+/// and `# tight` carry the same body, and the body is all a comment mutation
+/// is given, so `set_comment` re-emits the canonical spacing and a write that
+/// changed no content rewrites the line — `yqr-a001` §1 again, on a comment
+/// instead of a scalar.
+///
+/// The comparison is the read path's spelling of the body, which is what makes
+/// reading a comment and writing it straight back a no-op.
+// Feature f007; bug b019.
+fn set_comment_unless_unchanged(
+    writer: &mut dyn FidelityWriter,
+    doc: usize,
+    path: &Path,
+    kind: CommentKind,
+    text: &str,
+) -> Result<()> {
+    if writer.current_comment(doc, path, kind)?.as_deref() == Some(text) {
+        return Ok(());
+    }
+    writer.set_comment(doc, path, kind, text)
+}
+
 /// Apply `mutation` to a single document.
 ///
 /// A document whose target does not resolve is left untouched (a no-op, not an
@@ -261,7 +364,10 @@ fn apply_to_doc(
             };
             let rhs_value = resolve_rhs(rhs, value)?;
             match target {
-                AssignTarget::Existing(target) => writer.set_value(doc, &target, &rhs_value),
+                AssignTarget::Existing { path, current } => {
+                    set_value_unless_unchanged(writer, doc, &path, &rhs_value, &current)
+                }
+                // Nothing to compare against: the key is not there yet.
                 AssignTarget::NewKey { parent, key } => {
                     writer.insert_key(doc, &parent, &key, &rhs_value)
                 }
@@ -293,7 +399,7 @@ fn apply_to_doc(
                 return Ok(());
             };
             let text = comment_text(&resolve_rhs(rhs, value)?)?;
-            writer.set_comment(doc, &resolved, comment_kind(target), &text)
+            set_comment_unless_unchanged(writer, doc, &resolved, comment_kind(target), &text)
         }
         Mutation::Delete {
             target: target @ (Target::LineComment(path) | Target::HeadComment(path)),
@@ -332,21 +438,7 @@ fn apply_to_doc(
                 return Ok(());
             };
             let updated = eval_single(rhs, &current, "the update filter")?;
-            // A write that changes nothing must not rewrite anything.
-            // `set_value` re-emits the scalar from the typed value, which
-            // canonicalises its spelling -- so writing `0640` back as the same
-            // `Int` would emit `640`, losing the leading zero on the very
-            // example `yqr-a001` uses. Skipping the no-op keeps `.n |= .`
-            // byte-exact by construction rather than by luck.
-            //
-            // `=` has the same hazard and does not guard it (`.n = .n` on
-            // `0640` emits `640`); that is pre-existing and filed as
-            // `yqr-b018` rather than widened into this feature.
-            // Feature f008.
-            if updated == current {
-                return Ok(());
-            }
-            writer.set_value(doc, &target, &updated)
+            set_value_unless_unchanged(writer, doc, &target, &updated, &current)
         }
         Mutation::Append { path, rhs } => {
             let Some(target) = resolve_target(path, value)? else {
@@ -561,6 +653,42 @@ impl FidelityWriter for NoyalibWriter {
             .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))
     }
 
+    // Two source-level facts settle this, and neither needs to reason about
+    // where the anchor is. Upstream decides the same question in `write_span`,
+    // but that is private, so this establishes it from the public span API
+    // instead of guessing — and answers `false` wherever it cannot, leaving
+    // the verdict to the write itself.
+    fn value_is_borrowed(&self, doc: usize, path: &Path) -> Result<bool> {
+        let d = self.doc_ref(doc)?;
+        // A path yqr cannot express reaches no site to inspect. Nothing is
+        // established, and the caller's fallback covers it.
+        let Some(path_str) = super::noyalib::to_noyalib_path(path) else {
+            return Ok(false);
+        };
+        // 1. A key the source does not contain is not the mapping's own — a
+        //    `<<` merge or an alias expansion produced it. Restricting this to
+        //    paths ending in a key is what keeps a sequence item and the root
+        //    out: both legitimately have no key. An implicit null keeps its
+        //    key and so stays out too, which matters — `a:` has no value span
+        //    either, and refusing `.a = null` there would be the very re-spell
+        //    this guard exists to prevent.
+        if matches!(path.segments().last(), Some(PathSeg::Key(_)))
+            && d.key_span(&path_str).is_none()
+        {
+            return Ok(true);
+        }
+        // 2. Bytes that lie *before* the key naming them cannot be that
+        //    entry's own. YAML requires an anchor to precede every alias to
+        //    it, so a value span ahead of its key belongs to the anchor and
+        //    was reached by resolving an alias through.
+        let (Some((value_start, _)), Some((key_start, _))) =
+            (d.span_at(&path_str), d.key_span(&path_str))
+        else {
+            return Ok(false);
+        };
+        Ok(value_start < key_start)
+    }
+
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
         // A key holding `.` or `[` composes into a path meaning something else,
         // so it cannot be *addressed*. Creating one is still refused here even
@@ -617,6 +745,42 @@ impl FidelityWriter for NoyalibWriter {
             CommentKind::Head => d.set_leading_comment(&path_str, text),
         }
         .map_err(|e| YqrError::eval(format!("cannot set {}({path_str}): {e}", kind.word())))
+    }
+
+    fn current_comment(
+        &self,
+        doc: usize,
+        path: &Path,
+        kind: CommentKind,
+    ) -> Result<Option<String>> {
+        self.doc_ref(doc)?;
+        let Some(path_str) = super::noyalib::to_noyalib_path(path) else {
+            return Ok(None);
+        };
+        // Report nothing at a site `set_comment` would refuse, so an equal
+        // body can never stand in for a refusal — the lesson `value_is_borrowed`
+        // records on the value side.
+        if self.check_comment_site(doc, &path_str, kind).is_err() {
+            return Ok(None);
+        }
+        let bundle = self.doc_ref(doc)?.comments_at(&path_str);
+        Ok(match kind {
+            CommentKind::Line => bundle
+                .inline
+                .map(|c| super::noyalib::comment_body(&c.text).to_string()),
+            // `check_comment_site` passed, which for a head comment means the
+            // run yqr owns *is* `before` — so no tail-slicing is needed here,
+            // unlike on the read side where the two can disagree.
+            CommentKind::Head if !bundle.before.is_empty() => Some(
+                bundle
+                    .before
+                    .iter()
+                    .map(|c| super::noyalib::comment_body(&c.text))
+                    .collect::<Vec<_>>()
+                    .join("\n"),
+            ),
+            CommentKind::Head => None,
+        })
     }
 
     fn remove_comment(&mut self, doc: usize, path: &Path, kind: CommentKind) -> Result<()> {
@@ -1426,12 +1590,79 @@ mod tests {
     }
 
     #[test]
-    fn unaddressable_key_is_reported() {
-        // A dotted key cannot be expressed in the string-path grammar.
-        let err = apply(
+    fn a_no_op_write_is_skipped_before_the_key_is_addressed() {
+        // The `yqr-b018` guard runs before the writer, so an assignment that
+        // changes nothing succeeds even at a key the write path cannot
+        // express. That is deliberate: nothing needed writing, so no
+        // limitation was reached. The sibling test below keeps the refusal
+        // pinned for the case where something *does* need writing.
+        let out = apply(
             &Mutation::Assign {
                 target: Target::Value(crate::parser::parse(r#".["a.b"]"#).expect("valid")),
                 rhs: Rhs::Literal(Value::Int(1)),
+            },
+            "'a.b': 1\n",
+        )
+        .expect("a write that changes nothing cannot fail");
+        assert_eq!(out, "'a.b': 1\n", "and it must not touch the bytes");
+    }
+
+    #[test]
+    fn borrowed_is_the_value_living_somewhere_else() {
+        // The predicate the no-op guard consults. Its exactness is what keeps
+        // `yqr-b018`'s skip intact while restoring `yqr-b019`'s refusal, so
+        // both directions are pinned: a false positive re-spells a scalar that
+        // needed no write, a false negative swallows a refusal.
+        let borrowed: &[(&str, &str, &str)] = &[
+            ("an alias-valued entry", "a: &x 1\nb: *x\n", ".b"),
+            ("nested under one", "a: &x 1\nb:\n  c: *x\n", ".b.c"),
+            (
+                "a key a merge produced",
+                "m: &m\n  k: 1\nc:\n  <<: *m\n",
+                ".c.k",
+            ),
+            ("a key an alias expanded", "m: &m\n  k: 1\nc: *m\n", ".c.k"),
+        ];
+        let own: &[(&str, &str, &str)] = &[
+            ("a plain scalar", "n: 0640\n", ".n"),
+            // The anchor is where the value actually lives.
+            ("the anchor itself", "a: &x 1\nb: *x\n", ".a"),
+            // No value span, but the key is the mapping's own -- refusing
+            // here would re-spell `a:` on `.a = null`.
+            ("an implicit null", "a:\nb: 1\n", ".a"),
+            // No key span, and legitimately so.
+            ("a sequence item", "a:\n  - 1\n", ".a[0]"),
+            ("the document root", "1\n", "."),
+            (
+                "a merge's own sibling",
+                "m: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n",
+                ".c.z",
+            ),
+        ];
+        for (what, src, filter) in borrowed.iter().chain(own) {
+            let writer = NoyalibWriter::open(src).expect("valid YAML");
+            let value = writer.value(0).expect("one document");
+            let ast = crate::parser::parse(filter).expect("a valid path");
+            let path = crate::eval::resolve_target(&ast, &value)
+                .expect("resolves")
+                .expect("to a node");
+            assert_eq!(
+                writer.value_is_borrowed(0, &path).expect("in range"),
+                borrowed.iter().any(|(w, _, _)| w == what),
+                "{what}"
+            );
+        }
+    }
+
+    #[test]
+    fn unaddressable_key_is_reported() {
+        // A dotted key cannot be expressed in the string-path grammar. The
+        // value differs from the one in the document, so the write is really
+        // attempted and the limitation is really reached.
+        let err = apply(
+            &Mutation::Assign {
+                target: Target::Value(crate::parser::parse(r#".["a.b"]"#).expect("valid")),
+                rhs: Rhs::Literal(Value::Int(2)),
             },
             "'a.b': 1\n",
         )

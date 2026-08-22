@@ -1,6 +1,7 @@
 ---
 # Traceability: Feature f009 made fidelity the default; f002 is the read
 # floor. Bug b011 (wrapped flow collections) fixed in noyalib 0.0.25.
+# The no-op write rule and the borrowed-entry refusal are bugs b018 and b019.
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -137,6 +138,37 @@ If an edit *cannot* be made without restructuring the document, yqr refuses
 it and exits 5 rather than emitting something surprising. With `-i` the
 file is left untouched on refusal, so a failed edit never leaves you with a
 half-written file.
+
+An entry that a `<<` merge or an alias produced is one of those refusals.
+You can *read* `.web.mode` -- it resolves to `0640` through the merge -- but
+there is no `mode` entry under `web` to write to, so `.web.mode = 416`
+exits 5 rather than inventing one. Set the value on the anchor, or add an
+explicit `mode:` under `web` first.
+
+## A write that changes nothing changes nothing
+
+Assigning a value that is already there does not rewrite it. yqr writes
+*values*, and a value does not carry its own spelling -- so re-emitting
+`0640` would print `640`, exactly the way `--normalize` does. Instead the
+write is skipped:
+
+```console
+$ yqr '.defaults.mode = .defaults.mode' config.yaml | sed -n 2p
+  mode: 0640      # octal, on purpose
+```
+
+The same holds for comments. `#tight` and `# tight` say the same thing, so
+writing a comment's own text back leaves the line alone -- which means you
+can read a comment and feed it straight back:
+
+```console
+$ yqr 'line_comment(.defaults.mode) = "octal, on purpose"' config.yaml | sed -n 2p
+  mode: 0640      # octal, on purpose
+```
+
+Anything yqr can tell apart still writes normally. This is a guard against
+rewriting bytes you did not ask to change, not a limit on what you can
+edit.
 
 ## Next
 

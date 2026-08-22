@@ -491,6 +491,46 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: ".replicaCount = 2",
             expect: WriteExpect::Unchanged,
         },
+        // Bug b018: the case the one above could not catch. `2` is already
+        // canonical, so it stayed byte-identical even while the guard was
+        // missing. `0640` is the scalar that exposes it — the typed model
+        // holds it as the same `Int` as `640`, so an unguarded re-emit drops
+        // the leading zero and changes the permission.
+        WriteCase {
+            id: "write/assign/idempotent-write-keeps-a-non-canonical-spelling",
+            doc: APP_CONFIG,
+            filter: ".logging.file_mode = .logging.file_mode",
+            expect: WriteExpect::Unchanged,
+        },
+        // Bug b018, the `|=` half: same rule, the other operator, reaching the
+        // same guard by the other resolver.
+        WriteCase {
+            id: "write/update/idempotent-update-keeps-a-non-canonical-spelling",
+            doc: APP_CONFIG,
+            filter: ".logging.file_mode |= .",
+            expect: WriteExpect::Unchanged,
+        },
+        // Bug b019: the value guard may not skip past a refusal. `retries` is
+        // reached through `<<: *defaults`, so it is not `service`'s own entry
+        // to write — assigning the value it already reports must refuse, not
+        // silently leave the merge in place.
+        WriteCase {
+            id: "write/assign/a-no-op-does-not-swallow-a-borrowed-site",
+            doc: FIDELITY_RICH,
+            filter: ".service.retries = 3",
+            expect: WriteExpect::Err(5),
+        },
+        // Bug b019: the same rule on a comment. `#primary` and `# primary`
+        // carry one body, and the body is all a comment write is given, so
+        // writing it back must leave the line alone. It has to be the *tight*
+        // comment: re-emitting the wide-gutter one lands on its own spelling
+        // and the case would pass with no guard at all.
+        WriteCase {
+            id: "write/comment/idempotent-comment-write-keeps-the-line",
+            doc: FIDELITY_RICH,
+            filter: "line_comment(.service.region) = \"primary\"",
+            expect: WriteExpect::Unchanged,
+        },
         // Bug b008: a multi-line string is a block scalar whose continuation
         // lines belong to the *insertion site's* indentation, not to the
         // rendering's. Getting this wrong re-parses as extra nodes.

@@ -331,7 +331,19 @@ fn iterate(value: &Value, path: Option<&Path>) -> Result<Vec<Traced>> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum AssignTarget {
     /// Overwrite the node already at this path.
-    Existing(Path),
+    ///
+    /// Carries the value currently there, not only the path. An assignment
+    /// whose new value equals the old one must not write: `set_value`
+    /// re-emits the scalar from the typed model, which cannot carry a
+    /// number's spelling, so writing `0640` back as the same `Int` emits
+    /// `640`. Comparing needs the old value, so the resolver returns it.
+    // Feature f006; the value added for `yqr-b018`.
+    Existing {
+        /// Where the node is.
+        path: Path,
+        /// What is in it.
+        current: Value,
+    },
     /// Create a new mapping key `key` under the mapping at `parent`.
     NewKey {
         /// Path of the (existing) parent mapping.
@@ -399,8 +411,8 @@ pub(crate) fn resolve_update_target(ast: &Ast, value: &Value) -> Result<Option<(
 ///
 /// Propagates the "exactly one node" contract from [`resolve_target`].
 pub(crate) fn resolve_assign_target(ast: &Ast, value: &Value) -> Result<Option<AssignTarget>> {
-    if let Some(path) = resolve_target(ast, value)? {
-        return Ok(Some(AssignTarget::Existing(path)));
+    if let Some((path, current)) = resolve_update_target(ast, value)? {
+        return Ok(Some(AssignTarget::Existing { path, current }));
     }
     // Absent leaf: the only node yqr can create is a new mapping key.
     let Some((parent_ast, key)) = final_field(ast) else {
@@ -661,9 +673,13 @@ mod tests {
         let got = resolve_assign_target(&ast, &load("a: 1\n")).unwrap();
         assert_eq!(
             got,
-            Some(AssignTarget::Existing(
-                Path::root().child(PathSeg::Key("a".into()))
-            ))
+            Some(AssignTarget::Existing {
+                path: Path::root().child(PathSeg::Key("a".into())),
+                // The resolver carries what is there, so the caller can tell
+                // an assignment that changes nothing from one that does
+                // (`yqr-b018`).
+                current: Value::Int(1),
+            })
         );
     }
 

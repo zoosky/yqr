@@ -1497,3 +1497,143 @@ fn integer_overflow_in_division_is_an_error_not_a_crash() {
         out.stderr
     );
 }
+
+// Bug b018: an assignment whose value is already the value in the file used to
+// re-emit the scalar, canonicalising its spelling. `set_value` writes from the
+// typed model, which cannot carry `0640`'s leading zero or `1.10`'s trailing
+// one -- so a write that changed nothing turned `0640` into `640`, on
+// `yqr-a001` §1's own counter-example.
+#[test]
+fn an_assignment_that_changes_nothing_changes_nothing() {
+    for doc in [
+        "n: 0640\n",   // octal file mode: the fidelity guide's example
+        "v: 1.10\n",   // a version pin
+        "q: \"30\"\n", // a quoted number, which was never affected
+        "big: 9223372036854775807\n",
+        "f: 1.0\n",
+    ] {
+        let key = doc.split(':').next().expect("a key");
+        let filter = format!(".{key} = .{key}");
+        let out = run(&[filter.as_str()], doc);
+        assert_eq!(
+            out.status, 0,
+            "{filter}: a no-op is a success: {}",
+            out.stderr
+        );
+        assert_eq!(out.stdout, doc, "{filter} must be byte-identical");
+    }
+}
+
+#[test]
+fn the_no_op_guard_does_not_block_a_real_write() {
+    // The guard keys on value equality, so anything the typed model *can*
+    // tell apart still writes.
+    let out = run(&[".n = 641"], "n: 0640\n");
+    assert_eq!(out.stdout, "n: 641\n", "stderr: {}", out.stderr);
+
+    let same_number_new_spelling = run(&[".n = 640"], "n: 0640\n");
+    assert_eq!(
+        same_number_new_spelling.stdout, "n: 0640\n",
+        "asking for the value that is already there is a no-op, however it is spelled"
+    );
+}
+
+#[test]
+fn both_assignment_forms_share_the_no_op_guard() {
+    // `=` and `|=` reach it by different resolvers; the rule lives in one
+    // place so they cannot drift.
+    for filter in [".n = .n", ".n |= ."] {
+        let out = run(&[filter], "n: 0640\n");
+        assert_eq!(out.status, 0, "{filter}: {}", out.stderr);
+        assert_eq!(out.stdout, "n: 0640\n", "{filter}");
+    }
+}
+
+// Bug b019: the no-op guard ran ahead of the writer's refusals, so an
+// assignment whose value matched turned a refusal into a silent exit 0. The
+// value at an alias site equals the anchor's, but writing it would replace the
+// reference with a literal -- real work, and work the writer declines to do.
+#[test]
+fn a_no_op_does_not_swallow_an_alias_refusal() {
+    let doc = "a: &x 1\nb: *x\n";
+    for filter in [".b = 1", ".b |= ."] {
+        let out = run(&[filter], doc);
+        assert_eq!(
+            out.status, 5,
+            "{filter}: an alias site is refused whether or not the value differs"
+        );
+        assert!(
+            out.stderr.contains("alias"),
+            "{filter}: the writer's own diagnostic, not a copy: {}",
+            out.stderr
+        );
+    }
+    // The refusal on a differing value is what it always was, and the two now
+    // agree.
+    assert_eq!(run(&[".b = 2"], doc).status, 5);
+}
+
+#[test]
+fn a_no_op_does_not_swallow_a_merge_key_refusal() {
+    // `c.k` is not `c`'s own entry -- `<<: *m` produced it -- so there is no
+    // key there to write, whatever value is asked for.
+    let doc = "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n";
+    assert_eq!(
+        run(&[".c.k = 1"], doc).status,
+        5,
+        "the value it already has"
+    );
+    assert_eq!(run(&[".c.k = 9"], doc).status, 5, "a different value");
+    // A sibling the mapping really owns is unaffected by either rule.
+    assert_eq!(
+        run(&[".c.z = 2"], doc).stdout,
+        doc,
+        "a no-op on its own entry"
+    );
+}
+
+#[test]
+fn an_anchored_scalar_is_still_its_own_value() {
+    // The borrowed check must not overreach: `a` holds the anchor, so `a` is
+    // where the value lives. A no-op there stays a no-op -- the write it would
+    // otherwise attempt is refused for breaking `*x`, which is not what the
+    // user asked for.
+    let doc = "a: &x 1\nb: *x\n";
+    let out = run(&[".a = 1"], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, doc);
+}
+
+// Bug b019: `set_comment` re-emits the body with canonical spacing, so writing
+// a comment's own body back rewrote the line -- the same `yqr-a001` §1
+// violation b018 fixed on the value side.
+#[test]
+fn a_comment_write_that_changes_nothing_changes_nothing() {
+    for (doc, filter) in [
+        ("a: 1 #tight\n", "line_comment(.a) = \"tight\""),
+        ("#tight\na: 1\n", "head_comment(.a) = \"tight\""),
+        ("a: 1   #  padded\n", "line_comment(.a) = \" padded\""),
+    ] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{filter}: {}", out.stderr);
+        assert_eq!(out.stdout, doc, "{filter} must be byte-identical");
+    }
+}
+
+#[test]
+fn the_comment_guard_does_not_block_a_real_write() {
+    let out = run(&["line_comment(.a) = \"other\""], "a: 1 #tight\n");
+    assert_eq!(out.stdout, "a: 1 # other\n", "stderr: {}", out.stderr);
+}
+
+#[test]
+fn reading_a_comment_and_writing_it_back_is_a_no_op() {
+    // The guard compares the body as the *read* path spells it, so the two
+    // halves of the surface agree: whatever `line_comment(.a)` prints is what
+    // `line_comment(.a) = ...` accepts without touching the line.
+    let doc = "a: 1 #tight\n";
+    let body = run(&["-r", "line_comment(.a)"], doc);
+    assert_eq!(body.stdout, "tight\n");
+    let filter = format!("line_comment(.a) = \"{}\"", body.stdout.trim_end());
+    assert_eq!(run(&[filter.as_str()], doc).stdout, doc);
+}
