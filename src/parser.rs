@@ -113,20 +113,25 @@ const REORDERS: &[(&str, ReorderOp)] = &[("swap", ReorderOp::Swap), ("move", Reo
 // Feature f017.
 const BUILTINS: &[(&str, Builtin)] = &[("to_entries", Builtin::ToEntries)];
 
-/// Why a builtin cannot be written to, spelled out per builtin.
+/// Refuse a left-hand side that computes a value rather than naming one.
 ///
-/// The pairs `to_entries` produces are a view yqr invented; they exist in no
-/// file, so there is no byte range an assignment could land in. Refused at
-/// parse rather than at eval, so the message can say *that* instead of
-/// reporting a path that resolved to nothing (`yqr-a002` §8's pattern).
-// Feature f017.
-fn builtin_is_not_writable(b: Builtin, op: &str) -> YqrError {
-    YqrError::parse(format!(
-        "'{}' computes a value rather than naming one in the document, so it \
-         cannot appear on the left of '{op}': there is nothing to write back to. \
-         Read it with a query, or address the entry itself by path",
-        b.word()
-    ))
+/// A builtin's pairs, a literal, and an arithmetic result are all views yqr
+/// invents; they exist in no file, so there is no byte range an edit could
+/// land in. Refused at parse rather than at eval, so the message can say
+/// *that* instead of reporting a path that resolved to nothing
+/// (`yqr-a002` §8's pattern) — or, worse, succeeding silently, which is what a
+/// computed path does when it reaches the write driver (see
+/// [`Ast::unwritable`]).
+// Feature f017, widened for f008.
+fn check_writable(path: &Ast, op: &str) -> Result<()> {
+    match path.unwritable() {
+        None => Ok(()),
+        Some(what) => Err(YqrError::parse(format!(
+            "'{what}' computes a value rather than naming one in the document, so it \
+             cannot appear on the left of '{op}': there is nothing to write back to. \
+             Read it with a query, or address the entry itself by path"
+        ))),
+    }
 }
 
 struct Parser {
@@ -184,9 +189,7 @@ impl Parser {
         match self.peek() {
             Some(Token::Eq) => {
                 self.advance();
-                if let Some(b) = target.path().builtin() {
-                    return Err(builtin_is_not_writable(b, "="));
-                }
+                check_writable(target.path(), "=")?;
                 let rhs = self.parse_rhs()?;
                 Ok(Program::Mutate(Mutation::Assign { target, rhs }))
             }
@@ -204,9 +207,7 @@ impl Parser {
                             .expect("a non-Value target has a selector name")
                     )));
                 };
-                if let Some(b) = path.builtin() {
-                    return Err(builtin_is_not_writable(b, "+="));
-                }
+                check_writable(&path, "+=")?;
                 let rhs = self.parse_rhs()?;
                 Ok(Program::Mutate(Mutation::Append { path, rhs }))
             }
@@ -227,9 +228,7 @@ impl Parser {
                             .expect("a non-Value target has a selector name")
                     )));
                 };
-                if let Some(b) = path.builtin() {
-                    return Err(builtin_is_not_writable(b, "|="));
-                }
+                check_writable(&path, "|=")?;
                 let rhs = self.parse_pipeline()?;
                 Ok(Program::Mutate(Mutation::Update { path, rhs }))
             }
@@ -296,9 +295,7 @@ impl Parser {
                     .to_string(),
             ));
         }
-        if let Some(b) = target.path().builtin() {
-            return Err(builtin_is_not_writable(b, "del"));
-        }
+        check_writable(target.path(), "del")?;
         Ok(Program::Mutate(Mutation::Delete { target }))
     }
 
@@ -319,9 +316,7 @@ impl Parser {
         // absent — it is unwritable — so without this the verb reports
         // success for a reorder that did nothing.
         // Feature f017.
-        if let Some(b) = path.builtin() {
-            return Err(builtin_is_not_writable(b, op.word()));
-        }
+        check_writable(&path, op.word())?;
         self.expect_semi(op)?;
         let from = self.parse_index(op)?;
         self.expect_semi(op)?;

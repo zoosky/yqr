@@ -54,8 +54,8 @@ pub(crate) fn eval_traced(ast: &Ast, value: &Value, path: Option<&Path>) -> Resu
         // Feature f008.
         Ast::Literal(v) => Ok(vec![(v.clone(), None)]),
         Ast::Binary(op, lhs, rhs) => {
-            let a = eval_single(lhs, value)?;
-            let b = eval_single(rhs, value)?;
+            let a = eval_single(lhs, value, &format!("the left side of '{}'", op.symbol()))?;
+            let b = eval_single(rhs, value, &format!("the right side of '{}'", op.symbol()))?;
             Ok(vec![(arithmetic(*op, &a, &b)?, None)])
         }
     }
@@ -132,7 +132,15 @@ fn int_arithmetic(op: BinOp, x: i64, y: i64) -> Result<Value> {
             }
             // Exact division stays an integer; anything else is genuinely
             // fractional and becomes one. `4 / 2` is `2`, `3 / 2` is `1.5`.
-            if x % y == 0 {
+            //
+            // `checked_rem`, not `%`: the one overflowing case is
+            // `i64::MIN % -1`, which panics the process on a bare `%`. It is
+            // also exactly the case `checked_div` would reject a line later,
+            // so the exactness test has to survive long enough to get there.
+            let Some(remainder) = x.checked_rem(y) else {
+                return Err(overflow());
+            };
+            if remainder == 0 {
                 x.checked_div(y).map(Value::Int).ok_or_else(overflow)
             } else {
                 #[allow(clippy::cast_precision_loss)]
@@ -434,26 +442,26 @@ fn final_field(ast: &Ast) -> Option<(Option<&Ast>, String)> {
 pub(crate) fn resolve_rhs(rhs: &Rhs, value: &Value) -> Result<Value> {
     match rhs {
         Rhs::Literal(v) => Ok(v.clone()),
-        Rhs::Path(ast) => eval_single(ast, value),
+        Rhs::Path(ast) => eval_single(ast, value, "the right-hand path"),
     }
 }
 
 /// Evaluate `ast` against `value` and require exactly one result.
 ///
-/// Shared by `=`'s path right-hand side and `|=`'s filter, which differ only
-/// in what they evaluate *against* — the document for `=`, the targeted node
-/// for `|=`. A write needs one value, so a filter that streams or comes up
-/// empty is an error rather than a silent first-or-nothing.
+/// Shared by `=`'s path right-hand side, `|=`'s filter, and each side of a
+/// binary operator — three callers that differ in what they evaluate against
+/// and in what they are *for*. `what` names the caller so the diagnostic does
+/// too: a `+` inside a read query has no right-hand side and performs no
+/// write, and saying otherwise sends the reader looking for an assignment
+/// that is not there.
 // Feature f006, generalised for f008.
-pub(crate) fn eval_single(ast: &Ast, value: &Value) -> Result<Value> {
+pub(crate) fn eval_single(ast: &Ast, value: &Value, what: &str) -> Result<Value> {
     let mut out = eval(ast, value)?;
     match out.len() {
         1 => Ok(out.pop().expect("length checked to be 1")),
-        0 => Err(YqrError::eval(
-            "right-hand filter selected no value".to_string(),
-        )),
+        0 => Err(YqrError::eval(format!("{what} selected no value"))),
         n => Err(YqrError::eval(format!(
-            "right-hand filter selected {n} values; a write needs exactly one"
+            "{what} selected {n} values, but exactly one is needed"
         ))),
     }
 }
@@ -836,6 +844,32 @@ mod tests {
         let msg = err.to_string();
         assert!(msg.contains("overflow"), "{msg}");
         assert!(msg.contains("float"), "the message must say why not: {msg}");
+    }
+
+    #[test]
+    fn i64_min_divided_by_minus_one_errors_rather_than_panicking() {
+        // The exactness pre-check used a bare `%`, and `i64::MIN % -1`
+        // overflows -- panicking the process before `checked_div` could
+        // report it. The one input where the remainder itself overflows.
+        let err = run(&format!("{} / -1", i64::MIN), "a: 0").unwrap_err();
+        assert!(err.to_string().contains("overflow"), "{err}");
+        // Its sibling: the same operands through `%`.
+        let err = run(&format!("{} % -1", i64::MIN), "a: 0").unwrap_err();
+        assert!(err.to_string().contains("overflow"), "{err}");
+    }
+
+    #[test]
+    fn an_arity_error_in_a_read_query_does_not_mention_writing() {
+        // `eval_single` is shared with the write path; a `+` in a read filter
+        // has no right-hand side and performs no write, so saying otherwise
+        // sends the reader looking for an assignment that is not there.
+        let err = run(".xs[] + 1", "xs:\n  - 1\n  - 2\n").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("left side of '+'"), "{msg}");
+        assert!(
+            !msg.contains("write"),
+            "a read query must not mention writing: {msg}"
+        );
     }
 
     #[test]

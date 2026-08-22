@@ -331,7 +331,7 @@ fn apply_to_doc(
             let Some((target, current)) = resolve_update_target(path, value)? else {
                 return Ok(());
             };
-            let updated = eval_single(rhs, &current)?;
+            let updated = eval_single(rhs, &current, "the update filter")?;
             // A write that changes nothing must not rewrite anything.
             // `set_value` re-emits the scalar from the typed value, which
             // canonicalises its spelling -- so writing `0640` back as the same

@@ -320,27 +320,33 @@ impl Ast {
 
     /// The builtin this filter reaches, if any.
     ///
-    /// A builtin computes a value that has no node in the source document, so
-    /// a filter containing one cannot name a thing to write to. All five
-    /// mutation sites — `=`, `+=`, `|=`, `del(...)` and the reorder verbs —
-    /// ask this before accepting a left-hand side, which is how
-    /// `to_entries = 1` is refused at parse with a reason rather than at eval
-    /// with a resolver error.
+    /// Why this filter cannot name a node to write to, if it cannot.
     ///
-    /// A new mutation form must ask too, and the reorder verb is why that is
-    /// worth saying out loud: an unresolvable reorder path is an *absent* one,
-    /// which the write driver is specified to leave alone at exit 0, so a
-    /// missing check there reports success for an edit that did nothing rather
-    /// than failing visibly.
-    // Feature f017.
+    /// Three kinds of node **compute** a value rather than selecting one, so a
+    /// filter containing any of them addresses nothing in the source document:
+    /// a builtin, a literal, and an arithmetic expression. Every mutation site
+    /// asks this before accepting a left-hand side, which is how
+    /// `to_entries = 1` and `.a + 1 = 5` are refused at parse with a reason
+    /// rather than at eval with a resolver error.
+    ///
+    /// **A new mutation form must ask too**, and the failure mode is why that
+    /// is worth saying out loud rather than leaving to convention: a computed
+    /// filter resolves to no path, the write driver reads "no path" as *the
+    /// path is absent in this document*, and an absent path is specified to be
+    /// a **silent no-op at exit 0**. So a missing check does not produce a
+    /// confusing error — it produces a success for an edit that did nothing.
+    /// That is how the reorder verbs slipped through (`yqr-f017` §11.5), and
+    /// how literals and arithmetic slipped through when `yqr-f008` added them.
+    // Feature f017, widened for f008.
     #[must_use]
-    pub fn builtin(&self) -> Option<Builtin> {
+    pub fn unwritable(&self) -> Option<&'static str> {
         match self {
-            Ast::Builtin(b) => Some(*b),
-            Ast::Pipe(lhs, rhs) => lhs.builtin().or_else(|| rhs.builtin()),
-            Ast::Optional(inner) => inner.builtin(),
-            Ast::Binary(_, lhs, rhs) => lhs.builtin().or_else(|| rhs.builtin()),
-            Ast::Identity | Ast::Field(_) | Ast::Index(_) | Ast::Iterate | Ast::Literal(_) => None,
+            Ast::Builtin(b) => Some(b.word()),
+            Ast::Literal(_) => Some("a literal"),
+            Ast::Binary(op, ..) => Some(op.symbol()),
+            Ast::Pipe(lhs, rhs) => lhs.unwritable().or_else(|| rhs.unwritable()),
+            Ast::Optional(inner) => inner.unwritable(),
+            Ast::Identity | Ast::Field(_) | Ast::Index(_) | Ast::Iterate => None,
         }
     }
 }

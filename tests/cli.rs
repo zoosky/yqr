@@ -1445,3 +1445,55 @@ fn a_negative_index_still_lexes_after_the_minus_operator_landed() {
     let sub = run(&[".a - 3"], "a: 7\n");
     assert_eq!(sub.stdout, "4\n", "stderr: {}", sub.stderr);
 }
+
+// A computed left-hand side names no node, and the write driver reads "no
+// node" as "absent in this document", which it is specified to skip at exit 0.
+// So a missing parse-time check does not produce a confusing error -- it
+// produces a success for an edit that did nothing. Every mutation site is
+// covered here because that failure mode is invisible in the output.
+#[test]
+fn every_mutation_site_refuses_a_computed_left_hand_side() {
+    for filter in [
+        "1 = 2",
+        ".a + 1 = 5",
+        "1 |= (. + 1)",
+        ".a + 1 |= .",
+        ".a + 1 += 2",
+        "del(.a + 1)",
+        "del(1)",
+        "swap(.a + 1; 0; 1)",
+        "move(1; 0; 1)",
+        "to_entries = 1",
+    ] {
+        let out = run(&[filter], "a: 1\n");
+        assert_eq!(
+            out.status, 3,
+            "{filter} must refuse at parse: {}",
+            out.stdout
+        );
+        assert!(
+            out.stderr
+                .contains("computes a value rather than naming one"),
+            "{filter}: unexpected stderr: {}",
+            out.stderr
+        );
+    }
+}
+
+#[test]
+fn integer_overflow_in_division_is_an_error_not_a_crash() {
+    // `i64::MIN / -1` is the one case whose *remainder* overflows, which the
+    // exactness pre-check used to compute with a bare `%`.
+    let out = run(&[".n / -1"], "n: -9223372036854775808\n");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("overflow"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+    assert!(
+        !out.stderr.contains("panicked"),
+        "it must report, not crash: {}",
+        out.stderr
+    );
+}

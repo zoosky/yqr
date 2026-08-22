@@ -202,3 +202,42 @@ look like, and `.a -1` is two terms and a parse error — the same corner jq has
 resolved the same way. Pinned in `lexer.rs` and again at the CLI level, since a
 regression there would silently change what `.[-1]` means.
 
+### 7.4 What a code review found, all three from this feature
+
+**A panic.** `int_arithmetic`'s exactness pre-check used a bare `%`, and
+`i64::MIN % -1` overflows — so `.n / -1` on `i64::MIN` aborted the process at
+exit 101 instead of reporting the overflow the very next line would have
+caught. It reproduced in **release** as well as debug. Fixed with
+`checked_rem`, and pinned at both the eval and CLI levels, the CLI test
+asserting the output does *not* contain `panicked`.
+
+Worth naming precisely: the module's own doc comment said overflow is an error
+rather than a promotion, and the test for it covered only `+`. The claim was
+right and the coverage was one operator wide.
+
+**A silent no-op at every mutation site.** Adding literals and arithmetic to
+the filter language quietly widened what `parse_target` accepts, and
+`Ast::builtin()` — the guard — only knew about builtins. So `.a + 1 = 5`,
+`1 |= (. + 1)`, `del(.a + 1)` and `swap(.a + 1; 0; 1)` all **exited 0 having
+done nothing**.
+
+The mechanism is worth stating because it is not intuitive: a computed filter
+resolves to no path, the write driver reads "no path" as *absent in this
+document*, and an absent path is specified to be a silent skip. A missing check
+therefore produces **success**, not an error. That is the third time this
+failure shape has appeared — `yqr-f017` §11.5's reorder verbs, and now twice
+over in one feature — so the guard is no longer builtin-shaped:
+`Ast::builtin()` became `Ast::unwritable()`, covering builtins, literals and
+arithmetic, and its doc comment now explains the exit-0 mechanism rather than
+just instructing the reader to call it.
+
+**A write-flavoured message in a read query.** Generalising `resolve_rhs`'s
+arity check into `eval_single` carried its wording along, so `.xs[] + 1` — no
+assignment anywhere — reported *"right-hand filter selected 2 values; a write
+needs exactly one"*. `eval_single` now takes what it is being called for, and
+says `the left side of '+'`.
+
+All three were introduced by this feature and none was caught by its own
+acceptance criteria, which is the useful part: the criteria tested what the
+feature was **for**, and every one of these is something the feature
+incidentally made **reachable**.
