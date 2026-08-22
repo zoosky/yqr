@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787349001390,
+  "lastUpdate": 1787378847047,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1637,6 +1637,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 260145,
             "range": "± 2333",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d79823bf100fe0282f7de0739630b2bef5e34f9a",
+          "message": "feat(write): computed updates with `|=`, and arithmetic (f008) (#95)\n\n* feat(write): computed updates with `|=`, and arithmetic (f008)\n\nf008 sat as a stub gated on \"the expression evaluator\", which sounded like all\nof M2. Measured, it split in two, and only half was real.\n\nThe operator needed nothing new. resolve_rhs already evaluates an Ast against a\nValue and returns exactly one result; `=` evaluates against the document, `|=`\nagainst the node at the target path. That is the whole difference. This is the\nf017 pattern a second time -- a feature queued behind machinery it needed only\npart of -- so the lesson is now twice-confirmed: measure the gate.\n\nOnly the arithmetic was genuinely missing. `+ - * / %` with jq's precedence\nand parentheses, in any filter rather than only on the right of `|=`, because\nthe evaluator is shared.\n\nNumbers keep their type, which a001 §6 ratified two months before anything\nneeded it. Int op Int stays Int while exact; division becomes a float only\nwhen genuinely fractional. Overflow is an error rather than a promotion --\npromoting is exactly the precision loss the rule exists to prevent, so it\ncannot be the overflow strategy.\n\nThe `-` ambiguity is resolved in the lexer by adjacency: glued to a digit it\nopens a literal, followed by anything else it is the operator. So `.[-1]` and\n`. - 1` both mean what they look like, and `.a -1` is two terms and a parse\nerror -- jq's corner, resolved jq's way. Pinned at both the lexer and CLI\nlevels, since a regression would silently change what `.[-1]` means.\n\nTwo things building it found, both recorded in f008 §7.\n\nThe first acceptance test found a fidelity bug: `.n |= .` on `n: 0640` emitted\n`640`, because the typed model cannot carry the spelling and re-emitting the\nsame value canonicalises it -- on the exact scalar the fidelity guide leads\nwith. `|=` guards it by skipping a write whose computed value equals the\ncurrent one, so the identity update is byte-exact by construction. `=` has the\nsame hazard and is filed as b018 rather than fixed here: widening it means\nchanging a shipped operator's write path, which does not belong in a feature\nabout `|=`. An acceptance criterion that says \"byte-identical\" finds things\none that says \"works\" does not.\n\nAnd two claims in the spec were written from the shape of the code rather than\nfrom running it -- \"every filter yqr has works as a `|=` right-hand side\"\nwas false, since set_value writes scalar leaves. Corrected in place, with the\nnarrower and truer statement: `|=` works wherever `=` works. Same failure mode\na code review caught in a003 the day before; the measurement discipline this\nproject applies to upstream claims has to apply to its own.\n\n* fix(f008): a panic, a silent no-op at every mutation site, and a misleading message\n\nAll three found by code review, all three introduced by f008, and none caught\nby its own acceptance criteria -- which tested what the feature was for, while\neach of these is something it incidentally made reachable.\n\nint_arithmetic's exactness pre-check used a bare `%`, and i64::MIN % -1\noverflows, so `.n / -1` on i64::MIN aborted the process at exit 101 instead of\nreporting the overflow the next line would have caught. It reproduced in\nrelease as well as debug. Fixed with checked_rem and pinned at both eval and\nCLI levels, the CLI test asserting the output does not contain \"panicked\". The\nmodule doc already said overflow is an error rather than a promotion; the test\nfor it covered only `+`.\n\nAdding literals and arithmetic quietly widened what parse_target accepts, and\nthe guard only knew about builtins. So `.a + 1 = 5`, `1 |= (. + 1)`,\n`del(.a + 1)` and `swap(.a + 1; 0; 1)` all exited 0 having done nothing.\n\nThe mechanism deserves stating because it is not intuitive: a computed filter\nresolves to no path, the write driver reads \"no path\" as absent in this\ndocument, and an absent path is specified to be a silent skip -- so a missing\ncheck produces success, not an error. Third appearance of that shape after\nf017 §11.5's reorder verbs, so the guard is no longer builtin-shaped:\nAst::builtin() becomes Ast::unwritable(), covering builtins, literals and\narithmetic, with a doc comment that explains the exit-0 mechanism rather than\njust telling the next person to call it. Ten filters pinned across all six\nmutation sites, because the failure mode is invisible in the output.\n\nAnd generalising resolve_rhs's arity check into eval_single carried its\nwording along, so `.xs[] + 1` -- no assignment anywhere -- reported \"right-hand\nfilter selected 2 values; a write needs exactly one\". eval_single now takes\nwhat it is being called for and says \"the left side of '+'\".",
+          "timestamp": "2026-08-22T08:06:09+02:00",
+          "tree_id": "bcc63f8363eac2d5bd3c4ef3425172248cbb9cd5",
+          "url": "https://github.com/zoosky/yqr/commit/d79823bf100fe0282f7de0739630b2bef5e34f9a"
+        },
+        "date": 1787378845821,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 565,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5658,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 258689,
+            "range": "± 1909",
             "unit": "ns/iter"
           }
         ]
