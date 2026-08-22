@@ -1,7 +1,8 @@
 ---
 # Traceability: Feature f009 made fidelity the default; f002 is the read
 # floor. Bug b011 (wrapped flow collections) fixed in noyalib 0.0.25.
-# The no-op write rule and the borrowed-entry refusal are bugs b018 and b019.
+# The no-op write rule and the borrowed-entry refusal are bugs b018 and
+# b019; the merged-key message is b020.
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -141,9 +142,19 @@ half-written file.
 
 An entry that a `<<` merge or an alias produced is one of those refusals.
 You can *read* `.web.mode` -- it resolves to `0640` through the merge -- but
-there is no `mode` entry under `web` to write to, so `.web.mode = 416`
-exits 5 rather than inventing one. Set the value on the anchor, or add an
-explicit `mode:` under `web` first.
+there is no `mode` entry under `web` to write to, so yqr declines rather
+than inventing one:
+
+```console
+$ yqr '.web.mode = 416' config.yaml
+yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode"
+entry of its own to write; it is merged in from elsewhere, through a `<<`
+merge key or an alias. Assign where the key is defined, or add an explicit
+"mode" entry here to override it
+```
+
+Both of those work: `.defaults.mode = 416` changes it for everything that
+inherits, and adding `mode:` under `web` overrides it for `web` alone.
 
 ## A write that changes nothing changes nothing
 

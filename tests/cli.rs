@@ -1637,3 +1637,86 @@ fn reading_a_comment_and_writing_it_back_is_a_no_op() {
     let filter = format!("line_comment(.a) = \"{}\"", body.stdout.trim_end());
     assert_eq!(run(&[filter.as_str()], doc).stdout, doc);
 }
+
+// Bug b020: a key a `<<` merge or an alias expansion put in the typed view is
+// refused, correctly -- there is no entry in the mapping to write. The reason
+// given used to be `path not found`, for a path yqr had just read a value
+// from, which is the tool contradicting itself.
+#[test]
+fn a_merged_in_key_is_refused_by_what_is_actually_wrong() {
+    let doc = "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n";
+    // The premise: the path reads.
+    assert_eq!(run(&["-r", ".c.k"], doc).stdout, "1\n");
+
+    for filter in [".c.k = 9", ".c.k |= 2", ".c.k = 1"] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 5, "{filter}");
+        assert!(
+            out.stderr.contains("no \"k\" entry of its own"),
+            "{filter}: names what is wrong: {}",
+            out.stderr
+        );
+        assert!(
+            !out.stderr.contains("path not found"),
+            "{filter}: and does not deny a path it can read: {}",
+            out.stderr
+        );
+        assert_eq!(out.stdout, "", "{filter}: a refusal writes nothing");
+    }
+}
+
+#[test]
+fn an_alias_expanded_key_gets_the_same_reason() {
+    // `c: *m` puts `m`'s keys in the typed view without `c` owning any of
+    // them -- the same fact as a merge, so the same sentence.
+    let out = run(&[".c.k = 9"], "m: &m\n  k: 1\nc: *m\n");
+    assert_eq!(out.status, 5);
+    assert!(
+        out.stderr.contains("no \"k\" entry of its own"),
+        "{}",
+        out.stderr
+    );
+}
+
+#[test]
+fn the_alias_refusal_is_left_to_the_writer() {
+    // b020 takes over only the merged-key reason. An alias *value* keeps
+    // upstream's wording, which is already accurate and names the way out --
+    // so the two refusals stay one voice each rather than yqr owning half of
+    // a message it did not establish.
+    let out = run(&[".b = 2"], "a: &x 1\nb: *x\n");
+    assert_eq!(out.status, 5);
+    assert!(
+        out.stderr.contains("alias reference") && out.stderr.contains("edit the anchor"),
+        "{}",
+        out.stderr
+    );
+}
+
+#[test]
+fn a_mappings_own_entry_is_untouched_by_the_merged_key_check() {
+    // The boundary. `z` sits next to the `<<` and is `c`'s own; `base.k` is
+    // the definition. Both write normally.
+    let doc = "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n";
+    assert_eq!(
+        run(&[".c.z = 9"], doc).stdout,
+        "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 9\n"
+    );
+    assert_eq!(
+        run(&[".base.k = 9"], doc).stdout,
+        "base: &m\n  k: 9\nc:\n  <<: *m\n  z: 2\n"
+    );
+    // An implicit null has no value span either, and is nobody's merge, so
+    // the merged-key reason must not reach it. Writing a value there is
+    // refused for its own (pre-existing) reason -- see `yqr-b021` -- and
+    // writing `null`, which changes nothing, is still a no-op.
+    let implicit = "a:\nb: 2\n";
+    let refused = run(&[".a = 1"], implicit);
+    assert_eq!(refused.status, 5);
+    assert!(
+        !refused.stderr.contains("entry of its own"),
+        "not the merged-key reason: {}",
+        refused.stderr
+    );
+    assert_eq!(run(&[".a = null"], implicit).stdout, implicit);
+}

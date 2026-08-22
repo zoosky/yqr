@@ -88,6 +88,13 @@ All notable changes to `yqr` are documented here. The format is based on
   now refused whatever value is assigned. A no-op on an *ordinary* entry is
   still a no-op, including on one that carries an anchor.
 
+- **A write to a merged-in key says what is actually wrong.** `yqr '.c.k'`
+  printed a value and `yqr '.c.k = 9'` on the same file answered *"path not
+  found: c.k"* -- one tool contradicting itself. A key that a `<<` merge or an
+  alias brings into view is still refused, because the mapping has no entry
+  there to write, but the message now says so and names the two ways out:
+  assign where the key is defined, or add an explicit entry to override it.
+
 - **Deleting from a wrapped flow collection no longer leaves a blank line.**
   `del(.ports[0])` on a `ports:` list broken across lines removed the member
   and its separator but left the line's indentation behind, so a line that had

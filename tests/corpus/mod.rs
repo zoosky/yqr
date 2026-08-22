@@ -520,6 +520,16 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: ".service.retries = 3",
             expect: WriteExpect::Err(5),
         },
+        // Bug b020: `service.retries` reads through `<<: *defaults`, so the
+        // refusal is right -- and its reason must name that, not deny a path
+        // the read tier resolves. Pinned as an exit code here; the wording is
+        // asserted at the CLI level, where a message belongs.
+        WriteCase {
+            id: "write/assign/a-merged-in-key-is-refused",
+            doc: FIDELITY_RICH,
+            filter: ".service.retries = 9",
+            expect: WriteExpect::Err(5),
+        },
         // Bug b019: the same rule on a comment. `#primary` and `# primary`
         // carry one body, and the body is all a comment write is given, so
         // writing it back must leave the line alone. It has to be the *tight*

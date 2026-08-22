@@ -73,6 +73,23 @@ impl CommentKind {
     }
 }
 
+/// Why the node at a path is not the addressed entry's own.
+///
+/// Both arms mean the same thing to the no-op guard — do not skip — and
+/// different things to a reader of the refusal, which is why they are kept
+/// apart rather than collapsed to a bool at the source.
+// Bugs b019, b020.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Borrowed {
+    /// The **key** is not in the source. A `<<` merge or an alias expansion
+    /// put it in the typed view, so the mapping has no entry to write at all.
+    Key,
+    /// The key is the mapping's own, but its **value** is an alias reference
+    /// resolved through to the anchor. Writing there would splice the
+    /// anchor's bytes, which name a different entry.
+    Value,
+}
+
 /// A source-preserving *writer* over one parsed YAML input.
 ///
 /// Implementations own an editable view of the document stream and apply
@@ -617,6 +634,46 @@ impl NoyalibWriter {
         Ok(())
     }
 
+    /// Establish whether the node at `path` is the addressed entry's own, and
+    /// if not, which way it is borrowed.
+    ///
+    /// Two source-level facts settle it, and neither needs to reason about
+    /// where the anchor is. Upstream decides the same question in
+    /// `Document::write_span`, but that is private, so this establishes it
+    /// from the public span API instead of guessing — and answers `None`
+    /// wherever it cannot, which leaves the verdict to the write itself.
+    // Bugs b019, b020.
+    fn borrowed_site(&self, doc: usize, path: &Path) -> Result<Option<Borrowed>> {
+        let d = self.doc_ref(doc)?;
+        // A path yqr cannot express reaches no site to inspect. Nothing is
+        // established, and the caller's fallback covers it.
+        let Some(path_str) = super::noyalib::to_noyalib_path(path) else {
+            return Ok(None);
+        };
+        // A key the source does not contain is not the mapping's own — a `<<`
+        // merge or an alias expansion produced it. Restricting this to paths
+        // ending in a key is what keeps a sequence item and the root out: both
+        // legitimately have no key. An implicit null keeps its key and so
+        // stays out too, which matters — `a:` has no value span either, and
+        // refusing `.a = null` there would be the very re-spell the no-op
+        // guard exists to prevent.
+        if matches!(path.segments().last(), Some(PathSeg::Key(_)))
+            && d.key_span(&path_str).is_none()
+        {
+            return Ok(Some(Borrowed::Key));
+        }
+        // Bytes that lie *before* the key naming them cannot be that entry's
+        // own. YAML requires an anchor to precede every alias to it, so a
+        // value span ahead of its key belongs to the anchor and was reached by
+        // resolving an alias through.
+        let (Some((value_start, _)), Some((key_start, _))) =
+            (d.span_at(&path_str), d.key_span(&path_str))
+        else {
+            return Ok(None);
+        };
+        Ok((value_start < key_start).then_some(Borrowed::Value))
+    }
+
     /// Bounds-checked shared document accessor (used by the structural-delete
     /// fallback, which reads spans and source bytes before it mutates).
     fn doc_ref(&self, doc: usize) -> Result<&::noyalib::cst::Document> {
@@ -643,6 +700,24 @@ impl FidelityWriter for NoyalibWriter {
 
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
         let path_str = noyalib_path(path)?;
+        // A merged-in key is refused either way; what yqr owns here is the
+        // *reason*. Upstream's resolver returns the same `None` for a key a
+        // merge produced as for one that does not exist, so `set_value`
+        // reports `path not found` for a path yqr had just read a value from —
+        // one tool contradicting itself. Its own `rename_key` words this
+        // correctly, so the wording is borrowed from there rather than
+        // invented. The alias arm is *not* intercepted: upstream's message for
+        // it is already accurate and names the way out.
+        if let (Some(PathSeg::Key(key)), Some(Borrowed::Key)) =
+            (path.segments().last(), self.borrowed_site(doc, path)?)
+        {
+            return Err(YqrError::eval(format!(
+                "cannot assign at {path_str:?}: the mapping has no {key:?} entry of its own \
+                 to write; it is merged in from elsewhere, through a `<<` merge key or an \
+                 alias. Assign where the key is defined, or add an explicit {key:?} entry \
+                 here to override it"
+            )));
+        }
         // Same scalar-only limit as the insert paths, checked here rather than
         // left to the engine: `set_value`'s own refusal names `set` and
         // fragments, APIs yqr never exposes, and reports a *parse* error for
@@ -653,40 +728,8 @@ impl FidelityWriter for NoyalibWriter {
             .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))
     }
 
-    // Two source-level facts settle this, and neither needs to reason about
-    // where the anchor is. Upstream decides the same question in `write_span`,
-    // but that is private, so this establishes it from the public span API
-    // instead of guessing — and answers `false` wherever it cannot, leaving
-    // the verdict to the write itself.
     fn value_is_borrowed(&self, doc: usize, path: &Path) -> Result<bool> {
-        let d = self.doc_ref(doc)?;
-        // A path yqr cannot express reaches no site to inspect. Nothing is
-        // established, and the caller's fallback covers it.
-        let Some(path_str) = super::noyalib::to_noyalib_path(path) else {
-            return Ok(false);
-        };
-        // 1. A key the source does not contain is not the mapping's own — a
-        //    `<<` merge or an alias expansion produced it. Restricting this to
-        //    paths ending in a key is what keeps a sequence item and the root
-        //    out: both legitimately have no key. An implicit null keeps its
-        //    key and so stays out too, which matters — `a:` has no value span
-        //    either, and refusing `.a = null` there would be the very re-spell
-        //    this guard exists to prevent.
-        if matches!(path.segments().last(), Some(PathSeg::Key(_)))
-            && d.key_span(&path_str).is_none()
-        {
-            return Ok(true);
-        }
-        // 2. Bytes that lie *before* the key naming them cannot be that
-        //    entry's own. YAML requires an anchor to precede every alias to
-        //    it, so a value span ahead of its key belongs to the anchor and
-        //    was reached by resolving an alias through.
-        let (Some((value_start, _)), Some((key_start, _))) =
-            (d.span_at(&path_str), d.key_span(&path_str))
-        else {
-            return Ok(false);
-        };
-        Ok(value_start < key_start)
+        Ok(self.borrowed_site(doc, path)?.is_some())
     }
 
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
@@ -1605,6 +1648,35 @@ mod tests {
         )
         .expect("a write that changes nothing cannot fail");
         assert_eq!(out, "'a.b': 1\n", "and it must not touch the bytes");
+    }
+
+    #[test]
+    fn a_borrowed_site_says_which_way_it_is_borrowed() {
+        // The two arms drive different refusals -- `Key` is yqr's own message
+        // (`yqr-b020`), `Value` falls through to upstream's -- so collapsing
+        // them to a bool at the source would lose the distinction the
+        // diagnostics depend on.
+        let cases: &[(&str, &str, Option<Borrowed>)] = &[
+            ("m: &m\n  k: 1\nc:\n  <<: *m\n", ".c.k", Some(Borrowed::Key)),
+            ("m: &m\n  k: 1\nc: *m\n", ".c.k", Some(Borrowed::Key)),
+            ("a: &x 1\nb: *x\n", ".b", Some(Borrowed::Value)),
+            ("a: &x 1\nb:\n  c: *x\n", ".b.c", Some(Borrowed::Value)),
+            ("n: 0640\n", ".n", None),
+            ("a:\nb: 1\n", ".a", None),
+        ];
+        for (src, filter, want) in cases {
+            let writer = NoyalibWriter::open(src).expect("valid YAML");
+            let value = writer.value(0).expect("one document");
+            let ast = crate::parser::parse(filter).expect("a valid path");
+            let path = crate::eval::resolve_target(&ast, &value)
+                .expect("resolves")
+                .expect("to a node");
+            assert_eq!(
+                writer.borrowed_site(0, &path).expect("in range"),
+                *want,
+                "{filter} over {src:?}"
+            );
+        }
     }
 
     #[test]
