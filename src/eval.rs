@@ -9,7 +9,7 @@
 
 use crate::Value;
 
-use crate::ast::{Ast, Builtin, Rhs};
+use crate::ast::{Ast, BinOp, Builtin, Rhs};
 use crate::error::{Result, YqrError};
 use crate::fidelity::{Path, PathSeg};
 
@@ -50,6 +50,133 @@ pub(crate) fn eval_traced(ast: &Ast, value: &Value, path: Option<&Path>) -> Resu
         // on `None` — which is exactly the provenance the renderer needs to
         // fall back to the typed emitter (`yqr-f017` §6).
         Ast::Builtin(Builtin::ToEntries) => Ok(vec![(to_entries(value)?, None)]),
+        // Computed, like a builtin: no source node, so no provenance.
+        // Feature f008.
+        Ast::Literal(v) => Ok(vec![(v.clone(), None)]),
+        Ast::Binary(op, lhs, rhs) => {
+            let a = eval_single(lhs, value, &format!("the left side of '{}'", op.symbol()))?;
+            let b = eval_single(rhs, value, &format!("the right side of '{}'", op.symbol()))?;
+            Ok(vec![(arithmetic(*op, &a, &b)?, None)])
+        }
+    }
+}
+
+/// Apply an arithmetic operator to two values.
+///
+/// The number model is `yqr-a001` §6's, ratified long before anything needed
+/// it: **preserve types**. `Int op Int` stays `Int` while the result is exact,
+/// and becomes `Float` only when the operation is genuinely fractional. That
+/// is a fidelity rule rather than a numeric-tower preference — `replicas: 3`
+/// must not become `3.0`, and an `i64` identifier must not lose precision on
+/// the way through an `f64`.
+///
+/// Overflow is an **error**, not a promotion. Promoting to `Float` is exactly
+/// the precision loss the rule exists to prevent, so it cannot be the
+/// overflow strategy.
+///
+/// `+` also concatenates strings, which is the one non-numeric case jq and
+/// every other language agree on. Mixed operands are refused, naming both
+/// types, rather than coerced.
+///
+/// # Errors
+///
+/// Returns an error for non-numeric operands, mixed string/number operands,
+/// division or remainder by zero, and `i64` overflow.
+// Feature f008.
+fn arithmetic(op: BinOp, a: &Value, b: &Value) -> Result<Value> {
+    // String concatenation, the only non-numeric operation in scope.
+    if let (Value::String(x), Value::String(y)) = (a, b) {
+        return if op == BinOp::Add {
+            Ok(Value::String(format!("{x}{y}")))
+        } else {
+            Err(YqrError::eval(format!(
+                "cannot apply '{}' to two strings; only '+' concatenates",
+                op.symbol()
+            )))
+        };
+    }
+
+    match (a, b) {
+        (Value::Int(x), Value::Int(y)) => int_arithmetic(op, *x, *y),
+        // Any float operand makes the result a float; there is no exactness
+        // to preserve once one side already lost it.
+        (Value::Int(_) | Value::Float(_), Value::Int(_) | Value::Float(_)) => {
+            float_arithmetic(op, as_f64(a), as_f64(b))
+        }
+        _ => Err(YqrError::eval(format!(
+            "cannot apply '{}' to {} and {}",
+            op.symbol(),
+            type_name(a),
+            type_name(b)
+        ))),
+    }
+}
+
+/// `Int op Int`, staying `Int` while the result is exact.
+// Feature f008.
+fn int_arithmetic(op: BinOp, x: i64, y: i64) -> Result<Value> {
+    let overflow = || {
+        YqrError::eval(format!(
+            "integer overflow in {x} {} {y}; the result does not fit i64, and \
+             widening it to a float would lose the precision fidelity protects",
+            op.symbol()
+        ))
+    };
+    match op {
+        BinOp::Add => x.checked_add(y).map(Value::Int).ok_or_else(overflow),
+        BinOp::Sub => x.checked_sub(y).map(Value::Int).ok_or_else(overflow),
+        BinOp::Mul => x.checked_mul(y).map(Value::Int).ok_or_else(overflow),
+        BinOp::Div => {
+            if y == 0 {
+                return Err(YqrError::eval(format!("division by zero in {x} / {y}")));
+            }
+            // Exact division stays an integer; anything else is genuinely
+            // fractional and becomes one. `4 / 2` is `2`, `3 / 2` is `1.5`.
+            //
+            // `checked_rem`, not `%`: the one overflowing case is
+            // `i64::MIN % -1`, which panics the process on a bare `%`. It is
+            // also exactly the case `checked_div` would reject a line later,
+            // so the exactness test has to survive long enough to get there.
+            let Some(remainder) = x.checked_rem(y) else {
+                return Err(overflow());
+            };
+            if remainder == 0 {
+                x.checked_div(y).map(Value::Int).ok_or_else(overflow)
+            } else {
+                #[allow(clippy::cast_precision_loss)]
+                Ok(Value::Float(x as f64 / y as f64))
+            }
+        }
+        BinOp::Rem => {
+            if y == 0 {
+                return Err(YqrError::eval(format!("remainder by zero in {x} % {y}")));
+            }
+            x.checked_rem(y).map(Value::Int).ok_or_else(overflow)
+        }
+    }
+}
+
+/// Arithmetic once either operand is a float.
+// Feature f008.
+fn float_arithmetic(op: BinOp, x: f64, y: f64) -> Result<Value> {
+    match op {
+        BinOp::Add => Ok(Value::Float(x + y)),
+        BinOp::Sub => Ok(Value::Float(x - y)),
+        BinOp::Mul => Ok(Value::Float(x * y)),
+        BinOp::Div if y == 0.0 => Err(YqrError::eval(format!("division by zero in {x} / {y}"))),
+        BinOp::Div => Ok(Value::Float(x / y)),
+        BinOp::Rem if y == 0.0 => Err(YqrError::eval(format!("remainder by zero in {x} % {y}"))),
+        BinOp::Rem => Ok(Value::Float(x % y)),
+    }
+}
+
+/// Widen a numeric value for float arithmetic.
+#[allow(clippy::cast_precision_loss)]
+fn as_f64(v: &Value) -> f64 {
+    match v {
+        Value::Int(i) => *i as f64,
+        Value::Float(f) => *f,
+        _ => f64::NAN,
     }
 }
 
@@ -237,6 +364,30 @@ pub(crate) fn resolve_target(ast: &Ast, value: &Value) -> Result<Option<Path>> {
     Ok(traced.pop().expect("length checked to be 1").1)
 }
 
+/// Resolve an update's left-hand path to the node it targets **and** that
+/// node's current value.
+///
+/// [`resolve_target`] keeps the path and drops the value, which is all `=`
+/// needs. `|=` needs both: the path to write through, and the value to hand
+/// the right-hand filter. Same single-node contract, same absent-path skip.
+///
+/// # Errors
+///
+/// Propagates the "exactly one node" contract from [`resolve_target`].
+// Feature f008.
+pub(crate) fn resolve_update_target(ast: &Ast, value: &Value) -> Result<Option<(Path, Value)>> {
+    let mut traced = eval_traced(ast, value, Some(&Path::root()))?;
+    if traced.len() != 1 {
+        return Err(YqrError::eval(format!(
+            "a mutation must target exactly one node, but the filter selected {}",
+            traced.len()
+        )));
+    }
+    // `pop` is safe: length was just checked to be 1.
+    let (found, path) = traced.pop().expect("length checked to be 1");
+    Ok(path.map(|p| (p, found)))
+}
+
 /// Resolve an assignment's left-hand path into a concrete [`AssignTarget`].
 ///
 /// An existing node overwrites in place. An absent *final mapping key* under an
@@ -291,18 +442,27 @@ fn final_field(ast: &Ast) -> Option<(Option<&Ast>, String)> {
 pub(crate) fn resolve_rhs(rhs: &Rhs, value: &Value) -> Result<Value> {
     match rhs {
         Rhs::Literal(v) => Ok(v.clone()),
-        Rhs::Path(ast) => {
-            let mut out = eval(ast, value)?;
-            match out.len() {
-                1 => Ok(out.pop().expect("length checked to be 1")),
-                0 => Err(YqrError::eval(
-                    "right-hand path selected no value".to_string(),
-                )),
-                n => Err(YqrError::eval(format!(
-                    "right-hand path selected {n} values; assignment needs exactly one"
-                ))),
-            }
-        }
+        Rhs::Path(ast) => eval_single(ast, value, "the right-hand path"),
+    }
+}
+
+/// Evaluate `ast` against `value` and require exactly one result.
+///
+/// Shared by `=`'s path right-hand side, `|=`'s filter, and each side of a
+/// binary operator — three callers that differ in what they evaluate against
+/// and in what they are *for*. `what` names the caller so the diagnostic does
+/// too: a `+` inside a read query has no right-hand side and performs no
+/// write, and saying otherwise sends the reader looking for an assignment
+/// that is not there.
+// Feature f006, generalised for f008.
+pub(crate) fn eval_single(ast: &Ast, value: &Value, what: &str) -> Result<Value> {
+    let mut out = eval(ast, value)?;
+    match out.len() {
+        1 => Ok(out.pop().expect("length checked to be 1")),
+        0 => Err(YqrError::eval(format!("{what} selected no value"))),
+        n => Err(YqrError::eval(format!(
+            "{what} selected {n} values, but exactly one is needed"
+        ))),
     }
 }
 
@@ -650,5 +810,97 @@ mod tests {
     fn to_entries_of_an_empty_mapping_is_an_empty_sequence() {
         let out = run(".m | to_entries", "m: {}\n").unwrap();
         assert_eq!(out, vec![Value::Sequence(Vec::new())]);
+    }
+
+    // -- Feature f008: arithmetic ------------------------------------------
+
+    #[test]
+    fn int_arithmetic_stays_int_while_exact() {
+        // a001 §6: `replicas: 3` must not become `3.0`.
+        for (filter, want) in [
+            ("3 + 1", Value::Int(4)),
+            ("3 - 1", Value::Int(2)),
+            ("3 * 2", Value::Int(6)),
+            ("4 / 2", Value::Int(2)),
+            ("7 % 3", Value::Int(1)),
+        ] {
+            assert_eq!(run(filter, "a: 0").unwrap(), vec![want], "{filter}");
+        }
+    }
+
+    #[test]
+    fn division_becomes_float_only_when_genuinely_fractional() {
+        assert_eq!(run("3 / 2", "a: 0").unwrap(), vec![Value::Float(1.5)]);
+        assert_eq!(run("4 / 2", "a: 0").unwrap(), vec![Value::Int(2)]);
+        // A float operand carries: there is no exactness left to preserve.
+        assert_eq!(run("1.5 + 1", "a: 0").unwrap(), vec![Value::Float(2.5)]);
+    }
+
+    #[test]
+    fn overflow_is_an_error_not_a_promotion_to_float() {
+        // Promoting would lose the precision the preserve-types rule exists
+        // to protect, so it cannot be the overflow strategy.
+        let err = run(&format!("{} + 1", i64::MAX), "a: 0").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("overflow"), "{msg}");
+        assert!(msg.contains("float"), "the message must say why not: {msg}");
+    }
+
+    #[test]
+    fn i64_min_divided_by_minus_one_errors_rather_than_panicking() {
+        // The exactness pre-check used a bare `%`, and `i64::MIN % -1`
+        // overflows -- panicking the process before `checked_div` could
+        // report it. The one input where the remainder itself overflows.
+        let err = run(&format!("{} / -1", i64::MIN), "a: 0").unwrap_err();
+        assert!(err.to_string().contains("overflow"), "{err}");
+        // Its sibling: the same operands through `%`.
+        let err = run(&format!("{} % -1", i64::MIN), "a: 0").unwrap_err();
+        assert!(err.to_string().contains("overflow"), "{err}");
+    }
+
+    #[test]
+    fn an_arity_error_in_a_read_query_does_not_mention_writing() {
+        // `eval_single` is shared with the write path; a `+` in a read filter
+        // has no right-hand side and performs no write, so saying otherwise
+        // sends the reader looking for an assignment that is not there.
+        let err = run(".xs[] + 1", "xs:\n  - 1\n  - 2\n").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("left side of '+'"), "{msg}");
+        assert!(
+            !msg.contains("write"),
+            "a read query must not mention writing: {msg}"
+        );
+    }
+
+    #[test]
+    fn division_and_remainder_by_zero_are_errors() {
+        assert!(run("1 / 0", "a: 0").is_err());
+        assert!(run("1 % 0", "a: 0").is_err());
+        assert!(run("1.0 / 0", "a: 0").is_err());
+    }
+
+    #[test]
+    fn plus_concatenates_strings_and_nothing_else_does() {
+        assert_eq!(
+            run(r#""a" + "b""#, "x: 0").unwrap(),
+            vec![Value::String("ab".into())]
+        );
+        let err = run(r#""a" - "b""#, "x: 0").unwrap_err();
+        assert!(err.to_string().contains("only \'+\' concatenates"), "{err}");
+    }
+
+    #[test]
+    fn mixed_operands_are_refused_naming_both_types() {
+        let err = run(r#".s + 1"#, "s: hi").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("string") && msg.contains("number"), "{msg}");
+    }
+
+    #[test]
+    fn arithmetic_reads_the_input_like_any_other_filter() {
+        // Not a `|=`-only construct: the evaluator is shared, so it works in
+        // a read filter too.
+        assert_eq!(run(".a + 1", "a: 41").unwrap(), vec![Value::Int(42)]);
+        assert_eq!(run(".a * .b", "a: 6\nb: 7").unwrap(), vec![Value::Int(42)]);
     }
 }

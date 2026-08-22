@@ -28,6 +28,18 @@ pub enum Token {
     Eq,
     /// `+=` — append (block-sequence push).
     PlusEq,
+    // Feature f008: arithmetic operators.
+    /// `+` — addition, or string concatenation.
+    Plus,
+    /// `-` — subtraction. Only lexed where a negative literal cannot start;
+    /// see the number scanner.
+    Minus,
+    /// `*` — multiplication.
+    Star,
+    /// `/` — division.
+    Slash,
+    /// `%` — remainder.
+    Percent,
     /// `|=` — computed update (reserved; not yet supported).
     PipeEq,
     /// `(` — opens a `del(...)` form.
@@ -98,10 +110,24 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
                     tokens.push(Token::PlusEq);
                     i += 2;
                 } else {
-                    return Err(YqrError::lex(format!(
-                        "unexpected character '+' at position {i} (did you mean '+=' ?)"
-                    )));
+                    tokens.push(Token::Plus);
+                    i += 1;
                 }
+            }
+            // `*` and `/` are unambiguous. `-` is not: it also starts a
+            // negative literal, so it is handled with the number scanner
+            // below, which already owns that decision.
+            '*' => {
+                tokens.push(Token::Star);
+                i += 1;
+            }
+            '/' => {
+                tokens.push(Token::Slash);
+                i += 1;
+            }
+            '%' => {
+                tokens.push(Token::Percent);
+                i += 1;
             }
             '(' => {
                 tokens.push(Token::LParen);
@@ -130,6 +156,18 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
                 let (s, next) = lex_string(&chars, i)?;
                 tokens.push(Token::Str(s));
                 i = next;
+            }
+            // `-` is the one ambiguous operator: it also opens a negative
+            // literal. Resolved by adjacency, which is how `.[-1]` and
+            // `. - 1` can both mean what they look like: a `-` glued to a
+            // digit is part of the number, a `-` followed by anything else
+            // (including a space) is the operator. So `.a - 1` subtracts and
+            // `.a -1` is two terms and a parse error -- the same corner jq
+            // has, resolved the same way.
+            // Feature f008.
+            '-' if !matches!(chars.get(i + 1), Some(d) if d.is_ascii_digit()) => {
+                tokens.push(Token::Minus);
+                i += 1;
             }
             c if c == '-' || c.is_ascii_digit() => {
                 let (tok, next) = lex_number(&chars, i)?;
@@ -431,8 +469,30 @@ mod tests {
     }
 
     #[test]
-    fn bare_plus_is_an_error() {
-        assert!(matches!(lex(".a + 5"), Err(YqrError::Lex(_))));
+    fn arithmetic_operators_lex() {
+        use Token::{Minus, Percent, Plus, Slash, Star};
+        assert_eq!(
+            lex("+ - * / %").unwrap(),
+            vec![Plus, Minus, Star, Slash, Percent]
+        );
+        // `+=` still wins over `+`.
+        assert_eq!(lex("+=").unwrap(), vec![Token::PlusEq]);
+    }
+
+    #[test]
+    fn minus_is_resolved_by_adjacency() {
+        // Glued to a digit it opens a literal; anything else makes it the
+        // operator. This is what lets `.[-1]` and `. - 1` both mean what they
+        // look like (`yqr-f008`).
+        assert_eq!(lex("-1").unwrap(), vec![Token::Int(-1)]);
+        assert_eq!(
+            lex(". - 1").unwrap(),
+            vec![Token::Dot, Token::Minus, Token::Int(1)]
+        );
+        assert_eq!(
+            lex(".[-1]").unwrap(),
+            vec![Token::Dot, Token::LBracket, Token::Int(-1), Token::RBracket]
+        );
     }
 
     #[test]

@@ -617,18 +617,6 @@ fn delete_of_a_same_column_block_sequence_writes_back() {
 }
 
 #[test]
-fn computed_update_operator_is_a_parse_error() {
-    // `|=` is deferred; it must fail at parse time (exit 3) with a clear message.
-    let out = run(&[".a |= 5"], "a: 1\n");
-    assert_eq!(out.status, 3, "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains("not yet supported"),
-        "stderr: {}",
-        out.stderr
-    );
-}
-
-#[test]
 fn multi_document_edit_leaves_other_documents_byte_identical() {
     let input = "spec:\n  replicas: 1\n---\nkind: Service\n";
     let out = run(&[".spec.replicas = 9"], input);
@@ -1275,6 +1263,237 @@ fn to_entries_with_parentheses_says_it_takes_none() {
     assert!(
         out.stderr.contains("takes no arguments"),
         "unexpected stderr: {}",
+        out.stderr
+    );
+}
+
+// -- Feature f008 slice 1: the `|=` operator ---------------------------------
+
+#[test]
+fn update_with_identity_is_byte_exact() {
+    // Including quote style: the computed value goes through `set_value`, which
+    // matches the scalar's own spelling.
+    for doc in [
+        "n: 3\n",
+        "n: 'quoted'\n",
+        "n: \"double\"\n",
+        "n: 0640\n",
+        "a:\n  b: hi   # trailing comment\n",
+    ] {
+        let filter = if doc.starts_with("a:") {
+            ".a.b |= ."
+        } else {
+            ".n |= ."
+        };
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{doc:?}: {}", out.stderr);
+        assert_eq!(out.stdout, doc, "{filter} on {doc:?}");
+    }
+}
+
+#[test]
+fn the_update_filter_sees_the_node_not_the_document() {
+    // The property, pinned by a discriminator rather than an identity filter,
+    // which cannot show it. The same right-hand side `.x`:
+    //   `|=` evaluates it against the *node* (an Int) -> error
+    //   `=`  evaluates it against the *document*     -> writes 9
+    let doc = "x: 9\na:\n  t: 0\n";
+
+    let update = run(&[".a.t |= .x"], doc);
+    assert_eq!(update.status, 5, "stdout: {}", update.stdout);
+    assert!(
+        update.stderr.contains("cannot index number"),
+        "the filter must have been run against the node: {}",
+        update.stderr
+    );
+
+    let assign = run(&[".a.t = .x"], doc);
+    assert_eq!(assign.status, 0, "stderr: {}", assign.stderr);
+    assert_eq!(assign.stdout, "x: 9\na:\n  t: 9\n");
+}
+
+#[test]
+fn update_inherits_the_scalar_boundary_of_assignment() {
+    // `set_value` writes scalar leaves, so a collection result is refused --
+    // the same refusal `=` gives for a collection right-hand side. This is
+    // f006's limitation inherited, not one f008 introduces.
+    // `to_entries` returns a sequence, so it is the collection case reached
+    // through a filter yqr actually has.
+    let update = run(&[".m |= to_entries"], "m:\n  a: 1\n");
+    assert_eq!(update.status, 5, "stdout: {}", update.stdout);
+    assert!(
+        update.stderr.contains("must be a scalar"),
+        "unexpected stderr: {}",
+        update.stderr
+    );
+
+    // The same refusal `=` gives for a collection right-hand side.
+    let assign = run(&[".c = .a"], "a:\n  b: hi\nc: 1\n");
+    assert_eq!(assign.status, 5, "stdout: {}", assign.stdout);
+    assert!(
+        assign.stderr.contains("must be a scalar"),
+        "unexpected stderr: {}",
+        assign.stderr
+    );
+}
+
+#[test]
+fn an_erroring_update_filter_leaves_the_file_alone() {
+    let original = "x: 9\na:\n  t: 0\n";
+    let file = temp_yaml(original);
+    let path = file.to_str().unwrap();
+    let out = run(&["-i", ".a.t |= .x", path], "");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert_eq!(
+        read_back(&file),
+        original,
+        "a refused update must not touch the file"
+    );
+    let _ = std::fs::remove_file(&file);
+}
+
+#[test]
+fn an_update_selecting_no_single_node_refuses() {
+    let out = run(&[".xs[] |= ."], "xs:\n  - 1\n  - 2\n");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("exactly one node") && out.stderr.contains('2'),
+        "the message must name the count: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn an_absent_update_path_leaves_the_document_unchanged() {
+    // The same rule `=` follows: an absent path is a skip, not an error.
+    let doc = "a: 1\n";
+    let out = run(&[".nope |= ."], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, doc);
+}
+
+#[test]
+fn a_builtin_on_the_left_of_update_refuses_at_parse() {
+    // The fifth mutation site, after the four f017 §11.5 enumerated.
+    let out = run(&["to_entries |= ."], "m:\n  a: 1\n");
+    assert_eq!(out.status, 3, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("to_entries") && out.stderr.contains("'|='"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn a_selector_on_the_left_of_update_refuses_naming_the_operator() {
+    let out = run(&["key(.a) |= ."], "a: 1\n");
+    assert_eq!(out.status, 3, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("'|='") && out.stderr.contains("key"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+}
+
+// -- Feature f008 slice 2: arithmetic ----------------------------------------
+
+#[test]
+fn the_motivating_case_increments_and_leaves_the_line_alone() {
+    // The limitation the Kubernetes guide named: "You cannot say 'increment
+    // the replica count'; you say what it should become."
+    let out = run(
+        &[".spec.replicas |= (. + 1)"],
+        "# app\nspec:\n  replicas: 3   # tuned\n",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "# app\nspec:\n  replicas: 4   # tuned\n");
+}
+
+#[test]
+fn arithmetic_preserves_the_integer_type() {
+    // a001 §6: `replicas: 3` must not come back as `3.0`.
+    let out = run(&[".n |= (. * 2)"], "n: 3\n");
+    assert_eq!(out.stdout, "n: 6\n", "stderr: {}", out.stderr);
+
+    let frac = run(&[".n |= (. / 2)"], "n: 3\n");
+    assert_eq!(
+        frac.stdout, "n: 1.5\n",
+        "a fractional result becomes a float"
+    );
+}
+
+#[test]
+fn arithmetic_errors_leave_the_document_untouched() {
+    for (filter, needle) in [
+        (".n |= (. / 0)", "division by zero"),
+        (".s |= (. + 1)", "string and number"),
+    ] {
+        let out = run(&[filter], "n: 3\ns: hi\n");
+        assert_eq!(out.status, 5, "{filter}: stdout: {}", out.stdout);
+        assert!(out.stderr.contains(needle), "{filter}: {}", out.stderr);
+        assert!(out.stdout.is_empty(), "{filter} must print nothing");
+    }
+}
+
+#[test]
+fn a_negative_index_still_lexes_after_the_minus_operator_landed() {
+    // The one ambiguity arithmetic introduced: `-` glued to a digit opens a
+    // literal, anything else is the operator.
+    let out = run(&["-r", ".xs[-1]"], "xs:\n  - a\n  - b\n  - c\n");
+    assert_eq!(out.stdout, "c\n", "stderr: {}", out.stderr);
+
+    let sub = run(&[".a - 3"], "a: 7\n");
+    assert_eq!(sub.stdout, "4\n", "stderr: {}", sub.stderr);
+}
+
+// A computed left-hand side names no node, and the write driver reads "no
+// node" as "absent in this document", which it is specified to skip at exit 0.
+// So a missing parse-time check does not produce a confusing error -- it
+// produces a success for an edit that did nothing. Every mutation site is
+// covered here because that failure mode is invisible in the output.
+#[test]
+fn every_mutation_site_refuses_a_computed_left_hand_side() {
+    for filter in [
+        "1 = 2",
+        ".a + 1 = 5",
+        "1 |= (. + 1)",
+        ".a + 1 |= .",
+        ".a + 1 += 2",
+        "del(.a + 1)",
+        "del(1)",
+        "swap(.a + 1; 0; 1)",
+        "move(1; 0; 1)",
+        "to_entries = 1",
+    ] {
+        let out = run(&[filter], "a: 1\n");
+        assert_eq!(
+            out.status, 3,
+            "{filter} must refuse at parse: {}",
+            out.stdout
+        );
+        assert!(
+            out.stderr
+                .contains("computes a value rather than naming one"),
+            "{filter}: unexpected stderr: {}",
+            out.stderr
+        );
+    }
+}
+
+#[test]
+fn integer_overflow_in_division_is_an_error_not_a_crash() {
+    // `i64::MIN / -1` is the one case whose *remainder* overflows, which the
+    // exactness pre-check used to compute with a bare `%`.
+    let out = run(&[".n / -1"], "n: -9223372036854775808\n");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("overflow"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+    assert!(
+        !out.stderr.contains("panicked"),
+        "it must report, not crash: {}",
         out.stderr
     );
 }

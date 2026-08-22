@@ -33,7 +33,10 @@
 use crate::Value;
 use crate::ast::{FOOT_COMMENT_REFUSAL, Mutation, ReorderOp, Target};
 use crate::error::{Result, YqrError};
-use crate::eval::{AssignTarget, resolve_assign_target, resolve_rhs, resolve_target};
+use crate::eval::{
+    AssignTarget, eval_single, resolve_assign_target, resolve_rhs, resolve_target,
+    resolve_update_target,
+};
 use crate::fidelity::{Path, PathSeg};
 
 // Structural delete lives in a sub-module so the byte-arithmetic concern stays
@@ -318,6 +321,32 @@ fn apply_to_doc(
                 return Ok(());
             };
             writer.reorder(doc, &target, *op, *from, *to)
+        }
+        // `|=` differs from `=` in one word: the right-hand filter runs
+        // against the **node**, not the document. Everything after that is
+        // `=`'s path — the same guarded `set_value`, the same single-node
+        // contract, the same skip when the path is absent in this document.
+        // Feature f008.
+        Mutation::Update { path, rhs } => {
+            let Some((target, current)) = resolve_update_target(path, value)? else {
+                return Ok(());
+            };
+            let updated = eval_single(rhs, &current, "the update filter")?;
+            // A write that changes nothing must not rewrite anything.
+            // `set_value` re-emits the scalar from the typed value, which
+            // canonicalises its spelling -- so writing `0640` back as the same
+            // `Int` would emit `640`, losing the leading zero on the very
+            // example `yqr-a001` uses. Skipping the no-op keeps `.n |= .`
+            // byte-exact by construction rather than by luck.
+            //
+            // `=` has the same hazard and does not guard it (`.n = .n` on
+            // `0640` emits `640`); that is pre-existing and filed as
+            // `yqr-b018` rather than widened into this feature.
+            // Feature f008.
+            if updated == current {
+                return Ok(());
+            }
+            writer.set_value(doc, &target, &updated)
         }
         Mutation::Append { path, rhs } => {
             let Some(target) = resolve_target(path, value)? else {

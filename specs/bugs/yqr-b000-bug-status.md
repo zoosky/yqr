@@ -10,6 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b018](yqr-b018-idempotent-assignment-recanonicalises-a-scalar.md) | `.n = .n` rewrites `0640` as `640`: an assignment that changes nothing still re-spells the scalar | Medium | Open — the typed model cannot carry a number's spelling, so `set_value` re-emitting the value it was given canonicalises it. `0640` becomes `640` and a `1.10` version pin becomes `1.1`, at exit 0, on the two examples the fidelity guide leads with — and on an assignment that changes nothing, which is `yqr-a001` §1's own counter-example ("yqr never rewrites bytes it did not change"). Quoted strings are unaffected: `"30"` survives, because the value carries its content and `set_value` matches the neighbouring quote style. Found by `yqr-f008`'s first acceptance test, which asserted `.n \|= .` is byte-identical; the `\|=` half is **fixed there** by skipping a write whose computed value equals the current one. `=` is deliberately not fixed in that feature — it resolves an `AssignTarget` rather than a value, so the fix needs a lookup the update path already has, and changing a shipped operator's write path does not belong inside a feature about `\|=`. Not pinned yet: a test asserting `640` reads as intended behaviour (`yqr-b015` §5's call) | `yqr-a001`, `yqr-f006`, `yqr-f008`, `yqr-b001` |
 
 ## Resolved
 
@@ -35,8 +36,13 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 17
-- Open: **0**.
+- Total bugs: 18
+- Open: 1 — `b018`, and it is yqr's own rather than a dependency's, which is
+  a first since `b006`.
+  - **b018** — an assignment that changes nothing still re-spells the scalar:
+    `.n = .n` turns `0640` into `640`. Found by `yqr-f008`'s first acceptance
+    test; the `|=` half is fixed there, the `=` half is filed rather than
+    widened into that feature.
 - **Every bug yqr filed against accent is fixed in a released version** —
   `b007` in accent 0.23.1, `b017`'s five findings in 0.25.0, filed and
   released the same day (`yqr-f024`). What is still open upstream is accentcms

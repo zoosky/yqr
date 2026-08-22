@@ -27,7 +27,9 @@
 //! ```
 
 use crate::Value;
-use crate::ast::{Ast, Builtin, FOOT_COMMENT_REFUSAL, Mutation, Program, ReorderOp, Rhs, Target};
+use crate::ast::{
+    Ast, BinOp, Builtin, FOOT_COMMENT_REFUSAL, Mutation, Program, ReorderOp, Rhs, Target,
+};
 use crate::error::{Result, YqrError};
 use crate::lexer::{Token, lex};
 
@@ -111,20 +113,25 @@ const REORDERS: &[(&str, ReorderOp)] = &[("swap", ReorderOp::Swap), ("move", Reo
 // Feature f017.
 const BUILTINS: &[(&str, Builtin)] = &[("to_entries", Builtin::ToEntries)];
 
-/// Why a builtin cannot be written to, spelled out per builtin.
+/// Refuse a left-hand side that computes a value rather than naming one.
 ///
-/// The pairs `to_entries` produces are a view yqr invented; they exist in no
-/// file, so there is no byte range an assignment could land in. Refused at
-/// parse rather than at eval, so the message can say *that* instead of
-/// reporting a path that resolved to nothing (`yqr-a002` §8's pattern).
-// Feature f017.
-fn builtin_is_not_writable(b: Builtin, op: &str) -> YqrError {
-    YqrError::parse(format!(
-        "'{}' computes a value rather than naming one in the document, so it \
-         cannot appear on the left of '{op}': there is nothing to write back to. \
-         Read it with a query, or address the entry itself by path",
-        b.word()
-    ))
+/// A builtin's pairs, a literal, and an arithmetic result are all views yqr
+/// invents; they exist in no file, so there is no byte range an edit could
+/// land in. Refused at parse rather than at eval, so the message can say
+/// *that* instead of reporting a path that resolved to nothing
+/// (`yqr-a002` §8's pattern) — or, worse, succeeding silently, which is what a
+/// computed path does when it reaches the write driver (see
+/// [`Ast::unwritable`]).
+// Feature f017, widened for f008.
+fn check_writable(path: &Ast, op: &str) -> Result<()> {
+    match path.unwritable() {
+        None => Ok(()),
+        Some(what) => Err(YqrError::parse(format!(
+            "'{what}' computes a value rather than naming one in the document, so it \
+             cannot appear on the left of '{op}': there is nothing to write back to. \
+             Read it with a query, or address the entry itself by path"
+        ))),
+    }
 }
 
 struct Parser {
@@ -182,9 +189,7 @@ impl Parser {
         match self.peek() {
             Some(Token::Eq) => {
                 self.advance();
-                if let Some(b) = target.path().builtin() {
-                    return Err(builtin_is_not_writable(b, "="));
-                }
+                check_writable(target.path(), "=")?;
                 let rhs = self.parse_rhs()?;
                 Ok(Program::Mutate(Mutation::Assign { target, rhs }))
             }
@@ -202,17 +207,31 @@ impl Parser {
                             .expect("a non-Value target has a selector name")
                     )));
                 };
-                if let Some(b) = path.builtin() {
-                    return Err(builtin_is_not_writable(b, "+="));
-                }
+                check_writable(&path, "+=")?;
                 let rhs = self.parse_rhs()?;
                 Ok(Program::Mutate(Mutation::Append { path, rhs }))
             }
-            Some(Token::PipeEq) => Err(YqrError::parse(
-                "the '|=' computed-update operator is not yet supported \
-                 (planned for a future release); use '=' with a literal or path"
-                    .to_string(),
-            )),
+            // `|=` runs its right-hand filter on the *node*, so the RHS is a
+            // whole pipeline rather than an `Rhs`: `(. + 1)`, `to_entries`,
+            // `.b.c`. Feature f008.
+            Some(Token::PipeEq) => {
+                self.advance();
+                // A key or a comment is not a value the filter could receive,
+                // and jq has no update form for either. Refused here so the
+                // message names the operator the user reached for.
+                let Target::Value(path) = target else {
+                    return Err(YqrError::parse(format!(
+                        "'|=' runs a filter on the value at a path, so its left side must be \
+                         a path to one; '{}(...)' does not name a value",
+                        target
+                            .selector_name()
+                            .expect("a non-Value target has a selector name")
+                    )));
+                };
+                check_writable(&path, "|=")?;
+                let rhs = self.parse_pipeline()?;
+                Ok(Program::Mutate(Mutation::Update { path, rhs }))
+            }
             _ => Ok(Program::Query(target)),
         }
     }
@@ -276,9 +295,7 @@ impl Parser {
                     .to_string(),
             ));
         }
-        if let Some(b) = target.path().builtin() {
-            return Err(builtin_is_not_writable(b, "del"));
-        }
+        check_writable(target.path(), "del")?;
         Ok(Program::Mutate(Mutation::Delete { target }))
     }
 
@@ -299,9 +316,7 @@ impl Parser {
         // absent — it is unwritable — so without this the verb reports
         // success for a reorder that did nothing.
         // Feature f017.
-        if let Some(b) = path.builtin() {
-            return Err(builtin_is_not_writable(b, op.word()));
-        }
+        check_writable(&path, op.word())?;
         self.expect_semi(op)?;
         let from = self.parse_index(op)?;
         self.expect_semi(op)?;
@@ -389,19 +404,86 @@ impl Parser {
     }
 
     fn parse_pipeline(&mut self) -> Result<Ast> {
-        let mut node = self.parse_term()?;
+        let mut node = self.parse_additive()?;
         while matches!(self.peek(), Some(Token::Pipe)) {
             self.advance();
-            let rhs = self.parse_term()?;
+            let rhs = self.parse_additive()?;
             node = Ast::pipe(node, rhs);
         }
         Ok(node)
     }
 
+    /// Additive level: `a + b`, `a - b`. Lowest-binding arithmetic.
+    ///
+    /// Sits between `parse_pipeline` and `parse_term`, so `|` binds looser
+    /// than `+` (jq's precedence) and a pipeline stage can be an expression.
+    // Feature f008.
+    fn parse_additive(&mut self) -> Result<Ast> {
+        let mut node = self.parse_multiplicative()?;
+        loop {
+            let op = match self.peek() {
+                Some(Token::Plus) => BinOp::Add,
+                Some(Token::Minus) => BinOp::Sub,
+                _ => break,
+            };
+            self.advance();
+            let rhs = self.parse_multiplicative()?;
+            node = Ast::Binary(op, Box::new(node), Box::new(rhs));
+        }
+        Ok(node)
+    }
+
+    /// Multiplicative level: `a * b`, `a / b`, `a % b`. Binds tighter than
+    /// additive, so `1 + 2 * 3` is `7`.
+    // Feature f008.
+    fn parse_multiplicative(&mut self) -> Result<Ast> {
+        let mut node = self.parse_term()?;
+        loop {
+            let op = match self.peek() {
+                Some(Token::Star) => BinOp::Mul,
+                Some(Token::Slash) => BinOp::Div,
+                Some(Token::Percent) => BinOp::Rem,
+                _ => break,
+            };
+            self.advance();
+            let rhs = self.parse_term()?;
+            node = Ast::Binary(op, Box::new(node), Box::new(rhs));
+        }
+        Ok(node)
+    }
+
     fn parse_term(&mut self) -> Result<Ast> {
-        let mut node = match self.builtin_at_cursor() {
-            Some(b) => self.parse_builtin(b)?,
-            None => self.parse_path()?,
+        let mut node = match self.peek() {
+            // `(...)` groups an expression, which is how `(1 + 2) * 3` beats
+            // precedence and how `. + 1` is written as a `|=` right-hand side.
+            // Feature f008.
+            Some(Token::LParen) => {
+                self.advance();
+                let inner = self.parse_pipeline()?;
+                self.expect(&Token::RParen)?;
+                inner
+            }
+            // A bare scalar in filter position: the `1` in `. + 1`.
+            // Feature f008.
+            Some(Token::Int(n)) => {
+                let n = *n;
+                self.advance();
+                Ast::Literal(Value::Int(n))
+            }
+            Some(Token::Float(f)) => {
+                let f = *f;
+                self.advance();
+                Ast::Literal(Value::Float(f))
+            }
+            Some(Token::Str(text)) => {
+                let text = text.clone();
+                self.advance();
+                Ast::Literal(Value::String(text))
+            }
+            _ => match self.builtin_at_cursor() {
+                Some(b) => self.parse_builtin(b)?,
+                None => self.parse_path()?,
+            },
         };
         while matches!(self.peek(), Some(Token::Question)) {
             self.advance();
@@ -689,9 +771,60 @@ mod tests {
     }
 
     #[test]
-    fn pipe_equals_is_a_clear_not_supported_error() {
-        let err = parse_program(".a |= .b").unwrap_err();
-        assert!(matches!(err, YqrError::Parse(ref m) if m.contains("not yet supported")));
+    fn parses_a_computed_update() {
+        assert_eq!(
+            parse_program(".a |= (. + 1)").unwrap(),
+            Program::Mutate(Mutation::Update {
+                path: Ast::Field("a".into()),
+                rhs: Ast::Binary(
+                    BinOp::Add,
+                    Box::new(Ast::Identity),
+                    Box::new(Ast::Literal(Value::Int(1)))
+                ),
+            })
+        );
+    }
+
+    #[test]
+    fn arithmetic_precedence_and_grouping() {
+        // `*` binds tighter than `+`; parentheses beat both.
+        assert_eq!(
+            parse("1 + 2 * 3").unwrap(),
+            Ast::Binary(
+                BinOp::Add,
+                Box::new(Ast::Literal(Value::Int(1))),
+                Box::new(Ast::Binary(
+                    BinOp::Mul,
+                    Box::new(Ast::Literal(Value::Int(2))),
+                    Box::new(Ast::Literal(Value::Int(3)))
+                ))
+            )
+        );
+        assert_eq!(
+            parse("(1 + 2) * 3").unwrap(),
+            Ast::Binary(
+                BinOp::Mul,
+                Box::new(Ast::Binary(
+                    BinOp::Add,
+                    Box::new(Ast::Literal(Value::Int(1))),
+                    Box::new(Ast::Literal(Value::Int(2)))
+                )),
+                Box::new(Ast::Literal(Value::Int(3)))
+            )
+        );
+    }
+
+    #[test]
+    fn pipe_binds_looser_than_arithmetic() {
+        // `.a + 1 | .` is `(.a + 1) | .`, matching jq.
+        let got = parse(".a + 1 | .").unwrap();
+        let Ast::Pipe(lhs, _) = &got else {
+            panic!("expected a pipe at the top: {got:?}");
+        };
+        assert!(
+            matches!(**lhs, Ast::Binary(..)),
+            "the arithmetic must bind tighter than the pipe: {got:?}"
+        );
     }
 
     #[test]
