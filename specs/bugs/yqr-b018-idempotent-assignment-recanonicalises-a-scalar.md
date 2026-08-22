@@ -112,10 +112,19 @@ $ printf 'q: "30"\n' | yqr '.q = .q'      # q: "30"    -- strings unaffected
 ```
 
 Pinned with the fix rather than before it, on `yqr-b015` §5's call: a test
-asserting `640` would have read as the intended behaviour. Five tests now hold
-it — four at the CLI level across five spellings (`0640`, `1.10`, a quoted
-`"30"`, `i64::MAX`, `1.0`), one at the unit level, and all five fail with the
-guard removed.
+asserting `640` would have read as the intended behaviour. Six hold it: three
+CLI tests, one unit test, and two corpus cases (one per operator).
+
+The CLI test walks five spellings, and **three** of them are the pin —
+`0640` → `640`, `1.10` → `1.1`, and `1.0` → `1` all reproduce with the guard
+removed. The other two are controls, not coverage: a quoted `"30"` and
+`i64::MAX` survive either way, and they are in the table to record §2's point
+that the bug is narrower than "assignment re-canonicalises scalars".
+
+The corpus cases needed a document to hold a spelling the typed model cannot
+carry, which none had; `APP_CONFIG` gained `file_mode: 0640` for it. The first
+attempt targeted an already-canonical `containerPort: 9090` and passed with the
+guard removed — a case that pins nothing, caught in review.
 
 ## 7. What the fix turned up
 
@@ -151,3 +160,16 @@ differs so it really reaches the writer.
 
 Recorded rather than absorbed, because it is a behaviour change outside this
 bug's statement, found by an existing test rather than a new one.
+
+### 7.3 The guard was placed too early, and §7.2 is why that was missed
+
+§7.2 reads as though "the guard runs before the writer" were the design. It is
+not — it was where one refusal happened to land, and generalising it silently
+swallowed the others. An alias site refuses whatever value it is handed, so
+`.b = 1` over `b: *x` went from exit 5 to exit 0 with the alias still in place.
+
+`yqr-b019` corrects the ordering and states the line: the guard may skip past
+yqr's own **expressive** limits, because the document already holds what was
+asked for, but not past a property of the **document**, where writing would
+have done real work. §7.2's outcome stands under that rule; the alias one does
+not.

@@ -132,7 +132,10 @@ resources:
 ";
 
 /// An application config: server binding, database pool, a feature-flag list,
-/// and logging. Uses a quoted numeric string to exercise scalar spelling.
+/// and logging. Carries the two scalar spellings the typed model cannot itself
+/// hold — a quoted numeric string and a leading-zero file mode — so a write
+/// that re-emits a value it did not need to touch shows up as a byte
+/// difference rather than passing unnoticed.
 pub const APP_CONFIG: &str = "\
 server:
   host: 0.0.0.0
@@ -149,6 +152,7 @@ features:
 logging:
   level: warn
   format: json
+  file_mode: 0640
 zip: \"007\"
 ";
 
@@ -176,9 +180,14 @@ spec:
 ";
 
 /// A document rich in formatting the classic pipeline would normalize away:
-/// a leading comment, an inline comment, an anchor/alias pair, a literal block
-/// scalar, and single-quoted scalars. Used to prove the fidelity engines keep
-/// these bytes verbatim.
+/// a leading comment, two inline comments spaced differently, an anchor/alias
+/// pair, a literal block scalar, and single-quoted scalars. Used to prove the
+/// fidelity engines keep these bytes verbatim.
+///
+/// The two inline comments are deliberately spelled apart: one sits behind a
+/// wide gutter with a space after the `#`, the other is written tight. Only
+/// the tight one can catch a comment write that re-spells a line it did not
+/// need to change, because the canonical spelling is the other one.
 pub const FIDELITY_RICH: &str = "\
 # deployment defaults
 defaults: &defaults
@@ -190,7 +199,7 @@ service:
   motd: |
     welcome
     to the service
-  region: 'us-east-1'
+  region: 'us-east-1' #primary
 ";
 
 /// A GitHub Actions workflow written with **flow** collections — a flow

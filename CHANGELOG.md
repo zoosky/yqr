@@ -73,6 +73,21 @@ All notable changes to `yqr` are documented here. The format is based on
   value is already the value in the file is now skipped, for both `=` and
   `|=`. Quoted strings were never affected.
 
+- **Writing a comment's own text back no longer re-spells the line.** The same
+  rule, on comments. `a: 1 #tight` and `a: 1 # tight` carry the same comment,
+  and the text is all a comment edit is given, so writing `tight` back
+  respaced a line that had not changed. Reading a comment and feeding it
+  straight back is now a no-op, as it reads.
+
+- **A no-op assignment no longer swallows a refusal.** Skipping a write when
+  the value matched ran ahead of the checks that do not depend on the value at
+  all. `.b = 1` on `b: *x` exited 0 with the alias untouched and nothing said,
+  while `.b = 2` on the same file was refused -- so the edit yqr declined to
+  make looked like one it had made, and a later change to the anchor would
+  have moved `b` with it. Entries reached through an alias or a `<<` merge are
+  now refused whatever value is assigned. A no-op on an *ordinary* entry is
+  still a no-op, including on one that carries an anchor.
+
 - **Deleting from a wrapped flow collection no longer leaves a blank line.**
   `del(.ports[0])` on a `ports:` list broken across lines removed the member
   and its separator but left the line's indentation behind, so a line that had

@@ -2,6 +2,7 @@
 # Traceability: Feature f007 (structural edits -- key rename, comment
 # editing, reorder). Bug b012, the dotted-key insert, was the sibling half
 # of the limitation section; fixed in noyalib 0.0.25.
+# "Computing a new value from the old one" is Feature f008.
 title: Editing Kubernetes manifests without reformatting them
 lead: >-
   How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.
@@ -124,8 +125,6 @@ used to be refused:
   separator goes with the item, so you never get `[, 443]` or `[80, ]`.
 
 ## Computing a new value from the old one
-
-<!-- Feature f008 -->
 
 `=` writes what you tell it. `|=` runs a filter on the value that is already
 there and writes the result, so you can say "one more than this" without
