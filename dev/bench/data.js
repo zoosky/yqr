@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787378847047,
+  "lastUpdate": 1787408003187,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1679,6 +1679,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 258689,
             "range": "± 1909",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e380dd6e2afa9aa4cdbcade33590e19bcf9dab26",
+          "message": "fix(write): an assignment that changes nothing must not re-spell it, or swallow a refusal (b018, b019) (#96)\n\n* fix(write): an assignment that changes nothing must not re-spell it (b018)\n\n`.n = .n` on `n: 0640` wrote `n: 640`, and a `1.10` version pin came back\n`1.1`. set_value re-emits a scalar from the typed model, which cannot carry a\nnumber's spelling -- so an edit that changed nothing still rewrote the line,\non the two examples the fidelity guide leads with and against a001 §1's own\nsentence: yqr never rewrites bytes it did not change.\n\nThe comparison is the typed model's, and that is why it works rather than a\nlimitation to work around. The model cannot tell 0640 from 640, so\nequal-by-value is exactly the set of cases where re-emitting would lose a\nspelling; where the model can tell two values apart they are not equal and the\nwrite proceeds. A skip stays a success -- a no-op, not a refusal.\n\nThe actual fix is that the rule is now in one place. f008 guarded `|=` inline\nand left `=` unguarded: two operators, one rule, one copy each, and the copy\nthat did not exist was the bug. Both now go through\nset_value_unless_unchanged, reached by their different resolvers. That is the\nsame argument yqr made against accentcms in b190 §1 and §5 the day before, so\nit is worth saying that the project produced an instance of it while filing\none.\n\nAssignTarget::Existing carries { path, current } instead of a bare Path,\nbecause the guard needs to know what is there. \"This node exists\" was less\nthan the resolver already knew.\n\nOne behaviour change outside the bug's statement, found by an existing test\nrather than a new one, and pinned on both sides. `.[\"a.b\"] = 1` where a.b is\nalready 1 now succeeds instead of reporting the f007 §6 addressing limit: the\nguard runs before the writer, so no write was attempted and no limitation was\nreached. The refusal still fires the moment the value differs, and\nunaddressable_key_is_reported now asks for a different value so it really\ngets there.\n\nFive tests hold the fix -- four at the CLI level across five spellings (0640,\n1.10, a quoted \"30\", i64::MAX, 1.0) and one unit test -- and all five fail\nwith the guard removed. Plus a corpus case for the shape the existing\nidempotent-write case could not catch: `.replicaCount = 2` stayed byte-exact\neven while the guard was missing, because 2 is already canonical.\n\n* fix(write): the no-op guard must not swallow a refusal, and must cover comments (b019)\n\nReview of the b018 fix turned up five things. Two are behaviour.\n\nThe guard skipped the write when the new value matched the old, and it ran\nbefore the writer, so every refusal that does not depend on the value written\nbecame a silent exit 0: `.b = 2` over `b: *x` refuses, `.b = 1` returned 0 with\nthe alias still in place and nothing said. b018 §7.2 had already recorded one\nrefusal the guard was allowed to skip, which is what made this look intended.\nThe line is now stated: the guard may skip past yqr's own expressive limits,\nwhere the document already holds what was asked for, but not past a property of\nthe document, where writing would have done real work.\n\n`value_is_borrowed` establishes that from the public span API -- a key-\nterminated path with no key span, or a value span ahead of its own key. A\nborrowed site falls through to the writer, so the diagnostic stays upstream's\nrather than becoming a second copy to drift. A cloned-document probe was\nmeasured and rejected: it refuses `.a = 1` on `a: &x 1`, a genuine b018 no-op.\n\nSecond, the rule stopped at values, so `line_comment(.a) = \"tight\"` over\n`a: 1 #tight` respaced a line that had not changed -- a001 §1 again.\n\nThe other three are the review's own findings on the b018 change: a doc comment\nsplit by an insert anchored on the wrong line; a corpus case that pinned\nnothing, because `containerPort: 9090` is already canonical; and a test count\nin the spec that did not match the diff.\n\n- APP_CONFIG gains `file_mode: 0640`, FIDELITY_RICH a tight inline comment;\n  neither corpus tier had a spelling that could catch a needless re-emit.\n- Six CLI tests, one unit test on the predicate, four corpus cases, each\n  verified to fail with its guard removed.\n- b020 filed: the merge-key refusal says `path not found` for a path yqr just\n  read. Pre-existing, and left alone here for the reason the spec gives.",
+          "timestamp": "2026-08-22T16:11:51+02:00",
+          "tree_id": "ba22c4f368d22ffe6fc640309e915765bd64f8bc",
+          "url": "https://github.com/zoosky/yqr/commit/e380dd6e2afa9aa4cdbcade33590e19bcf9dab26"
+        },
+        "date": 1787408001323,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 583,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5619,
+            "range": "± 50",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 257695,
+            "range": "± 5045",
             "unit": "ns/iter"
           }
         ]
