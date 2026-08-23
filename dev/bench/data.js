@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787408003187,
+  "lastUpdate": 1787463633881,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1721,6 +1721,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 257695,
             "range": "± 5045",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ec47d28f831286192174a7c45e3773e56f30c7f6",
+          "message": "fix(write): a merged-in key is refused by what is actually wrong (b020) (#97)\n\n* fix(write): a merged-in key is refused by what is actually wrong (b020)\n\n`yqr '.c.k'` printed `1`; `yqr '.c.k = 9'` on the same file answered \"YAML\nparse error: path not found: c.k\". The refusal is right -- `c` has no `k` of\nits own, only a `<<` that pulls one in -- but the reason denies a path the\nread tier had just resolved, calls a successful parse a parse error, and\noffers no next step.\n\nb020 §4 preferred fixing it upstream and asked for a measurement first. The\nmeasurement moved the decision both ways at once.\n\nUpstream cannot re-word it: `resolve_span`, the single resolver behind\n`span_at` and `write_span`, returns a bare `None` for a merge-produced key --\nthe same answer as for a key that is not there -- so that route needs a third\noutcome in the resolver, not a better sentence. But upstream *does* word it\ncorrectly in `rename_key`, so its own two mutators answer the same question\nabout the same bytes two ways. That is the b012 shape and still worth filing;\nyqr's message is worded from that sentence rather than invented.\n\nAnd §4's two-voices objection was to a wider fix than the one needed.\n`value_is_borrowed` rests on two independent facts, and they partition by what\nis wrong rather than by whether yqr managed to notice: the key one (`key_span`\nis None on a key-terminated path) is exact and complete, so taking the message\nover for that arm alone gives each fact one voice. The alias arm still falls\nthrough to upstream's wording, which was already accurate. `Borrowed` is an\nenum rather than a bool to keep the arms apart, with a unit test on both.\n\n- Verified as a message change and nothing else: 96 old-vs-new comparisons\n  across seven documents, both operators, matching and differing values --\n  zero differences in exit code or stdout, 16 in the message, all merged-key.\n- Four CLI tests, one unit test, one corpus case; the two message tests fail\n  without the fix.\n- The fidelity guide now quotes the refusal it had to paraphrase in b019.\n- b021 filed: an implicit null gets the same false reason from a different\n  cause, and there the refusal itself is the questionable half -- `a: 1` is an\n  ordinary edit. b020's check deliberately does not reach it, pinned by test.\n\n* fix(write): close the sequence-item gap, and name only a remedy that works\n\nFour review findings on the b020 commit.\n\nThe refusal message offered \"add an explicit `k` entry here to override it\".\nMeasured, that remedy is unreachable: writing the override *is* this check,\nand inserting some other key is refused too unless the mapping already owns an\nentry to anchor against -- on `c: *m` with \"insert_entry_value: `c` is inside\nthe value anchored by `&m`\", on a merge-only mapping with \"no entry of the\nmapping at `c` has source bytes of its own to anchor\". Both leak upstream API\nnames into user-facing output, which is what b020 intercepted set_value to\navoid. The message names the anchor route only, and a test asserts that route\nworks rather than that the sentence exists. Creating the override is f025.\n\nb019 recorded an alias-valued *sequence item* as a known gap, on the grounds\nthat the residue was a silent skip and so the status quo. The review called it\nwhat it is: a live false success, where `.b[0] = 2` exits 5 and `.b[0] = 1`\nexits 0 with the alias untouched -- the write succeeding exactly where it\nwould have been refused.\n\nThe framing that kept it open was too narrow. Both borrowed rules ask one\nquestion -- do the resolved bytes start before the earliest point this node's\nown bytes could? -- and only the floor differs: a key for a mapping entry, the\nend of the item ahead of it for a sequence item. That is not the \"nearest\nancestor key\" guess b019 rejected; it is the item's own container, so an\nanchor outside the sequence and one in an earlier sibling fall to the same\ncomparison, and it cannot false-positive because an item's bytes never precede\nits neighbour's. An item of a sequence that is itself borrowed clears its\nfloor honestly, so `value_is_borrowed` walks the ancestors for it.\n\n- 246 old-vs-new comparisons across thirteen documents, both operators, three\n  values: 10 differences, all of them an alias-valued sequence item at the\n  matching value going 0 -> 5. Nothing else moved.\n- Three CLI tests and four unit cases, covering the four alias shapes and the\n  own-item boundary, including an anchored own item that must stay a no-op.\n- b020 spec sections ran 1,2,3,4,6,5; reordered.\n- The guide hard-wrapped a single-line refusal across four lines, so it\n  matched neither the terminal nor a grep. Unwrapped.",
+          "timestamp": "2026-08-23T07:39:22+02:00",
+          "tree_id": "108be5ff5b132551181c658fde9fd43bfc618751",
+          "url": "https://github.com/zoosky/yqr/commit/ec47d28f831286192174a7c45e3773e56f30c7f6"
+        },
+        "date": 1787463631458,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 357,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3417,
+            "range": "± 229",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 160142,
+            "range": "± 1506",
             "unit": "ns/iter"
           }
         ]
