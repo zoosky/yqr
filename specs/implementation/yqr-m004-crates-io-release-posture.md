@@ -1,6 +1,6 @@
 # Implementation m004 — crates.io release posture (git-dep fidelity backends)
 
-**Status:** Done — yqr is **published to crates.io** (`0.2.1`, 2026-07-10; latest `0.6.0`, 2026-08-20). §6 records a packaging defect found in `0.6.0` and the guard added against it. The dependency blockers were resolved (`noyalib` re-pinned to crates.io `0.0.14`; `rust-yaml-rt` removed via the single-engine consolidation, `yqr-m005`), leaving zero git deps, and the maintainer's `cargo publish` has landed — `cargo install yqr` works.
+**Status:** Done — yqr is **published to crates.io** (`0.2.1`, 2026-07-10; latest `0.7.0`, 2026-08-23). §6 records a packaging defect found in `0.6.0` and the guard added against it. The dependency blockers were resolved (`noyalib` re-pinned to crates.io `0.0.14`; `rust-yaml-rt` removed via the single-engine consolidation, `yqr-m005`), leaving zero git deps, and the maintainer's `cargo publish` has landed — `cargo install yqr` works.
 **Owner:** yqr maintainers
 **Last updated:** 2026-08-20
 **Related:** `yqr-m005` (single-engine consolidation — removed the last git-dep), `yqr-f004` (engine parity — superseded), `yqr-m002` (engine seam), `yqr-b002` (the noyalib fixes), `yqr-b001`
@@ -105,4 +105,12 @@ build, which is a worse failure than one that is too large.
 - [x] `docs/` and `CLAUDE.md` excluded from the published crate.
 - [x] `cargo package --list` names no dev-only path (36 files, 493 KB).
 - [x] `local-ci.sh` fails when a dev-only path re-enters the package.
-- [ ] Confirmed against crates.io on the next release after `0.6.0`.
+- [x] Confirmed against crates.io on the next release after `0.6.0`.
+      **`0.7.0`, 2026-08-23**: the published `.crate` was downloaded and
+      unpacked rather than inspected through `cargo package --list`, and it
+      holds **38 files, 164 KB**, with no `docs/`, `specs/`, `.agent/`,
+      `.github/`, `CLAUDE.md` or `AGENT.md`. Against `0.6.0`'s 493 KB that is
+      a third of the size. `cargo install yqr --version 0.7.0` then ran the
+      release's own features from the installed binary — which is how
+      `yqr-b023` was found, since a locally built binary could not have shown
+      it.

@@ -8,14 +8,7 @@
 use std::process::Command;
 
 fn main() {
-    // Short git commit hash; "unknown" when built outside a git checkout
-    // (e.g. from a packaged source tarball).
-    let git_hash = Command::new("git")
-        .args(["rev-parse", "--short", "HEAD"])
-        .output()
-        .ok()
-        .and_then(|o| String::from_utf8(o.stdout).ok())
-        .map_or_else(|| "unknown".to_string(), |s| s.trim().to_string());
+    let git_hash = git_hash();
     println!("cargo:rustc-env=GIT_HASH={git_hash}");
 
     // Build timestamp (UTC), computed in pure Rust to avoid a chrono dependency.
@@ -47,6 +40,58 @@ fn main() {
     println!("cargo:rerun-if-changed=Cargo.lock");
     println!("cargo:rerun-if-changed=.git/HEAD");
     println!("cargo:rerun-if-changed=.git/refs/heads/");
+    println!("cargo:rerun-if-changed=.cargo_vcs_info.json");
+}
+
+/// The short commit this build came from, by whichever route is available.
+///
+/// Two, because a crate is built in two different places. In a checkout `git`
+/// answers. From a published tarball there is no `.git`, but Cargo wrote the
+/// commit into `.cargo_vcs_info.json` when it packaged the crate, so the
+/// answer is still on disk — which is why an installed `yqr` can name its
+/// commit at all rather than shrugging.
+///
+/// `"unknown"` only when neither exists: a source tree that is not a checkout
+/// and was not packaged by Cargo.
+// Bug b023.
+fn git_hash() -> String {
+    head_via_git()
+        .or_else(head_via_vcs_info)
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+/// Ask `git`, in a checkout.
+///
+/// The status check is the whole point. Outside a repository `git rev-parse`
+/// exits 128 with its complaint on *stderr* and an empty stdout, so `output()`
+/// is `Ok` and the string is `""` — which is how `--version` came to print an
+/// empty pair of parentheses instead of falling back (`yqr-b023`).
+fn head_via_git() -> Option<String> {
+    let out = Command::new("git")
+        .args(["rev-parse", "--short", "HEAD"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let hash = String::from_utf8(out.stdout).ok()?.trim().to_string();
+    (!hash.is_empty()).then_some(hash)
+}
+
+/// Read the commit out of the manifest Cargo packages into a published crate.
+///
+/// The file is Cargo's own, three keys deep and machine-written, so it is
+/// scanned rather than parsed — a JSON dependency for one field would be paid
+/// for by every downstream build.
+fn head_via_vcs_info() -> Option<String> {
+    let text = std::fs::read_to_string(".cargo_vcs_info.json").ok()?;
+    let rest = text.split_once("\"sha1\"")?.1;
+    let rest = rest.split_once('"')?.1;
+    let sha = rest.split_once('"')?.0;
+    // Match the width `git rev-parse --short` prints, so the two routes are
+    // indistinguishable in `--version` output.
+    let short: String = sha.chars().take(7).collect();
+    (short.len() == 7 && short.chars().all(|c| c.is_ascii_hexdigit())).then_some(short)
 }
 
 /// Converts days since the Unix epoch to a `(year, month, day)` triple.
