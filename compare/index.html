@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "How yqr compares to other YAML tools",
   "url": "https://zoosky.github.io/yqr/compare",
-  "wordCount": 92
+  "wordCount": 394
 }
 </script>
 <script type="application/ld+json">
@@ -215,7 +215,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">1 min read</span>
+                    <span class="reading-time">2 min read</span>
                 </div>
                 
 
@@ -227,6 +227,10 @@
     
         <li class="toc-level-1">
             <a href="#how-yqr-compares">How yqr compares</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#related-tools-not-competitors">Related tools, not competitors</a>
         </li>
     
     </ul>
@@ -251,6 +255,55 @@ named on each page so you can tell how stale it is.</p>
 <li><a href="/yqr/compare/yq">yqr and yq</a> – the closest neighbour, and the one most people arrive
 from.</li>
 </ul>
+<h2 id="related-tools-not-competitors">Related tools, not competitors<a class="heading-anchor" href="#related-tools-not-competitors" aria-label="Link to this section"></a></h2>
+<p>Not everything in this space is a comparison. <strong>yqr edits; <code>noyafmt</code>
+formats.</strong> They are different jobs, and they share an engine – both are built
+on <a href="https://crates.io/crates/noyalib">noyalib</a>, so they agree about what your
+file means.</p>
+<p>The difference is which bytes they are allowed to touch. Run both over the
+same file:</p>
+<pre><code class="language-console">$ cat config.yaml
+# Production cluster
+defaults: &amp;defaults
+  mode:   0640      # octal, on purpose
+  retries: 3
+web:
+  &lt;&lt;: *defaults
+  name:   'web'
+</code></pre>
+<pre><code class="language-console">$ noyafmt config.yaml
+# Production cluster
+defaults: &amp;defaults
+  mode: 0640 # octal, on purpose
+  retries: 3
+web:
+  &lt;&lt;: *defaults
+  name: 'web'
+</code></pre>
+<p><code>noyafmt</code> closed up the alignment padding, everywhere, on purpose – that is
+what a formatter is for. It kept the comment, the anchor, the merge key, the
+single quotes, and the octal <code>0640</code>, because it works through the same
+lossless CST yqr reads.</p>
+<pre><code class="language-console">$ yqr '.' config.yaml | diff - config.yaml &amp;&amp; echo identical
+identical
+$ yqr '.defaults.retries = 5' config.yaml | diff config.yaml -
+4c4
+&lt;   retries: 3
+---
+&gt;   retries: 5
+</code></pre>
+<p>yqr changed one line, because one line is what the filter named. It has no
+opinion about the padding and never will – <a href="/yqr/guide/fidelity">that is the
+guarantee</a>, and a <code>format</code> subcommand would contradict it.</p>
+<p>So reach for <code>noyafmt</code> when you want the file tidied, and yqr when you want
+one value changed and everything else left alone. They compose in a pipe, and
+<code>noyafmt --check</code> is the CI gate that exits 1 and names the files that need
+formatting.</p>
+<p>Install both with <code>cargo install noya-cli --locked</code>, which also ships
+<code>noyavalidate</code> – a JSON Schema 2020-12 checker with autofix. That is a
+different question from yqr’s <a href="/yqr/guide/validate"><code>validate</code></a>, which asks
+whether a file is <em>correct YAML</em> rather than whether it matches a schema.</p>
+<p>Measured against <code>noyafmt 0.0.27</code>.</p>
 
                 </div>
 
