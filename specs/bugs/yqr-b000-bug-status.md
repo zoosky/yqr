@@ -10,7 +10,8 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b021](yqr-b021-cannot-write-a-value-into-an-implicit-null.md) | A value cannot be written into an implicit null, and the refusal says the path does not exist | Low | Open — `a:` with no value reads as `null` and cannot be written: `.a = 1` answers *"path not found: a"* for a path the line above just printed. Writing `null` there **is** accepted, because the `b018` guard skips it — so the operation succeeds exactly when it does nothing. Two faults, and only one is the wording: unlike a merged-in key or an alias site there is a real entry here, with a key token of its own, and `a:` -> `a: 1` restructures nothing. Filling in a value someone left blank is ordinary work on a config file, so the **refusal** is the questionable half. Cause is upstream's `resolve_span` reporting a zero-width leaf as `None`, which `write_span` renders as `path not found` — the same undifferentiated answer `b020` §6.1 measured, from a different shape. Found by a test written to hold `b020`'s check *off* a case that is not a merge, and that test pins the boundary. The fix needs an insertion point rather than a span to replace, with the empty-`-` item and the `a:   # todo` trailing-comment case settled first | `yqr-b020`, `yqr-b019`, `yqr-f006` |
+| [b022](yqr-b022-colon-at-end-of-input-is-not-a-mapping.md) | A file with no trailing newline after a blank value is misread, and `validate` calls it invalid | Medium | Open — **fixed upstream, awaiting a release** (noyalib#312, 2026-08-23). A `:` at **end of input** is not read as a mapping value indicator, though a `:` followed by a space or a line break is — so `a:` and `a:\n`, the same document one byte apart, load as a string and a mapping respectively. Three faces in yqr: `.a` over `a:` errors with *"cannot index string"*; `a: 1\nb:` fails to parse outright; and **`validate` reports `Y001` on valid YAML**, which is the worst of them, since that command's whole job is to answer whether a file is correct. PyYAML and Psych agree with each other on all nine shapes measured and with noyalib on the five controls. Not a fidelity defect — the identity read stays byte-exact, so `a001` §1 holds; what is wrong is the value. **Deliberately not worked around**: appending a newline before parsing would change the bytes the fidelity engine slices, trading a wrong value for a broken guarantee. Found while patching `b021` upstream, by a test case that could not be written because the input never became a mapping | `yqr-b021`, `yqr-f012`, `yqr-a001` |
+| [b021](yqr-b021-cannot-write-a-value-into-an-implicit-null.md) | A value cannot be written into an implicit null, and the refusal says the path does not exist | Low | Open — **fixed upstream, awaiting a release** (noyalib#310 / noyalib#311, 2026-08-23). `a:` with no value reads as `null` and cannot be written: `.a = 1` answers *"path not found: a"* for a path the line above just printed. Writing `null` there **is** accepted, because the `b018` guard skips it — so the operation succeeds exactly when it does nothing. Two faults, and only one is the wording: unlike a merged-in key or an alias site there is a real entry here, with a key token of its own, and `a:` -> `a: 1` restructures nothing. Filling in a value someone left blank is ordinary work on a config file, so the **refusal** is the questionable half. Cause is upstream's `resolve_span` reporting a zero-width leaf as `None`, which `write_span` renders as `path not found` — the same undifferentiated answer `b020` §6.1 measured, from a different shape. Found by a test written to hold `b020`'s check *off* a case that is not a merge, and that test pins the boundary. The fix needed an insertion point rather than a span to replace, and both open questions — the empty `-` item and the `a:   # todo` trailing comment — were settled by the same mechanism: noyalib#165's zero-width leaf already carries the indicator's position, so `resolve_span` was discarding one level too early. `span_at` discards it now (keeping #165's read contract) and `write_span` turns it into an insertion point one byte past the `:` / `-`, which puts the value ahead of a trailing comment by construction and makes the `-` case the same rule. The measurement also turned up a silent duplicate-key defect yqr cannot reach, and **noyalib#312**, filed as `b022`. Verified downstream with a local `patch.crates-io`. On adoption, `a_mappings_own_entry_is_untouched_by_the_merged_key_check` flips — it pinned this refusal on purpose | `yqr-b020`, `yqr-b019`, `yqr-f006`, `yqr-b022` |
 
 ## Resolved
 
@@ -39,13 +40,15 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 21
-- Open: **1** (b021, where the refusal itself is the questionable half, not
-  only its wording).
+- Total bugs: 22
+- Open: **2** (b021, b022) — both **fixed upstream and awaiting a noyalib
+  release**, so neither is work yqr holds. `b022` is the more serious: it makes
+  `validate` report an error on valid YAML.
 - **Every bug yqr has filed is fixed**, in yqr or in a released dependency,
-  except `b021`.
-  `b020` and `b021` were both found by the work that closed the one before —
-  `b019`'s documentation pass and `b020`'s boundary test respectively.
+  except `b021` and `b022`, both of which have a merged-or-open fix upstream.
+  Each of the last three was found by the work that closed the one before:
+  `b020` by `b019`'s documentation pass, `b021` by `b020`'s boundary test, and
+  `b022` by a test `b021`'s upstream patch could not write.
 - **Every bug yqr filed against accent is fixed in a released version** —
   `b007` in accent 0.23.1, `b017`'s five findings in 0.25.0, filed and
   released the same day (`yqr-f024`). What is still open upstream is accentcms
