@@ -6,6 +6,23 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-23
+
+Editing computes. Until now a filter could say what a value should *become*,
+but not what it should become *relative to what it was* -- the Kubernetes
+guide named the gap outright: "you cannot say 'increment the replica count';
+you say what it should become". `|=` and arithmetic close it.
+
+The other half of the release is the write tier keeping its own promise. Four
+fixes come from one thread pulled through `yqr '.n = .n'`: an assignment whose
+value is already in the file was re-spelling the scalar, turning `0640` into
+`640` on the very example the fidelity guide leads with. Guarding that turned
+up a second defect, guarding *that* turned up a third, and each was found by
+the work that closed the one before.
+
+Five more arrive through the YAML engine, every one of them a defect yqr filed
+upstream and most of them fixed by yqr's own commits there.
+
 ### Added
 
 - **Compute a new value from the old one: `|=`.** `=` writes what you tell it;
@@ -63,6 +80,22 @@ All notable changes to `yqr` are documented here. The format is based on
   `to_entries` gives the decoded string. `-r` collapses the difference, since
   asking for raw output is asking for the value rather than the spelling.
 
+### Breaking
+
+- **Assigning to an alias or a merged-in entry now exits 5, where a matching
+  value used to exit 0.** This is a bug fix with a script-visible edge: the
+  guard that skips a write when the value already matches ran *ahead* of the
+  checks that do not depend on the value at all, so `.b = 1` on `b: *x` exited
+  0 with the alias untouched and nothing said, while `.b = 2` on the same file
+  was refused. The edit yqr declined to make looked like one it had made, and
+  a later change to the anchor would have moved `b` with it.
+
+  Entries reached through an alias or a `<<` merge are now refused whatever
+  value is assigned, including an alias-valued item of a sequence. A pipeline
+  that relied on the old silence will start failing -- correctly, since the
+  edit was never performed. A no-op on an *ordinary* entry is still a no-op,
+  including on one that carries an anchor.
+
 ### Fixed
 
 - **An assignment that changes nothing no longer re-spells the value.**
@@ -78,16 +111,6 @@ All notable changes to `yqr` are documented here. The format is based on
   and the text is all a comment edit is given, so writing `tight` back
   respaced a line that had not changed. Reading a comment and feeding it
   straight back is now a no-op, as it reads.
-
-- **A no-op assignment no longer swallows a refusal.** Skipping a write when
-  the value matched ran ahead of the checks that do not depend on the value at
-  all. `.b = 1` on `b: *x` exited 0 with the alias untouched and nothing said,
-  while `.b = 2` on the same file was refused -- so the edit yqr declined to
-  make looked like one it had made, and a later change to the anchor would
-  have moved `b` with it. Entries reached through an alias or a `<<` merge are
-  now refused whatever value is assigned, including an alias-valued item of a
-  sequence. A no-op on an *ordinary* entry is still a no-op, including on one
-  that carries an anchor.
 
 - **A write to a merged-in key says what is actually wrong.** `yqr '.c.k'`
   printed a value and `yqr '.c.k = 9'` on the same file answered *"path not
