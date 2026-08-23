@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-22",
+  "dateModified": "2026-08-23",
   "description": "What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.",
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 891
+  "wordCount": 961
 }
 </script>
 <script type="application/ld+json">
@@ -373,9 +373,15 @@ file is left untouched on refusal, so a failed edit never leaves you with a
 half-written file.</p>
 <p>An entry that a <code>&lt;&lt;</code> merge or an alias produced is one of those refusals.
 You can <em>read</em> <code>.web.mode</code> – it resolves to <code>0640</code> through the merge – but
-there is no <code>mode</code> entry under <code>web</code> to write to, so <code>.web.mode = 416</code>
-exits 5 rather than inventing one. Set the value on the anchor, or add an
-explicit <code>mode:</code> under <code>web</code> first.</p>
+there is no <code>mode</code> entry under <code>web</code> to write to, so yqr declines rather
+than inventing one:</p>
+<pre><code class="language-console">$ yqr '.web.mode = 416' config.yaml
+yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode" entry of its own to write; it is merged in from elsewhere, through a `&lt;&lt;` merge key or an alias. Assign where the key is defined instead
+</code></pre>
+<p>So <code>.defaults.mode = 416</code> is the edit, and it changes the value for
+everything that inherits the anchor. Writing an entry under <code>web</code> that
+overrides the merge for <code>web</code> alone is a different edit, and one yqr cannot
+make yet.</p>
 <h2 id="a-write-that-changes-nothing-changes-nothing">A write that changes nothing changes nothing<a class="heading-anchor" href="#a-write-that-changes-nothing-changes-nothing" aria-label="Link to this section"></a></h2>
 <p>Assigning a value that is already there does not rewrite it. yqr writes
 <em>values</em>, and a value does not carry its own spelling – so re-emitting
@@ -457,7 +463,7 @@ afterwards.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-22</span>
+        <span>Site last updated: 2026-08-23</span>
         
     </footer>
 
