@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787506146327,
+  "lastUpdate": 1787508003953,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1805,6 +1805,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 258188,
             "range": "± 1182",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ebc41188c969fe5fd273591bad233dd8d2f60d9a",
+          "message": "fix(build): name the commit in --version when installed from crates.io (b023) (#101)\n\nEvery yqr installed from crates.io reported an empty commit:\n\n    $ cargo install yqr --version 0.7.0\n    $ yqr --version\n    yqr 0.7.0 (, built 2026-08-23 17:42:56 UTC)\n\n`build.rs` asked git and never checked whether git succeeded. Outside a\ncheckout `git rev-parse --short HEAD` exits 128 with its complaint on stderr\nand an empty stdout, so `output()` is `Ok`, `String::from_utf8(vec![])` is\n`Ok(\"\")`, and the closure returns the empty string. The `\"unknown\"` fallback\nneeds `map_or_else`'s None arm, which wants the git binary missing outright --\nso the one case it was written for is the one case it did not catch.\n\n`\"unknown\"` was the wrong target anyway. Cargo writes the commit into\n`.cargo_vcs_info.json` when it packages a crate, and the copy in the published\n0.7.0 tarball reads bf703183..., which is exactly the commit the tag was cut\nfrom. The answer was on disk the whole time.\n\nTwo routes now, tried in order, because a crate is built in two places: git in\na checkout, gated on `status.success()` and a non-empty result; the packaged\nmanifest otherwise, scanned rather than parsed, since it is Cargo's own file\nand a JSON dependency for one field would be paid for by every downstream\nbuild. Truncated to 7 characters so the two are indistinguishable in output.\n`\"unknown\"` stays for a tree that is neither, and is now reachable.\n\nVerified by building three ways -- checkout, unpacked 0.7.0 tarball, and that\ntarball with the manifest deleted -- which report bf70318, bf70318, unknown.\nThe middle one is the bug, and it now agrees with the first.\n\nFound by smoke-testing the published binary instead of a local build, which is\nthe only way it could have been found: `cargo run -- --version` in the repo was\nalways correct.\n\nAlso ticks m004 §6.1's last acceptance item, which needed the real artefact:\nthe published .crate is 38 files and 164 KB with no dev-only path, against\n0.6.0's 493 KB. That download is what surfaced b023.\n\nThe identical construct is in accentcms's build.rs, unexercised only because\nit is not published. b023 §6 records it; worth porting before its first\nrelease rather than after, since the defect only shows in the artefact\nstrangers install.",
+          "timestamp": "2026-08-23T19:58:41+02:00",
+          "tree_id": "7fcbb36e65ac6e5548e69108deb18f7dbe8efbd6",
+          "url": "https://github.com/zoosky/yqr/commit/ebc41188c969fe5fd273591bad233dd8d2f60d9a"
+        },
+        "date": 1787508002043,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 576,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5640,
+            "range": "± 43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 255371,
+            "range": "± 2046",
             "unit": "ns/iter"
           }
         ]
