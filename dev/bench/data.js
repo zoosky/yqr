@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787463633881,
+  "lastUpdate": 1787506146327,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1763,6 +1763,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 160142,
             "range": "± 1506",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bf703183954204133cde04168b6c9d0b7492d724",
+          "message": "chore: release v0.7.0 (#100)\n\nThree language features and ten fixes, 20 commits since v0.6.0.\n\n`|=` and arithmetic close the gap the Kubernetes guide named by name -- a\nfilter could say what a value should become, but not what it should become\nrelative to what it was. `to_entries` is the third addition.\n\nMinor rather than patch on two counts. The public library exports in\n`src/lib.rs` are unchanged, but the CLI's observable behaviour is not: an\nassignment to an alias or a merged-in entry now exits 5 where a *matching*\nvalue used to exit 0. That is b019's fix, and it is a bug fix with a\nscript-visible edge, so it moves out of Fixed and into its own Breaking\nsection rather than hiding among ten other entries where nobody scanning for\nbreakage would look. The old behaviour was yqr declining an edit and reporting\nsuccess, so a pipeline that starts failing here was already broken; it just\nhad no way to know.\n\nFive of the fixes arrive through the YAML engine -- b011 through b015, every\none a defect yqr filed upstream and most fixed by yqr's own commits there.\n\nVersion bumped in Cargo.toml, Cargo.lock (via cargo check), and the JSON-LD\n`softwareVersion` in the site template, which m001 §3 lists and which is easy\nto miss because nothing fails without it.\n\nVerified: local-ci.sh green, the site builds under --strict-links and renders\nsoftwareVersion 0.7.0, `yqr --version` reports 0.7.0, and `cargo package\n--list` names zero dev-only paths -- the guard added after 0.6.0 shipped the\nentire website.\n\nTagging, the GitHub release and `cargo publish` are separate steps after this\nmerges. m004 §6.1's last acceptance item needs the published artifact and\nstays unchecked until then.",
+          "timestamp": "2026-08-23T19:27:40+02:00",
+          "tree_id": "67b4d14faa47a695ae0f199569b6af5db98076b4",
+          "url": "https://github.com/zoosky/yqr/commit/bf703183954204133cde04168b6c9d0b7492d724"
+        },
+        "date": 1787506143898,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 577,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5598,
+            "range": "± 148",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 258188,
+            "range": "± 1182",
             "unit": "ns/iter"
           }
         ]
