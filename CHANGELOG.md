@@ -85,8 +85,16 @@ All notable changes to `yqr` are documented here. The format is based on
   while `.b = 2` on the same file was refused -- so the edit yqr declined to
   make looked like one it had made, and a later change to the anchor would
   have moved `b` with it. Entries reached through an alias or a `<<` merge are
-  now refused whatever value is assigned. A no-op on an *ordinary* entry is
-  still a no-op, including on one that carries an anchor.
+  now refused whatever value is assigned, including an alias-valued item of a
+  sequence. A no-op on an *ordinary* entry is still a no-op, including on one
+  that carries an anchor.
+
+- **A write to a merged-in key says what is actually wrong.** `yqr '.c.k'`
+  printed a value and `yqr '.c.k = 9'` on the same file answered *"path not
+  found: c.k"* -- one tool contradicting itself. A key that a `<<` merge or an
+  alias brings into view is still refused, because the mapping has no entry
+  there to write, but the message now says so and names the two ways out:
+  assign where the key is defined, or add an explicit entry to override it.
 
 - **Deleting from a wrapped flow collection no longer leaves a blank line.**
   `del(.ports[0])` on a `ports:` list broken across lines removed the member
