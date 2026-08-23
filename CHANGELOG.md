@@ -6,6 +6,16 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- **`yqr --version` names the commit it was built from, even when you
+  installed it from crates.io.** It used to print an empty pair of
+  parentheses -- `yqr 0.7.0 (, built ...)` -- because the build script asked
+  `git` for the commit and never checked whether `git` had succeeded. Outside
+  a checkout it exits 128 with an empty stdout, so the "unknown" fallback
+  never fired. It reads the commit Cargo records in the packaged crate
+  instead, so an installed binary and a local build now report the same hash.
+
 ## [0.7.0] - 2026-08-23
 
 Editing computes. Until now a filter could say what a value should *become*,
