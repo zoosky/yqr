@@ -4,7 +4,8 @@
 **Epic:** Write tier (`f006`)
 **Owner:** yqr maintainers
 **Related:** `yqr-b020` (whose refusal message this is the missing half of),
-`yqr-b019`, `yqr-b021` (the other write yqr declines at a resolvable path),
+`yqr-b019`, `yqr-b021` (which was the other write yqr declined at a
+resolvable path, until noyalib 0.0.28 made it write; this one is the last),
 `yqr-f007` §6
 
 ## 1. Scope

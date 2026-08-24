@@ -234,6 +234,25 @@ pub const CRLF_APP_CONFIG: &str = concat!(
     "  level: warn\r\n",
 );
 
+/// A generated deployment fragment: a mapping whose last value is left blank,
+/// and no trailing newline. The shape a heredoc, a `printf` without `\n`, or a
+/// templating step emits.
+///
+/// Both properties are the point, and they compound. A blank value is an
+/// implicit null, which has to read as `null` and accept a write that fills it
+/// in; and with no newline after it, the `:` sits at end of input, which is
+/// where the scanner used to stop treating it as a value indicator.
+///
+/// Written as a `concat!` for the same reason [`CRLF_APP_CONFIG`] is: a block
+/// literal would end with a `\n` and quietly test a different document.
+// Bugs b021 (writing into an implicit null) and b022 (a `:` at end of input),
+// both fixed in noyalib 0.0.28.
+pub const BLANK_TAIL_FRAGMENT: &str = concat!(
+    "image: registry.example.com/web:1.4.2\n",
+    "replicas: 2\n",
+    "digest:",
+);
+
 /// Build a large inventory document with `n` host records — used by the
 /// benchmark to measure iteration/projection at scale. Only the benchmark crate
 /// consumes it, so it is dead code from the validation crate's point of view.

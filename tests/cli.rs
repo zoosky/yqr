@@ -1707,16 +1707,18 @@ fn a_mappings_own_entry_is_untouched_by_the_merged_key_check() {
         "base: &m\n  k: 9\nc:\n  <<: *m\n  z: 2\n"
     );
     // An implicit null has no value span either, and is nobody's merge, so
-    // the merged-key reason must not reach it. Writing a value there is
-    // refused for its own (pre-existing) reason -- see `yqr-b021` -- and
-    // writing `null`, which changes nothing, is still a no-op.
+    // the merged-key reason must not reach it. Since noyalib 0.0.28 the write
+    // succeeds instead of being refused for its own reason -- see `yqr-b021`,
+    // whose §4.2 predicted this assertion would flip -- and writing `null`,
+    // which changes nothing, is still a no-op.
     let implicit = "a:\nb: 2\n";
-    let refused = run(&[".a = 1"], implicit);
-    assert_eq!(refused.status, 5);
+    let filled = run(&[".a = 1"], implicit);
+    assert_eq!(filled.status, 0, "stderr: {}", filled.stderr);
+    assert_eq!(filled.stdout, "a: 1\nb: 2\n");
     assert!(
-        !refused.stderr.contains("entry of its own"),
+        !filled.stderr.contains("entry of its own"),
         "not the merged-key reason: {}",
-        refused.stderr
+        filled.stderr
     );
     assert_eq!(run(&[".a = null"], implicit).stdout, implicit);
 }
@@ -1807,4 +1809,75 @@ fn the_merged_key_message_names_only_a_remedy_that_works() {
         "base: &m\n  k: 9\nc:\n  <<: *m\n",
         "and the remedy it does name works"
     );
+}
+
+// Bug b021: a key with a blank value is an implicit null -- a real entry, with
+// a key token of its own and no value bytes to splice over. noyalib's
+// `resolve_span` discarded the zero-width leaf that marks it, so every write
+// path read "no bytes" as "no node" and refused with the same false reason
+// b020 was about. Fixed in noyalib 0.0.28: the leaf keeps the position of the
+// indicator it followed, which is where a value goes.
+#[test]
+fn a_value_is_written_into_an_implicit_null() {
+    let out = run(&[".a = 1"], "a:\nb: 2\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: 1\nb: 2\n");
+}
+
+// The sequence half. A `-` with nothing after it is the same shape reached by
+// the other indicator, so one rule covers both -- and the item's column is the
+// sequence's, which a wrong insertion point would move.
+#[test]
+fn a_value_is_written_into_an_empty_sequence_item() {
+    let out = run(&[".a[0] = 1"], "a:\n  -\n  - 2\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a:\n  - 1\n  - 2\n");
+}
+
+// The shape that decides where the byte goes: an implicit null *and* a line
+// comment. The value belongs before the comment. After it, the write would
+// silently comment the value out -- an edit that reads as successful and
+// leaves the file saying nothing.
+#[test]
+fn a_value_written_into_an_implicit_null_lands_before_a_trailing_comment() {
+    let out = run(&[".a = 1"], "a:   # todo\nb: 2\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: 1   # todo\nb: 2\n");
+}
+
+// Bug b022: a `:` at end of input is a value indicator, the same as a `:`
+// followed by a space or a line break. It was not, so `a:` and `a:\n` -- the
+// same document one byte apart -- loaded as a string and as a mapping. Fixed
+// in noyalib 0.0.28.
+#[test]
+fn a_colon_at_end_of_input_is_a_value_indicator() {
+    for (doc, filter) in [("a:", ".a"), ("a: 1\nb:", ".b"), ("a:\n", ".a")] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 0, "{doc:?}: {}", out.stderr);
+        assert_eq!(out.stdout, "null\n", "{doc:?} must read as a mapping");
+    }
+    // The sibling still reads, which is what the parse failure took away.
+    assert_eq!(run(&[".a"], "a: 1\nb:").stdout, "1\n");
+}
+
+// The b022 face that mattered most: `validate` answered "no" about a file two
+// reference implementations accept, with a `Y001` and a caret pointing at
+// nothing. A validator that cries wolf is worse than a wrong value.
+#[test]
+fn validate_accepts_a_blank_value_at_end_of_input() {
+    for doc in ["a:", "a: 1\nb:"] {
+        let out = run(&["validate", "--strict", "-"], doc);
+        assert_eq!(out.status, 0, "{doc:?}: {}", out.stderr);
+        assert!(out.stderr.is_empty(), "{doc:?}: {}", out.stderr);
+    }
+}
+
+// b022 §3: the identity read was byte-exact throughout, and stays so. The
+// misparse produced a wrong value, never wrong bytes -- the fidelity floor
+// held, and a fix that quietly appended a newline would have broken it.
+#[test]
+fn a_document_with_no_trailing_newline_is_echoed_byte_for_byte() {
+    let out = run(&["."], "a: 1\nb:");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: 1\nb:");
 }

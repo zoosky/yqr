@@ -70,8 +70,8 @@ pub struct EngineCase {
 }
 
 use docs::{
-    APP_CONFIG, CRLF_APP_CONFIG, DOCKER_COMPOSE, FIDELITY_RICH, GH_ACTIONS, GH_ACTIONS_FLOW,
-    HELM_VALUES, K8S_DEPLOYMENT, MULTI_DOC,
+    APP_CONFIG, BLANK_TAIL_FRAGMENT, CRLF_APP_CONFIG, DOCKER_COMPOSE, FIDELITY_RICH, GH_ACTIONS,
+    GH_ACTIONS_FLOW, HELM_VALUES, K8S_DEPLOYMENT, MULTI_DOC,
 };
 
 /// Every classic-pipeline case. Covers identity, field access (top-level,
@@ -119,6 +119,23 @@ pub fn classic_cases() -> Vec<Case> {
             doc: APP_CONFIG,
             filter: ".zip",
             expect: Expect::Values("\"007\""),
+        },
+        // Bug b022: with no trailing newline the `:` sits at end of input,
+        // and it is a value indicator there too. `digest` is a key with an
+        // implicit null, not the tail of a string.
+        Case {
+            id: "field/implicit-null-at-end-of-input",
+            doc: BLANK_TAIL_FRAGMENT,
+            filter: ".digest",
+            expect: Expect::Values("null"),
+        },
+        // The sibling the misparse took with it: once the document loaded as
+        // a string, every key in it was unreachable, not just the blank one.
+        Case {
+            id: "field/sibling-of-a-blank-tail",
+            doc: BLANK_TAIL_FRAGMENT,
+            filter: ".replicas",
+            expect: Expect::Values("2"),
         },
         // -- indexing ---------------------------------------------------------
         Case {
@@ -345,6 +362,15 @@ pub fn engine_cases() -> Vec<EngineCase> {
             raw: false,
             expect: MULTI_DOC,
         },
+        // Bug b022 §3: the misparse never cost bytes, and the fix must not
+        // either. A document with no trailing newline comes back without one.
+        EngineCase {
+            id: "engine/identity/blank-tail-fragment",
+            doc: BLANK_TAIL_FRAGMENT,
+            filter: ".",
+            raw: false,
+            expect: BLANK_TAIL_FRAGMENT,
+        },
         // -- projections emit the node's original bytes -----------------------
         EngineCase {
             id: "engine/projection/quoted-scalar",
@@ -490,6 +516,17 @@ pub fn write_cases() -> Vec<WriteCase> {
             doc: HELM_VALUES,
             filter: ".replicaCount = 2",
             expect: WriteExpect::Unchanged,
+        },
+        // Bug b021: a blank value is an implicit null -- a real entry with a
+        // key token and no value bytes to replace. The write is an insertion
+        // one byte past the `:`, and it used to be refused with "path not
+        // found" for a path the read tier resolves. The last line carries no
+        // newline, so this also pins that the insertion does not invent one.
+        WriteCase {
+            id: "write/assign/fills-in-an-implicit-null",
+            doc: BLANK_TAIL_FRAGMENT,
+            filter: ".digest = \"sha256:9f0a\"",
+            expect: WriteExpect::Rewrites(&[("digest:", "digest: sha256:9f0a")]),
         },
         // Bug b018: the case the one above could not catch. `2` is already
         // canonical, so it stayed byte-identical even while the guard was
