@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787508003953,
+  "lastUpdate": 1787587202663,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1847,6 +1847,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 255371,
             "range": "± 2046",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e16d6a6eb2a61ce35f561b161aaa9064f514fe64",
+          "message": "fix(deps): noyalib 0.0.28 closes b021 and b022, the last two open bugs (#102)\n\nBoth were reported by yqr the day before the release, and one was patched\nby yqr upstream. Neither needed a change here beyond the pin.\n\nb021 -- a key with a blank value is an implicit null, and writing one was\nrefused with \"path not found\" for a path the same command could print.\nnoyalib's resolve_span discarded the zero-width leaf that marks it, so\nevery write path read \"no bytes\" as \"no node\". The leaf keeps the position\nof the indicator it followed now, which is where a value goes: `a:` becomes\n`a: 1`, an empty `-` item fills the same way, and the value lands before a\ntrailing comment rather than after it.\n\nb022 -- a `:` at end of input was not read as a value indicator, so `a:`\nand `a:\\n`, the same document one byte apart, loaded as a string and as a\nmapping. `validate` reported Y001 on valid YAML, which is the face that\nmattered; the read faces were a wrong value and a parse failure. Never a\nfidelity defect, and never worked around here, so the fix is the pin alone.\n\nPinned by nine tests: three CLI writes for b021, three CLI reads plus the\nvalidate face and the byte-exact identity for b022, and a corpus document\nwhose last value is blank and which ends without a newline -- which puts\nthe validate face under corpus_documents_validate_cleanly for free.\n\na_mappings_own_entry_is_untouched_by_the_merged_key_check flipped exactly\nas b021 §4.2 predicted: the half that pinned the refusal now asserts the\nwrite succeeds, and the half that keeps b020's merged-key reason off a case\nthat is not a merge is unchanged.",
+          "timestamp": "2026-08-24T17:58:31+02:00",
+          "tree_id": "1fd201ec1a5794556c712c38dd2304da3170f120",
+          "url": "https://github.com/zoosky/yqr/commit/e16d6a6eb2a61ce35f561b161aaa9064f514fe64"
+        },
+        "date": 1787587200164,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 577,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5675,
+            "range": "± 116",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 261446,
+            "range": "± 2498",
             "unit": "ns/iter"
           }
         ]
