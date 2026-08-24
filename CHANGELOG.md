@@ -8,6 +8,31 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **You can fill in a blank value.** A key written with nothing after it --
+  `digest:` -- is an implicit null. It has always read as `null`, but writing
+  one refused with *"path not found"*, naming a path the same command could
+  print. Now it writes:
+
+  ```console
+  $ yqr '.digest = "sha256:9f0a"' image.yaml
+  ```
+
+  The same holds for an empty `-` item in a sequence. If the line carries a
+  trailing comment, the value lands **before** it -- `a:   # todo` becomes
+  `a: 1   # todo` -- so a fill-in never comments the value out.
+
+- **A file that ends without a newline is read correctly.** A `:` at the very
+  end of the input was not treated as a mapping indicator, so `a:` loaded as
+  the string `"a:"` and `a: 1\nb:` failed to parse at all -- the same document
+  one byte apart, read two different ways. Worst of the three faces was
+  `validate`, which reported `error[Y001]` on valid YAML. All three are fixed:
+  the blank value reads as `null`, its siblings read normally, and `validate`
+  accepts the file. Byte-for-byte output was never affected, and a file with no
+  trailing newline still comes back without one.
+
+  Both fixes arrive with the YAML engine moving to noyalib 0.0.28. yqr reported
+  both and wrote the first fix upstream.
+
 - **`yqr --version` names the commit it was built from, even when you
   installed it from crates.io.** It used to print an empty pair of
   parentheses -- `yqr 0.7.0 (, built ...)` -- because the build script asked

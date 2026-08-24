@@ -1,10 +1,9 @@
 # Bug b021 — A value cannot be written into an implicit null, and the refusal says the path does not exist
 
-**Status:** Open — **fixed upstream, awaiting a release.** Filed 2026-08-22
-while fixing `yqr-b020`, found by a test written to hold `b020`'s check off a
-case that is not a merge. Reported and patched upstream 2026-08-23 as
-noyalib#310 / noyalib#311, which closes both faces; this stays open until yqr
-pins a noyalib carrying it
+**Status:** Resolved **2026-08-24** — noyalib#310 / noyalib#311 shipped in
+**noyalib 0.0.28**, and yqr pins it. Filed 2026-08-22 while fixing `yqr-b020`,
+found by a test written to hold `b020`'s check off a case that is not a merge;
+patched upstream the next day, released the day after that. See §6
 **Severity:** Low — a refusal, not damage; but `a:` → `a: 1` is an ordinary
 edit, and the reason given is the same false one `b020` was about
 **Component:** `src/fidelity/write.rs`, `NoyalibWriter::set_value` — the
@@ -144,3 +143,47 @@ $ printf 'a:\nb: 2\n' | yqr '.a'            # null -- the path resolves
 $ printf 'a:\nb: 2\n' | yqr '.a = null'     # exit 0, unchanged (b018 guard)
 $ printf 'a:\n  -\n  - 2\n' | yqr '.a[0] = 1'   # exit 5, same wording
 ```
+
+## 6. Adoption, 2026-08-24
+
+yqr moved its pin from `noyalib = "0.0.27"` to `"0.0.28"`. Every §5
+reproduction now writes:
+
+```console
+$ printf 'a:\nb: 2\n' | yqr '.a = 1'
+a: 1
+b: 2
+$ printf 'a:\n  -\n  - 2\n' | yqr '.a[0] = 1'
+a:
+  - 1
+  - 2
+$ printf 'a:   # todo\nb: 2\n' | yqr '.a = 1'
+a: 1   # todo
+b: 2
+```
+
+The trailing-comment shape is the one §4 could not settle in advance: the
+value lands **before** `# todo`, and the gutter the author wrote is still
+three spaces wide.
+
+Pinned by four tests, one per shape §4 raised plus the one §4.2 predicted
+would flip:
+
+- `a_value_is_written_into_an_implicit_null` (`tests/cli.rs`) — the mapping
+  entry.
+- `a_value_is_written_into_an_empty_sequence_item` — the `-` with nothing
+  after it, whose column a wrong insertion point would move.
+- `a_value_written_into_an_implicit_null_lands_before_a_trailing_comment` —
+  the shape that decides where the byte goes. Getting it wrong comments the
+  value out and still exits 0, so it is the case worth a test of its own.
+- `write/assign/fills-in-an-implicit-null` (`tests/corpus/mod.rs`) — the same
+  write on the corpus's blank-tail fragment, which asserts every byte the case
+  does not name comes back unchanged and that the result validates cleanly.
+
+`a_mappings_own_entry_is_untouched_by_the_merged_key_check` flipped exactly as
+§4.2 said it would. The half that pinned this refusal now asserts the write
+succeeds; the half that keeps `b020`'s merged-key reason off a case that is not
+a merge — what the test is actually for — is unchanged.
+
+The silent duplicate-key defect §4.1 found in `insert_entry_value` is fixed in
+the same release. yqr cannot reach that path, so nothing here pins it.

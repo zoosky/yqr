@@ -2,7 +2,8 @@
 # Traceability: Feature f009 made fidelity the default; f002 is the read
 # floor. Bug b011 (wrapped flow collections) fixed in noyalib 0.0.25.
 # The no-op write rule and the borrowed-entry refusal are bugs b018 and
-# b019; the merged-key message is b020.
+# b019; the merged-key message is b020. Filling in a blank value is b021,
+# fixed in noyalib 0.0.28.
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -134,6 +135,26 @@ $ yqr '.spec.replicas = 5' deploy.yaml
 Only the bytes of that one scalar are replaced. The comment two spaces to
 its right, the indentation, the key order, the quoting elsewhere in the
 file -- all still the original bytes.
+
+A key someone left blank is an ordinary target. A key with nothing after it
+is an implicit null: it reads as `null`, and writing to it fills the value in
+on the line that is already there. Given this `image.yaml`:
+
+```yaml
+image: registry.example.com/web:1.4.2
+replicas: 2
+digest:          # filled by the release job
+```
+
+```console
+$ yqr '.digest = "sha256:9f0a"' image.yaml
+image: registry.example.com/web:1.4.2
+replicas: 2
+digest: sha256:9f0a          # filled by the release job
+```
+
+The value goes *before* the comment, and the gutter the author wrote is
+still there. The same holds for an empty `-` item in a sequence.
 
 If an edit *cannot* be made without restructuring the document, yqr refuses
 it and exits 5 rather than emitting something surprising. With `-i` the
