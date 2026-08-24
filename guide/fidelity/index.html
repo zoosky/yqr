@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-23",
+  "dateModified": "2026-08-24",
   "description": "What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.",
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 961
+  "wordCount": 1061
 }
 </script>
 <script type="application/ld+json">
@@ -224,7 +224,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">5 min read</span>
+                    <span class="reading-time">6 min read</span>
                 </div>
                 
 
@@ -367,6 +367,21 @@ untouched:</p>
 <p>Only the bytes of that one scalar are replaced. The comment two spaces to
 its right, the indentation, the key order, the quoting elsewhere in the
 file – all still the original bytes.</p>
+<p>A key someone left blank is an ordinary target. A key with nothing after it
+is an implicit null: it reads as <code>null</code>, and writing to it fills the value in
+on the line that is already there. Given this <code>image.yaml</code>:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">registry.example.com/web:1.4.2
+</span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">2
+</span><span style="color:#bf616a;">digest</span><span style="color:#c0c5ce;">:          </span><span style="color:#65737e;"># filled by the release job
+</span></pre>
+<pre><code class="language-console">$ yqr '.digest = "sha256:9f0a"' image.yaml
+image: registry.example.com/web:1.4.2
+replicas: 2
+digest: sha256:9f0a          # filled by the release job
+</code></pre>
+<p>The value goes <em>before</em> the comment, and the gutter the author wrote is
+still there. The same holds for an empty <code>-</code> item in a sequence.</p>
 <p>If an edit <em>cannot</em> be made without restructuring the document, yqr refuses
 it and exits 5 rather than emitting something surprising. With <code>-i</code> the
 file is left untouched on refusal, so a failed edit never leaves you with a
@@ -463,7 +478,7 @@ afterwards.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-23</span>
+        <span>Site last updated: 2026-08-24</span>
         
     </footer>
 

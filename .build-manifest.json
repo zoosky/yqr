@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-23T17:27:53Z",
+  "timestamp": "2026-08-24T15:58:46Z",
   "pages": {
     "/": {
       "content_hash": "19ead5a6f3a94722",
@@ -33,7 +33,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/fidelity": {
-      "content_hash": "88020b093dfc904a",
+      "content_hash": "6e420f21c04e2fdf",
       "template": "fidelity.html.jinja",
       "template_hash": "30406ea523c53def"
     },
