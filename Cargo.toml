@@ -6,6 +6,13 @@ rust-version = "1.97"
 description = "A jq-style CLI for YAML: query and surgically edit while preserving comments, quoting, and formatting byte-for-byte"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/zoosky/yqr"
+# crates.io renders `repository` on its own, but a reader landing there had no
+# route to the guide without one of these: `homepage` is the task-oriented site
+# (install, fidelity, Kubernetes recipes, validate), `documentation` the library
+# API. Aggregators read both -- lib.rs has already referred traffic from this
+# metadata -- so leaving them unset cost the site its main discovery surface.
+homepage = "https://zoosky.github.io/yqr/"
+documentation = "https://docs.rs/yqr"
 readme = "README.md"
 keywords = ["yaml", "jq", "cli", "query", "filter"]
 categories = ["command-line-utilities", "parsing"]

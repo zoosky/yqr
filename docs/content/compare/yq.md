@@ -1,13 +1,16 @@
 ---
-# Every command and its output on this page was run against yq v4.53.3 and
+# Every command and its output on this page was run against yq v4.53.6 and
 # a real yqr build. Re-measure rather than re-assert when yq changes; see
 # yqr-k001. Traceability: Feature f007.
+# Re-measured 2026-08-24, from v4.53.3: yq no longer injects an `!!merge`
+# tag on a round trip. That was a regression on yq's side, fixed upstream in
+# v4.53.4 (#2705), so the divergence list lost an item.
 title: yqr and yq -- what actually changes in your file
 lead: >-
   What yq and yqr each do to your file's formatting, on a read and on an edit, measured side by side.
 description: >-
   A measured comparison of yqr and yq: both edit YAML well, but only one
-  leaves every untouched byte alone. Run against yq v4.53.3.
+  leaves every untouched byte alone. Run against yq v4.53.6.
 menu:
   title: yqr and yq
   order: 1
@@ -119,20 +122,19 @@ $ yq '.' anchors.yaml | diff anchors.yaml -
 >   mode: 0640 # octal, on purpose
 4d3
 <
-7c6
-<   <<: *defaults
----
->   !!merge <<: *defaults
 ```
 
-Three changes to a file nobody edited:
+Two changes to a file nobody edited:
 
 1. **Comment alignment collapsed.** Cosmetic, but it is your cosmetic.
 2. **The blank line was deleted.** That line was separating two sections.
-3. **`<<: *defaults` became `!!merge <<: *defaults`.** yq made an implicit
-   merge key explicit by adding a tag that was not in your source.
 
-None of that is wrong YAML. All of it lands in your pull request.
+Neither is wrong YAML. Both land in your pull request.
+
+Until yq v4.53.4 there was a third: `<<: *defaults` came back as
+`!!merge <<: *defaults`, a tag yq added that was not in your source. That was
+a regression on yq's side and yq fixed it, which is the honest way to report
+it -- this page measures a moving target, and the target moved in yq's favour.
 
 ## Why this matters (and when it doesn't)
 
@@ -154,11 +156,14 @@ Plenty, and it is worth knowing before you switch:
 - **Building new documents.** yqr has no object or array construction, no
   string interpolation, and no comma operator. It walks and edits documents
   that already exist.
-- **Builtins and arithmetic.** No `map`, `select`, `length`, `+` on values.
+- **Builtins.** `to_entries` is the only one. No `map`, `select`, `length`,
+  `keys`. Arithmetic *is* available -- `+ - * / %`, and `+` concatenates
+  strings -- but comparisons and boolean operators are not.
 - **Format conversion.** No JSON, XML, TOML, or properties in or out.
 - **Everything above, in one expression.** yq composes; yqr applies one edit
-  per run. Chaining, conditionals, and computed right-hand sides all live on
-  the yq side of the line.
+  per run. Chaining edits and conditionals live on the yq side of the line.
+  Computed right-hand sides do not any more -- `.n = .n + 1` and
+  `.n |= (. + 1)` both work.
 
 If you need any of those, use yq. The tools are not really substitutes;
 one of them is a scalpel with a very short blade.
@@ -170,7 +175,7 @@ spellings are not the same, and the differences are deliberate.
 
 yq spells a rename `(.a | key) = "z"` and a comment edit `.a
 line_comment="hi"` -- two different shapes, and the one that works for
-comments is a **silent no-op** for keys (measured on v4.53.3). yqr uses one
+comments is a **silent no-op** for keys (measured on v4.53.6). yqr uses one
 shape for both, so learning either teaches the other:
 
 ```console
