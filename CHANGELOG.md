@@ -6,6 +6,19 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-08-24
+
+Three fixes and no new surface. Two arrive with the YAML engine moving to
+noyalib 0.0.28 -- both of them defects yqr reported, one fixed by yqr's own
+commit upstream -- and between them they close the last two bugs yqr had open
+against that engine. The one worth upgrading for is `validate`, which reported
+an error on valid YAML whenever a file ended without a trailing newline: a
+command whose whole job is to answer "is this file correct" was answering no
+about files two reference implementations accept.
+
+The third fix is cosmetic but had been wrong in every published binary:
+`yqr --version` printed an empty commit hash when installed from crates.io.
+
 ### Fixed
 
 - **You can fill in a blank value.** A key written with nothing after it --
