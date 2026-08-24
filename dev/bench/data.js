@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787587202663,
+  "lastUpdate": 1787588919748,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1889,6 +1889,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 261446,
             "range": "± 2498",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f99a7406c97e61d670ef4341930f8a19547dab7",
+          "message": "chore: release v0.7.1 (#103)\n\nThree fixes, no new surface, four commits since v0.7.0.\n\nTwo arrive with the YAML engine moving to noyalib 0.0.28 -- b021 (a blank\nvalue could not be written into, and the refusal denied a path yqr could\nread) and b022 (a `:` at end of input was not a value indicator, so\n`validate` reported Y001 on valid YAML). Both were defects yqr reported;\nb021's fix was yqr's own commit upstream. They close the last two bugs yqr\nhad open, against that engine or anywhere else.\n\nThe third is b023: `yqr --version` printed an empty commit hash in every\nbinary installed from crates.io, because build.rs never checked whether\n`git` had succeeded.\n\nPatch rather than minor. The library exports in src/lib.rs are unchanged,\nand so is every CLI flag. b021 does change observable behaviour, but in the\ndirection that cannot break a working script: an assignment that exited 5\nnow exits 0 and writes. That is the opposite of v0.7.0's b019 change, which\ntook a passing exit code away and earned a Breaking section for it.\n\nVersion bumped in Cargo.toml, Cargo.lock (via cargo check), and the JSON-LD\nsoftwareVersion in the site template, which m001 §3 lists and which nothing\nfails without.\n\nVerified: local-ci.sh green, the site builds under --strict-links and the\nrendered index.html carries 0.7.1.",
+          "timestamp": "2026-08-24T18:27:14+02:00",
+          "tree_id": "0e3e482fdadb750702b082b09466cfccd73c5ad4",
+          "url": "https://github.com/zoosky/yqr/commit/0f99a7406c97e61d670ef4341930f8a19547dab7"
+        },
+        "date": 1787588917033,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 582,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5373,
+            "range": "± 48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 259394,
+            "range": "± 1955",
             "unit": "ns/iter"
           }
         ]
