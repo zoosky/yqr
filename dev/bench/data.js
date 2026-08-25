@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787588919748,
+  "lastUpdate": 1787690960265,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1931,6 +1931,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 259394,
             "range": "± 1955",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3536b8deb873b825345f4097f46a60e7b685882c",
+          "message": "chore(marketing): link the site from crates.io, and re-measure the yq claims (#104)\n\n* chore(marketing): link the site from crates.io, and re-measure the yq claims\n\nTwo things, both from the same finding: the comparison pages were measured\nonce and left, and both sides of them had rotted.\n\nCargo.toml gains `homepage` and `documentation`. crates.io renders\n`repository` on its own, so a reader landing there had no route to the\nguide site at all -- the one surface where someone about to run\n`cargo install yqr` decides whether to. Aggregators read the same fields;\nlib.rs has already referred traffic from this metadata.\n\nk001 §7's re-measure trigger fired for the first time. yq moved v4.53.3 to\nv4.53.6, the comparison was re-run in full against a scratch 4.53.6 binary,\nand one claim is dead: yq no longer injects an `!!merge` tag on a round\ntrip. That was a regression on yq's side, fixed upstream in v4.53.4\n(#2705), five days after this plan measured it -- so yqr had been\npublishing a bug that no longer existed. The page now says two changes, not\nthree, and states the withdrawn one as withdrawn rather than deleting it.\n\nThe same pass found two claims stale in yqr's own favour, both understating\nit: \"no `+` on values\" (arithmetic shipped in 0.7.0) and \"computed\nright-hand sides live on the yq side\" (`.n = .n + 1` works). Under-promising\nis the cheaper error, not a harmless one.\n\nEverything else held on 4.53.6: the replicas edit, the scalar reads, the\ndeleted blank line, the comment-shape-on-a-key no-op, `head_comment`\nplacement, and `reverse` re-emitting the document.\n\nk001 also gets its §3 boundary list rebuilt against v0.7.1 -- six of the\neight things it told the pages not to imply have since shipped -- and its\n§6 known gap closed: f021 moved the spec tree off the public site, so the\nsitemap is 9 entries with no spec URLs, and the accent sitemap-exclusion\nworkaround is no longer something yqr needs.\n\nm001 §3 gains the check, so the next release runs it rather than the next\nperson who happens to look.\n\n* docs(compare): route by job, and drop the archaeology\n\nThe page argued a case: here is the one thing yqr does that yq does not,\nbuilt through agreement to divergence, with the answer at the end. A reader\narrives asking which tool to use, so the answer now comes first -- a\njob-to-tool table, then the evidence for each tool's jobs.\n\nSame measurements, same concessions, and yq still holds the longer list of\njobs: questions across a document, building documents that do not exist,\nformat conversion, several operations in one expression. yqr holds edits\nthat get reviewed, exact reads, verification, and in-place rename/comment/\nreorder. Two new sections carry their own measured output -- yq's `select`\nand `length`, `-n` construction, `-o=json`, and chained `-i` edits; and\n`validate --strict` catching a duplicate key that yq passes through at exit\n0.\n\nThe withdrawn `!!merge` claim is gone rather than annotated. A reader\nchoosing between two tools has no use for what one of them used to do, and\na paragraph explaining a correction reads as a page arguing with itself.\nThe correction stays in k001 §8, which is what a record is for.\n\nEvery console block was re-run against yq v4.53.6 and yqr v0.7.1.",
+          "timestamp": "2026-08-25T22:47:57+02:00",
+          "tree_id": "2feb9888ac3a0a615c96f48bccc024a49b4a3f72",
+          "url": "https://github.com/zoosky/yqr/commit/3536b8deb873b825345f4097f46a60e7b685882c"
+        },
+        "date": 1787690957740,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 586,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5830,
+            "range": "± 66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 271029,
+            "range": "± 1108",
             "unit": "ns/iter"
           }
         ]
