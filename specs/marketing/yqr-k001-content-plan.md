@@ -95,6 +95,16 @@ Page 1 is the ranking bet and the one that concedes most to yq. Page 4 is the
 pure documentation debt. Pages 2 and 3 are the connective tissue: 2 is the
 concrete task, 3 the concept it rests on.
 
+**Page 1 restructured 2026-08-25.** It was organised as an argument — "here
+is the thing yqr does that yq does not", building through agreement to
+divergence. It is now organised as **routing**: a job-to-tool table up front,
+then a section of evidence for each tool's jobs. Same measurements, same
+concessions, and yq still gets the longer list of jobs; what changed is that
+a reader arrives asking "which one do I use" and gets the answer in the first
+screen instead of at the end of an argument. §2's corollary still holds — the
+table routes by *job*, never by feature count, because a feature matrix is a
+comparison yq wins.
+
 ## 5. Information architecture
 
 ```
@@ -182,10 +192,12 @@ deleted, the comment-shape-on-a-key is still a silent no-op, yq's
 `head_comment` still lands below the entry, and a `reverse` still re-emits the
 document.
 
-**What the page says now.** Two changes, not three, and the withdrawn one is
-stated as withdrawn rather than deleted — a page whose credibility rests on
-measurement should show its corrections. §2's original table is kept as the
-2026-08-14 record with a pointer here.
+**What the page says now.** Two changes, not three. The withdrawn claim is
+**gone from the page entirely**, not annotated: a reader deciding between two
+tools has no use for what one of them used to do, and a paragraph explaining a
+correction reads as a page arguing with itself. The correction belongs here,
+in the record, which is what this section is. §2's original table is kept as
+the 2026-08-14 measurement with a pointer to §8.
 
 **Two stale claims in yqr's own favour were found in the same pass**, both on
 `/compare/yq` and both understating yqr: *"No `map`, `select`, `length`, `+`
