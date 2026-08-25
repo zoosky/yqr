@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-08-24T16:27:25Z",
+  "timestamp": "2026-08-25T20:48:09Z",
   "pages": {
     "/": {
       "content_hash": "19ead5a6f3a94722",
@@ -13,7 +13,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/compare/yq": {
-      "content_hash": "64727aea93c680a0",
+      "content_hash": "6796313bcd98afa9",
       "template": "yq.html.jinja",
       "template_hash": "30406ea523c53def"
     },

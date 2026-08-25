@@ -987,85 +987,78 @@ Measured against `noyafmt 0.0.27`.
 
 ---
 
-# yqr and yq -- what actually changes in your file
+# yqr and yq -- which tool for which job
 
 URL: /yqr/compare/yq
 
 # yqr and yq
 
-Let's get the important part out of the way first: **yq is a good tool.** It
-is mature, it does far more than yqr does, and if you need to build new
-documents, evaluate expressions, or convert between formats, you should
-reach for it and not for this.
+**yq is a good tool**, it is mature, and it does far more than yqr does. The
+two are not really substitutes: yq is a YAML *processor*, and yqr is a YAML
+*editor* with a fidelity guarantee. Most of the time the question is not
+"which is better" but "which job am I doing right now".
 
-There is one thing yqr does that yq does not, and this page is about
-exactly that thing.
+This page answers that, with commands you can run.
 
-## The short version
+## Which tool for which job
 
-yq **normalizes** your file. yqr leaves it **byte-for-byte alone** apart
-from the edit you asked for.
+| The job | Reach for | Because |
+|---|---|---|
+| Change a value in a file that is checked into git | **yqr** | the diff is the line you changed, and nothing else |
+| Read a value out of a file | **either** | they agree, including on `0640` and `1.10` |
+| Answer a question across a document -- filter, count, select | **yq** | yqr has no `select`, `map`, or `length` |
+| Build a document that does not exist yet | **yq** | yqr only edits documents that already do |
+| Convert to JSON, XML, TOML | **yq** | yqr is YAML in, YAML out |
+| Verify a file is correct before it ships | **yqr** | `validate --strict` catches what a parser accepts |
+| Rename a key, edit a comment, reorder a list, in place | **yqr** | the rest of the file is not re-emitted |
+| Do several things in one expression | **yq** | yqr applies one edit per run |
 
-That difference does not show up as broken YAML -- yq's output is correct.
-It shows up in code review, as lines nobody touched appearing in the diff.
+The rest of this page is the evidence for each row.
 
-## Where they agree
+## What yqr is for
 
-More than you might expect, so let's be concrete. Take a Deployment:
+### Edits that a human is going to review
+
+Take a Deployment with a comment aligned the way its author aligned it:
 
 ```yaml
-# Web tier. Owned by the platform team.
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: web
-  labels:
-    app: web
 spec:
   replicas: 3          # bumped for the Black Friday load test
-  template:
-    spec:
-      containers:
-        - name: web
-          image: "registry.example.com/web:1.4.2"
-          ports:
-            - containerPort: 8080
 ```
 
-Bump the replica count with each tool and diff against the original.
+Both tools bump it correctly. The difference is what else arrives in the
+pull request:
 
 ```console
-$ yq -i '.spec.replicas = 5' deploy.yaml
-$ diff original.yaml deploy.yaml
+$ yq -i '.spec.replicas = 5' deploy.yaml && diff original.yaml deploy.yaml
 9c9
 <   replicas: 3          # bumped for the Black Friday load test
 ---
 >   replicas: 5 # bumped for the Black Friday load test
 ```
 
-yq kept the comment, the quoting, the key order, the indentation, and the
-block style. That is careful work. The only casualty is the alignment of
-the trailing comment, which got collapsed to a single space.
-
 ```console
-$ yqr -i '.spec.replicas = 5' deploy.yaml
-$ diff original.yaml deploy.yaml
+$ yqr -i '.spec.replicas = 5' deploy.yaml && diff original.yaml deploy.yaml
 9c9
 <   replicas: 3          # bumped for the Black Friday load test
 ---
 >   replicas: 5          # bumped for the Black Friday load test
 ```
 
-Same edit, and the alignment survives.
+yq kept the comment, the quoting, the key order, the indentation and the
+block style -- that is careful work, and most tools do far worse. The one
+casualty is the comment's alignment.
 
-On **reads**, the two agree completely. Both give you `0640` for an octal
-file mode and `1.10` for a version string -- neither one re-types your
-scalars behind your back.
+On one line that is nothing. The reason it is on this page is that edits
+like this arrive in batches: a script bumping an image tag across forty
+manifests produces forty files whose untouched lines also moved, and the
+review stops being a review.
 
-## Where they diverge
+### Reading a file back exactly as it was
 
-The gap widens on a whole-file round trip. Here is a file with an anchor, a
-merge key, and a blank line doing organisational work:
+Ask each tool to read a file and write it straight back out, changing
+nothing. Here is one with an anchor, a merge key and a blank line doing
+organisational work:
 
 ```yaml
 defaults: &defaults
@@ -1078,16 +1071,10 @@ web:
   name: 'web'
 ```
 
-Ask each tool for the identity filter -- read it and write it back out,
-changing nothing.
-
 ```console
-$ yqr '.' anchors.yaml | diff anchors.yaml -
-$ echo $?
-0
+$ yqr '.' anchors.yaml | diff anchors.yaml - && echo identical
+identical
 ```
-
-Nothing. The output is byte-identical to the input.
 
 ```console
 $ yq '.' anchors.yaml | diff anchors.yaml -
@@ -1097,59 +1084,113 @@ $ yq '.' anchors.yaml | diff anchors.yaml -
 >   mode: 0640 # octal, on purpose
 4d3
 <
-7c6
-<   <<: *defaults
----
->   !!merge <<: *defaults
 ```
 
-Three changes to a file nobody edited:
+The comment gutter closed up and the blank line went. Neither is wrong
+YAML -- both are decisions a printer made about a file nobody edited. yqr
+has no printer: untouched nodes are emitted as the original bytes, sliced
+out of your file.
 
-1. **Comment alignment collapsed.** Cosmetic, but it is your cosmetic.
-2. **The blank line was deleted.** That line was separating two sections.
-3. **`<<: *defaults` became `!!merge <<: *defaults`.** yq made an implicit
-   merge key explicit by adding a tag that was not in your source.
+### Verifying a file before it ships
 
-None of that is wrong YAML. All of it lands in your pull request.
+A duplicate key is valid enough for a parser and almost never what anyone
+meant. Later wins, silently:
 
-## Why this matters (and when it doesn't)
+```console
+$ yq '.' dup.yaml
+port: 8080
+host: localhost
+port: 9090
+$ echo $?
+0
+```
 
-If you are generating YAML, piping it somewhere, or reading values out of
-it, none of this matters and yq is the better tool by a mile.
+```console
+$ yqr validate --strict dup.yaml
+error[Y101]: duplicate mapping key "port"
+  --> dup.yaml:3:1
+  |
+3 | port: 9090
+  | ^
+  = note: first occurrence at line 1, column 1
+  = help: later occurrences silently override earlier ones; remove or rename one
+$ echo $?
+1
+```
 
-It starts mattering when the file is **checked in and reviewed by humans**.
-A one-line change should be a one-line diff. When a script bumps an image
-tag across forty manifests and each one comes back with reshuffled comments
-and stripped blank lines, the review stops being a review.
+Exit 1 and a location, which is what a CI gate needs. See
+[Validating YAML](../guide/validate).
 
-That is the whole of yqr's argument. It is a narrow argument, and it is the
-only one being made here.
+## What yq is for
 
-## What yq does that yqr does not
+### Asking questions across a document
 
-Plenty, and it is worth knowing before you switch:
+Filtering, counting, selecting -- yqr has none of it, and this is the most
+common reason to reach past it:
 
-- **Building new documents.** yqr has no object or array construction, no
-  string interpolation, and no comma operator. It walks and edits documents
-  that already exist.
-- **Builtins and arithmetic.** No `map`, `select`, `length`, `+` on values.
-- **Format conversion.** No JSON, XML, TOML, or properties in or out.
-- **Everything above, in one expression.** yq composes; yqr applies one edit
-  per run. Chaining, conditionals, and computed right-hand sides all live on
-  the yq side of the line.
+```console
+$ yq '.items[] | select(.kind == "Service") | .metadata.name' pods.yaml
+web
+cache
+$ yq '.items | length' pods.yaml
+3
+```
 
-If you need any of those, use yq. The tools are not really substitutes;
-one of them is a scalpel with a very short blade.
+yqr can walk to a value and iterate a collection, but it cannot ask a
+question about one. `to_entries` is its only builtin.
 
-## Where the shapes differ on purpose
+### Building documents that do not exist yet
 
-Both tools can rename a key, edit a comment, and reorder a list. The
-spellings are not the same, and the differences are deliberate.
+```console
+$ yq -n '.name = "web" | .spec.port = 8080'
+name: web
+spec:
+  port: 8080
+```
 
-yq spells a rename `(.a | key) = "z"` and a comment edit `.a
-line_comment="hi"` -- two different shapes, and the one that works for
-comments is a **silent no-op** for keys (measured on v4.53.3). yqr uses one
-shape for both, so learning either teaches the other:
+yqr has no object or array construction and no string interpolation. It
+edits documents that already exist; there is nothing for it to preserve in
+a file that is not there yet.
+
+### Moving between formats
+
+```console
+$ yq -o=json '.metadata' deploy.yaml
+{
+  "name": "web",
+  "labels": {
+    "app": "web"
+  }
+}
+```
+
+JSON, XML, TOML, properties, CSV -- all yq, in both directions. yqr is YAML
+in and YAML out, on purpose: the fidelity guarantee is about bytes in a
+YAML file, and there is nothing to preserve once you leave the format.
+
+### Doing several things at once
+
+yq composes. One expression can filter, transform and write in a single
+pass, and it can chain edits:
+
+```console
+$ yq -i '.a = 1 | .b = 2' config.yaml
+```
+
+yqr applies one edit per run, so that is two runs. Computed right-hand
+sides do work -- `.n = .n + 1` and `.n |= (. + 1)` both do what they look
+like, along with `+ - * / %` -- but comparisons, conditionals and chained
+edits are on yq's side of the line.
+
+## The same operations, spelled differently
+
+Both tools rename keys, edit comments and reorder lists. If you move
+between them, these are the shapes that differ.
+
+yq spells a rename `(.a | key) = "z"` and a comment edit
+`.a line_comment="hi"` -- two shapes, and the comment one is a silent no-op
+when you point it at a key. yqr uses one shape for both, so learning either
+teaches the other:
 
 ```console
 $ yqr 'key(.a) = "z"' y.yaml
@@ -1157,13 +1198,12 @@ $ yqr 'line_comment(.a) = "hi"' y.yaml
 $ yqr 'head_comment(.a) = "why this exists"' y.yaml
 ```
 
-`head_comment` puts the block **above** the entry you addressed. yq's
-`head_comment` puts it below, where in a file with siblings it comes to
-document the next entry instead.
+`head_comment` puts the block **above** the entry you addressed. yq's puts
+it below, where in a file with siblings it ends up documenting the next
+entry instead.
 
-Reordering is the one operation with no yq builtin at all -- there is no
-`swap` or `move` -- so the nearest equivalent rebuilds the sequence, and
-rebuilding re-emits the document:
+Reordering has no yq builtin at all -- no `swap`, no `move` -- so the
+nearest equivalent rebuilds the sequence, and rebuilding re-emits the file:
 
 ```console
 $ yq '.jobs.build.steps |= reverse' ci.yaml
@@ -1174,27 +1214,27 @@ name:    ci
       - uses: actions/checkout@v4  # pinned
 ```
 
-Same reordering, and in the yqr run every byte outside the two items is the
+Same reordering; in the yqr run every byte outside the two items is the
 byte that was there before.
 
 ## Using both
 
-Nothing stops you. A pattern that works well:
+The obvious pattern, and a good one:
 
 ```console
 $ yq '.spec.template.spec.containers[] | .image' deploy.yaml   # explore
 $ yqr -i '.spec.replicas = 5' deploy.yaml                      # commit the edit
 ```
 
-Read and explore with the tool that has the richer query language. Make the
-edit that lands in git with the one that will not touch anything else.
+Explore with the richer query language. Make the edit that lands in git
+with the tool that will not touch anything else.
 
 ## Next
 
 - [Byte-for-byte, explained](../guide/fidelity) -- what yqr is actually
   doing, and the one flag that turns it off.
-- [Editing Kubernetes manifests](../guide/kubernetes) -- the workflow this
-  page keeps alluding to.
+- [Editing Kubernetes manifests](../guide/kubernetes) -- this applied to a
+  real workflow.
 
 ---
 

@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>yqr and yq -- what actually changes in your file - yqr</title>
+    <title>yqr and yq -- which tool for which job - yqr</title>
     
     
 
@@ -13,7 +13,7 @@
 
 
 
-<meta name="description" content="A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.">
+<meta name="description" content="When to reach for yqr and when to reach for yq: editing files that get reviewed, versus querying, building and converting them. Run against yq v4.53.6.">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;compare&#x2f;yq">
@@ -28,8 +28,8 @@
 
 
 
-<meta property="og:title" content="yqr and yq -- what actually changes in your file">
-<meta property="og:description" content="A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.">
+<meta property="og:title" content="yqr and yq -- which tool for which job">
+<meta property="og:description" content="When to reach for yqr and when to reach for yq: editing files that get reviewed, versus querying, building and converting them. Run against yq v4.53.6.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;compare&#x2f;yq">
 <meta property="og:site_name" content="yqr">
@@ -41,8 +41,8 @@
 
 
 
-<meta name="twitter:title" content="yqr and yq -- what actually changes in your file">
-<meta name="twitter:description" content="A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.">
+<meta name="twitter:title" content="yqr and yq -- which tool for which job">
+<meta name="twitter:description" content="When to reach for yqr and when to reach for yq: editing files that get reviewed, versus querying, building and converting them. Run against yq v4.53.6.">
 
 
 
@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-24",
-  "description": "A measured comparison of yqr and yq: both edit YAML well, but only one leaves every untouched byte alone. Run against yq v4.53.3.",
+  "dateModified": "2026-08-25",
+  "description": "When to reach for yqr and when to reach for yq: editing files that get reviewed, versus querying, building and converting them. Run against yq v4.53.6.",
   "inLanguage": "en",
-  "name": "yqr and yq -- what actually changes in your file",
+  "name": "yqr and yq -- which tool for which job",
   "url": "https://zoosky.github.io/yqr/compare/yq",
-  "wordCount": 1063
+  "wordCount": 1287
 }
 </script>
 <script type="application/ld+json">
@@ -214,7 +214,7 @@
 </nav>
 
 
-    <h1>yqr and yq -- what actually changes in your file</h1>
+    <h1>yqr and yq -- which tool for which job</h1>
 
     
                 
@@ -224,7 +224,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">6 min read</span>
+                    <span class="reading-time">7 min read</span>
                 </div>
                 
 
@@ -239,27 +239,47 @@
         </li>
     
         <li class="toc-level-2">
-            <a href="#the-short-version">The short version</a>
+            <a href="#which-tool-for-which-job">Which tool for which job</a>
         </li>
     
         <li class="toc-level-2">
-            <a href="#where-they-agree">Where they agree</a>
+            <a href="#what-yqr-is-for">What yqr is for</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#edits-that-a-human-is-going-to-review">Edits that a human is going to review</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#reading-a-file-back-exactly-as-it-was">Reading a file back exactly as it was</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#verifying-a-file-before-it-ships">Verifying a file before it ships</a>
         </li>
     
         <li class="toc-level-2">
-            <a href="#where-they-diverge">Where they diverge</a>
+            <a href="#what-yq-is-for">What yq is for</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#asking-questions-across-a-document">Asking questions across a document</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#building-documents-that-do-not-exist-yet">Building documents that do not exist yet</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#moving-between-formats">Moving between formats</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#doing-several-things-at-once">Doing several things at once</a>
         </li>
     
         <li class="toc-level-2">
-            <a href="#why-this-matters-and-when-it-doesn-t">Why this matters (and when it doesn’t)</a>
-        </li>
-    
-        <li class="toc-level-2">
-            <a href="#what-yq-does-that-yqr-does-not">What yq does that yqr does not</a>
-        </li>
-    
-        <li class="toc-level-2">
-            <a href="#where-the-shapes-differ-on-purpose">Where the shapes differ on purpose</a>
+            <a href="#the-same-operations-spelled-differently">The same operations, spelled differently</a>
         </li>
     
         <li class="toc-level-2">
@@ -282,62 +302,55 @@
 
                 <div class="content prose">
                     <h1 id="yqr-and-yq">yqr and yq<a class="heading-anchor" href="#yqr-and-yq" aria-label="Link to this section"></a></h1>
-<p>Let’s get the important part out of the way first: <strong>yq is a good tool.</strong> It
-is mature, it does far more than yqr does, and if you need to build new
-documents, evaluate expressions, or convert between formats, you should
-reach for it and not for this.</p>
-<p>There is one thing yqr does that yq does not, and this page is about
-exactly that thing.</p>
-<h2 id="the-short-version">The short version<a class="heading-anchor" href="#the-short-version" aria-label="Link to this section"></a></h2>
-<p>yq <strong>normalizes</strong> your file. yqr leaves it <strong>byte-for-byte alone</strong> apart
-from the edit you asked for.</p>
-<p>That difference does not show up as broken YAML – yq’s output is correct.
-It shows up in code review, as lines nobody touched appearing in the diff.</p>
-<h2 id="where-they-agree">Where they agree<a class="heading-anchor" href="#where-they-agree" aria-label="Link to this section"></a></h2>
-<p>More than you might expect, so let’s be concrete. Take a Deployment:</p>
+<p><strong>yq is a good tool</strong>, it is mature, and it does far more than yqr does. The
+two are not really substitutes: yq is a YAML <em>processor</em>, and yqr is a YAML
+<em>editor</em> with a fidelity guarantee. Most of the time the question is not
+“which is better” but “which job am I doing right now”.</p>
+<p>This page answers that, with commands you can run.</p>
+<h2 id="which-tool-for-which-job">Which tool for which job<a class="heading-anchor" href="#which-tool-for-which-job" aria-label="Link to this section"></a></h2>
+<table><thead><tr><th>The job</th><th>Reach for</th><th>Because</th></tr></thead><tbody>
+<tr><td>Change a value in a file that is checked into git</td><td><strong>yqr</strong></td><td>the diff is the line you changed, and nothing else</td></tr>
+<tr><td>Read a value out of a file</td><td><strong>either</strong></td><td>they agree, including on <code>0640</code> and <code>1.10</code></td></tr>
+<tr><td>Answer a question across a document – filter, count, select</td><td><strong>yq</strong></td><td>yqr has no <code>select</code>, <code>map</code>, or <code>length</code></td></tr>
+<tr><td>Build a document that does not exist yet</td><td><strong>yq</strong></td><td>yqr only edits documents that already do</td></tr>
+<tr><td>Convert to JSON, XML, TOML</td><td><strong>yq</strong></td><td>yqr is YAML in, YAML out</td></tr>
+<tr><td>Verify a file is correct before it ships</td><td><strong>yqr</strong></td><td><code>validate --strict</code> catches what a parser accepts</td></tr>
+<tr><td>Rename a key, edit a comment, reorder a list, in place</td><td><strong>yqr</strong></td><td>the rest of the file is not re-emitted</td></tr>
+<tr><td>Do several things in one expression</td><td><strong>yq</strong></td><td>yqr applies one edit per run</td></tr>
+</tbody></table>
+<p>The rest of this page is the evidence for each row.</p>
+<h2 id="what-yqr-is-for">What yqr is for<a class="heading-anchor" href="#what-yqr-is-for" aria-label="Link to this section"></a></h2>
+<h3 id="edits-that-a-human-is-going-to-review">Edits that a human is going to review<a class="heading-anchor" href="#edits-that-a-human-is-going-to-review" aria-label="Link to this section"></a></h3>
+<p>Take a Deployment with a comment aligned the way its author aligned it:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#65737e;"># Web tier. Owned by the platform team.
-</span><span style="color:#bf616a;">apiVersion</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">apps/v1
-</span><span style="color:#bf616a;">kind</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">Deployment
-</span><span style="color:#bf616a;">metadata</span><span style="color:#c0c5ce;">:
-</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
-</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">labels</span><span style="color:#c0c5ce;">:
-</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">app</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
-</span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+<span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3          </span><span style="color:#65737e;"># bumped for the Black Friday load test
-</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">template</span><span style="color:#c0c5ce;">:
-</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
-</span><span style="color:#c0c5ce;">      </span><span style="color:#bf616a;">containers</span><span style="color:#c0c5ce;">:
-</span><span style="color:#c0c5ce;">        - </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
-</span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: &quot;</span><span style="color:#a3be8c;">registry.example.com/web:1.4.2</span><span style="color:#c0c5ce;">&quot;
-</span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">ports</span><span style="color:#c0c5ce;">:
-</span><span style="color:#c0c5ce;">            - </span><span style="color:#bf616a;">containerPort</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
 </span></pre>
-<p>Bump the replica count with each tool and diff against the original.</p>
-<pre><code class="language-console">$ yq -i '.spec.replicas = 5' deploy.yaml
-$ diff original.yaml deploy.yaml
+<p>Both tools bump it correctly. The difference is what else arrives in the
+pull request:</p>
+<pre><code class="language-console">$ yq -i '.spec.replicas = 5' deploy.yaml &amp;&amp; diff original.yaml deploy.yaml
 9c9
 &lt;   replicas: 3          # bumped for the Black Friday load test
 ---
 &gt;   replicas: 5 # bumped for the Black Friday load test
 </code></pre>
-<p>yq kept the comment, the quoting, the key order, the indentation, and the
-block style. That is careful work. The only casualty is the alignment of
-the trailing comment, which got collapsed to a single space.</p>
-<pre><code class="language-console">$ yqr -i '.spec.replicas = 5' deploy.yaml
-$ diff original.yaml deploy.yaml
+<pre><code class="language-console">$ yqr -i '.spec.replicas = 5' deploy.yaml &amp;&amp; diff original.yaml deploy.yaml
 9c9
 &lt;   replicas: 3          # bumped for the Black Friday load test
 ---
 &gt;   replicas: 5          # bumped for the Black Friday load test
 </code></pre>
-<p>Same edit, and the alignment survives.</p>
-<p>On <strong>reads</strong>, the two agree completely. Both give you <code>0640</code> for an octal
-file mode and <code>1.10</code> for a version string – neither one re-types your
-scalars behind your back.</p>
-<h2 id="where-they-diverge">Where they diverge<a class="heading-anchor" href="#where-they-diverge" aria-label="Link to this section"></a></h2>
-<p>The gap widens on a whole-file round trip. Here is a file with an anchor, a
-merge key, and a blank line doing organisational work:</p>
+<p>yq kept the comment, the quoting, the key order, the indentation and the
+block style – that is careful work, and most tools do far worse. The one
+casualty is the comment’s alignment.</p>
+<p>On one line that is nothing. The reason it is on this page is that edits
+like this arrive in batches: a script bumping an image tag across forty
+manifests produces forty files whose untouched lines also moved, and the
+review stops being a review.</p>
+<h3 id="reading-a-file-back-exactly-as-it-was">Reading a file back exactly as it was<a class="heading-anchor" href="#reading-a-file-back-exactly-as-it-was" aria-label="Link to this section"></a></h3>
+<p>Ask each tool to read a file and write it straight back out, changing
+nothing. Here is one with an anchor, a merge key and a blank line doing
+organisational work:</p>
 <pre style="background-color:#2b303b;">
 <span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">defaults
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">mode</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">0640      </span><span style="color:#65737e;"># octal, on purpose
@@ -348,13 +361,9 @@ merge key, and a blank line doing organisational work:</p>
 </span><span style="color:#c0c5ce;">  </span><span style="color:#d08770;">&lt;&lt;</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">*</span><span style="color:#bf616a;">defaults
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: &#39;</span><span style="color:#a3be8c;">web</span><span style="color:#c0c5ce;">&#39;
 </span></pre>
-<p>Ask each tool for the identity filter – read it and write it back out,
-changing nothing.</p>
-<pre><code class="language-console">$ yqr '.' anchors.yaml | diff anchors.yaml -
-$ echo $?
-0
+<pre><code class="language-console">$ yqr '.' anchors.yaml | diff anchors.yaml - &amp;&amp; echo identical
+identical
 </code></pre>
-<p>Nothing. The output is byte-identical to the input.</p>
 <pre><code class="language-console">$ yq '.' anchors.yaml | diff anchors.yaml -
 2c2
 &lt;   mode: 0640      # octal, on purpose
@@ -362,58 +371,92 @@ $ echo $?
 &gt;   mode: 0640 # octal, on purpose
 4d3
 &lt;
-7c6
-&lt;   &lt;&lt;: *defaults
----
-&gt;   !!merge &lt;&lt;: *defaults
 </code></pre>
-<p>Three changes to a file nobody edited:</p>
-<ol>
-<li><strong>Comment alignment collapsed.</strong> Cosmetic, but it is your cosmetic.</li>
-<li><strong>The blank line was deleted.</strong> That line was separating two sections.</li>
-<li><strong><code>&lt;&lt;: *defaults</code> became <code>!!merge &lt;&lt;: *defaults</code>.</strong> yq made an implicit
-merge key explicit by adding a tag that was not in your source.</li>
-</ol>
-<p>None of that is wrong YAML. All of it lands in your pull request.</p>
-<h2 id="why-this-matters-and-when-it-doesn-t">Why this matters (and when it doesn’t)<a class="heading-anchor" href="#why-this-matters-and-when-it-doesn-t" aria-label="Link to this section"></a></h2>
-<p>If you are generating YAML, piping it somewhere, or reading values out of
-it, none of this matters and yq is the better tool by a mile.</p>
-<p>It starts mattering when the file is <strong>checked in and reviewed by humans</strong>.
-A one-line change should be a one-line diff. When a script bumps an image
-tag across forty manifests and each one comes back with reshuffled comments
-and stripped blank lines, the review stops being a review.</p>
-<p>That is the whole of yqr’s argument. It is a narrow argument, and it is the
-only one being made here.</p>
-<h2 id="what-yq-does-that-yqr-does-not">What yq does that yqr does not<a class="heading-anchor" href="#what-yq-does-that-yqr-does-not" aria-label="Link to this section"></a></h2>
-<p>Plenty, and it is worth knowing before you switch:</p>
-<ul>
-<li><strong>Building new documents.</strong> yqr has no object or array construction, no
-string interpolation, and no comma operator. It walks and edits documents
-that already exist.</li>
-<li><strong>Builtins and arithmetic.</strong> No <code>map</code>, <code>select</code>, <code>length</code>, <code>+</code> on values.</li>
-<li><strong>Format conversion.</strong> No JSON, XML, TOML, or properties in or out.</li>
-<li><strong>Everything above, in one expression.</strong> yq composes; yqr applies one edit
-per run. Chaining, conditionals, and computed right-hand sides all live on
-the yq side of the line.</li>
-</ul>
-<p>If you need any of those, use yq. The tools are not really substitutes;
-one of them is a scalpel with a very short blade.</p>
-<h2 id="where-the-shapes-differ-on-purpose">Where the shapes differ on purpose<a class="heading-anchor" href="#where-the-shapes-differ-on-purpose" aria-label="Link to this section"></a></h2>
-<p>Both tools can rename a key, edit a comment, and reorder a list. The
-spellings are not the same, and the differences are deliberate.</p>
-<p>yq spells a rename <code>(.a | key) = "z"</code> and a comment edit <code>.a line_comment="hi"</code> – two different shapes, and the one that works for
-comments is a <strong>silent no-op</strong> for keys (measured on v4.53.3). yqr uses one
-shape for both, so learning either teaches the other:</p>
+<p>The comment gutter closed up and the blank line went. Neither is wrong
+YAML – both are decisions a printer made about a file nobody edited. yqr
+has no printer: untouched nodes are emitted as the original bytes, sliced
+out of your file.</p>
+<h3 id="verifying-a-file-before-it-ships">Verifying a file before it ships<a class="heading-anchor" href="#verifying-a-file-before-it-ships" aria-label="Link to this section"></a></h3>
+<p>A duplicate key is valid enough for a parser and almost never what anyone
+meant. Later wins, silently:</p>
+<pre><code class="language-console">$ yq '.' dup.yaml
+port: 8080
+host: localhost
+port: 9090
+$ echo $?
+0
+</code></pre>
+<pre><code class="language-console">$ yqr validate --strict dup.yaml
+error[Y101]: duplicate mapping key "port"
+  --&gt; dup.yaml:3:1
+  |
+3 | port: 9090
+  | ^
+  = note: first occurrence at line 1, column 1
+  = help: later occurrences silently override earlier ones; remove or rename one
+$ echo $?
+1
+</code></pre>
+<p>Exit 1 and a location, which is what a CI gate needs. See
+<a href="/yqr/guide/validate">Validating YAML</a>.</p>
+<h2 id="what-yq-is-for">What yq is for<a class="heading-anchor" href="#what-yq-is-for" aria-label="Link to this section"></a></h2>
+<h3 id="asking-questions-across-a-document">Asking questions across a document<a class="heading-anchor" href="#asking-questions-across-a-document" aria-label="Link to this section"></a></h3>
+<p>Filtering, counting, selecting – yqr has none of it, and this is the most
+common reason to reach past it:</p>
+<pre><code class="language-console">$ yq '.items[] | select(.kind == "Service") | .metadata.name' pods.yaml
+web
+cache
+$ yq '.items | length' pods.yaml
+3
+</code></pre>
+<p>yqr can walk to a value and iterate a collection, but it cannot ask a
+question about one. <code>to_entries</code> is its only builtin.</p>
+<h3 id="building-documents-that-do-not-exist-yet">Building documents that do not exist yet<a class="heading-anchor" href="#building-documents-that-do-not-exist-yet" aria-label="Link to this section"></a></h3>
+<pre><code class="language-console">$ yq -n '.name = "web" | .spec.port = 8080'
+name: web
+spec:
+  port: 8080
+</code></pre>
+<p>yqr has no object or array construction and no string interpolation. It
+edits documents that already exist; there is nothing for it to preserve in
+a file that is not there yet.</p>
+<h3 id="moving-between-formats">Moving between formats<a class="heading-anchor" href="#moving-between-formats" aria-label="Link to this section"></a></h3>
+<pre><code class="language-console">$ yq -o=json '.metadata' deploy.yaml
+{
+  "name": "web",
+  "labels": {
+    "app": "web"
+  }
+}
+</code></pre>
+<p>JSON, XML, TOML, properties, CSV – all yq, in both directions. yqr is YAML
+in and YAML out, on purpose: the fidelity guarantee is about bytes in a
+YAML file, and there is nothing to preserve once you leave the format.</p>
+<h3 id="doing-several-things-at-once">Doing several things at once<a class="heading-anchor" href="#doing-several-things-at-once" aria-label="Link to this section"></a></h3>
+<p>yq composes. One expression can filter, transform and write in a single
+pass, and it can chain edits:</p>
+<pre><code class="language-console">$ yq -i '.a = 1 | .b = 2' config.yaml
+</code></pre>
+<p>yqr applies one edit per run, so that is two runs. Computed right-hand
+sides do work – <code>.n = .n + 1</code> and <code>.n |= (. + 1)</code> both do what they look
+like, along with <code>+ - * / %</code> – but comparisons, conditionals and chained
+edits are on yq’s side of the line.</p>
+<h2 id="the-same-operations-spelled-differently">The same operations, spelled differently<a class="heading-anchor" href="#the-same-operations-spelled-differently" aria-label="Link to this section"></a></h2>
+<p>Both tools rename keys, edit comments and reorder lists. If you move
+between them, these are the shapes that differ.</p>
+<p>yq spells a rename <code>(.a | key) = "z"</code> and a comment edit
+<code>.a line_comment="hi"</code> – two shapes, and the comment one is a silent no-op
+when you point it at a key. yqr uses one shape for both, so learning either
+teaches the other:</p>
 <pre><code class="language-console">$ yqr 'key(.a) = "z"' y.yaml
 $ yqr 'line_comment(.a) = "hi"' y.yaml
 $ yqr 'head_comment(.a) = "why this exists"' y.yaml
 </code></pre>
-<p><code>head_comment</code> puts the block <strong>above</strong> the entry you addressed. yq’s
-<code>head_comment</code> puts it below, where in a file with siblings it comes to
-document the next entry instead.</p>
-<p>Reordering is the one operation with no yq builtin at all – there is no
-<code>swap</code> or <code>move</code> – so the nearest equivalent rebuilds the sequence, and
-rebuilding re-emits the document:</p>
+<p><code>head_comment</code> puts the block <strong>above</strong> the entry you addressed. yq’s puts
+it below, where in a file with siblings it ends up documenting the next
+entry instead.</p>
+<p>Reordering has no yq builtin at all – no <code>swap</code>, no <code>move</code> – so the
+nearest equivalent rebuilds the sequence, and rebuilding re-emits the file:</p>
 <pre><code class="language-console">$ yq '.jobs.build.steps |= reverse' ci.yaml
 name: ci                      # was 'name:    ci'
       - uses: actions/checkout@v4 # pinned    # was two spaces before '#'
@@ -421,21 +464,21 @@ $ yqr 'swap(.jobs.build.steps; 0; 1)' ci.yaml
 name:    ci
       - uses: actions/checkout@v4  # pinned
 </code></pre>
-<p>Same reordering, and in the yqr run every byte outside the two items is the
+<p>Same reordering; in the yqr run every byte outside the two items is the
 byte that was there before.</p>
 <h2 id="using-both">Using both<a class="heading-anchor" href="#using-both" aria-label="Link to this section"></a></h2>
-<p>Nothing stops you. A pattern that works well:</p>
+<p>The obvious pattern, and a good one:</p>
 <pre><code class="language-console">$ yq '.spec.template.spec.containers[] | .image' deploy.yaml   # explore
 $ yqr -i '.spec.replicas = 5' deploy.yaml                      # commit the edit
 </code></pre>
-<p>Read and explore with the tool that has the richer query language. Make the
-edit that lands in git with the one that will not touch anything else.</p>
+<p>Explore with the richer query language. Make the edit that lands in git
+with the tool that will not touch anything else.</p>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
 <ul>
 <li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – what yqr is actually
 doing, and the one flag that turns it off.</li>
-<li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – the workflow this
-page keeps alluding to.</li>
+<li><a href="/yqr/guide/kubernetes">Editing Kubernetes manifests</a> – this applied to a
+real workflow.</li>
 </ul>
 
                 </div>
@@ -484,7 +527,7 @@ page keeps alluding to.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-24</span>
+        <span>Site last updated: 2026-08-25</span>
         
     </footer>
 

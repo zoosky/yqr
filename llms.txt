@@ -29,7 +29,7 @@ Package:   https://crates.io/crates/yqr
 
 ## How yqr compares to other YAML tools
 
-- [yqr and yq -- what actually changes in your file](/yqr/compare/yq): What yq and yqr each do to your file's formatting, on a read and on an edit, measured side by side.
+- [yqr and yq -- which tool for which job](/yqr/compare/yq): Two YAML tools with overlapping surfaces and different jobs. Here is what each one is good at, measured rather than…
 
 ## yqr demo
 
