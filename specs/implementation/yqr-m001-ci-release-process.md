@@ -111,6 +111,11 @@ Notes that only live here:
   from "cut the release".
 - **After publishing**, confirm the version is live on crates.io and that
   docs.rs built it (a failed docs.rs build is invisible from the repo).
+- **Check the comparison pages against the release.** A release that adds a
+  filter makes `/compare/yq`'s "what yqr does not do" list wrong, and an
+  upstream release makes its yq claims wrong — both happened between
+  v0.5.1 and v0.7.1 and neither was noticed until someone went looking
+  (`yqr-k001` §8). Re-run the commands, do not re-assert them.
 
 ## 4. Local mirror
 
