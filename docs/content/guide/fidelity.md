@@ -58,6 +58,7 @@ defaults: &defaults
 web:
   <<: *defaults
   name: 'web'
+ver: 1.10
 ```
 
 Read it back with yqr and you get exactly that, including:
@@ -83,7 +84,7 @@ the moment something treats it as a float.
 yqr never re-types the value, so the question never arises:
 
 ```console
-$ yqr -r '.mode' config.yaml
+$ yqr -r '.defaults.mode' config.yaml
 0640
 $ yqr -r '.ver' config.yaml
 1.10
@@ -105,6 +106,7 @@ web:
   name: web
   mode: 640
   retries: 3
+ver: 1.1
 ```
 
 Look at what that did, because it is instructive. Comments are gone. The

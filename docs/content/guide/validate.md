@@ -173,14 +173,21 @@ git diff --cached --name-only --diff-filter=ACM -- '*.yaml' '*.yml' \
 
 ## Reading from stdin
 
-Same as everywhere else -- omit the file, or pass `-`:
+Pass `-`. Unlike the filter form, `validate` will not fall back to stdin
+when you give it nothing:
 
 ```console
-$ kubectl get deploy web -o yaml | yqr validate --strict
+$ kubectl get deploy web -o yaml | yqr validate --strict -
 $ helm template ./chart | yqr validate --strict -
+$ yqr validate --strict
+error: no input files; pass one or more YAML files, or '-' to read stdin
 ```
 
-The second one is a genuinely useful check: chart templating produces YAML
+That refusal is the point. A validation gate whose file list came up empty
+would otherwise report "all valid" over nothing, which is the one answer a
+gate must never give by accident.
+
+The helm check is a genuinely useful one: chart templating produces YAML
 through string interpolation, which is exactly the process most likely to
 emit a duplicate key.
 
