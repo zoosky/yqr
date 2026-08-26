@@ -1,5 +1,7 @@
 ---
 # Traceability: Feature f017 (to_entries).
+# The jq ordering note was corrected 2026-08-25 against jq 1.8.2: `keys`
+# sorts, `to_entries` does not. See yqr-k002 §7.
 # Bug b016 -- the emitter's trailing space, fixed in noyalib 0.0.27; the wart
 # paragraph that stood here is gone with it.
 title: Enumerating a mapping without losing the keys
@@ -82,8 +84,9 @@ and they only line up because both keep document order and because a missing
 field yields `null` rather than being skipped. `gamma` has no `domain`, and
 it still gets a line.
 
-jq sorts object keys. yqr does not, and this is one of the places that
-difference is doing real work rather than being a footnote.
+jq's `keys` sorts, which is why it has a `keys_unsorted` beside it. Its
+`to_entries` keeps insertion order, the same as yqr's -- so if that is the
+habit you are bringing, it transfers.
 
 ### It is a query, not a place to write
 
