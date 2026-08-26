@@ -23,6 +23,7 @@ Package:   https://crates.io/crates/yqr
 ## yqr guide
 
 - [Byte-for-byte YAML editing, explained](/yqr/guide/fidelity): Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
+- [Coming to yqr from jq](/yqr/guide/from-jq): Most of your jq muscle memory works unchanged. Here is the part that transfers, the one habit to unlearn, and where the…
 - [Editing Kubernetes manifests without reformatting them](/yqr/guide/kubernetes): How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.
 - [Enumerating a mapping without losing the keys](/yqr/guide/enumerate): How to report what each entry of a mapping is about, with `to_entries`, when iterating throws the keys away.
 - [Validating YAML from the command line](/yqr/guide/validate): How to check a file is still correct after an edit, what each exit code means, and how duplicate keys are reported.

@@ -1,0 +1,530 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming to yqr from jq - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;from-jq">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Coming to yqr from jq">
+<meta property="og:description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;from-jq">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Coming to yqr from jq">
+<meta name="twitter:description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="8aaddd1516">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-08-26",
+  "description": "A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.",
+  "inLanguage": "en",
+  "name": "Coming to yqr from jq",
+  "url": "https://zoosky.github.io/yqr/guide/from-jq",
+  "wordCount": 996
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide",
+      "name": "Guide",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide/from-jq",
+      "name": "Coming from jq",
+      "position": 3
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            
+            <button id="nav-menu-toggle" class="nav-menu-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path class="nav-menu-bars" d="M4 7h16M4 12h16M4 17h16" />
+                    <path class="nav-menu-close" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <ul id="nav-menu">
+                
+                
+                
+                
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide"  class="active" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;guide">Guide</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Coming from jq</span>
+</nav>
+
+
+    <h1>Coming to yqr from jq</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">5 min read</span>
+                </div>
+                
+
+                
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-2">
+            <a href="#what-transfers-unchanged">What transfers unchanged</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#one-habit-to-unlearn">One habit to unlearn: +=</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#what-jq-has-that-yqr-does-not">What jq has that yqr does not</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#what-jq-cannot-do-at-all">What jq cannot do at all</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#next">Next</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <p>yqr borrows jq’s shape on purpose. If you can write a jq path, you can
+already read and edit a YAML file with yqr – most of what you know
+transfers with the same spelling and the same meaning.</p>
+<p>This page is about the edges: the one operator that means something
+different, the parts of jq that are not here, and the parts of yqr that jq
+has no way to express.</p>
+<p>Examples run against this file:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#65737e;"># Edge services. Owned by the platform team.
+</span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3
+</span><span style="color:#bf616a;">tags</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  - </span><span style="color:#a3be8c;">search
+</span><span style="color:#c0c5ce;">  - </span><span style="color:#a3be8c;">export
+</span><span style="color:#bf616a;">services</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">api</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">port</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080      </span><span style="color:#65737e;"># public
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">cache</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">port</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">6379
+</span></pre>
+<h2 id="what-transfers-unchanged">What transfers unchanged<a class="heading-anchor" href="#what-transfers-unchanged" aria-label="Link to this section"></a></h2>
+<table><thead><tr><th>Your jq habit</th><th>In yqr</th></tr></thead><tbody>
+<tr><td><code>.</code></td><td>same</td></tr>
+<tr><td><code>.name</code>, <code>.a.b.c</code></td><td>same</td></tr>
+<tr><td><code>.["name"]</code></td><td>same</td></tr>
+<tr><td><code>.tags[0]</code>, <code>.tags[-1]</code></td><td>same</td></tr>
+<tr><td><code>.tags[]</code></td><td>same</td></tr>
+<tr><td><code>.services[]</code></td><td>same</td></tr>
+<tr><td><code>a | b</code></td><td>same</td></tr>
+<tr><td><code>f?</code></td><td>same</td></tr>
+<tr><td>a missing field yielding <code>null</code></td><td>same</td></tr>
+<tr><td><code>to_entries</code></td><td>same</td></tr>
+<tr><td><code>del(.a)</code></td><td>same</td></tr>
+<tr><td><code>+ - * / %</code>, and <code>+</code> on strings</td><td>same</td></tr>
+<tr><td><code>.a = 1</code></td><td>same</td></tr>
+<tr><td><code>.a |= (. + 1)</code></td><td>same</td></tr>
+<tr><td><code>.n = .n + 1</code></td><td>same</td></tr>
+</tbody></table>
+<p>So this is a yqr session, and there is nothing new in it:</p>
+<pre><code class="language-console">$ yqr -r '.name' config.yaml
+web
+$ yqr '.services.api.port' config.yaml
+8080
+$ yqr -r '.tags[-1]' config.yaml
+export
+$ yqr -r '.services[] | .port' config.yaml
+8080
+6379
+</code></pre>
+<p>Ordering is the same too, which is worth saying because it is the kind of
+thing that bites silently: <code>to_entries</code> and <code>.[]</code> keep the order the
+document was written in, exactly as jq’s do. (jq’s <code>keys</code> sorts – that is
+why <code>keys_unsorted</code> exists – and yqr has neither.)</p>
+<h2 id="one-habit-to-unlearn">One habit to unlearn: <code>+=</code><a class="heading-anchor" href="#one-habit-to-unlearn" aria-label="Link to this section"></a></h2>
+<p>This is the only operator that is spelled the same and means something
+else, so it is the only thing on this page you have to actively remember.</p>
+<p>In jq, <code>+=</code> is addition or concatenation, and appending to a list takes a
+<strong>list</strong> on the right. In yqr, <code>+=</code> means <strong>append one element to a
+sequence</strong>, and the right-hand side is the <strong>element</strong>:</p>
+<table><thead><tr><th></th><th>jq 1.8.2</th><th>yqr 0.7.1</th></tr></thead><tbody>
+<tr><td><code>.tags += ["x"]</code></td><td>appends <code>x</code></td><td>parse error – yqr has no array literal</td></tr>
+<tr><td><code>.tags += "x"</code></td><td>appends the characters <code>x</code></td><td>appends <code>x</code> as one item</td></tr>
+<tr><td><code>.replicas += 1</code></td><td><code>4</code></td><td>error – <code>+=</code> wants a sequence</td></tr>
+</tbody></table>
+<p>To increment a number, use the update form or write the sum out. Both work:</p>
+<pre><code class="language-console">$ yqr '.replicas |= (. + 1)' config.yaml | sed -n 3p
+replicas: 4
+$ yqr '.replicas = .replicas + 1' config.yaml | sed -n 3p
+replicas: 4
+</code></pre>
+<p>And to append:</p>
+<pre><code class="language-console">$ yqr '.tags += "audit"' config.yaml | sed -n '4,7p'
+tags:
+  - search
+  - export
+  - audit
+</code></pre>
+<h2 id="what-jq-has-that-yqr-does-not">What jq has that yqr does not<a class="heading-anchor" href="#what-jq-has-that-yqr-does-not" aria-label="Link to this section"></a></h2>
+<p>yqr walks and edits documents that already exist. It does not compute over
+data, and almost everything missing follows from that one line.</p>
+<p><strong>No filtering or aggregation.</strong> <code>select</code>, <code>map</code>, <code>length</code>, <code>keys</code>, <code>has</code>,
+<code>add</code>, <code>join</code>, <code>sort_by</code>, <code>from_entries</code> – none of them. <code>to_entries</code> is
+the only builtin.</p>
+<p><strong>No expressions that build values.</strong> No object or array construction
+(<code>{}</code>, <code>[]</code>), no string interpolation, no comma operator, no <code>//</code>, no
+<code>if/then/else</code>, no comparisons, no <code>and</code>/<code>or</code>/<code>not</code>.</p>
+<p><strong>No recursive descent.</strong> <code>..</code> has no equivalent.</p>
+<p><strong>No format conversion.</strong> yqr is YAML in and YAML out. There is no <code>-o=json</code>,
+and there should not be: the guarantee it exists to make is about the bytes
+of a YAML file, and there is nothing to preserve once you leave the format.</p>
+<p><strong>One edit per run.</strong> jq composes a whole program; yqr applies one mutation.
+Two changes are two commands.</p>
+<p>Some of those fail with a message that teaches the model rather than just
+refusing:</p>
+<pre><code class="language-console">$ yqr '.name, .replicas' config.yaml
+yqr: lex error: unexpected character ',' at position 5: yqr has no ',' operator;
+a function separates its arguments with ';', as in swap(.xs; 0; 1)
+</code></pre>
+<p><strong>When you need any of it, reach for jq</strong> – convert on the way in and pipe:</p>
+<pre><code class="language-console">$ yq -o=json '.' config.yaml | jq -c '[.tags[] | select(. == "export")]'
+["export"]
+</code></pre>
+<p>That routes through <a href="/yqr/compare/yq">yq</a>, not yqr, because yq is the tool
+that converts formats. Nothing about using yqr commits you to using it for
+everything.</p>
+<h2 id="what-jq-cannot-do-at-all">What jq cannot do at all<a class="heading-anchor" href="#what-jq-cannot-do-at-all" aria-label="Link to this section"></a></h2>
+<p>The trade has another side, and it is the reason yqr exists.</p>
+<p>jq reads JSON into a data model and prints the model back. Comments, quote
+style, blank lines and alignment are not in that model – they are not data,
+so no jq filter can address them. yqr reads a lossless tree over your actual
+bytes, so they are addressable:</p>
+<pre><code class="language-console">$ yqr -r 'line_comment(.services.api.port)' config.yaml
+public
+$ yqr 'line_comment(.replicas) = "bumped for the load test"' config.yaml | sed -n 3p
+replicas: 3  # bumped for the load test
+</code></pre>
+<p>Keys and order are addressable the same way, without rebuilding the
+collection they live in:</p>
+<pre><code class="language-console">$ yqr 'key(.tags) = "labels"' config.yaml | sed -n 4p
+labels:
+$ yqr 'swap(.tags; 0; 1)' config.yaml | sed -n '4,6p'
+tags:
+  - export
+  - search
+</code></pre>
+<p>And the whole file survives a round trip, which no data-model tool can
+promise:</p>
+<pre><code class="language-console">$ yqr '.' config.yaml | diff config.yaml - &amp;&amp; echo identical
+identical
+</code></pre>
+<p>That is the job yqr is for: <a href="/yqr/guide/fidelity">changing one value in a file that a human is
+going to review</a>, and leaving every other byte where it was.</p>
+<h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
+<ul>
+<li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – the guarantee behind the last
+section.</li>
+<li><a href="/yqr/compare/yq">yqr and yq</a> – the other YAML tool, and which jobs each
+one is for.</li>
+<li><a href="/yqr/guide/enumerate">Enumerating mappings</a> – <code>to_entries</code>, the one builtin you
+already know.</li>
+</ul>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    <a href="&#x2f;yqr&#x2f;guide&#x2f;enumerate" class="nav-prev">
+        <span class="nav-label">&larr; Previous</span>
+        <span class="nav-title">Enumerating mappings</span>
+    </a>
+    
+    
+</nav>
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-08-26</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    <script src="/yqr/theme/assets/js/nav-menu.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

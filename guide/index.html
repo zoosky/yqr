@@ -13,7 +13,7 @@
 
 
 
-<meta name="description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, and enumerating a mapping without losing the keys.">
+<meta name="description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide">
@@ -29,7 +29,7 @@
 
 
 <meta property="og:title" content="yqr guide">
-<meta property="og:description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, and enumerating a mapping without losing the keys.">
+<meta property="og:description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide">
 <meta property="og:site_name" content="yqr">
@@ -42,7 +42,7 @@
 
 
 <meta name="twitter:title" content="yqr guide">
-<meta name="twitter:description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, and enumerating a mapping without losing the keys.">
+<meta name="twitter:description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
 
 
 
@@ -92,11 +92,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-08-26",
-  "description": "Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, and enumerating a mapping without losing the keys.",
+  "description": "Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.",
   "inLanguage": "en",
   "name": "yqr guide",
   "url": "https://zoosky.github.io/yqr/guide",
-  "wordCount": 121
+  "wordCount": 146
 }
 </script>
 <script type="application/ld+json">
@@ -172,6 +172,9 @@
                 
                  <li><a href="/yqr/demo" >yqr demo</a></li>
                     
+                    
+                
+                
                     
                 
                 
@@ -253,6 +256,8 @@ replica counts so the diff is one line.</li>
 edit, and catching the duplicate keys that silently eat your data.</li>
 <li><a href="/yqr/guide/enumerate">Enumerating mappings</a> – reporting what each value is about,
 with <code>to_entries</code>, when iterating throws the names away.</li>
+<li><a href="/yqr/guide/from-jq">Coming to yqr from jq</a> – which jq idioms work unchanged, the one
+operator that means something else, and where the two languages stop.</li>
 </ul>
 <p>If you are arriving from another tool, <a href="/yqr/compare/yq">how yqr compares to
 yq</a> is probably the faster orientation.</p>
