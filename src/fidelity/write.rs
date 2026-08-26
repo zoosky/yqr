@@ -289,6 +289,67 @@ pub fn apply(mutation: &Mutation, input: &str) -> Result<String> {
     Ok(writer.emit())
 }
 
+/// Append `item` to the sequence at `target`, refusing in yqr's own words when
+/// it is not one.
+///
+/// **The engine's refusals here are not fit to show a user.** Every one of them
+/// arrives as a *parse* error over a document that parsed fine, which sends the
+/// reader to look at their file instead of their filter, and two of the three
+/// name an internal: `swap_items` for a target that is not a sequence (a
+/// primitive from the *reorder* path, shown to someone who asked to append) and
+/// `push_back_value` for an empty one, whose advice is to *"use `set` with a
+/// fragment"* — an API yqr does not expose. `set_value` already carries a guard
+/// for exactly this reason; the append path never got one.
+///
+/// So yqr checks its own preconditions against the typed model first: the
+/// target must be a sequence, and it must have an item to anchor indentation
+/// on. What is left that can still fail is genuinely the engine's business —
+/// flow layout — and its wording there is accurate and names nothing internal.
+///
+/// Each refusal names a remedy that **works**, which is `yqr-f025`'s rule, and
+/// the remedy differs by what is actually there: `|=` computes a new value in
+/// place of a scalar, and a mapping grows by assignment, not by append.
+// Bug b024.
+fn append_item(
+    writer: &mut dyn FidelityWriter,
+    doc: usize,
+    target: &Path,
+    current: &Value,
+    item: &Value,
+) -> Result<()> {
+    let path_str = noyalib_path(target)?;
+    let remedy = |v: &Value| match v {
+        // Only the numeric arm carries an arithmetic example, because only
+        // there does one work: `(. + 1)` over a string is a type error, and a
+        // remedy that errors is worse than no remedy (`yqr-f025`).
+        Value::Int(_) | Value::Float(_) => {
+            format!("Use `|=` to compute a new value in place, as in `.{path_str} |= (. + 1)`")
+        }
+        // An implicit null has no value to compute from, so `|=` is not the
+        // way in; `=` writes one (`yqr-b021`).
+        Value::Null => format!("Use `=` to write a value there, as in `.{path_str} = 1`"),
+        _ => "Use `|=` to compute a new value in place".to_string(),
+    };
+    match current {
+        Value::Sequence(items) if !items.is_empty() => writer.append(doc, target, item),
+        Value::Sequence(_) => Err(YqrError::eval(format!(
+            "cannot append at {path_str:?}: the sequence is empty, and yqr places a new item by \
+             following the indentation of the one above it. Write the first item into the file \
+             yourself, and `+=` will extend it"
+        ))),
+        Value::Mapping(_) => Err(YqrError::eval(format!(
+            "cannot append at {path_str:?}: `+=` appends an item to a sequence, and this is a \
+             mapping. Assign the entry you want instead, as in `.{path_str}.<key> = <value>`"
+        ))),
+        scalar => Err(YqrError::eval(format!(
+            "cannot append at {path_str:?}: `+=` appends an item to a sequence, and this is \
+             {}. {}",
+            type_name(scalar),
+            remedy(scalar)
+        ))),
+    }
+}
+
 /// Write `new` at `path`, unless it is already what is there.
 ///
 /// **A write that changes nothing must not rewrite anything.** `set_value`
@@ -458,11 +519,14 @@ fn apply_to_doc(
             set_value_unless_unchanged(writer, doc, &target, &updated, &current)
         }
         Mutation::Append { path, rhs } => {
-            let Some(target) = resolve_target(path, value)? else {
+            // `resolve_update_target` rather than `resolve_target`: identical
+            // contract, and it hands back the current value, which is what the
+            // precondition check below needs (`yqr-b024`).
+            let Some((target, current)) = resolve_update_target(path, value)? else {
                 return Ok(());
             };
             let item = resolve_rhs(rhs, value)?;
-            writer.append(doc, &target, &item)
+            append_item(writer, doc, &target, &current, &item)
         }
         Mutation::Delete {
             target: Target::Value(path),
@@ -798,7 +862,7 @@ impl FidelityWriter for NoyalibWriter {
         let ny = insertable(value)?;
         self.doc_mut(doc)?
             .push_back_value(&path_str, &ny)
-            .map_err(|e| YqrError::eval(format!("cannot append to {path_str:?}: {e}")))
+            .map_err(|e| YqrError::eval(format!("cannot append at {path_str:?}: {e}")))
     }
 
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()> {

@@ -6,6 +6,21 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- **`+=` explains itself when it declines.** Pointed at anything that is not a
+  sequence, it used to report a *"YAML parse error"* over a file that parsed
+  perfectly and name `swap_items`, an internal belonging to the reorder path,
+  to someone who had asked to append. Now it says what `+=` does, what the
+  path actually holds, and what to use instead -- `|=` to compute a new value
+  in place of a scalar, `=` to fill in a blank, assignment to grow a mapping.
+  The suggestion is only ever one that works: only a number is offered
+  `(. + 1)`, because that is a type error on a string.
+
+  Appending to an *empty* sequence used to advise `set` with a fragment, which
+  is not something the yqr CLI has. It now explains the real limit: a new item
+  follows the indentation of the one above it, so there has to be one.
+
 ## [0.7.1] - 2026-08-24
 
 Three fixes and no new surface. Two arrive with the YAML engine moving to
