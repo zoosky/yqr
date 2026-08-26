@@ -1881,3 +1881,99 @@ fn a_document_with_no_trailing_newline_is_echoed_byte_for_byte() {
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "a: 1\nb:");
 }
+
+// Bug b024: `+=` appends to a sequence, and pointed at anything else it was
+// refused in the engine's words -- a "YAML parse error" over a document that
+// parsed fine, naming `swap_items`, a primitive from the *reorder* path, to
+// someone who asked to append. It is the first thing a jq user hits, since
+// `.n += 1` is addition there. yqr checks the precondition against its own
+// model now, and every refusal names a remedy that works.
+#[test]
+fn appending_to_a_non_sequence_is_refused_in_yqrs_own_words() {
+    for (doc, filter) in [
+        ("a: 1\n", ".a += 2"),
+        ("a: x\n", ".a += 2"),
+        ("a: true\n", ".a += 2"),
+        ("a:\n", ".a += 2"),
+        ("a:\n  k: 1\n", ".a += 2"),
+    ] {
+        let out = run(&[filter], doc);
+        assert_eq!(out.status, 5, "{doc:?}: {}", out.stderr);
+        assert!(
+            out.stderr.contains("cannot append at \"a\""),
+            "{doc:?}: {}",
+            out.stderr
+        );
+        // The two faults the bug was about, gone: a valid document is not a
+        // parse error, and no internal is named.
+        assert!(
+            !out.stderr.contains("parse error") && !out.stderr.contains("swap_items"),
+            "{doc:?}: {}",
+            out.stderr
+        );
+    }
+}
+
+// The remedies are asserted by *running* them, which is the rule f025 set when
+// b020's first wording named a route yqr declines. A message that suggests a
+// broken command is worse than one that suggests nothing.
+#[test]
+fn every_remedy_the_append_refusal_names_actually_works() {
+    // A number says `|=` with arithmetic, and only a number does -- `(. + 1)`
+    // over a string is a type error, so the string arm names `|=` alone.
+    let n = run(&[".a += 2"], "a: 1\n");
+    assert!(n.stderr.contains("`.a |= (. + 1)`"), "{}", n.stderr);
+    assert_eq!(run(&[".a |= (. + 1)"], "a: 1\n").stdout, "a: 2\n");
+
+    let s = run(&[".a += 2"], "a: x\n");
+    assert!(s.stderr.contains("Use `|=`"), "{}", s.stderr);
+    assert!(
+        !s.stderr.contains("(. + 1)"),
+        "no arithmetic on a string: {}",
+        s.stderr
+    );
+    assert_eq!(run(&[".a |= (. + \"y\")"], "a: x\n").stdout, "a: xy\n");
+
+    // Null has nothing to compute from, so `|=` is not the way in; `=` writes
+    // a value there, which b021 made work.
+    let z = run(&[".a += 2"], "a:\nb: 2\n");
+    assert!(z.stderr.contains("`.a = 1`"), "{}", z.stderr);
+    assert_eq!(run(&[".a = 1"], "a:\nb: 2\n").stdout, "a: 1\nb: 2\n");
+
+    // A mapping grows by assignment, not by append.
+    let m = run(&[".a += 2"], "a:\n  k: 1\n");
+    assert!(m.stderr.contains("Assign the entry"), "{}", m.stderr);
+    assert_eq!(
+        run(&[".a.k2 = 2"], "a:\n  k: 1\n").stdout,
+        "a:\n  k: 1\n  k2: 2\n"
+    );
+}
+
+// The other message that named an API yqr does not expose: appending to an
+// empty sequence advised "use `set` with a fragment". yqr cannot place the
+// first item -- it follows the indentation of the one above -- and now says so
+// in terms of the file rather than of the engine.
+#[test]
+fn appending_to_an_empty_sequence_explains_the_real_limit() {
+    let out = run(&[".a += 1"], "a: []\n");
+    assert_eq!(out.status, 5);
+    assert!(
+        out.stderr.contains("the sequence is empty"),
+        "{}",
+        out.stderr
+    );
+    assert!(
+        !out.stderr.contains("fragment") && !out.stderr.contains("push_back_value"),
+        "no API yqr does not expose: {}",
+        out.stderr
+    );
+}
+
+// The control the whole change rests on: a block sequence still appends, and
+// every other byte is the byte that was there.
+#[test]
+fn appending_to_a_block_sequence_still_works() {
+    let out = run(&[".a += 2"], "# lead\na:\n  - 1\nb: keep\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "# lead\na:\n  - 1\n  - 2\nb: keep\n");
+}
