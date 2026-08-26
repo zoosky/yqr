@@ -1,7 +1,8 @@
 # Marketing k002 — An on-ramp page for people who already know jq
 
-**Status:** Draft — filed 2026-08-25, measured before any prose was written
-(`k001` §2's rule). The page is not built.
+**Status:** Done (2026-08-26) — `/guide/from-jq` shipped. Filed 2026-08-25,
+measured before any prose was written (`k001` §2's rule), built from that
+measurement a day later. See §9.
 **Owner:** yqr maintainers
 **Last updated:** 2026-08-25
 **Related:** `yqr-k001` (the content plan this extends, and its measure-first
@@ -162,12 +163,38 @@ that pattern is the finding.
 
 ## 8. Acceptance criteria
 
-- [ ] `/guide/from-jq` exists, in the Guide menu, ordered after the existing
-      four.
-- [ ] Every filter shown was run against the released binary, jq claims
+- [x] `/guide/from-jq` exists, in the Guide menu, ordered after the existing
+      four (`order: 5`), and listed on the guide index, whose page list is
+      hand-written rather than generated.
+- [x] Every filter shown was run against the released binary, jq claims
       against a named jq version, both stamped in the frontmatter.
-- [ ] §3.1 is the first table on the page; §3.3 never appears without its
+- [x] §3.1 is the first table on the page; §3.3 never appears without its
       scope reason.
-- [ ] The `+=` trap is stated as a table of three shapes, not prose.
-- [ ] No feature matrix.
+- [x] The `+=` trap is stated as a table of three shapes, not prose.
+- [x] No feature matrix.
 - [x] The `/guide/enumerate` jq-sorting claim is corrected (§7).
+
+## 9. Built, 2026-08-26
+
+`/guide/from-jq`, in §4's order: what transfers, the `+=` trap, what jq has
+that yqr does not, what jq cannot do at all. Every console block was run
+twice — once to measure, once again against the page as written, including
+the `sed -n` line selectors, so the pasted output is the output a reader
+gets.
+
+Two things the build changed from the plan:
+
+- **The escape hatch names yq, with a worked example.** §4 said to name it
+  honestly; writing it made clear it needs more than a clause, because "use
+  jq for that" is useless to a reader holding a YAML file. The page shows
+  `yq -o=json '.' config.yaml | jq …` and says plainly that this routes
+  through yq, not yqr.
+- **The ordering correction became a positive.** §7 was a wrong claim to
+  retract; the page instead says the habit *transfers* — `to_entries` and
+  `.[]` keep document order in both tools — with jq's `keys`/`keys_unsorted`
+  split as the parenthetical. A correction is worth more as a thing that
+  works than as a retraction.
+
+**Found while measuring:** the `+=`-on-a-scalar refusal is a bad message.
+Filed as `yqr-b024`. The page states the outcome without quoting it, which
+is why the defect does not appear on the site.
