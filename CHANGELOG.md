@@ -6,6 +6,22 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-08-26
+
+One fix in the tool, one in its packaging, and a documentation pass that
+should have happened four releases ago.
+
+The fix is `+=` explaining itself when it declines instead of blaming the
+file. The packaging one is why the crates.io page finally has links to the
+guide: `homepage` and `documentation` were never set, so the only route off
+that page was the repository.
+
+The documentation pass is the one worth reading about, because it says
+something about the rest. Every console block on every page was re-run
+against the binary. Four pages promised something yqr does not do -- among
+them a `validate` snippet that exits 2, and a front page still telling
+visitors arithmetic was unavailable nine days after it shipped.
+
 ### Fixed
 
 - **`+=` explains itself when it declines.** Pointed at anything that is not a
@@ -20,6 +36,29 @@ All notable changes to `yqr` are documented here. The format is based on
   Appending to an *empty* sequence used to advise `set` with a fragment, which
   is not something the yqr CLI has. It now explains the real limit: a new item
   follows the indentation of the one above it, so there has to be one.
+
+- **Four documentation pages promised something yqr does not do.** All found
+  by running the pages rather than reading them. `validate` was documented as
+  falling back to stdin when you omit the file -- it exits 2, deliberately, so
+  a validation gate cannot report "all valid" over an empty file list. The
+  home page listed arithmetic as unavailable and called a seven-row table "the
+  whole grammar" while its own recipes used bracket access and its own
+  examples used `=`, `+=` and `del`. The Kubernetes guide showed a
+  `head_comment` write that is refused. The fidelity guide read two fields
+  that were not in the file it had just shown.
+
+### Changed
+
+- **crates.io links the guide.** `homepage` and `documentation` are set, so
+  the crate page points at the documentation site and the API docs rather than
+  only at the repository. Aggregators read the same fields.
+
+### Added
+
+- **A page for people arriving from jq** (`/guide/from-jq`). Which idioms
+  transfer unchanged, the one operator that means something different (`+=`
+  appends to a sequence here; it is addition in jq), and what each tool can do
+  that the other cannot.
 
 ## [0.7.1] - 2026-08-24
 
