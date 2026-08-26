@@ -45,6 +45,7 @@ defaults: &defaults
 web:
   <<: *defaults
   name: 'web'
+ver: 1.10
 ```
 
 Read it back with yqr and you get exactly that, including:
@@ -70,7 +71,7 @@ the moment something treats it as a float.
 yqr never re-types the value, so the question never arises:
 
 ```console
-$ yqr -r '.mode' config.yaml
+$ yqr -r '.defaults.mode' config.yaml
 0640
 $ yqr -r '.ver' config.yaml
 1.10
@@ -92,6 +93,7 @@ web:
   name: web
   mode: 640
   retries: 3
+ver: 1.1
 ```
 
 Look at what that did, because it is instructive. Comments are gone. The
@@ -540,7 +542,7 @@ Two selectors, wrapping a path the same way `key(...)` does:
 
 ```console
 $ yqr 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
-$ yqr 'head_comment(.spec) = "why this exists"' deploy.yaml
+$ yqr 'head_comment(.spec.replicas) = "why this exists"' deploy.yaml
 $ yqr -i 'del(line_comment(.spec.replicas))' deploy.yaml
 ```
 
@@ -572,6 +574,11 @@ thing to do would be wrong:
   delete it.
 - **A comment block above a sequence item** can be read but not edited --
   the YAML engine attaches leading comments to mapping keys only.
+
+- **An entry whose value is a block**, like `spec:` with the manifest under
+  it, takes no `head_comment` write either, for the same reason: the write
+  addresses a single-line mapping key. `head_comment(.spec.replicas)` works;
+  `head_comment(.spec)` is refused.
 
 And `foot_comment(...)` is refused with an explanation rather than a syntax
 error: a comment *below* an entry belongs to whatever follows it about as
@@ -1057,14 +1064,21 @@ git diff --cached --name-only --diff-filter=ACM -- '*.yaml' '*.yml' \
 
 ## Reading from stdin
 
-Same as everywhere else -- omit the file, or pass `-`:
+Pass `-`. Unlike the filter form, `validate` will not fall back to stdin
+when you give it nothing:
 
 ```console
-$ kubectl get deploy web -o yaml | yqr validate --strict
+$ kubectl get deploy web -o yaml | yqr validate --strict -
 $ helm template ./chart | yqr validate --strict -
+$ yqr validate --strict
+error: no input files; pass one or more YAML files, or '-' to read stdin
 ```
 
-The second one is a genuinely useful check: chart templating produces YAML
+That refusal is the point. A validation gate whose file list came up empty
+would otherwise report "all valid" over nothing, which is the one answer a
+gate must never give by accident.
+
+The helm check is a genuinely useful one: chart templating produces YAML
 through string interpolation, which is exactly the process most likely to
 emit a duplicate key.
 

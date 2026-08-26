@@ -1056,8 +1056,7 @@ true</pre>
     <div class="section-head">
       <p class="eyebrow">filter grammar</p>
       <h2>What yqr can walk today</h2>
-      <p>yqr is at milestone M0. This is the whole grammar — every
-        recipe on this page is built from it.</p>
+      <p>The whole grammar — every recipe on this page is built from it.</p>
     </div>
     <table>
       <thead>
@@ -1067,17 +1066,29 @@ true</pre>
         <tr><td><code>.</code></td><td class="meaning">Identity</td></tr>
         <tr><td><code>.foo</code></td><td class="meaning">Field access</td></tr>
         <tr><td><code>.a.b</code></td><td class="meaning">Nested field access</td></tr>
+        <tr><td><code>.["a.b"]</code></td><td class="meaning">Field access for a key holding a <code>.</code>, <code>/</code> or a space</td></tr>
         <tr><td><code>.[n]</code></td><td class="meaning">Array index (<code>.[-1]</code> counts from the end)</td></tr>
         <tr><td><code>.[]</code></td><td class="meaning">Iterate sequence elements / mapping values</td></tr>
         <tr><td><code>a | b</code></td><td class="meaning">Pipe</td></tr>
         <tr><td><code>f?</code></td><td class="meaning">Suppress runtime errors from <code>f</code> (e.g. iterating a field that turns out to be missing or the wrong shape)</td></tr>
+        <tr><td><code>to_entries</code></td><td class="meaning">A mapping becomes <code>{key, value}</code> pairs, so the name travels with the value (<a href="guide/enumerate">guide</a>)</td></tr>
+        <tr><td><code>+ - * / %</code></td><td class="meaning">Arithmetic, with the usual precedence; <code>+</code> also joins strings. Numbers keep their type — <code>4 / 2</code> is <code>2</code>, <code>3 / 2</code> is <code>1.5</code></td></tr>
       </tbody>
     </table>
+    <p>The write forms are the same paths with a verb:
+      <code>=</code> replaces a value, <code>|=</code> computes a new one from
+      the old (<code>.replicas |= (. + 1)</code>), <code>+=</code> appends to a
+      sequence, <code>del(…)</code> removes an entry, <code>key(…)</code>
+      renames, <code>line_comment(…)</code> and <code>head_comment(…)</code>
+      edit comments, and <code>swap(…)</code> / <code>move(…)</code> reorder a
+      list. The <a href="guide/kubernetes">Kubernetes guide</a> works through
+      each of them.</p>
     <p class="not-yet">
       Not yet available: <code>select()</code>, <code>map()</code>,
-      <code>keys</code>, arithmetic, and object/array construction. Reach for
-      <code>kubectl</code>'s own <code>-o jsonpath</code> or a
-      <code>grep</code> in the meantime if a recipe needs one of those.
+      <code>length</code>, <code>keys</code>, comparisons and conditionals, and
+      object/array construction — so a filter cannot yet pick entries by a
+      condition or reshape them. Coming from jq? <a href="guide/from-jq">What
+      transfers and what does not</a> is the short version.
     </p>
   </section>
 

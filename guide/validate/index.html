@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
   "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 843
+  "wordCount": 903
 }
 </script>
 <script type="application/ld+json">
@@ -393,11 +393,17 @@ worth knowing before you ship it.</p>
 </span><span style="color:#c0c5ce;">  | </span><span style="color:#8fa1b3;">xargs</span><span style="color:#bf616a;"> -r</span><span style="color:#c0c5ce;"> yqr validate</span><span style="color:#bf616a;"> --strict
 </span></pre>
 <h2 id="reading-from-stdin">Reading from stdin<a class="heading-anchor" href="#reading-from-stdin" aria-label="Link to this section"></a></h2>
-<p>Same as everywhere else – omit the file, or pass <code>-</code>:</p>
-<pre><code class="language-console">$ kubectl get deploy web -o yaml | yqr validate --strict
+<p>Pass <code>-</code>. Unlike the filter form, <code>validate</code> will not fall back to stdin
+when you give it nothing:</p>
+<pre><code class="language-console">$ kubectl get deploy web -o yaml | yqr validate --strict -
 $ helm template ./chart | yqr validate --strict -
+$ yqr validate --strict
+error: no input files; pass one or more YAML files, or '-' to read stdin
 </code></pre>
-<p>The second one is a genuinely useful check: chart templating produces YAML
+<p>That refusal is the point. A validation gate whose file list came up empty
+would otherwise report “all valid” over nothing, which is the one answer a
+gate must never give by accident.</p>
+<p>The helm check is a genuinely useful one: chart templating produces YAML
 through string interpolation, which is exactly the process most likely to
 emit a duplicate key.</p>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>

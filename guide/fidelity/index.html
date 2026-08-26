@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 1061
+  "wordCount": 1065
 }
 </script>
 <script type="application/ld+json">
@@ -312,6 +312,7 @@ trip:</p>
 </span><span style="color:#bf616a;">web</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">  </span><span style="color:#d08770;">&lt;&lt;</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">*</span><span style="color:#bf616a;">defaults
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: &#39;</span><span style="color:#a3be8c;">web</span><span style="color:#c0c5ce;">&#39;
+</span><span style="color:#bf616a;">ver</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">1.10
 </span></pre>
 <p>Read it back with yqr and you get exactly that, including:</p>
 <ul>
@@ -331,7 +332,7 @@ as a number and prints it back, you get <code>640</code>, which is a different
 permission. Same story for a version pinned at <code>1.10</code>, which becomes <code>1.1</code>
 the moment something treats it as a float.</p>
 <p>yqr never re-types the value, so the question never arises:</p>
-<pre><code class="language-console">$ yqr -r '.mode' config.yaml
+<pre><code class="language-console">$ yqr -r '.defaults.mode' config.yaml
 0640
 $ yqr -r '.ver' config.yaml
 1.10
@@ -349,6 +350,7 @@ web:
   name: web
   mode: 640
   retries: 3
+ver: 1.1
 </code></pre>
 <p>Look at what that did, because it is instructive. Comments are gone. The
 blank line is gone. The anchor and merge key have been resolved, so <code>web</code>
