@@ -8,7 +8,9 @@ status tracker convention).
 
 ## Open
 
-None. Every bug yqr has filed is fixed, in yqr or in a released dependency.
+| Bug | Title | Severity | Status | Related |
+|-----|-------|----------|--------|---------|
+| [b024](yqr-b024-append-to-a-scalar-blames-a-parse-and-names-swap-items.md) | Appending to a scalar reports a parse error and names an unrelated internal function | Low | Open — filed **2026-08-26**, found while measuring the `+=` divergence for `yqr-k002`'s jq on-ramp page. `+=` on a scalar is rightly refused; the refusal says two untrue things. It calls a valid, correctly-parsed document a **"YAML parse error"**, sending the user to look at their file instead of their filter, and it names **`swap_items`**, an internal from the reorder path, to someone who asked to append. The one true clause is *"does not address a sequence"*. Worth fixing because it is the first thing a jq user hits: in jq `+=` on a number is addition, so `.replicas += 1` is a predictable early mistake, and this is the sentence that meets it. Same shape as `b020` — the refusal is right, the reason is wrong — and easier to fix, since `append` already knows the operation and the path. The page states the outcome without quoting the message, which is why the defect is not on the site | `yqr-b020`, `yqr-b021`, `yqr-k002`, `yqr-f025` |
 
 ## Resolved
 
@@ -40,10 +42,12 @@ None. Every bug yqr has filed is fixed, in yqr or in a released dependency.
 
 ## Summary
 
-- Total bugs: 23
-- Open: **0**.
-- **Every bug yqr has filed is fixed**, in yqr or in a released dependency.
-  Four of the last five were found by the work that closed the one before:
+- Total bugs: 24
+- Open: **1** (b024) — a refusal that is right, worded two ways that are
+  not; found by writing documentation rather than by running the tool.
+- **Every bug yqr has filed is fixed** except `b024`, in yqr or in a released
+  dependency.
+  Four of the five before it were found by the work that closed the one before:
   `b020` by `b019`'s documentation pass, `b021` by `b020`'s boundary test,
   `b022` by a test `b021`'s upstream patch could not write, and `b023` by
   smoke-testing `0.7.0` from crates.io instead of from the build directory.
