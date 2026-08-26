@@ -158,7 +158,7 @@ Two selectors, wrapping a path the same way `key(...)` does:
 
 ```console
 $ yqr 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
-$ yqr 'head_comment(.spec) = "why this exists"' deploy.yaml
+$ yqr 'head_comment(.spec.replicas) = "why this exists"' deploy.yaml
 $ yqr -i 'del(line_comment(.spec.replicas))' deploy.yaml
 ```
 
@@ -190,6 +190,11 @@ thing to do would be wrong:
   delete it.
 - **A comment block above a sequence item** can be read but not edited --
   the YAML engine attaches leading comments to mapping keys only.
+
+- **An entry whose value is a block**, like `spec:` with the manifest under
+  it, takes no `head_comment` write either, for the same reason: the write
+  addresses a single-line mapping key. `head_comment(.spec.replicas)` works;
+  `head_comment(.spec)` is refused.
 
 And `foot_comment(...)` is refused with an explanation rather than a syntax
 error: a comment *below* an entry belongs to whatever follows it about as
