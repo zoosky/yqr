@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787690960265,
+  "lastUpdate": 1787773269878,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -1973,6 +1973,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 271029,
             "range": "± 1108",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4bc36bfe4d5e90bcbf1642b98e9d774dbf0330cb",
+          "message": "fix(write): `+=` says what it wants and what to use instead (b024) (#107)\n\nAppending to something that is not a sequence was refused in the engine's\nwords: a \"YAML parse error\" over a document that parsed fine, naming\n`swap_items` -- a primitive from the reorder path -- to someone who had\nasked to append. It is the first thing a jq user hits, since `.n += 1` is\naddition there, and it was found writing the page that had to say so.\n\nMeasuring before fixing widened it. Every append refusal was miscategorised,\nand the empty-sequence one advised \"use `set` with a fragment\", an API yqr\ndoes not expose -- the same defect b020 §3 recorded for `set_value`, which\nis guarded for exactly that reason. The append path never got the same\nguard, and that, rather than one bad sentence, was the bug.\n\n`append_item` now checks the precondition against yqr's own typed model\nbefore calling the engine. The `Append` arm resolves through\n`resolve_update_target` rather than `resolve_target` -- same contract, and\nit returns the current value the check needs.\n\nEach refusal names a remedy, and the remedy differs by what is there: `|=`\nfor a scalar, `=` for a null (which b021 made work), assignment for a\nmapping. Only the numeric arm carries `(. + 1)`, because `(. + 1)` over a\nstring is a type error and f025's rule is that a message names a route that\nworks -- so the test runs all four rather than asserting they were\nmentioned.\n\nOne shape is left and recorded in b024 §7: a non-empty flow sequence, which\nthe typed model cannot tell from a block one. Its message is at least\naccurate and names no internal.",
+          "timestamp": "2026-08-26T21:39:46+02:00",
+          "tree_id": "ac4c5d213328f10fd4183b48daf2e90fa05331bf",
+          "url": "https://github.com/zoosky/yqr/commit/4bc36bfe4d5e90bcbf1642b98e9d774dbf0330cb"
+        },
+        "date": 1787773267943,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 580,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5545,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 249457,
+            "range": "± 1439",
             "unit": "ns/iter"
           }
         ]
