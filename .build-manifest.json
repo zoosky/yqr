@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "timestamp": "2026-08-26T20:06:43Z",
+  "timestamp": "2026-08-27T11:01:35Z",
   "pages": {
     "/": {
       "content_hash": "d332d9ba9870766c",
       "template": "home.html.jinja",
-      "template_hash": "a9d34bb9cd12afc6"
+      "template_hash": "27a7d3ac220eefff"
     },
     "/compare": {
       "content_hash": "bc8a282e0d7a7fe3",
@@ -132,7 +132,7 @@
       ]
     },
     "home.html.jinja": {
-      "hash": "7a10db7c764b7c7f",
+      "hash": "a51e3802cf9f2553",
       "includes": [
         "base.html.jinja"
       ]
@@ -252,5 +252,5 @@
     }
   },
   "config_hash": "f6d6c3b154754094",
-  "theme_hash": "17d703efc8757cf3"
+  "theme_hash": "6576d4335a66fb93"
 }
