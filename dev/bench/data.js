@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787773269878,
+  "lastUpdate": 1787828562420,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2015,6 +2015,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 249457,
             "range": "± 1439",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6c9562ea77b9ec717c9b7f724cf196970f4a40b8",
+          "message": "chore: release v0.7.2 (#109)\n\nOne fix in the tool, one in its packaging, and a documentation pass, over\nfive commits since v0.7.1.\n\nb024: `+=` explains itself when it declines instead of reporting a \"YAML\nparse error\" over a file that parsed fine and naming `swap_items`, an\ninternal from the reorder path, to someone who asked to append. Each\nrefusal names a remedy that works, checked by running it.\n\nPackaging: `homepage` and `documentation` are set, so the crates.io page\npoints at the guide and the API docs rather than only at the repository.\nThat page has had no route to the documentation site since the site\nexisted. It takes effect with this publish, since crates.io renders the\nnewest published version's metadata.\n\nDocumentation: every console block on every page re-run against the\nbinary, which found four pages promising something yqr does not do -- a\n`validate` snippet that exits 2, a front page listing arithmetic as\nunavailable nine days after it shipped, a refused `head_comment` write\nshown as working, and two reads of fields absent from the file above them.\nPlus a new page for people arriving from jq.\n\nPatch, not minor. No library export changed and no CLI flag; b024 changes\nonly the text of a refusal that already exited 5.\n\nVersion bumped in Cargo.toml, Cargo.lock (via cargo check), and the JSON-LD\nsoftwareVersion in the site template, which m001 §3 lists and which nothing\nfails without.\n\nVerified: local-ci.sh green, the site builds under --strict-links and the\nrendered index.html carries 0.7.2.",
+          "timestamp": "2026-08-27T13:01:21+02:00",
+          "tree_id": "6bd25381d7e0d61b46b1a14e9fe12da8b656a122",
+          "url": "https://github.com/zoosky/yqr/commit/6c9562ea77b9ec717c9b7f724cf196970f4a40b8"
+        },
+        "date": 1787828560648,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 590,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5572,
+            "range": "± 19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 250983,
+            "range": "± 1612",
             "unit": "ns/iter"
           }
         ]
