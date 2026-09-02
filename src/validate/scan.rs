@@ -278,9 +278,18 @@ fn under_indented_entry(
     source: &str,
 ) -> Option<UnderIndentedValue> {
     let (key_offset, value_offset, value_is_block_seq) = entry_key_and_value(entry, offset)?;
-    let (key_line, key_column) = position_in(source, key_offset);
-    let (value_line, value_column) = position_in(source, value_offset);
-    if value_line == key_line || value_column > key_column {
+    // The value follows its key, so the two share a line exactly when no
+    // line break lies between them. Both checks here stay local to the
+    // entry: the scan visits every entry of the document, so anything that
+    // counts from the start of the source makes the whole pass quadratic.
+    // Bug b027.
+    match source.get(key_offset..value_offset) {
+        Some(between) if between.contains('\n') => {}
+        _ => return None,
+    }
+    let key_column = column_in(source, key_offset);
+    let value_column = column_in(source, value_offset);
+    if value_column > key_column {
         return None;
     }
     // A block sequence is allowed to share its key's column, and only that
@@ -342,15 +351,15 @@ fn entry_key_and_value(entry: &GreenNode, offset: usize) -> Option<(usize, usize
     None
 }
 
-/// 1-based `(line, column)` of `byte` within `source`.
+/// 1-based column of `byte` within its line, counted in characters.
 ///
-/// A local walk rather than `render::position_of`: the scan works in
-/// document-relative offsets, and lines and columns are the same whether they
-/// are counted from the start of the document or the start of the file, since
-/// a document always begins at a line boundary.
-fn position_in(source: &str, byte: usize) -> (usize, usize) {
+/// A walk back to the previous line break, never to the start of the
+/// document: columns are the same whether counted in document-relative or
+/// file-absolute offsets, since a document always begins at a line
+/// boundary, and the walk is bounded by the line's length rather than by
+/// the document's.
+fn column_in(source: &str, byte: usize) -> usize {
     let byte = byte.min(source.len());
     let start = source[..byte].rfind('\n').map_or(0, |i| i + 1);
-    let line = source[..byte].bytes().filter(|&b| b == b'\n').count() + 1;
-    (line, source[start..byte].chars().count() + 1)
+    source[start..byte].chars().count() + 1
 }

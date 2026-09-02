@@ -175,8 +175,14 @@ The project enforces strict clippy lints. See `Cargo.toml` for the full configur
   `classic_cases()` (semantic/raw/error expectation), an `EngineCase` to
   `engine_cases()` (byte-exact read), or a `WriteCase` to `write_cases()` (a
   mutating filter, stating the spans it rewrites — everything else is asserted
-  unchanged). All consumers pick it up automatically. Run:
-  `cargo test --test corpus_validation` / `cargo bench --bench corpus_bench`.
+  unchanged). A fourth tier, `CliCase` in `tests/corpus/cli.rs`, runs the
+  compiled binary through every option and variant (`tests/corpus_cli.rs`).
+  The values corpus (`tests/corpus/values.rs`) adds a production tenants
+  values file (`tests/data/values.yaml`) and the `tenants(n)` generator that
+  reproduces its shape at any size; cases on it live there, in the matching
+  table. All consumers pick it up automatically. Run:
+  `cargo test --test corpus_validation --test corpus_cli` /
+  `cargo bench --bench corpus_bench`.
 - **Fidelity harness** (`tests/fidelity.rs`): A backend-agnostic round-trip
   harness that checks the a001 byte-for-byte property (`parse -> emit == input`)
   across YAML backend libraries, one case per b001 formatting dimension

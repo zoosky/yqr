@@ -9,9 +9,15 @@
 //! emitter's exact formatting; raw-output and fidelity-engine expectations are
 //! stated as exact bytes because their whole point is byte-level behavior.
 //!
-//! The module deliberately depends on nothing but `std` and its own data types,
-//! so it compiles unchanged whether it is pulled into the test crate or the
-//! bench crate.
+//! Two sub-corpora extend the tables: [`values`] — a production tenants
+//! values file plus a generator that reproduces its shape at any size, with
+//! cases in every tier — and [`cli`], the command-line tier, which runs the
+//! compiled binary through every option and variant.
+//!
+//! The data tables depend on nothing but `std` and their own types, so they
+//! compile unchanged whether pulled into the test crate or the bench crate;
+//! the command-line tier's check functions may use the `yqr` library, which
+//! both crates link.
 
 // yqr-m003: shared validation + benchmark corpus.
 
@@ -21,7 +27,9 @@
 // rather than sprinkling per-item allows.
 #![allow(dead_code)]
 
+pub mod cli;
 pub mod docs;
+pub mod values;
 
 /// Expected result of running a case through the classic (re-serializing)
 /// pipeline (`eval_str` + optional `render`).
@@ -33,6 +41,9 @@ pub enum Expect {
     Values(&'static str),
     /// The output stream is empty (e.g. an error swallowed by `?`).
     Empty,
+    /// The output stream has exactly this many values — for iterations over
+    /// a document too large to list, where the count is the contract.
+    Count(usize),
     /// `render(output, raw = true)` equals this exact string.
     Raw(&'static str),
     /// The pipeline fails, and the error's jq-style exit code equals this
@@ -81,7 +92,7 @@ use docs::{
 /// first-doc semantics, and the full error taxonomy.
 #[must_use]
 pub fn classic_cases() -> Vec<Case> {
-    vec![
+    let mut cases = vec![
         // -- identity ---------------------------------------------------------
         Case {
             id: "identity/k8s",
@@ -322,7 +333,9 @@ pub fn classic_cases() -> Vec<Case> {
             filter: ".features @ 1",
             expect: Expect::Err(3),
         },
-    ]
+    ];
+    cases.extend(values::classic_cases());
+    cases
 }
 
 /// Every fidelity-engine case. Covers byte-for-byte identity across real
@@ -332,7 +345,7 @@ pub fn classic_cases() -> Vec<Case> {
 /// honor identically use [`ALL`].
 #[must_use]
 pub fn engine_cases() -> Vec<EngineCase> {
-    vec![
+    let mut cases = vec![
         // -- identity is byte-for-byte on every backend -----------------------
         EngineCase {
             id: "engine/identity/k8s",
@@ -445,7 +458,9 @@ pub fn engine_cases() -> Vec<EngineCase> {
             raw: true,
             expect: "warn\n",
         },
-    ]
+    ];
+    cases.extend(values::engine_cases());
+    cases
 }
 
 /// What a write case's mutation must do to its document.
@@ -497,7 +512,7 @@ pub struct WriteCase {
 /// plus the refusals that keep an edit from restructuring a file.
 #[must_use]
 pub fn write_cases() -> Vec<WriteCase> {
-    vec![
+    let mut cases = vec![
         // -- value assignment -------------------------------------------------
         WriteCase {
             id: "write/assign/scalar-keeps-every-other-byte",
@@ -851,5 +866,7 @@ pub fn write_cases() -> Vec<WriteCase> {
                 ("name: web", "name: core"),
             ]),
         },
-    ]
+    ];
+    cases.extend(values::write_cases());
+    cases
 }
