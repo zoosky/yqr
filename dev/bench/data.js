@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787828562420,
+  "lastUpdate": 1788362813983,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2057,6 +2057,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 250983,
             "range": "± 1612",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b1feefe0c3ce3828095447a3b44b90254bc58c59",
+          "message": "fix: stop refusing merge-heavy values files on the alias-anchor ratio (b025) (#110)",
+          "timestamp": "2026-09-02T17:25:34+02:00",
+          "tree_id": "e5f0110d23d9c88a383404edc815a94efde01243",
+          "url": "https://github.com/zoosky/yqr/commit/b1feefe0c3ce3828095447a3b44b90254bc58c59"
+        },
+        "date": 1788362812543,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 582,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5830,
+            "range": "± 248",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 266825,
+            "range": "± 3086",
             "unit": "ns/iter"
           }
         ]
