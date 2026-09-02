@@ -4,7 +4,9 @@
 these files and every refusal explains itself, but the default
 byte-preserving read still fails: noyalib's CST entry points hardcode their
 parser configuration, so the fix for that half is upstream. Filed
-2026-09-02 from a field report
+2026-09-02 from a field report; the upstream fix was filed and opened the
+same day (noyalib#372, PR noyalib#373) and verified against the field file
+(§6). yqr adopts it through `yqr-f026` once it ships in a release
 **Severity:** Medium — a valid, ordinary production file cannot be read at
 all on the default path, and the message implied the file was broken
 **Component:** upstream `noyalib::cst::parse_document` /
@@ -14,7 +16,8 @@ all on the default path, and the message implied the file was broken
 **Related:** `yqr-b022` (the precedent: `validate` calling valid YAML
 invalid is the worst face of a parser defect), `yqr-b024` (an upstream
 message reaching the user with a misleading reason), `yqr-f023` §4 (the
-upstream patch workflow), research `yqr-r002`
+upstream patch workflow), `yqr-f026` (the adoption), `yqr-b026` (found
+while verifying this one), research `yqr-r002`
 
 ## 1. Summary
 
@@ -112,10 +115,22 @@ a second, softer ask):
    (§2) already bound amplification. Benefits every downstream consumer,
    including the ones that never discover the config.
 
-When either ships, pin the release, delete the `parse_lossless_stream`
-special case, and flip
-`merge_heavy_document_default_read_names_the_heuristic_and_the_workaround`
-(tests/cli.rs) to expect success.
+Filed 2026-09-02 as noyalib#372; PR noyalib#373 implements item 1 and
+raises item 2 as a question for the maintainer. The PR adds
+`cst::parse_document_with_config` / `cst::parse_stream_with_config`
+taking a `ParserConfig`, and makes a `Document` keep the configuration it
+was opened with for every re-parse of its own source: the typed-cache
+refresh after a local-repair edit, `validate`, the `replace_span` safety
+net, the comment-edit value guard, and the schema-coercion snapshot. That
+second half is what makes the API usable for edits. Without it a document
+that only opens under a relaxed budget opens, accepts its first `set`, and
+panics on the next read, because the cache refresh re-parses under the
+defaults and treats the refusal as a broken local-repair invariant. Eleven
+upstream tests pin it, including that `max_alias_expansions` still refuses
+1025 merges with the ratio disabled.
+
+When a release carries it: `yqr-f026`. The adoption diff is in §6, already
+verified against the branch.
 
 ## 5. Reproduction
 
@@ -138,3 +153,50 @@ v0
 Pinned by `classic_pipeline_accepts_a_merge_heavy_document` and
 `classic_pipeline_keeps_the_absolute_alias_budget` (tests/integration.rs),
 and the three `merge_heavy_document_*` tests (tests/cli.rs).
+
+## 6. Verification against the upstream branch (2026-09-02)
+
+yqr was built once against the #373 branch (`[patch.crates-io]` on the
+local checkout, pin bumped to 0.0.30 to satisfy the version requirement)
+with the adoption change below applied, and run over the field file itself
+(`tests/data/values.xml`, 282 KB, the 22-anchor / 221-alias tenants
+file). Nothing from that build is committed; the tree went back to the
+0.0.28 pin afterwards.
+
+| command | on 0.0.28 | on the branch |
+|---|---|---|
+| `yqr '.' values.xml` | exit 5, ratio message | exit 0, output byte-identical to the input |
+| `yqr -r '.preImage' values.xml` | exit 5 | `6.7.0-RC.5-2eb4505e` |
+| `yqr validate values.xml` | exit 1, `Y001` | exit 0 |
+| `yqr --normalize '.' values.xml` | exit 0 | exit 0 |
+
+The write path opens the file too, but no write was verified on it: both
+paths tried sit inside anchored values, which 0.0.29 refuses for an
+unrelated reason (`yqr-f026` §3). The edit-after-open case is pinned
+upstream instead, by #373's own tests.
+
+The adoption change, kept out of the tree until the release ships:
+
+- `src/fidelity/noyalib.rs`: one `cst_config()` returning
+  `ParserConfig::new().alias_anchor_ratio(None)`, re-exported from
+  `src/fidelity/mod.rs`; `parse_lossless_stream` calls
+  `parse_stream_with_config` with it and loses the `AliasAnchorRatio`
+  special case; `reparses_to` calls `parse_document_with_config`.
+- `src/fidelity/mod.rs::render_key` and the re-parse guard in
+  `src/fidelity/write/delete.rs`: the same, so an edited merge-heavy
+  document re-parses under the limits it was opened with.
+- `src/validate/mod.rs::check_str`: `parse_stream_with_config`; the
+  `Y001` help arm for the ratio becomes unreachable and goes.
+- `src/lib.rs::eval_ast_str` keeps its own disabled ratio; sharing one
+  configuration between the classic and CST paths is f026's call.
+- `tests/cli.rs`: the two `merge_heavy_document_*` refusal tests flip to
+  exit 0 and `v0`.
+
+On that build the b025 tests pass and clippy is clean. Three other tests
+fail, and all three reproduce on plain 0.0.30 with yqr's code unchanged,
+so they are 0.0.29/0.0.30 behaviour changes yqr has not adopted, not
+effects of the PR. `yqr-f026` §1 lists them with their upstream numbers:
+the two merged-key write tests in `tests/cli.rs` (noyalib#338 refuses a
+`set_value` at an anchor definition) and the corpus case
+`multidoc/classic-first-document` (noyalib#351 makes `from_str` refuse a
+multi-document stream).
