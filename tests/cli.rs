@@ -1977,3 +1977,64 @@ fn appending_to_a_block_sequence_still_works() {
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(out.stdout, "# lead\na:\n  - 1\n  - 2\nb: keep\n");
 }
+
+// -- Bug b025: alias-to-anchor ratio heuristic on merge-heavy documents -------
+
+/// A merge-key-heavy values-file shape: `anchors` anchored default blocks,
+/// aliased round-robin `aliases` times. 221 over 22 is ratio 10.05, just
+/// above the CST parser's fixed heuristic cap of 10.
+fn anchor_heavy_doc(anchors: usize, aliases: usize) -> String {
+    let mut doc = String::from("defaults:\n");
+    for a in 0..anchors {
+        doc.push_str(&format!("  d{a}: &a{a}\n    k: v{a}\n"));
+    }
+    doc.push_str("tenants:\n");
+    for t in 0..aliases {
+        doc.push_str(&format!("  t{t}:\n    <<: *a{}\n", t % anchors));
+    }
+    doc
+}
+
+#[test]
+fn merge_heavy_document_reads_under_normalize() {
+    let out = run(
+        &["--normalize", "-r", ".tenants.t0.k"],
+        &anchor_heavy_doc(22, 221),
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "v0\n");
+}
+
+#[test]
+fn merge_heavy_document_default_read_names_the_heuristic_and_the_workaround() {
+    // Pins the open half of the bug: the byte-preserving engine's parser
+    // cannot be configured, so the read still fails — but the refusal must
+    // name the heuristic and point at --normalize instead of implying a
+    // syntax error. This test flips when the engine accepts the document;
+    // move the assertions to expect success then.
+    let out = run(&["-r", ".tenants.t0.k"], &anchor_heavy_doc(22, 221));
+    assert_eq!(out.status, 5);
+    assert!(
+        out.stderr.contains("alias_anchor_ratio"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(out.stderr.contains("--normalize"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn merge_heavy_document_validate_says_heuristic_not_syntax() {
+    let doc = anchor_heavy_doc(22, 221);
+    let dir = std::env::temp_dir().join(format!("yqr-b025-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("create temp dir");
+    let path = dir.join("values.yaml");
+    std::fs::write(&path, &doc).expect("write temp file");
+    let out = run(&["validate", path.to_str().expect("utf-8 path")], "");
+    let _ = std::fs::remove_dir_all(&dir);
+    assert_eq!(out.status, 1);
+    assert!(
+        out.stderr.contains("parser resource heuristic"),
+        "stderr: {}",
+        out.stderr
+    );
+}

@@ -158,6 +158,17 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
         ::noyalib::Error::Parse(m) | ::noyalib::Error::ParseWithLocation { message: m, .. } => {
             (m.clone(), None)
         }
+        // Bug b025: the trip is a parser resource heuristic, not a YAML
+        // syntax rule, and heavy anchor reuse in ordinary values files
+        // sets it off — say so instead of implying a syntax defect.
+        ::noyalib::Error::Budget(::noyalib::BudgetBreach::AliasAnchorRatio { .. }) => (
+            err.to_string(),
+            Some(
+                "this is a parser resource heuristic tripped by heavy anchor reuse, \
+                 not a YAML syntax rule"
+                    .into(),
+            ),
+        ),
         ::noyalib::Error::UnknownAnchorAt {
             name, suggestion, ..
         } => (

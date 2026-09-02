@@ -36,8 +36,7 @@ impl NoyalibEngine {
     /// Defensively verifies that the per-document slices reproduce the input
     /// byte-for-byte before trusting any span from them.
     pub(crate) fn open(input: &str) -> Result<Self> {
-        let docs = ::noyalib::cst::parse_stream(input)
-            .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
+        let docs = parse_lossless_stream(input)?;
 
         // Every span downstream is rebased on these offsets, so a document whose
         // slice diverged from the input would silently mis-map every projection.
@@ -253,6 +252,33 @@ fn reparses_to(fragment: &str, expected: &Value) -> bool {
     ::noyalib::cst::parse_document(fragment)
         .map(|d| lower_value(&d.as_value()) == *expected)
         .unwrap_or(false)
+}
+
+/// Parse `input` into a lossless CST document stream, mapping parse failures
+/// into yqr's error model.
+///
+/// Shared by the read engine and the write adapter (`super::write`), so both
+/// refuse the same inputs with the same words.
+///
+/// The CST parser runs on noyalib's fixed default budgets — unlike the classic
+/// pipeline it accepts no configuration — so a document that only trips the
+/// alias-to-anchor ratio heuristic is refused here even though it is valid
+/// YAML and parses under `--normalize`. That refusal names the workaround,
+/// because a bare "failed to parse" sends the user hunting for a syntax error
+/// that does not exist.
+// Bug b025: lift this special case once noyalib's CST entry points take a
+// parser configuration (or drop the ratio heuristic from their defaults).
+pub(super) fn parse_lossless_stream(input: &str) -> Result<Vec<::noyalib::cst::Document>> {
+    ::noyalib::cst::parse_stream(input).map_err(|e| match e {
+        ::noyalib::Error::Budget(::noyalib::BudgetBreach::AliasAnchorRatio { .. }) => {
+            YqrError::io(format!(
+                "failed to parse YAML input: {e}; this is a parser resource heuristic \
+                 tripped by heavy anchor reuse, not a YAML syntax rule; the classic \
+                 pipeline (--normalize) parses without it, re-serializing output"
+            ))
+        }
+        e => YqrError::io(format!("failed to parse YAML input: {e}")),
+    })
 }
 
 /// Verify that concatenating each parsed document's source reproduces `input`

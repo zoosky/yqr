@@ -6,6 +6,19 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- **Merge-heavy values files parse under `--normalize`.** A file that reuses
+  each anchor more than ten times — a Helm tenants file merging 22 anchored
+  defaults into 221 entries, say — used to be refused outright by the
+  parser's alias-to-anchor ratio heuristic. The classic pipeline now parses
+  without that heuristic; the absolute limits that actually bound
+  billion-laughs amplification (total alias expansions, events, nodes,
+  scalar bytes) all remain. The default byte-preserving read still refuses
+  such files, because its parser accepts no configuration — but the refusal
+  now says it is a parser resource limit rather than a syntax error, and
+  points at `--normalize`. `validate` explains it the same way.
+
 ## [0.7.2] - 2026-08-26
 
 One fix in the tool, one in its packaging, and a documentation pass that
