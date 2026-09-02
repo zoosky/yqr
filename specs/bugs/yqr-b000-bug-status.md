@@ -8,7 +8,9 @@ status tracker convention).
 
 ## Open
 
-None. Every bug yqr has filed is fixed, in yqr or in a released dependency.
+| Bug | Title | Severity | Status | Related |
+|-----|-------|----------|--------|---------|
+| [b025](yqr-b025-alias-anchor-ratio-refuses-a-legitimate-values-file.md) | The alias-to-anchor ratio heuristic refuses a legitimate values file, and the refusal reads as a syntax error | Medium | In Progress **2026-09-02**, filed from a field report: a Helm-style tenants file (22 anchored defaults merged into 221 tenants, ratio 10.05 vs. the default cap of 10) failed to open at all, with a message implying a syntax defect. yqr's half shipped the day it was filed: the classic pipeline (`--normalize`) disables the ratio heuristic — the absolute budgets that actually bound billion-laughs amplification all stay, pinned by a 1025-alias refusal test — and every refusal now says it is a parser resource heuristic, not a YAML syntax rule (`validate` gains a `help` line for its `Y001`, the `b022` face). The default byte-preserving read still refuses: noyalib's CST entry points hardcode `ParseConfig::default()` and take no configuration (confirmed in 0.0.28 and 0.0.29), so that half needs upstream `parse_stream_with_config` or a heuristic default change, spec §4. Deliberately no engine fallback: a silent CST-to-classic swap would break f009's byte-preserving contract | `yqr-b022`, `yqr-b024`, `yqr-f023`, `yqr-r002` |
 
 ## Resolved
 
@@ -41,9 +43,12 @@ None. Every bug yqr has filed is fixed, in yqr or in a released dependency.
 
 ## Summary
 
-- Total bugs: 24
-- Open: **0**.
-- **Every bug yqr has filed is fixed**, in yqr or in a released dependency.
+- Total bugs: 25
+- Open: **1** — `b025`, In Progress: yqr's half (classic pipeline, error
+  wording) shipped the day it was filed; the default byte-preserving read
+  waits on a noyalib change, because the CST entry points take no parser
+  configuration.
+- **Every bug before it is fixed**, in yqr or in a released dependency.
   `b024` was found by writing documentation rather than by running the tool —
   the jq on-ramp page had to state what `+=` does, and the message it gives
   when it declines turned out to be the defect.

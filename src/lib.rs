@@ -42,7 +42,14 @@ pub fn eval_str(filter: &str, input: &str) -> Result<Vec<Value>> {
 ///
 /// Returns an error when the input is not valid YAML or evaluation fails.
 pub fn eval_ast_str(ast: &ast::Ast, input: &str) -> Result<Vec<Value>> {
-    let value: Value = noyalib::from_str::<noyalib::Value>(input)
+    // Bug b025: the parser's default alias-to-anchor ratio heuristic (10.0)
+    // refuses legitimate merge-key-heavy documents — a Helm values file
+    // reusing 22 anchored defaults across 221 tenants trips it. The absolute
+    // budgets that actually bound billion-laughs amplification (total alias
+    // count, events, nodes, scalar bytes) all stay at their defaults; only
+    // the ratio heuristic is disabled.
+    let config = noyalib::ParserConfig::new().alias_anchor_ratio(None);
+    let value: Value = noyalib::from_str_with_config::<noyalib::Value>(input, &config)
         .map(Value::from)
         .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
     eval::eval(ast, &value)

@@ -196,3 +196,47 @@ fn move_is_expressible_as_a_mutation_value() {
     .expect("move applies");
     assert_eq!(out, "xs:\n  - c\n  - a\n  - b\n");
 }
+
+// -- Bug b025: the alias-to-anchor ratio heuristic vs. real values files ------
+
+/// A merge-key-heavy document in the shape of a Helm tenants values file:
+/// `anchors` anchored default blocks, each reused round-robin until
+/// `aliases` merges have been written.
+fn anchor_heavy_doc(anchors: usize, aliases: usize) -> String {
+    let mut doc = String::from("defaults:\n");
+    for a in 0..anchors {
+        doc.push_str(&format!("  d{a}: &a{a}\n    k: v{a}\n"));
+    }
+    doc.push_str("tenants:\n");
+    for t in 0..aliases {
+        doc.push_str(&format!("  t{t}:\n    <<: *a{}\n", t % anchors));
+    }
+    doc
+}
+
+#[test]
+fn classic_pipeline_accepts_a_merge_heavy_document() {
+    // 221 aliases over 22 anchors is ratio 10.05 — above the engine's default
+    // heuristic cap of 10, and exactly the shape that tripped in the field.
+    let doc = anchor_heavy_doc(22, 221);
+    assert_eq!(
+        query(".tenants.t0.k", &doc),
+        vec![Value::String("v0".into())]
+    );
+    assert_eq!(
+        query(".tenants.t220.k", &doc),
+        vec![Value::String("v0".into())]
+    );
+}
+
+#[test]
+fn classic_pipeline_keeps_the_absolute_alias_budget() {
+    // Disabling the ratio heuristic must not disable the real amplification
+    // guard: the parser's absolute cap on total alias expansions still holds.
+    let doc = anchor_heavy_doc(22, 1025);
+    let err = eval_str(".tenants.t0.k", &doc).expect_err("absolute alias budget must hold");
+    assert!(
+        err.to_string().contains("alias expansion limit exceeded"),
+        "unexpected error: {err}"
+    );
+}

@@ -612,8 +612,7 @@ impl NoyalibWriter {
     /// reproduces the input byte-for-byte before trusting any edit — the same
     /// fidelity invariant the read engine asserts at open time.
     pub(crate) fn open(input: &str) -> Result<Self> {
-        let docs = ::noyalib::cst::parse_stream(input)
-            .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
+        let docs = super::noyalib::parse_lossless_stream(input)?;
         // Same fidelity invariant the read engine asserts at open time: emit
         // concatenates each document, so a slice that diverged from the input
         // would corrupt an untouched document.
