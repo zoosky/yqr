@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788362813983,
+  "lastUpdate": 1788411911476,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2099,6 +2099,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 266825,
             "range": "± 3086",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3dd2bf7aa468317a0886771842afe5df87eac1c0",
+          "message": "test(corpus): the values corpus and the command-line tier; fix the quadratic validate (b027) (#112)",
+          "timestamp": "2026-09-03T07:03:52+02:00",
+          "tree_id": "e98ef7837e4567a81b4ee10fd604aa7a4a1bbf1f",
+          "url": "https://github.com/zoosky/yqr/commit/3dd2bf7aa468317a0886771842afe5df87eac1c0"
+        },
+        "date": 1788411909780,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 604,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5682,
+            "range": "± 94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 258995,
+            "range": "± 1437",
             "unit": "ns/iter"
           }
         ]
