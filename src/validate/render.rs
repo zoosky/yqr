@@ -57,6 +57,16 @@ pub(crate) fn line_text(source: &str, line: usize) -> Option<&str> {
     Some(&source[start..end])
 }
 
+/// Every line of `source` in order, breaks excluded, from one pass over
+/// the line table. Callers that visit every line use this rather than
+/// `line_text` in a loop, which would rebuild the table per line and turn
+/// a whole-file scan quadratic. Bug b027.
+pub(crate) fn lines(source: &str) -> impl Iterator<Item = &str> {
+    line_spans(source)
+        .into_iter()
+        .map(move |(start, end)| &source[start..end])
+}
+
 /// The 1-based `(line, column)` of byte offset `byte` in `source`.
 ///
 /// The column counts characters from the line start. An offset at or past

@@ -225,11 +225,11 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
 /// frequently reports an unlocated indentation error), so inspecting only
 /// the error line would miss it.
 fn first_conflict_marker_line(source: &str) -> Option<usize> {
-    (1..=render::line_count(source)).find(|&n| {
-        render::line_text(source, n).is_some_and(|l| {
+    render::lines(source)
+        .position(|l| {
             l.starts_with("<<<<<<<") || l.starts_with(">>>>>>>") || l.trim_end() == "======="
         })
-    })
+        .map(|index| index + 1)
 }
 
 /// Build the `Y002` finding when the parsed documents do not tile `source`.
@@ -359,25 +359,31 @@ fn key_collision_diagnostic(key: &str, note: Option<String>) -> Diagnostic {
 /// exactly one chunk reproduces a collision on the same key — anything
 /// ambiguous stays note-less rather than risking a wrong pointer.
 fn collision_document_note(source: &str, key: &str) -> Option<String> {
-    let count = render::line_count(source);
+    // One pass over the line table (bug b027); line `n` is `lines[n - 1]`.
+    let lines: Vec<&str> = render::lines(source).collect();
+    let count = lines.len();
+    let is_marker = |l: &str| {
+        l == "---"
+            || l.strip_prefix("---")
+                .is_some_and(|r| r.starts_with([' ', '\t']))
+    };
     let mut chunk_starts = vec![1usize];
-    for n in 2..=count {
-        if render::line_text(source, n).is_some_and(|l| {
-            l == "---"
-                || l.strip_prefix("---")
-                    .is_some_and(|r| r.starts_with([' ', '\t']))
-        }) {
-            chunk_starts.push(n);
-        }
-    }
+    chunk_starts.extend(
+        lines
+            .iter()
+            .enumerate()
+            .skip(1)
+            .filter(|(_, l)| is_marker(l))
+            .map(|(index, _)| index + 1),
+    );
     if chunk_starts.len() < 2 {
         return None;
     }
     let mut matches = Vec::new();
     for (index, &start) in chunk_starts.iter().enumerate() {
         let end = chunk_starts.get(index + 1).copied().unwrap_or(count + 1);
-        let chunk: String = (start..end)
-            .filter_map(|n| render::line_text(source, n))
+        let chunk: String = lines[start - 1..end - 1]
+            .iter()
             .fold(String::new(), |mut acc, l| {
                 acc.push_str(l);
                 acc.push('\n');

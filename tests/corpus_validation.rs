@@ -39,6 +39,11 @@ fn check_classic(case: &Case) {
                 case.id
             );
         }
+        Expect::Count(n) => {
+            let out = eval_str(case.filter, case.doc)
+                .unwrap_or_else(|e| panic!("[{}] should evaluate, got error: {e}", case.id));
+            assert_eq!(out.len(), n, "[{}] value count mismatch", case.id);
+        }
         Expect::Raw(expected) => {
             let out = eval_str(case.filter, case.doc)
                 .unwrap_or_else(|e| panic!("[{}] should evaluate, got error: {e}", case.id));
@@ -159,12 +164,36 @@ fn corpus_documents_validate_cleanly() {
     docs.sort_unstable();
     docs.dedup();
     for doc in docs {
+        // Bug b025: the production values file trips the parser's
+        // alias-to-anchor ratio on the shipped pin, so `validate` cannot
+        // certify it yet; `values_file_validates_once_the_engine_reads_it`
+        // pins exactly that finding until yqr-f026 flips it.
+        if doc == corpus::values::VALUES_YAML {
+            continue;
+        }
         let findings = yqr::validate::check_str(doc, true);
         assert!(
             findings.is_empty(),
-            "corpus document must validate cleanly, got {findings:?}\ndoc:\n{doc}"
+            "corpus document must validate cleanly, got {findings:?}\ndoc:\n{}",
+            &doc[..doc.len().min(400)]
         );
     }
+}
+
+// Bug b025: the one corpus document `validate` refuses, pinned with the
+// reason. Flip to "no findings" with yqr-f026.
+#[test]
+fn values_file_validates_once_the_engine_reads_it() {
+    let findings = yqr::validate::check_str(corpus::values::VALUES_YAML, true);
+    assert_eq!(
+        findings.len(),
+        1,
+        "expected exactly the ratio finding, got {findings:?}"
+    );
+    assert!(
+        findings[0].message.contains("alias_anchor_ratio"),
+        "unexpected finding: {findings:?}"
+    );
 }
 
 #[test]
@@ -175,6 +204,7 @@ fn corpus_ids_are_unique() {
         .map(|c| c.id)
         .chain(corpus::engine_cases().iter().map(|c| c.id))
         .chain(corpus::write_cases().iter().map(|c| c.id))
+        .chain(corpus::cli::cli_cases().iter().map(|c| c.id))
         .collect();
     let total = ids.len();
     ids.sort_unstable();

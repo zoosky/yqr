@@ -20,7 +20,7 @@ categories = ["command-line-utilities", "parsing"]
 # theme assets alone outweigh the source), and CLAUDE.md is a symlink to
 # AGENT.md that needs its own entry, since exclude matches paths rather than
 # the files behind them. Guarded by the package-contents gate in local-ci.sh.
-exclude = [".agent/", ".github/", "docs/", "specs/", "AGENT.md", "CLAUDE.md"]
+exclude = [".agent/", ".github/", "docs/", "specs/", "tests/data/", "AGENT.md", "CLAUDE.md"]
 
 [[bin]]
 name = "yqr"

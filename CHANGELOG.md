@@ -8,6 +8,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **`validate` no longer slows to a crawl on large files.** Three of its
+  checks visited every line or every mapping entry and recomputed
+  something that cost the whole file each time, so the command was
+  quadratic in document size: three seconds on a 530 KB values file in a
+  release build, sixty times the read of the same file, and over two
+  minutes in a debug build. Every check now stays local to what it
+  inspects. Found by the new values corpus, the first validate input the
+  test suite ever had above a kilobyte.
 - **Merge-heavy values files parse under `--normalize`.** A file that reuses
   each anchor more than ten times — a Helm tenants file merging 22 anchored
   defaults into 221 entries, say — used to be refused outright by the
