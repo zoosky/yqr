@@ -116,7 +116,8 @@ recognized by the `materialise_aliases_of` marker it names (it is a bare
 `Error::Parse`, no variant to match); the `.base.k = 9` tests pin the
 marker. The option-2 question — should the guard exempt the definition's
 own entries — is still worth asking upstream, but nothing here waits on
-the answer.
+the answer; `yqr-f027` carries it, together with the span-model ask and a
+typed variant for the refusal, as ready-to-file issue drafts.
 
 **§4 as written.** `eval_ast_str` parses with `load_all_with_config` and
 evaluates the first document; an empty stream is refused with "the stream

@@ -94,6 +94,7 @@ dependency/release timing.
 | [f023](yqr-f023-noyalib-0-0-27-adoption.md) | Adopt noyalib 0.0.27: the last open engine bug | Done |
 | [f025](yqr-f025-override-a-merged-in-key.md) | Override a merged-in key by creating an explicit entry | Draft |
 | [f026](yqr-f026-noyalib-0-0-31-adoption.md) | Adopt the noyalib release that carries #373: close b025 on the default path | Done (0.0.31, 2026-09-03: b025 and b026 closed; the definition write for noyalib#338 landed as guarded span surgery; the classic pipeline reads multi-document streams through `load_all_with_config`) |
+| [f027](yqr-f027-upstream-anchor-policy-and-span-model.md) | Upstream the anchor policy and span model; shrink the definition-write surgery | Draft (ready-to-file issue drafts embedded, every claim measured on 0.0.31; filing is the owner's action) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -279,8 +280,8 @@ dashboard.
 
 ## Summary
 
-- Total features: 26
-- Draft: 1 (f025)
+- Total features: 27
+- Draft: 2 (f025, f027)
 - In Progress: 0
 - Done: 21 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026)
