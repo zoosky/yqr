@@ -110,8 +110,10 @@ const SHAPE: Doc = Doc::Tenants(40);
 const VALUES: Doc = Doc::Static(VALUES_YAML);
 
 /// The first line of both the shape and the production file once
-/// normalized: the anchor is gone, the quotes stay.
-const NORMALIZED_FIRST_LINE: &str = "preImage: \"6.7.0-RC.5-2eb4505e\"\n";
+/// normalized: the anchor is gone, and so are the quotes — noyalib
+/// 0.0.31's emitter drops quotes a plain scalar does not need, and the
+/// value round-trips identically without them.
+const NORMALIZED_FIRST_LINE: &str = "preImage: 6.7.0-RC.5-2eb4505e\n";
 
 /// Count the tenant keys in a normalized document through the library.
 fn tenant_keys(out: &str) -> Result<usize, String> {
@@ -1015,48 +1017,52 @@ pub fn cli_cases() -> Vec<CliCase> {
             after: None,
         },
         // -- the production file ------------------------------------------
-        // Bug b025: on the shipped pin the default path refuses the file on
-        // the alias-to-anchor ratio; these four pin that refusal and its
-        // wording, and flip with yqr-f026.
+        // Bug b025, closed by yqr-f026: noyalib 0.0.31's configurable CST
+        // entry points run with the ratio heuristic disabled, so the default
+        // path reads, validates, and writes the field file. These four pinned
+        // the refusal on the 0.0.28 pin and flipped with the adoption.
         CliCase {
-            id: "cli/values/default-read-is-refused-on-this-pin",
+            id: "cli/values/default-read-is-byte-identical",
             doc: VALUES,
             feed: Feed::File,
             args: &[".", "@doc"],
-            status: 5,
-            stdout: Out::Empty,
-            stderr: Out::Contains(&["alias_anchor_ratio", "--normalize"]),
+            status: 0,
+            stdout: Out::Input,
+            stderr: Out::Empty,
             after: Some(Out::Input),
         },
         CliCase {
-            id: "cli/values/default-read-from-stdin-is-refused-on-this-pin",
+            id: "cli/values/default-read-from-stdin",
             doc: VALUES,
             feed: Feed::Stdin,
-            args: &[".preImage"],
-            status: 5,
-            stdout: Out::Empty,
-            stderr: Out::Contains(&["alias_anchor_ratio", "--normalize"]),
+            args: &["-r", ".preImage"],
+            status: 0,
+            stdout: Out::Exact("6.7.0-RC.5-2eb4505e\n"),
+            stderr: Out::Empty,
             after: None,
         },
         CliCase {
-            id: "cli/values/validate-is-refused-on-this-pin",
+            id: "cli/values/validate-passes",
             doc: VALUES,
             feed: Feed::File,
             args: &["validate", "--strict", "@doc"],
-            status: 1,
+            status: 0,
             stdout: Out::Empty,
-            stderr: Out::Contains(&["error[Y001]", "parser resource heuristic"]),
+            stderr: Out::Empty,
             after: None,
         },
         CliCase {
-            id: "cli/values/in-place-write-is-refused-on-this-pin",
+            // `preImage` is an anchor definition with six `*preImage` sites:
+            // the write lands at the definition, keeps the `&preImage`
+            // property, and every alias reflects the new value.
+            id: "cli/values/in-place-write-at-the-anchor-definition",
             doc: VALUES,
             feed: Feed::File,
             args: &["-i", ".preImage = \"x\"", "@doc"],
-            status: 5,
+            status: 0,
             stdout: Out::Empty,
-            stderr: Out::Contains(&["alias_anchor_ratio"]),
-            after: Some(Out::Input),
+            stderr: Out::Empty,
+            after: Some(Out::Rewrites(&[("\"6.7.0-RC.5-2eb4505e\"", "\"x\"")])),
         },
         CliCase {
             id: "cli/values/filter-errors-come-before-the-input",
@@ -1094,7 +1100,9 @@ pub fn cli_cases() -> Vec<CliCase> {
             feed: Feed::File,
             args: &["-N", ".preImage", "@doc"],
             status: 0,
-            stdout: Out::Exact("\"6.7.0-RC.5-2eb4505e\"\n"),
+            // Unquoted since noyalib 0.0.31: the emitter drops quotes a
+            // plain scalar does not need, and the value round-trips.
+            stdout: Out::Exact("6.7.0-RC.5-2eb4505e\n"),
             stderr: Out::Empty,
             after: None,
         },
@@ -1118,7 +1126,9 @@ pub fn cli_cases() -> Vec<CliCase> {
                 "@doc",
             ],
             status: 0,
-            stdout: Out::Exact("\"https://host-6.example.invalid/realms/eIAM-Intranet\"\n"),
+            // Unquoted since noyalib 0.0.31 (the emitter drops quotes a
+            // plain scalar does not need).
+            stdout: Out::Exact("https://host-6.example.invalid/realms/eIAM-Intranet\n"),
             stderr: Out::Empty,
             after: None,
         },

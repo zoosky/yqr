@@ -1678,6 +1678,35 @@ fn an_alias_expanded_key_gets_the_same_reason() {
     );
 }
 
+// Bug b026: the anchor is a property of the node, not part of its value, so
+// assigning to an anchored scalar rewrites the scalar and keeps the anchor —
+// whether or not anything references it — and every alias reflects the new
+// value.
+#[test]
+fn assigning_to_an_anchored_scalar_keeps_the_anchor() {
+    let out = run(&[".a = 2"], "a: &x 1\nb: *x\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: &x 2\nb: *x\n");
+    // Without a reference the anchor is still the node's own property.
+    let out = run(&[".a = 2"], "a: &x 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: &x 2\n");
+    // The rewritten scalar keeps the slot's quote style.
+    let out = run(&[".a = \"y\""], "a: &x \"v\"\nb: *x\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: &x \"y\"\nb: *x\n");
+}
+
+// Bug b026, the tagged case, settled as a refusal: rewriting the scalar under
+// a tag can change what the tag makes of it, so the refusal names the tag.
+#[test]
+fn assigning_to_a_tagged_scalar_is_refused_by_the_tag() {
+    let out = run(&[".a = \"9\""], "a: !!str \"1\"\n");
+    assert_eq!(out.status, 5);
+    assert!(out.stderr.contains("!!str"), "{}", out.stderr);
+    assert_eq!(out.stdout, "", "a refusal writes nothing");
+}
+
 #[test]
 fn the_alias_refusal_is_left_to_the_writer() {
     // b020 takes over only the merged-key reason. An alias *value* keeps
@@ -2006,24 +2035,22 @@ fn merge_heavy_document_reads_under_normalize() {
 }
 
 #[test]
-fn merge_heavy_document_default_read_names_the_heuristic_and_the_workaround() {
-    // Pins the open half of the bug: the byte-preserving engine's parser
-    // cannot be configured, so the read still fails — but the refusal must
-    // name the heuristic and point at --normalize instead of implying a
-    // syntax error. This test flips when the engine accepts the document;
-    // move the assertions to expect success then.
-    let out = run(&["-r", ".tenants.t0.k"], &anchor_heavy_doc(22, 221));
-    assert_eq!(out.status, 5);
-    assert!(
-        out.stderr.contains("alias_anchor_ratio"),
-        "stderr: {}",
-        out.stderr
-    );
-    assert!(out.stderr.contains("--normalize"), "stderr: {}", out.stderr);
+fn merge_heavy_document_reads_on_the_default_path() {
+    // The closed half of the bug: noyalib 0.0.31's configurable CST entry
+    // points let the byte-preserving engine run with the ratio heuristic
+    // disabled, so the default read accepts the document.
+    let doc = anchor_heavy_doc(22, 221);
+    let out = run(&["-r", ".tenants.t0.k"], &doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "v0\n");
+    // And the byte-preserving identity read is byte-identical.
+    let identity = run(&["."], &doc);
+    assert_eq!(identity.status, 0, "stderr: {}", identity.stderr);
+    assert_eq!(identity.stdout, doc);
 }
 
 #[test]
-fn merge_heavy_document_validate_says_heuristic_not_syntax() {
+fn merge_heavy_document_validates_clean() {
     let doc = anchor_heavy_doc(22, 221);
     let dir = std::env::temp_dir().join(format!("yqr-b025-{}", std::process::id()));
     std::fs::create_dir_all(&dir).expect("create temp dir");
@@ -2031,10 +2058,5 @@ fn merge_heavy_document_validate_says_heuristic_not_syntax() {
     std::fs::write(&path, &doc).expect("write temp file");
     let out = run(&["validate", path.to_str().expect("utf-8 path")], "");
     let _ = std::fs::remove_dir_all(&dir);
-    assert_eq!(out.status, 1);
-    assert!(
-        out.stderr.contains("parser resource heuristic"),
-        "stderr: {}",
-        out.stderr
-    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
 }

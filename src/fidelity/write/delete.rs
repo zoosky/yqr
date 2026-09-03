@@ -230,11 +230,13 @@ impl NoyalibWriter {
         // source and require it to lower to the expected value. A dangling
         // alias, an over-broad span, or a flow mis-edit all diverge here and
         // are refused with the document untouched.
-        let candidate = ::noyalib::cst::parse_document(&new_source).map_err(|e| {
-            YqrError::eval(format!(
-                "cannot delete {path_str}: the edit does not re-parse ({e})"
-            ))
-        })?;
+        let candidate =
+            ::noyalib::cst::parse_document_with_config(&new_source, &crate::fidelity::cst_config())
+                .map_err(|e| {
+                    YqrError::eval(format!(
+                        "cannot delete {path_str}: the edit does not re-parse ({e})"
+                    ))
+                })?;
         if Value::from(&*candidate.as_value()) != expected {
             return Err(YqrError::eval(format!(
                 "cannot delete {path_str}: the edit would change the document structure and was refused"

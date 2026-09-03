@@ -478,8 +478,9 @@ pub fn write_cases() -> Vec<WriteCase> {
             expect: WriteExpect::Err(5),
         },
         // The remedy that message names: assign where the key is defined.
-        // noyalib 0.0.29 refuses this write (yqr-f026 s3); pinned as the
-        // shipped 0.0.28 behaviour.
+        // noyalib 0.0.29 refuses this write (#338), so since yqr-f026 the
+        // write tier performs it itself, through guarded span surgery that
+        // keeps the anchor and the slot's quote style.
         WriteCase {
             id: "values/write/assign-at-the-anchor-definition",
             doc: &TENANTS_40,
@@ -489,11 +490,17 @@ pub fn write_cases() -> Vec<WriteCase> {
                 "DEFAULT_LANGUAGE: \"rm\"\n",
             )]),
         },
+        // A scalar over a flow-valued entry. noyalib refused a flow
+        // collection target through 0.0.28 (a block mapping target already
+        // wrote); 0.0.31 lifts the gap, so the write applies.
         WriteCase {
-            id: "values/write/scalar-over-a-mapping-is-refused",
+            id: "values/write/scalar-over-a-flow-mapping",
             doc: &TENANTS_40,
             filter: ".argo.tenants.t3.imageTag = \"7\"",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "        weight: 3\n      enabledProjects: \"web-site\"\n      contentModelType: \"standardsite\"\n      imageTag: {}\n",
+                "        weight: 3\n      enabledProjects: \"web-site\"\n      contentModelType: \"standardsite\"\n      imageTag: \"7\"\n",
+            )]),
         },
         WriteCase {
             id: "values/write/delete-a-flow-valued-entry",

@@ -43,6 +43,7 @@ use crate::fidelity::{Path, PathSeg};
 // separate from the value-write trait. It extends `NoyalibWriter` with
 // `delete_entry`, addressing the same private state through Rust's
 // ancestor-module privacy.
+mod anchor;
 mod delete;
 
 // Sequence reorder is one engine call per verb plus the index arithmetic and
@@ -815,9 +816,29 @@ impl FidelityWriter for NoyalibWriter {
         // fragments, APIs yqr never exposes, and reports a *parse* error for
         // input that parses fine.
         let ny = insertable(value)?;
-        self.doc_mut(doc)?
-            .set_value(&path_str, &ny)
-            .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))
+        // A value led by a `&anchor` or `!tag` property is not `set_value`'s
+        // to rewrite: its span starts at the property, so the edit would
+        // delete the definition. Bug b026; handled by the guarded span
+        // surgery in `write::anchor`, which also decides the tagged case.
+        if self.value_has_leading_property(doc, &path_str)? {
+            return self.assign_at_definition(doc, path, &path_str, value, &ny);
+        }
+        match self.doc_mut(doc)?.set_value(&path_str, &ny) {
+            Ok(()) => Ok(()),
+            // Since noyalib 0.0.29 (#338) every mutator refuses a write into
+            // a value that live alias sites share — the anchor's own
+            // definition included, which is the one remedy the merged-key
+            // refusal above names. The refusal is `Error::Parse` with no
+            // variant of its own, so it is recognized by the API it points
+            // at; a test pins the marker. The definition write goes through
+            // the guarded span surgery instead.
+            Err(e) if e.to_string().contains("materialise_aliases_of") => {
+                self.assign_at_definition(doc, path, &path_str, value, &ny)
+            }
+            Err(e) => Err(YqrError::eval(format!(
+                "cannot assign at {path_str:?}: {e}"
+            ))),
+        }
     }
 
     fn value_is_borrowed(&self, doc: usize, path: &Path) -> Result<bool> {

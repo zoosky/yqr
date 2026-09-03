@@ -99,10 +99,11 @@ pub struct Diagnostic {
 /// document offsets that check certifies).
 #[must_use]
 pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
-    let docs = match ::noyalib::cst::parse_stream(source) {
-        Ok(docs) => docs,
-        Err(err) => return vec![syntax_diagnostic(&err, source)],
-    };
+    let docs =
+        match ::noyalib::cst::parse_stream_with_config(source, &crate::fidelity::cst_config()) {
+            Ok(docs) => docs,
+            Err(err) => return vec![syntax_diagnostic(&err, source)],
+        };
 
     let mut findings = Vec::new();
     if let Some(diag) = tiling_diagnostic(source, docs.iter().map(::noyalib::cst::Document::source))
@@ -158,17 +159,6 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
         ::noyalib::Error::Parse(m) | ::noyalib::Error::ParseWithLocation { message: m, .. } => {
             (m.clone(), None)
         }
-        // Bug b025: the trip is a parser resource heuristic, not a YAML
-        // syntax rule, and heavy anchor reuse in ordinary values files
-        // sets it off — say so instead of implying a syntax defect.
-        ::noyalib::Error::Budget(::noyalib::BudgetBreach::AliasAnchorRatio { .. }) => (
-            err.to_string(),
-            Some(
-                "this is a parser resource heuristic tripped by heavy anchor reuse, \
-                 not a YAML syntax rule"
-                    .into(),
-            ),
-        ),
         ::noyalib::Error::UnknownAnchorAt {
             name, suggestion, ..
         } => (
