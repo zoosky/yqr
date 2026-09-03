@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788411911476,
+  "lastUpdate": 1788453753788,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2141,6 +2141,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 258995,
             "range": "± 1437",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64380d27fd4f35e2c37d7421ef393028cba27b83",
+          "message": "Adopt noyalib 0.0.31: read merge-heavy files everywhere, keep anchors on write (f026) (#113)",
+          "timestamp": "2026-09-03T18:41:08+02:00",
+          "tree_id": "e509675bd5047e82cb3256e6d25bd838585d1be5",
+          "url": "https://github.com/zoosky/yqr/commit/64380d27fd4f35e2c37d7421ef393028cba27b83"
+        },
+        "date": 1788453752418,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 582,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5977,
+            "range": "± 80",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 269749,
+            "range": "± 9855",
             "unit": "ns/iter"
           }
         ]
