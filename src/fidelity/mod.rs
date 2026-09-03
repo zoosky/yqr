@@ -32,6 +32,8 @@ use crate::error::Result;
 mod noyalib;
 pub mod write;
 
+pub(crate) use noyalib::cst_config;
+
 /// A half-open byte range `[start, end)` into [`FidelityEngine::source`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Span {
@@ -366,7 +368,7 @@ fn render_key(bytes: &str, raw: bool) -> Result<String> {
     if !raw {
         return Ok(bytes.to_string());
     }
-    match ::noyalib::cst::parse_document(bytes)
+    match ::noyalib::cst::parse_document_with_config(bytes, &noyalib::cst_config())
         .ok()
         .map(|d| Value::from(&*d.as_value()))
     {

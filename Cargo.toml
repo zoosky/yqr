@@ -46,14 +46,19 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.28 release, which carries yqr's fixes for b021 and b022 -- an
-# implicit null (`a:`) could not be written into, and a `:` at end of input was
-# not read as a value indicator, so `a:` loaded as a string and `a: 1\nb:`
-# failed to parse. With it, every bug yqr has filed against this engine is
-# fixed in a published release: b011-b014 in 0.0.25, b015 in 0.0.26, b016 in
-# 0.0.27, b021-b022 in 0.0.28. Earlier pins and what each bought are in
-# features f013-f023; see research r002 and the bug specs.
-noyalib = "0.0.28"
+# crates.io 0.0.31 release, the first carrying yqr's noyalib#373: configurable
+# CST entry points (`parse_*_with_config`) and a `Document` that keeps its
+# configuration across re-parses, which let every path disable the
+# alias-to-anchor ratio heuristic that refused merge-heavy values files (b025).
+# The bump crosses 0.0.29/0.0.30, whose mutators refuse writes into
+# alias-shared values (#338) -- yqr writes anchor definitions itself now
+# (src/fidelity/write/anchor.rs, also closing b026) -- and whose `from_str`
+# refuses multi-document streams (#351), absorbed via `load_all_with_config`.
+# With it, every bug yqr has filed against this engine is fixed in a published
+# release: b011-b014 in 0.0.25, b015 in 0.0.26, b016 in 0.0.27, b021-b022 in
+# 0.0.28, b025 in 0.0.31. Earlier pins and what each bought are in features
+# f013-f026; see research r002 and the bug specs.
+noyalib = "0.0.31"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"

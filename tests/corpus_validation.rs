@@ -164,13 +164,6 @@ fn corpus_documents_validate_cleanly() {
     docs.sort_unstable();
     docs.dedup();
     for doc in docs {
-        // Bug b025: the production values file trips the parser's
-        // alias-to-anchor ratio on the shipped pin, so `validate` cannot
-        // certify it yet; `values_file_validates_once_the_engine_reads_it`
-        // pins exactly that finding until yqr-f026 flips it.
-        if doc == corpus::values::VALUES_YAML {
-            continue;
-        }
         let findings = yqr::validate::check_str(doc, true);
         assert!(
             findings.is_empty(),
@@ -180,20 +173,12 @@ fn corpus_documents_validate_cleanly() {
     }
 }
 
-// Bug b025: the one corpus document `validate` refuses, pinned with the
-// reason. Flip to "no findings" with yqr-f026.
+// Bug b025, closed by yqr-f026: the parser no longer trips the
+// alias-to-anchor ratio, so `validate` certifies the field file.
 #[test]
 fn values_file_validates_once_the_engine_reads_it() {
     let findings = yqr::validate::check_str(corpus::values::VALUES_YAML, true);
-    assert_eq!(
-        findings.len(),
-        1,
-        "expected exactly the ratio finding, got {findings:?}"
-    );
-    assert!(
-        findings[0].message.contains("alias_anchor_ratio"),
-        "unexpected finding: {findings:?}"
-    );
+    assert!(findings.is_empty(), "unexpected findings: {findings:?}");
 }
 
 #[test]

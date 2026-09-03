@@ -16,16 +16,36 @@ All notable changes to `yqr` are documented here. The format is based on
   minutes in a debug build. Every check now stays local to what it
   inspects. Found by the new values corpus, the first validate input the
   test suite ever had above a kilobyte.
-- **Merge-heavy values files parse under `--normalize`.** A file that reuses
-  each anchor more than ten times — a Helm tenants file merging 22 anchored
+- **Merge-heavy values files parse everywhere.** A file that reuses each
+  anchor more than ten times — a Helm tenants file merging 22 anchored
   defaults into 221 entries, say — used to be refused outright by the
-  parser's alias-to-anchor ratio heuristic. The classic pipeline now parses
+  parser's alias-to-anchor ratio heuristic. Every path — the default
+  byte-preserving read, `validate`, writes, and `--normalize` — now parses
   without that heuristic; the absolute limits that actually bound
   billion-laughs amplification (total alias expansions, events, nodes,
-  scalar bytes) all remain. The default byte-preserving read still refuses
-  such files, because its parser accepts no configuration — but the refusal
-  now says it is a parser resource limit rather than a syntax error, and
-  points at `--normalize`. `validate` explains it the same way.
+  scalar bytes) all remain. Landed in two steps: the classic pipeline
+  first, then the rest on noyalib 0.0.31, whose configurable CST entry
+  points yqr contributed for exactly this.
+- **Assigning to an anchored scalar keeps the anchor.** `.a = 2` over
+  `a: &x 1` used to delete the `&x` definition — silently when nothing
+  referenced it, and with an "unknown anchor" refusal about the alias the
+  edit itself orphaned otherwise. The write now rewrites only the scalar,
+  keeps the slot's quote style, and every `*x` site reflects the new
+  value. The same mechanism restores writes at an anchor definition
+  (`.base.k = 9` under `base: &m`), which noyalib 0.0.29 started refusing;
+  that is the one remedy yqr's own merged-key refusal names, so it has to
+  work. Assigning to a tagged scalar is refused with the tag's name.
+
+### Changed
+
+- **noyalib 0.0.28 → 0.0.31.** Beyond the fixes above: the emitter drops
+  quotes a plain scalar does not need (re-serialized output such as
+  `--normalize` spells `"6.7.0-RC.5-2eb4505e"` unquoted; values are
+  unchanged), a scalar now writes over a flow collection value such as
+  `{}` (block collections already accepted it), and `--normalize` over a
+  multi-document stream keeps evaluating the first document — an empty
+  stream is now refused with "the stream is empty" instead of reading as
+  `null`.
 
 ## [0.7.2] - 2026-08-26
 

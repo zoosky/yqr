@@ -1,12 +1,14 @@
 # Bug b025 — The alias-to-anchor ratio heuristic refuses a legitimate values file, and the refusal reads as a syntax error
 
-**Status:** In Progress — the classic pipeline (`--normalize`) now parses
-these files and every refusal explains itself, but the default
-byte-preserving read still fails: noyalib's CST entry points hardcode their
-parser configuration, so the fix for that half is upstream. Filed
-2026-09-02 from a field report; the upstream fix was filed and opened the
-same day (noyalib#372, PR noyalib#373) and verified against the field file
-(§6). yqr adopts it through `yqr-f026` once it ships in a release
+**Status:** Resolved — closed 2026-09-03 by `yqr-f026`, which adopted
+noyalib 0.0.31 (the first release carrying noyalib#373, filed for this bug
+on 2026-09-02, the day the bug itself was filed). Every path — the default
+byte-preserving read, `validate`, and the write tier — now parses with the
+ratio heuristic disabled and the absolute budgets intact; verified against
+the published crate on the field file (`tests/data/values.yaml`): default
+read exit 0 and byte-identical, `validate` exit 0, writes apply. The
+special-cased refusal wording in `parse_lossless_stream` and the `Y001`
+help arm are gone, being unreachable
 **Severity:** Medium — a valid, ordinary production file cannot be read at
 all on the default path, and the message implied the file was broken
 **Component:** upstream `noyalib::cst::parse_document` /

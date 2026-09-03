@@ -1,7 +1,8 @@
 # Feature f026 — Adopt the noyalib release that carries #373: close b025 on the default path
 
-**Status:** Draft — filed 2026-09-02, waiting on the first noyalib release
-after 0.0.30
+**Status:** Done — adopted 2026-09-03 on noyalib 0.0.31, the first release
+carrying #373. §6 records the adoption decisions and two behaviour changes
+the release surfaced beyond the table in §1
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-b025` (the bug this closes; its §6 holds the verified
@@ -75,18 +76,70 @@ say so in the error if the stream is empty.
 
 ## 5. Acceptance criteria
 
-- [ ] The release is published; the pin moves; `Cargo.lock` shows noyalib
+- [x] The release is published; the pin moves; `Cargo.lock` shows noyalib
       moving and only what it newly requires.
-- [ ] `b025` verified against the **published** crate on the field file
-      (`tests/data/values.xml`): default read exit 0 and byte-identical,
+- [x] `b025` verified against the **published** crate on the field file
+      (`tests/data/values.yaml`): default read exit 0 and byte-identical,
       `validate` exit 0, and a write at a path outside every anchored value
       applies.
-- [ ] The `parse_lossless_stream` special case and the `validate` help arm
+- [x] The `parse_lossless_stream` special case and the `validate` help arm
       deleted; the two refusal tests flipped (§2).
-- [ ] #338 decided (§3); `b020`'s message still names only remedies that
-      work; both tests green.
-- [ ] #351 handled (§4); the corpus green.
-- [ ] `b026` re-checked on the new spans and updated either way.
-- [ ] `b025` moved to Resolved in `yqr-b000`; the `Cargo.toml` pin comment
+- [x] #338 decided (§3, outcome in §6); `b020`'s message still names only
+      remedies that work; both tests green.
+- [x] #351 handled (§4); the corpus green.
+- [x] `b026` re-checked on the new spans — and fixed by the same span
+      surgery §3's decision required (§6).
+- [x] `b025` moved to Resolved in `yqr-b000`; the `Cargo.toml` pin comment
       and `CHANGELOG.md` say what the bump bought.
-- [ ] Full suite green; `local-ci.sh` clean.
+- [x] Full suite green; `local-ci.sh` clean.
+
+## 6. Adoption record (2026-09-03)
+
+**§2 as written.** One `cst_config()` lives in `src/fidelity/noyalib.rs`
+(re-exported crate-wide from `src/fidelity/mod.rs`) and feeds every CST
+parse: `parse_lossless_stream`, `reparses_to`, `render_key`, the delete
+re-parse guard, and `validate::check_str`. The `AliasAnchorRatio` special
+case and the `Y001` help arm are gone; the refusal tests flipped to
+success, including a byte-identity read. The classic pipeline keeps its
+own configuration — the two paths have never shared parser settings, and
+the classic one now builds a `DocumentIterator` (§4) rather than a CST.
+
+**§3 resolved by option 3.** Upstream ADR-0011 offers no deliberate-edit
+path for the definition and does not discuss exempting the anchor's own
+entries, so yqr writes the definition itself through `replace_span`
+(`src/fidelity/write/anchor.rs`): resolve the value span, keep a leading
+`&name` property, splice the rendered scalar (matching the slot's quote
+style), and commit only when the result re-parses to the original value
+with the assignment applied — at the target and, identically, at the
+alias sites that share the anchored value. The `set_value` refusal is
+recognized by the `materialise_aliases_of` marker it names (it is a bare
+`Error::Parse`, no variant to match); the `.base.k = 9` tests pin the
+marker. The option-2 question — should the guard exempt the definition's
+own entries — is still worth asking upstream, but nothing here waits on
+the answer; `yqr-f027` carries it, together with the span-model ask and a
+typed variant for the refusal, as ready-to-file issue drafts.
+
+**§4 as written.** `eval_ast_str` parses with `load_all_with_config` and
+evaluates the first document; an empty stream is refused with "the stream
+is empty" (previously `from_str` returned `null` — the corpus never
+pinned that, and a loud refusal matches `validate`'s posture on empty
+input).
+
+**b026 closed by the same surgery.** The span noyalib resolves for an
+anchored scalar still starts at the `&name` property on 0.0.31, so
+`set_value` deleted the definition (silently with no aliases, with an
+"unknown anchor" complaint otherwise). The write adapter now routes any
+property-led target through the definition write above, which skips the
+property: `.a = 2` over `a: &x 1` yields `a: &x 2` and every alias
+follows. The tagged case is settled as a refusal naming the tag.
+
+Two behaviour changes beyond the §1 table, both re-baselined with a
+comment at the test:
+
+- The emitter drops quotes a plain scalar does not need
+  (`"6.7.0-RC.5-2eb4505e"` now emits unquoted); values are unchanged and
+  round-trip. Affected `--normalize` expectations updated.
+- `set_value` accepts a flow-collection target (`imageTag: {}`), which
+  0.0.28 refused; block-collection targets already wrote, so this lifts a
+  gap rather than changing a contract. The corpus case flipped from a
+  refusal to the rewrite.

@@ -1,6 +1,13 @@
 # Bug b026 — Assigning to an anchored scalar drops the anchor, then fails on the alias it orphaned
 
-**Status:** Open — filed 2026-09-02, found while verifying `yqr-b025`
+**Status:** Resolved — closed 2026-09-03 by `yqr-f026` §6. The span
+noyalib resolves for an anchored scalar still starts at the `&name`
+property on 0.0.31, so yqr's write adapter now routes any property-led
+target through the definition write it grew for noyalib#338
+(`src/fidelity/write/anchor.rs`): the property is kept, the scalar token
+is spliced, and the guarded re-parse requires the original document with
+the assignment applied — reflected at alias sites, and nowhere else. The
+tagged case is settled as a refusal that names the tag
 **Severity:** Medium — an ordinary write at a resolvable path is refused,
 and the message blames a defect the write itself created
 **Component:** write tier (`src/fidelity/write/`), scalar assignment, and
@@ -46,6 +53,8 @@ tag.
 
 ## 3. Acceptance
 
-- [ ] `printf 'a: &x 1\nb: *x\n' | yqr '.a = 2'` prints `a: &x 2\nb: *x\n`.
-- [ ] The tagged case decided and pinned.
-- [ ] A test in `tests/cli.rs` for each.
+- [x] `printf 'a: &x 1\nb: *x\n' | yqr '.a = 2'` prints `a: &x 2\nb: *x\n`.
+- [x] The tagged case decided and pinned — a refusal naming the tag.
+- [x] A test in `tests/cli.rs` for each
+      (`assigning_to_an_anchored_scalar_keeps_the_anchor`,
+      `assigning_to_a_tagged_scalar_is_refused_by_the_tag`).

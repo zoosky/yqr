@@ -49,7 +49,13 @@ pub fn eval_ast_str(ast: &ast::Ast, input: &str) -> Result<Vec<Value>> {
     // count, events, nodes, scalar bytes) all stay at their defaults; only
     // the ratio heuristic is disabled.
     let config = noyalib::ParserConfig::new().alias_anchor_ratio(None);
-    let value: Value = noyalib::from_str_with_config::<noyalib::Value>(input, &config)
+    // `from_str` refuses a stream with more than one document (noyalib 0.0.29);
+    // this pipeline's contract is the first document, as it always was.
+    let mut docs = noyalib::document::load_all_with_config(input, &config)
+        .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
+    let value: Value = docs
+        .next()
+        .ok_or_else(|| YqrError::io("failed to parse YAML input: the stream is empty"))?
         .map(Value::from)
         .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
     eval::eval(ast, &value)

@@ -246,10 +246,25 @@ impl NoyalibEngine {
     }
 }
 
+/// The parser configuration every CST parse in yqr runs under.
+///
+/// The alias-to-anchor ratio heuristic is disabled: it refuses legitimate
+/// merge-key-heavy documents (a Helm values file reusing 22 anchored
+/// defaults across 221 tenants trips the default ratio of 10.0). Every
+/// absolute budget that actually bounds billion-laughs amplification —
+/// total alias expansions, events, nodes, scalar bytes — stays at its
+/// default. A `Document` keeps this configuration for every re-parse of
+/// its own source, so an edited merge-heavy document re-parses under the
+/// limits it was opened with.
+// Bug b025: the configurable CST entry points arrived in noyalib 0.0.31.
+pub(crate) fn cst_config() -> ::noyalib::ParserConfig {
+    ::noyalib::ParserConfig::new().alias_anchor_ratio(None)
+}
+
 /// Whether `fragment` parses as a single YAML document whose lowered value
 /// equals `expected`.
 fn reparses_to(fragment: &str, expected: &Value) -> bool {
-    ::noyalib::cst::parse_document(fragment)
+    ::noyalib::cst::parse_document_with_config(fragment, &cst_config())
         .map(|d| lower_value(&d.as_value()) == *expected)
         .unwrap_or(false)
 }
@@ -259,26 +274,9 @@ fn reparses_to(fragment: &str, expected: &Value) -> bool {
 ///
 /// Shared by the read engine and the write adapter (`super::write`), so both
 /// refuse the same inputs with the same words.
-///
-/// The CST parser runs on noyalib's fixed default budgets — unlike the classic
-/// pipeline it accepts no configuration — so a document that only trips the
-/// alias-to-anchor ratio heuristic is refused here even though it is valid
-/// YAML and parses under `--normalize`. That refusal names the workaround,
-/// because a bare "failed to parse" sends the user hunting for a syntax error
-/// that does not exist.
-// Bug b025: lift this special case once noyalib's CST entry points take a
-// parser configuration (or drop the ratio heuristic from their defaults).
 pub(super) fn parse_lossless_stream(input: &str) -> Result<Vec<::noyalib::cst::Document>> {
-    ::noyalib::cst::parse_stream(input).map_err(|e| match e {
-        ::noyalib::Error::Budget(::noyalib::BudgetBreach::AliasAnchorRatio { .. }) => {
-            YqrError::io(format!(
-                "failed to parse YAML input: {e}; this is a parser resource heuristic \
-                 tripped by heavy anchor reuse, not a YAML syntax rule; the classic \
-                 pipeline (--normalize) parses without it, re-serializing output"
-            ))
-        }
-        e => YqrError::io(format!("failed to parse YAML input: {e}")),
-    })
+    ::noyalib::cst::parse_stream_with_config(input, &cst_config())
+        .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))
 }
 
 /// Verify that concatenating each parsed document's source reproduces `input`
