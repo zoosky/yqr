@@ -313,7 +313,9 @@ fn validate_invalid_yaml_exits_one_with_located_diagnostic() {
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
     assert!(out.stdout.is_empty(), "stdout: {}", out.stdout);
     assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
-    let location = format!("--> {}:3:3", path.display());
+    // End of input, counted from the start of the stream rather than of
+    // the second document (bug b028).
+    let location = format!("--> {}:3:7", path.display());
     assert!(out.stderr.contains(&location), "stderr: {}", out.stderr);
     assert!(out.stderr.contains("3 | b: [1,"), "stderr: {}", out.stderr);
     let _ = std::fs::remove_file(&path);
@@ -368,10 +370,27 @@ fn validate_duplicate_key_needs_strict() {
 #[test]
 fn validate_key_collision_is_reported_by_default() {
     // The parser refuses stringified-key collisions outright, so the finding
-    // does not need --strict.
+    // does not need --strict; it points at the colliding key.
     let out = run(&["validate", "-"], "1: a\n\"1\": b\n");
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
     assert!(out.stderr.contains("error[Y102]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains(":2:1"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_positions_a_stream_error_in_the_failing_document() {
+    // The parser locates an error relative to the document it failed in;
+    // the rendered position counts from the start of the stream.
+    let out = run(&["validate", "-"], "a: 1\n---\nb: 2\n---\nc: *nope\n");
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("<stdin>:5:4"), "stderr: {}", out.stderr);
+    let collision = run(&["validate", "-"], "a: 1\n---\nb: 2\n---\n1: x\n\"1\": y\n");
+    assert_eq!(collision.status, 1, "stderr: {}", collision.stderr);
+    assert!(
+        collision.stderr.contains("<stdin>:6:1") && collision.stderr.contains("in document 3"),
+        "stderr: {}",
+        collision.stderr
+    );
 }
 
 #[test]
