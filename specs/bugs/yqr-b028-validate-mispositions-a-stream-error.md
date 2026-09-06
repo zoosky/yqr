@@ -76,10 +76,42 @@ what the single-document case reports, and pin the marker rule on its own
 ## 4. Upstream
 
 A stream parser that reports document-relative locations without naming
-the document leaves the caller to redo the split. Worth asking noyalib for
-either stream-relative locations from the `parse_stream*` entry points or
-a document index on the error; §2's re-parse is the workaround until then.
-Draft, not filed:
+the document leaves the caller to redo the split. **Filed 2026-09-06 as
+noyalib#407**, asking for either stream-relative locations from the
+`parse_stream*` entry points or a document index on the located variants;
+§2's re-parse is the workaround until a release carries one of them.
+
+Measuring for the report, with the crate directly rather than through
+yqr, sharpened the argument: only the CST entry points are affected.
+The typed loaders already report stream positions for the same bytes.
+
+| entry point, on `a: 1\n---\nb: 2\n---\nc: *nope\n` | index | line | column |
+|---|---|---|---|
+| `document::load_all` | 21 | 5 | 4 |
+| `load_all_as::<Value>` | 21 | 5 | 4 |
+| `cst::parse_stream` | 7 | 2 | 4 |
+| `cst::parse_stream_with_config` | 7 | 2 | 4 |
+| `cst::parse_stream` on the third document alone | 7 | 2 | 4 |
+
+So the library disagrees with itself on the same input, the shape of
+argument that carried `b010` and `b014`, and the fix on the CST side has
+a reference implementation in the loader.
+
+**Fix filed 2026-09-06 as noyalib PR #408**, from the fork: a
+crate-private `Error::relocate(source, base)` rebuilds every located
+variant (the similar-anchor suggestion included) through the same
+`Location::from_index` every located error is built with, and
+`parse_stream_inner` applies it to a document's failure with the
+document's start as `base`. Five tests in `tests/cst_stream.rs`, one of
+them asserting equality with `load_all_as` on the same bytes.
+
+Verified against yqr with a temporary `[patch.crates-io]` on the branch,
+and the result is the reason `yqr-f029` exists: the fix inverts §2's
+guard. The re-parse of the document alone still reports the
+slice-relative line, the stream error now reports the stream line, the
+two strings differ, and every stream finding loses its position. The
+adoption has to drop the re-parse and trust the location; `f029` §2 has
+the diff. The draft as filed, for the record:
 
 > **`parse_stream*` errors carry document-relative locations and no
 > document index.** `cst::parse_stream_with_config` splits at `---` and
@@ -102,3 +134,6 @@ Draft, not filed:
 - [x] `document_starts` pinned on the marker rule
 - [x] Full suite green; every other stream finding (`Y002`, `Y101`,
       `Y103`) already positioned from the stream and unchanged
+- [x] Filed upstream as noyalib#407 and fixed in PR #408 (§4);
+      the adoption of the release carrying it must drop the re-parse and
+      trust the location, `yqr-f029`
