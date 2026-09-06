@@ -14,6 +14,7 @@ None — see the summary.
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b028](yqr-b028-validate-mispositions-a-stream-error.md) | `validate` positions a stream error relative to the document that failed | Medium | Resolved **2026-09-06** by `yqr-f028` (noyalib 0.0.34), which found it: the parser splits a stream at `---` and locates an error from the start of the document that failed, and `validate` had rendered that index against the whole stream since `f012` — an unknown anchor on line 5 pointed at the `---` on line 2. It survived because the one pinned case, `b: [1,` in a second document, put the caret on the `[` by coincidence; three tests asserted it, one with a comment saying the position was absolute. Surfaced when 0.0.33's located `KeyCollisionAt` gave the `Y102` finding a position. Fixed by finding the failing document the way the parser does (mirror its marker rule, re-parse in order, require the identical failure) and offsetting every location through it; no trusted offset means no position rather than a wrong one. The old re-parsing collision note (`b027` §1, row 3) went with it | `yqr-f012`, `yqr-f028`, `yqr-b027` |
 | [b025](yqr-b025-alias-anchor-ratio-refuses-a-legitimate-values-file.md) | The alias-to-anchor ratio heuristic refuses a legitimate values file, and the refusal reads as a syntax error | Medium | Resolved **2026-09-03** by `yqr-f026` (noyalib 0.0.31, the first release carrying noyalib#373, filed for this bug the day it was filed). Filed 2026-09-02 from a field report: a Helm-style tenants file (22 anchored defaults merged into 221 tenants, ratio 10.05 vs. the default cap of 10) failed to open at all, with a message implying a syntax defect. yqr's classic-pipeline half shipped the day it was filed; the default byte-preserving read, `validate`, and the write tier now parse through `cst::parse_stream_with_config` with the ratio heuristic disabled and every absolute budget intact, and the special-cased refusal wording is gone as unreachable. Verified against the published crate on the field file (`tests/data/values.yaml`): default read exit 0 and byte-identical, `validate` exit 0, writes apply | `yqr-b022`, `yqr-b024`, `yqr-f023`, `yqr-f026`, `yqr-b026`, `yqr-r002` |
 | [b026](yqr-b026-assigning-to-an-anchored-scalar-drops-the-anchor.md) | Assigning to an anchored scalar drops the anchor, then fails on the alias it orphaned | Medium | Resolved **2026-09-03** by `yqr-f026` §6, found 2026-09-02 while verifying `b025`: the rewritten range covered `&x 1`, so the edit removed the definition and the re-parse guard tripped on the alias it orphaned (or, with no aliases, dropped the anchor silently). The span noyalib resolves still starts at the property on 0.0.31, so yqr's write adapter routes property-led targets through the definition write it grew for noyalib#338: the `&name` property is kept, the scalar token is spliced, and the guarded re-parse requires exactly the original document with the assignment applied, reflected at alias sites. `.a = 2` over `a: &x 1` yields `a: &x 2`; the tagged case is a refusal naming the tag | `yqr-b025`, `yqr-b020`, `yqr-f006`, `yqr-f026` |
 | [b027](yqr-b027-validate-is-quadratic-in-document-size.md) | `validate` is quadratic in document size | High | Resolved **2026-09-02**, found and fixed by the values corpus (`yqr-m003` s7): the under-indentation scan recomputed line and column from the start of the document for every mapping entry, and the conflict-marker search and collision note rebuilt the line table once per line. Measured on the shape generator in debug: 2.9 s at 53 KB, 21 s at 160 KB, 136 s at 533 KB (release: 3.1 s against 0.05 s for the read). Every check is now local to its entry or a single pass over the line table: 0.2 s at 533 KB; the corpus's command-line tier fell from 227 s to 2 s | `yqr-f012`, `yqr-m003`, `yqr-b025` |
@@ -44,8 +45,12 @@ None — see the summary.
 
 ## Summary
 
-- Total bugs: 27
-- Open: **0** — `b025` and `b026` closed 2026-09-03 by `yqr-f026`, the
+- Total bugs: 28
+- Open: **0** — `b028` found and closed 2026-09-06 by `yqr-f028`, the
+  noyalib 0.0.34 adoption: the located collision the release added put a
+  position on `Y102`, and the first stream test showed every located
+  stream error had been off by its document's start since `f012`.
+  `b025` and `b026` closed 2026-09-03 by `yqr-f026`, the
   noyalib 0.0.31 adoption: the configurable CST entry points yqr filed for
   (noyalib#372/#373) shipped, and the anchored-scalar write landed as yqr's
   own guarded span surgery.
@@ -75,7 +80,7 @@ None — see the summary.
   yqr's noyalib#296, released hours after it merged. Verified against the
   published crate on its own reproduction with all four controls
   (`yqr-f020` §3).
-- Resolved: 24 (b024 — see above;
+- Resolved: 25 (b028 and b024 — see above;
   b022 and b021 — closed by noyalib 0.0.28, see above;
   b023, b020, b019, b018, b017, b016, b015 — see above; b014, b013, b012, b011 —
   closed by noyalib 0.0.25, `yqr-f019`;

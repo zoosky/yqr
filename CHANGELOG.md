@@ -8,6 +8,20 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **`validate` points at the right line in a multi-document stream.** A
+  parse error in any document after the first was placed as if that
+  document started the file: an unknown anchor on line 5 was reported at
+  line 2, with the caret on the `---` marker. The parser locates an error
+  relative to the document it was parsing; `validate` now maps that back
+  onto the stream, and renders no position at all rather than a wrong one
+  in the rare case where the two disagree on where a document starts. The
+  "a similar anchor is declared at line N" hint is corrected the same
+  way. Found by the fix below, which gave the one finding without a
+  position one.
+- **A key collision names its line.** `error[Y102]` — `1:` and `"1":` in
+  one mapping — used to carry no position, only a note naming the
+  document in a stream. noyalib 0.0.33 locates the colliding key, so the
+  finding points at it like every other syntax error; the note stays.
 - **`validate` no longer slows to a crawl on large files.** Three of its
   checks visited every line or every mapping entry and recomputed
   something that cost the whole file each time, so the command was
@@ -38,6 +52,16 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- **noyalib 0.0.31 → 0.0.34.** Re-serialized output (`--normalize`)
+  changes for block scalars, values unchanged throughout: no blank line
+  after a clip-chomped block scalar (`|`); a keep-chomped one (`|+`) no
+  longer gains a newline per round trip; a block scalar as a sequence item
+  indents its body one step past the dash instead of two; a string that
+  is a single newline emits as `|+` with one empty line instead of a `|`
+  that read back empty. Byte-preserving reads and writes never re-emit,
+  so they are unaffected. The parser makes fewer allocations per mapping
+  key. An unterminated verbatim tag (`!<` with no `>`) is refused instead
+  of being read as a tag name.
 - **noyalib 0.0.28 → 0.0.31.** Beyond the fixes above: the emitter drops
   quotes a plain scalar does not need (re-serialized output such as
   `--normalize` spells `"6.7.0-RC.5-2eb4505e"` unquoted; values are

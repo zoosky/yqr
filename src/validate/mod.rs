@@ -141,7 +141,9 @@ pub fn encoding_diagnostic(valid_prefix: &str) -> Diagnostic {
 /// Almost every parse failure is a `Y001` syntax error, but a
 /// stringified-key collision is refused by the parser itself — no yqr read
 /// can process such a file — and gets its precise `Y102` here rather than
-/// a generic syntax report.
+/// a generic syntax report. The parser locates the colliding key, so the
+/// finding points at it and, in a multi-document stream, names the
+/// document that holds it.
 ///
 /// The bare message is taken from the error variant where possible (the
 /// `Display` form embeds the location, which would duplicate the rendered
@@ -152,8 +154,23 @@ pub fn encoding_diagnostic(valid_prefix: &str) -> Diagnostic {
 /// so directly and anchors itself at the first marker if the parser gave
 /// no location.
 fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
-    if let ::noyalib::Error::KeyCollision(key) = err {
-        return key_collision_diagnostic(key, collision_document_note(source, key));
+    let (base, document_note) = match failing_document(err, source) {
+        Some((base, note)) => (Some(base), note),
+        None => (None, None),
+    };
+    // Every location the parser reports counts from the start of the
+    // document that failed (see `failing_document`). Positions are derived
+    // from that byte index through yqr's own line model rather than the
+    // parser's line/column, which does not count lone-CR line breaks and
+    // would garble CR-only files.
+    let locate = |index: usize| base.map(|base| render::position_of(source, base + index));
+    // The location-less collision is built only by noyalib's streaming
+    // reader, which validate never uses; it is matched so a collision can
+    // never degrade to a generic Y001.
+    if let ::noyalib::Error::KeyCollision(key) | ::noyalib::Error::KeyCollisionAt { key, .. } = err
+    {
+        let position = err.location().and_then(|loc| locate(loc.index()));
+        return key_collision_diagnostic(key, position, document_note);
     }
     let (message, help) = match err {
         ::noyalib::Error::Parse(m) | ::noyalib::Error::ParseWithLocation { message: m, .. } => {
@@ -163,10 +180,12 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
             name, suggestion, ..
         } => (
             format!("unknown anchor {name:?}"),
-            suggestion.as_ref().map(|(s, loc)| {
-                let (line, _) = render::position_of(source, loc.index());
-                format!("a similar anchor &{s} is declared at line {line}")
-            }),
+            suggestion
+                .as_ref()
+                .map(|(s, loc)| match locate(loc.index()) {
+                    Some((line, _)) => format!("a similar anchor &{s} is declared at line {line}"),
+                    None => format!("a similar anchor &{s} is declared in the same document"),
+                }),
         ),
         other => {
             // Located variants embed " at line L, column C" in their
@@ -182,12 +201,7 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
             (m, None)
         }
     };
-    // Positions are derived from the error's byte index through yqr's own
-    // line model rather than the parser's line/column, which does not
-    // count lone-CR line breaks and would garble CR-only files.
-    let mut position = err
-        .location()
-        .map(|loc| render::position_of(source, loc.index()));
+    let mut position = err.location().and_then(|loc| locate(loc.index()));
     let mut help = help;
     if let Some(marker_line) = first_conflict_marker_line(source) {
         help = Some(format!(
@@ -326,12 +340,17 @@ fn strict_findings(source: &str, docs: &[::noyalib::cst::Document]) -> Vec<Diagn
     findings
 }
 
-/// Build the `Y102` finding for a stringified-key collision on `key`.
-fn key_collision_diagnostic(key: &str, note: Option<String>) -> Diagnostic {
+/// Build the `Y102` finding for a stringified-key collision on `key`,
+/// pointing at the colliding key when the parser located it.
+fn key_collision_diagnostic(
+    key: &str,
+    position: Option<(usize, usize)>,
+    note: Option<String>,
+) -> Diagnostic {
     Diagnostic {
         code: Code::KeyCollision,
         message: format!("distinct mapping keys collide after string conversion: {key:?}"),
-        position: None,
+        position,
         note,
         help: Some(
             "yqr matches keys by spelling; rename one so the keys \
@@ -341,55 +360,65 @@ fn key_collision_diagnostic(key: &str, note: Option<String>) -> Diagnostic {
     }
 }
 
-/// Locate which document of a multi-document stream holds the collision.
+/// Where in `source` the document whose parse failed with `err` starts,
+/// with a note naming that document when `source` is a stream.
 ///
-/// The collision aborts the whole stream parse, so no per-document
-/// structure exists; the stream is re-split lexically at `---` document
-/// markers and each chunk re-parsed. The note is attached only when
-/// exactly one chunk reproduces a collision on the same key — anything
-/// ambiguous stays note-less rather than risking a wrong pointer.
-fn collision_document_note(source: &str, key: &str) -> Option<String> {
-    // One pass over the line table (bug b027); line `n` is `lines[n - 1]`.
-    let lines: Vec<&str> = render::lines(source).collect();
-    let count = lines.len();
-    let is_marker = |l: &str| {
-        l == "---"
-            || l.strip_prefix("---")
-                .is_some_and(|r| r.starts_with([' ', '\t']))
-    };
-    let mut chunk_starts = vec![1usize];
-    chunk_starts.extend(
-        lines
-            .iter()
-            .enumerate()
-            .skip(1)
-            .filter(|(_, l)| is_marker(l))
-            .map(|(index, _)| index + 1),
-    );
-    if chunk_starts.len() < 2 {
-        return None;
+/// The stream parser splits its input at column-0 `---` markers and
+/// parses each document on its own, so every location in `err` counts
+/// from the start of the failing document rather than from the start of
+/// the stream, and the error does not say which document that is. The
+/// documents are re-parsed here in order, the way the stream parser does,
+/// until one fails; the failure has to be the same one, or the parser
+/// split the stream differently than [`document_starts`] did and no
+/// offset is trusted (`None`). A single document starts at byte 0 and
+/// needs no note.
+fn failing_document(err: &::noyalib::Error, source: &str) -> Option<(usize, Option<String>)> {
+    let starts = document_starts(source);
+    if starts.len() < 2 {
+        return Some((0, None));
     }
-    let mut matches = Vec::new();
-    for (index, &start) in chunk_starts.iter().enumerate() {
-        let end = chunk_starts.get(index + 1).copied().unwrap_or(count + 1);
-        let chunk: String = lines[start - 1..end - 1]
-            .iter()
-            .fold(String::new(), |mut acc, l| {
-                acc.push_str(l);
-                acc.push('\n');
-                acc
-            });
-        if let Err(::noyalib::Error::KeyCollision(k)) =
-            ::noyalib::from_str::<::noyalib::Value>(&chunk)
-            && k == key
-        {
-            matches.push((index + 1, start));
+    let config = crate::fidelity::cst_config();
+    for (index, &start) in starts.iter().enumerate() {
+        let end = starts.get(index + 1).copied().unwrap_or(source.len());
+        let Err(again) = ::noyalib::cst::parse_document_with_config(&source[start..end], &config)
+        else {
+            continue;
+        };
+        if again.to_string() != err.to_string() {
+            return None;
         }
+        let (line, _) = render::position_of(source, start);
+        return Some((
+            start,
+            Some(format!(
+                "in document {} (starting at line {line})",
+                index + 1
+            )),
+        ));
     }
-    match matches.as_slice() {
-        [(index, start)] => Some(format!("in document {index} (starting at line {start})")),
-        _ => None,
-    }
+    None
+}
+
+/// Byte offsets at which the documents of `source` start: 0, then every
+/// `---` that opens a line and is followed by whitespace or the end of
+/// input — the parser's own boundary rule, mirrored so the two agree on
+/// where each document begins.
+fn document_starts(source: &str) -> Vec<usize> {
+    let bytes = source.as_bytes();
+    let mut starts = vec![0];
+    starts.extend(
+        source
+            .match_indices("---")
+            .map(|(index, _)| index)
+            .filter(|&index| {
+                index > 0
+                    && matches!(bytes[index - 1], b'\n' | b'\r')
+                    && bytes
+                        .get(index + 3)
+                        .is_none_or(|b| matches!(b, b'\n' | b'\r' | b' ' | b'\t'))
+            }),
+    );
+    starts
 }
 
 #[cfg(test)]
@@ -480,8 +509,11 @@ mod tests {
         assert_eq!(findings.len(), 1);
         let d = &findings[0];
         assert_eq!(d.code, Code::Syntax);
-        // The location is absolute in the file, not relative to a document.
-        assert_eq!(d.position, Some((3, 3)));
+        // The position counts from the start of the stream, not of the
+        // document the parser was on: end of input, one past the last
+        // character, exactly where a single document reports it (bug b028;
+        // the parser's document-relative index used to land on the `[`).
+        assert_eq!(d.position, Some((3, 7)));
     }
 
     #[test]
@@ -571,17 +603,52 @@ mod tests {
     #[test]
     fn key_collision_is_a_y102_by_default_with_document_note() {
         // The parser refuses collisions outright — no yqr read can process
-        // such a file — so the finding needs no --strict; in a stream the
-        // affected document is named.
+        // such a file — so the finding needs no --strict. It points at the
+        // colliding key (noyalib 0.0.33 locates it); in a stream the
+        // affected document is named as well.
         let findings = check_str("1: a\n\"1\": b\n", false);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].code, Code::KeyCollision);
+        assert_eq!(findings[0].position, Some((2, 1)));
+        assert!(findings[0].note.is_none());
         assert!(findings[0].help.is_some());
 
         let streamed = check_str("a: 1\n---\nb: 2\n---\n1: x\n\"1\": y\n", false);
         assert_eq!(streamed.len(), 1);
+        assert_eq!(streamed[0].position, Some((6, 1)));
         let note = streamed[0].note.as_deref().expect("document note");
-        assert!(note.contains("document 3"), "note: {note}");
+        assert_eq!(note, "in document 3 (starting at line 4)");
+    }
+
+    #[test]
+    fn located_errors_in_a_stream_count_from_the_failing_document() {
+        // The parser locates an error relative to the document it was
+        // parsing; the finding maps it back onto the stream.
+        let findings = check_str("a: 1\n---\nb: 2\n---\nc: *nope\n", false);
+        assert_eq!(findings.len(), 1, "findings: {findings:?}");
+        assert_eq!(findings[0].code, Code::Syntax);
+        assert_eq!(findings[0].position, Some((5, 4)));
+        // The similar-anchor hint is offset the same way.
+        let hinted = check_str("a: 1\n---\nb: &nope 1\nc: *nop\n", false);
+        assert_eq!(hinted.len(), 1, "findings: {hinted:?}");
+        assert_eq!(hinted[0].position, Some((4, 4)));
+        assert_eq!(
+            hinted[0].help.as_deref(),
+            Some("a similar anchor &nope is declared at line 3")
+        );
+    }
+
+    #[test]
+    fn document_starts_follow_the_parsers_marker_rule() {
+        assert_eq!(document_starts("a: 1\n"), vec![0]);
+        assert_eq!(document_starts("---\na: 1\n---\nb: 2\n"), vec![0, 9]);
+        // A marker opens a line and is followed by whitespace or the end
+        // of input; a lone CR is a line break too.
+        assert_eq!(
+            document_starts("a: ---\n--- # doc\nb: 1\r---"),
+            vec![0, 7, 22]
+        );
+        assert_eq!(document_starts("a: 1\n----\n"), vec![0]);
     }
 
     #[test]
@@ -622,10 +689,10 @@ mod tests {
         let rendered = render(&findings[0], "deploy.yaml", source);
         let expected = "\
 error[Y001]: expected a node but found StreamEnd
-  --> deploy.yaml:3:3
+  --> deploy.yaml:3:7
   |
 3 | b: [1,
-  |   ^
+  |       ^
 ";
         assert_eq!(rendered, expected);
     }
