@@ -96,6 +96,7 @@ dependency/release timing.
 | [f026](yqr-f026-noyalib-0-0-31-adoption.md) | Adopt the noyalib release that carries #373: close b025 on the default path | Done (0.0.31, 2026-09-03: b025 and b026 closed; the definition write for noyalib#338 landed as guarded span surgery; the classic pipeline reads multi-document streams through `load_all_with_config`) |
 | [f027](yqr-f027-upstream-anchor-policy-and-span-model.md) | Upstream the anchor policy and span model; shrink the definition-write surgery | Draft (ready-to-file issue drafts embedded, every claim measured on 0.0.31; filing is the owner's action) |
 | [f028](yqr-f028-noyalib-0-0-34-adoption.md) | Adopt noyalib 0.0.34: the located key collision, and the stream position it exposed | Done (0.0.34, 2026-09-06: `Y102` points at the colliding key; `b028` found and fixed, every located stream error now positioned from the stream; emitter block-scalar changes and #375 spans measured, nothing else moved) |
+| [f029](yqr-f029-noyalib-407-adoption.md) | Adopt the noyalib release that carries #407: trust the stream location, drop the re-parse | Draft (waits for the release carrying noyalib PR #408; the diff is known and the reason it is not a no-op is measured: the fix inverts `b028`'s re-parse guard) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -281,8 +282,8 @@ dashboard.
 
 ## Summary
 
-- Total features: 28
-- Draft: 2 (f025, f027)
+- Total features: 29
+- Draft: 3 (f025, f027, f029)
 - In Progress: 0
 - Done: 22 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028)

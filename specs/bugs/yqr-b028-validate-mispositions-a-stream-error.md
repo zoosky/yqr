@@ -95,8 +95,23 @@ The typed loaders already report stream positions for the same bytes.
 
 So the library disagrees with itself on the same input, the shape of
 argument that carried `b010` and `b014`, and the fix on the CST side has
-a reference implementation in the loader. The draft as filed, for the
-record:
+a reference implementation in the loader.
+
+**Fix filed 2026-09-06 as noyalib PR #408**, from the fork: a
+crate-private `Error::relocate(source, base)` rebuilds every located
+variant (the similar-anchor suggestion included) through the same
+`Location::from_index` every located error is built with, and
+`parse_stream_inner` applies it to a document's failure with the
+document's start as `base`. Five tests in `tests/cst_stream.rs`, one of
+them asserting equality with `load_all_as` on the same bytes.
+
+Verified against yqr with a temporary `[patch.crates-io]` on the branch,
+and the result is the reason `yqr-f029` exists: the fix inverts §2's
+guard. The re-parse of the document alone still reports the
+slice-relative line, the stream error now reports the stream line, the
+two strings differ, and every stream finding loses its position. The
+adoption has to drop the re-parse and trust the location; `f029` §2 has
+the diff. The draft as filed, for the record:
 
 > **`parse_stream*` errors carry document-relative locations and no
 > document index.** `cst::parse_stream_with_config` splits at `---` and
@@ -119,6 +134,6 @@ record:
 - [x] `document_starts` pinned on the marker rule
 - [x] Full suite green; every other stream finding (`Y002`, `Y101`,
       `Y103`) already positioned from the stream and unchanged
-- [x] Filed upstream as noyalib#407 (§4); when a release carries the
-      fix, `failing_document` can drop its re-parse and trust the
-      location, and the adoption spec for that release says so
+- [x] Filed upstream as noyalib#407 and fixed in PR #408 (§4);
+      the adoption of the release carrying it must drop the re-parse and
+      trust the location, `yqr-f029`
