@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788453753788,
+  "lastUpdate": 1788688062066,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2183,6 +2183,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 269749,
             "range": "± 9855",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7396ea1dce05b3830f2cc1e242c3ab2ddb9bb8de",
+          "message": "Adopt noyalib 0.0.34: locate the key collision, position stream findings from the stream (f028, b028) (#114)\n\nBump the pin from 0.0.31 to 0.0.34. 0.0.33 raises the located\n`KeyCollisionAt`, which validate did not match, so a collision degraded\nto a generic Y001; validate now matches both forms and the Y102 finding\npoints at the colliding key.\n\nGiving that finding a position exposed b028: the stream parser locates an\nerror relative to the document that failed, and validate had rendered\nthat index against the whole stream since f012. A new helper finds the\nfailing document the way the parser does (mirror its marker rule,\nre-parse in order, require the identical failure) and every location goes\nthrough it; no trusted offset means no position rather than a wrong one.\nThree tests that pinned the artifact are re-baselined.\n\nEmitter changes for block scalars (--normalize only), the #375 span\nchange, and the eval benchmark are measured against the 0.0.31 build and\nrecorded in the spec and CHANGELOG.",
+          "timestamp": "2026-09-06T11:46:18+02:00",
+          "tree_id": "1dac224f4d1fd09d3c2c67d213bce5aad87bb3ac",
+          "url": "https://github.com/zoosky/yqr/commit/7396ea1dce05b3830f2cc1e242c3ab2ddb9bb8de"
+        },
+        "date": 1788688060821,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 562,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5939,
+            "range": "± 50",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 273611,
+            "range": "± 2309",
             "unit": "ns/iter"
           }
         ]
