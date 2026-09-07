@@ -8,6 +8,18 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **`validate` explains an alias that reaches into an earlier document.**
+  `b: *x` after a `---`, with `&x` defined in the document before, was an
+  "unknown anchor" with a hint about a similar anchor; the hint now says
+  where that `&x` appears in an earlier document and that anchors do not
+  cross `---`. The position is right too: with noyalib 0.0.36 the parser
+  counts every stream error from the start of the stream, so yqr's
+  re-parse that mapped document-relative positions back is gone.
+- **Every finding in a stream names its document.** The "in document N
+  (starting at line L)" note used to be attached to a key collision only;
+  a syntax error in the twelfth document of a manifest now says so too.
+  The document count follows the parser's rules for a `...` and for a
+  directive or comment prologue, which the earlier note got wrong.
 - **`validate` points at the right line in a multi-document stream.** A
   parse error in any document after the first was placed as if that
   document started the file: an unknown anchor on line 5 was reported at
@@ -52,6 +64,17 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- **noyalib 0.0.34 → 0.0.39.** Diagnostics the parser now makes, passed
+  through: `!!!int` (one bang too many) is refused with "did you mean
+  `!!int`?" where it used to be accepted; a self-referential anchor
+  (`a: &x [*x]`) says an alias points at an anchor still being defined
+  instead of calling it unknown; `!!int 0b101010` and `!!int 100_000_000`
+  name the YAML 1.1 spelling and the 1.2 value to write. One parse
+  change: a tab before `- ` or `? ` on the first line of a file is refused
+  like it already was after a `---`, so `validate` reports it and a read
+  fails; a tab before a flow node still parses. A keep-chomped block
+  scalar of blank lines followed by `---` parses now. Re-serialized
+  output and every write are unchanged.
 - **noyalib 0.0.31 → 0.0.34.** Re-serialized output (`--normalize`)
   changes for block scalars, values unchanged throughout: no blank line
   after a clip-chomped block scalar (`|`); a keep-chomped one (`|+`) no

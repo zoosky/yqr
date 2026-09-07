@@ -248,8 +248,8 @@ fn validate_non_utf8_input_is_a_coded_finding() {
 
 #[test]
 fn validate_full_conflict_block_is_located_with_help() {
-    // A complete three-marker git conflict parses to an unlocated error;
-    // the diagnostic must still name the marker and anchor at it.
+    // A complete three-marker git conflict fails to parse past the
+    // markers; the diagnostic names the first marker and anchors at it.
     let out = run(
         &["validate", "-"],
         "a: 1\n<<<<<<< HEAD\nb: 2\n=======\nb: 3\n>>>>>>> feature\n",
@@ -260,7 +260,7 @@ fn validate_full_conflict_block_is_located_with_help() {
         "stderr: {}",
         out.stderr
     );
-    assert!(out.stderr.contains("<stdin>:"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("<stdin>:2:1"), "stderr: {}", out.stderr);
 }
 
 #[test]
@@ -379,8 +379,8 @@ fn validate_key_collision_is_reported_by_default() {
 
 #[test]
 fn validate_positions_a_stream_error_in_the_failing_document() {
-    // The parser locates an error relative to the document it failed in;
-    // the rendered position counts from the start of the stream.
+    // The parser locates an error in the stream; the rendered position is
+    // the same one through yqr's line model, and the document is named.
     let out = run(&["validate", "-"], "a: 1\n---\nb: 2\n---\nc: *nope\n");
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
     assert!(out.stderr.contains("<stdin>:5:4"), "stderr: {}", out.stderr);
@@ -391,6 +391,25 @@ fn validate_positions_a_stream_error_in_the_failing_document() {
         "stderr: {}",
         collision.stderr
     );
+}
+
+#[test]
+fn parser_refusals_adopted_from_noyalib() {
+    // Two files that read on noyalib 0.0.34 are refused since 0.0.36 and
+    // 0.0.38: a tab before `-` on the first line, and a `!!!int` tag. Pinned
+    // here rather than in the corpus, which holds only documents the
+    // validator must accept, so a release that takes either back fails.
+    for doc in ["\t- a\n", "a: !!!int 1\n"] {
+        let read = run(&["."], doc);
+        assert_eq!(read.status, 5, "{doc:?} stderr: {}", read.stderr);
+        let checked = run(&["validate", "-"], doc);
+        assert_eq!(checked.status, 1, "{doc:?} stderr: {}", checked.stderr);
+        assert!(
+            checked.stderr.contains("error[Y001]"),
+            "{doc:?} stderr: {}",
+            checked.stderr
+        );
+    }
 }
 
 #[test]

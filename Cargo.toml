@@ -46,11 +46,16 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.34 release. 0.0.33 locates a stringified-key collision
-# (`Error::KeyCollisionAt`), which `validate` reports as a positioned Y102,
-# and adds bracket-quoted key segments to the path grammar, the upstream half
-# of the dotted-key addressing limit (f007 s6); its emitter fixes change
-# `--normalize` output for block scalars. 0.0.31 was the first release
+# crates.io 0.0.39 release. 0.0.36 carries yqr's noyalib#408 (b028): the CST
+# stream parser locates an error in the stream, as the typed loaders do, so
+# `validate` reads positions straight from the parser. 0.0.38 diagnoses a
+# cross-document alias. Two files that read on 0.0.34 are refused now, both
+# pinned in the CLI suite: a tab before `-` on the first line (0.0.36) and
+# a `!!!int` tag (0.0.38). 0.0.33 locates a stringified-key
+# collision (`Error::KeyCollisionAt`), which `validate` reports as a
+# positioned Y102, and adds bracket-quoted key segments to the path grammar,
+# the upstream half of the dotted-key addressing limit (f007 s6); its emitter
+# fixes change `--normalize` output for block scalars. 0.0.31 was the first
 # carrying yqr's noyalib#373: configurable CST entry points
 # (`parse_*_with_config`) and a `Document` that keeps its configuration across
 # re-parses, which let every path disable the alias-to-anchor ratio heuristic
@@ -60,9 +65,9 @@ clap = { version = "4.6.1", features = ["derive"] }
 # refuses multi-document streams (#351), absorbed via `load_all_with_config`.
 # Every bug yqr has filed against this engine is fixed in a published release:
 # b011-b014 in 0.0.25, b015 in 0.0.26, b016 in 0.0.27, b021-b022 in 0.0.28,
-# b025 in 0.0.31. Each pin and what it bought is in features f013-f028; see
-# research r002 and the bug specs.
-noyalib = "0.0.34"
+# b025 in 0.0.31, b028 in 0.0.36. Each pin and what it bought is in features
+# f013-f029; see research r002 and the bug specs.
+noyalib = "0.0.39"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"

@@ -149,28 +149,28 @@ pub fn encoding_diagnostic(valid_prefix: &str) -> Diagnostic {
 /// `Display` form embeds the location, which would duplicate the rendered
 /// location line; for other located variants the embedded suffix is
 /// stripped). When the file contains unresolved merge-conflict markers —
-/// the most common way an edited file stops parsing, and one the parser
-/// often reports as an unlocated indentation error — the diagnostic says
-/// so directly and anchors itself at the first marker if the parser gave
-/// no location.
+/// the most common way an edited file stops parsing — the diagnostic says
+/// so directly and anchors itself at the first marker: the parser fails
+/// somewhere past it, at a line that is a symptom rather than the cause.
+/// In a stream, every finding names the document it is in.
 fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
-    let (base, document_note) = match failing_document(err, source) {
-        Some((base, note)) => (Some(base), note),
-        None => (None, None),
-    };
     // Every location the parser reports counts from the start of the
-    // document that failed (see `failing_document`). Positions are derived
-    // from that byte index through yqr's own line model rather than the
+    // input, in a stream too (noyalib 0.0.36). Positions are derived from
+    // that byte index through yqr's own line model rather than the
     // parser's line/column, which does not count lone-CR line breaks and
     // would garble CR-only files.
-    let locate = |index: usize| base.map(|base| render::position_of(source, base + index));
+    let locate = |index: usize| render::position_of(source, index);
+    let starts = document_starts(source);
     // The location-less collision is built only by noyalib's streaming
     // reader, which validate never uses; it is matched so a collision can
     // never degrade to a generic Y001.
     if let ::noyalib::Error::KeyCollision(key) | ::noyalib::Error::KeyCollisionAt { key, .. } = err
     {
-        let position = err.location().and_then(|loc| locate(loc.index()));
-        return key_collision_diagnostic(key, position, document_note);
+        let position = err.location().map(|loc| locate(loc.index()));
+        let note = err
+            .location()
+            .and_then(|loc| document_note(source, &starts, loc.index()));
+        return key_collision_diagnostic(key, position, note);
     }
     let (message, help) = match err {
         ::noyalib::Error::Parse(m) | ::noyalib::Error::ParseWithLocation { message: m, .. } => {
@@ -180,12 +180,20 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
             name, suggestion, ..
         } => (
             format!("unknown anchor {name:?}"),
-            suggestion
-                .as_ref()
-                .map(|(s, loc)| match locate(loc.index()) {
-                    Some((line, _)) => format!("a similar anchor &{s} is declared at line {line}"),
-                    None => format!("a similar anchor &{s} is declared in the same document"),
-                }),
+            suggestion.as_ref().map(|(s, at)| {
+                let (line, _) = locate(at.index());
+                // The parser suggests the alias's own name only when it
+                // found that anchor in an earlier document of the stream.
+                // It finds it by text, so the hint says "appears".
+                if s == name {
+                    format!(
+                        "`&{s}` appears at line {line}, in an earlier document; \
+                         anchors do not cross `---`"
+                    )
+                } else {
+                    format!("a similar anchor &{s} is declared at line {line}")
+                }
+            }),
         ),
         other => {
             // Located variants embed " at line L, column C" in their
@@ -201,39 +209,43 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
             (m, None)
         }
     };
-    let mut position = err.location().and_then(|loc| locate(loc.index()));
-    let mut help = help;
-    if let Some(marker_line) = first_conflict_marker_line(source) {
-        help = Some(format!(
-            "the file contains unresolved merge-conflict markers (first at line \
-             {marker_line}); resolve the conflict"
-        ));
-        if position.is_none() {
-            position = Some((marker_line, 1));
+    // The finding is anchored at the first conflict marker when there is
+    // one, else where the parser stopped.
+    let (anchor, help) = match first_conflict_marker(source) {
+        Some(marker) => {
+            let (marker_line, _) = locate(marker);
+            let help = format!(
+                "the file contains unresolved merge-conflict markers (first at line \
+                 {marker_line}); resolve the conflict"
+            );
+            (Some(marker), Some(help))
         }
-    }
+        None => (err.location().map(|loc| loc.index()), help),
+    };
     Diagnostic {
         code: Code::Syntax,
         message,
-        position,
-        note: None,
+        position: anchor.map(locate),
+        note: anchor.and_then(|index| document_note(source, &starts, index)),
         help,
     }
 }
 
-/// The 1-based line of the first merge-conflict marker in `source`, if any.
+/// The byte offset of the first merge-conflict marker line in `source`,
+/// if any.
 ///
 /// Recognizes the three git marker shapes at the start of a line:
 /// `<<<<<<< `, `=======`, and `>>>>>>> `. Checked against the whole file —
-/// a conflict block usually breaks the parse somewhere *else* (the parser
-/// frequently reports an unlocated indentation error), so inspecting only
-/// the error line would miss it.
-fn first_conflict_marker_line(source: &str) -> Option<usize> {
-    render::lines(source)
-        .position(|l| {
+/// a conflict block breaks the parse somewhere *else*, at a line that is
+/// a symptom, so inspecting only the error line would miss it.
+fn first_conflict_marker(source: &str) -> Option<usize> {
+    render::line_spans(source)
+        .into_iter()
+        .map(|(start, end)| (start, &source[start..end]))
+        .find(|(_, l)| {
             l.starts_with("<<<<<<<") || l.starts_with(">>>>>>>") || l.trim_end() == "======="
         })
-        .map(|index| index + 1)
+        .map(|(start, _)| start)
 }
 
 /// Build the `Y002` finding when the parsed documents do not tile `source`.
@@ -360,65 +372,94 @@ fn key_collision_diagnostic(
     }
 }
 
-/// Where in `source` the document whose parse failed with `err` starts,
-/// with a note naming that document when `source` is a stream.
-///
-/// The stream parser splits its input at column-0 `---` markers and
-/// parses each document on its own, so every location in `err` counts
-/// from the start of the failing document rather than from the start of
-/// the stream, and the error does not say which document that is. The
-/// documents are re-parsed here in order, the way the stream parser does,
-/// until one fails; the failure has to be the same one, or the parser
-/// split the stream differently than [`document_starts`] did and no
-/// offset is trusted (`None`). A single document starts at byte 0 and
-/// needs no note.
-fn failing_document(err: &::noyalib::Error, source: &str) -> Option<(usize, Option<String>)> {
-    let starts = document_starts(source);
+/// Name the document of a multi-document stream that holds byte `index`,
+/// given the document starts from [`document_starts`]. `None` for a
+/// single-document source, where the note would only repeat the
+/// position.
+fn document_note(source: &str, starts: &[usize], index: usize) -> Option<String> {
     if starts.len() < 2 {
-        return Some((0, None));
+        return None;
     }
-    let config = crate::fidelity::cst_config();
-    for (index, &start) in starts.iter().enumerate() {
-        let end = starts.get(index + 1).copied().unwrap_or(source.len());
-        let Err(again) = ::noyalib::cst::parse_document_with_config(&source[start..end], &config)
-        else {
-            continue;
-        };
-        if again.to_string() != err.to_string() {
-            return None;
-        }
-        let (line, _) = render::position_of(source, start);
-        return Some((
-            start,
-            Some(format!(
-                "in document {} (starting at line {line})",
-                index + 1
-            )),
-        ));
-    }
-    None
+    let document = document_index(starts, index);
+    let (line, _) = render::position_of(source, starts[document]);
+    Some(format!(
+        "in document {} (starting at line {line})",
+        document + 1
+    ))
 }
 
-/// Byte offsets at which the documents of `source` start: 0, then every
-/// `---` that opens a line and is followed by whitespace or the end of
-/// input — the parser's own boundary rule, mirrored so the two agree on
-/// where each document begins.
-fn document_starts(source: &str) -> Vec<usize> {
-    let bytes = source.as_bytes();
-    let mut starts = vec![0];
-    starts.extend(
-        source
-            .match_indices("---")
-            .map(|(index, _)| index)
-            .filter(|&index| {
-                index > 0
-                    && matches!(bytes[index - 1], b'\n' | b'\r')
-                    && bytes
-                        .get(index + 3)
-                        .is_none_or(|b| matches!(b, b'\n' | b'\r' | b' ' | b'\t'))
-            }),
-    );
+/// Zero-based index of the document holding byte `index`, given the
+/// document starts from [`document_starts`].
+fn document_index(starts: &[usize], index: usize) -> usize {
     starts
+        .iter()
+        .rposition(|&start| start <= index)
+        .unwrap_or(0)
+}
+
+/// Byte offsets at which the documents of `source` start, split the way
+/// the CST parser splits a stream: a `---` marker line opens a new
+/// document only after some content, so directives, comments and blank
+/// lines ahead of the first `---` are that document's prologue rather
+/// than a document of their own; a `...` marker line closes the document
+/// at the end of its line, and the next document starts right after it
+/// once anything but a trailing comment follows, whether or not a `---`
+/// opens it. A marker opens its line and is followed by whitespace or the
+/// end of the line. The suite holds this to the lengths of the documents
+/// the parser returns.
+fn document_starts(source: &str) -> Vec<usize> {
+    let spans = render::line_spans(source);
+    let mut starts = vec![0];
+    let mut has_content = false;
+    // A `...` closed the document: the next `---` opens no further one.
+    let mut closed = false;
+    // Where the document after a `...` starts, once something follows it.
+    let mut pending = None;
+    for (i, &(start, end)) in spans.iter().enumerate() {
+        let text = &source[start..end];
+        let text = if start == 0 {
+            text.strip_prefix('\u{FEFF}').unwrap_or(text)
+        } else {
+            text
+        };
+        if is_marker(text, "---") {
+            if let Some(p) = pending.take() {
+                starts.push(p);
+            } else if has_content && !closed {
+                starts.push(start);
+            }
+            has_content = true;
+            closed = false;
+        } else if is_marker(text, "...") {
+            if has_content {
+                let next = spans.get(i + 1).map_or(source.len(), |&(s, _)| s);
+                pending = (next < source.len()).then_some(next);
+                has_content = false;
+            }
+            closed = true;
+        } else if !is_prologue(text) {
+            if let Some(p) = pending.take() {
+                starts.push(p);
+            }
+            has_content = true;
+            closed = false;
+        }
+    }
+    starts
+}
+
+/// Whether a line is the document marker `marker`: the marker at the
+/// start of the line, followed by whitespace or the end of the line.
+fn is_marker(line: &str, marker: &str) -> bool {
+    line.strip_prefix(marker)
+        .is_some_and(|rest| rest.is_empty() || rest.starts_with([' ', '\t']))
+}
+
+/// Whether a line carries no content for the parser: blank, a comment,
+/// or a directive.
+fn is_prologue(line: &str) -> bool {
+    let trimmed = line.trim_start_matches([' ', '\t']);
+    trimmed.is_empty() || trimmed.starts_with('#') || line.starts_with('%')
 }
 
 #[cfg(test)]
@@ -511,16 +552,22 @@ mod tests {
         assert_eq!(d.code, Code::Syntax);
         // The position counts from the start of the stream, not of the
         // document the parser was on: end of input, one past the last
-        // character, exactly where a single document reports it (bug b028;
-        // the parser's document-relative index used to land on the `[`).
+        // character, exactly where a single document reports it. Bug b028:
+        // until noyalib 0.0.36 the parser counted from the document and the
+        // unmapped index landed on the `[`.
         assert_eq!(d.position, Some((3, 7)));
+        assert_eq!(
+            d.note.as_deref(),
+            Some("in document 2 (starting at line 2)")
+        );
     }
 
     #[test]
     fn full_merge_conflict_block_gets_help_and_a_position() {
-        // A complete three-marker git conflict: the parser reports an
-        // unlocated indentation error, so the diagnostic must anchor at
-        // the first marker itself.
+        // A complete three-marker git conflict: the parser fails past the
+        // markers (at the `>>>>>>>` line since noyalib 0.0.36, unlocated
+        // before), and the diagnostic anchors at the first marker either
+        // way, where the cause is.
         let source = "a: 1\n<<<<<<< HEAD\nb: 2\n=======\nb: 3\n>>>>>>> feature\n";
         let findings = check_str(source, false);
         assert_eq!(findings.len(), 1, "findings: {findings:?}");
@@ -533,7 +580,7 @@ mod tests {
             "help: {:?}",
             d.help
         );
-        assert!(d.position.is_some(), "must anchor at a marker line");
+        assert_eq!(d.position, Some((2, 1)), "anchors at the first marker");
     }
 
     #[test]
@@ -621,14 +668,14 @@ mod tests {
     }
 
     #[test]
-    fn located_errors_in_a_stream_count_from_the_failing_document() {
-        // The parser locates an error relative to the document it was
-        // parsing; the finding maps it back onto the stream.
+    fn located_errors_in_a_stream_count_from_the_stream() {
+        // The parser locates an error in the stream (noyalib 0.0.36, bug
+        // b028); the finding renders that position through yqr's line model.
         let findings = check_str("a: 1\n---\nb: 2\n---\nc: *nope\n", false);
         assert_eq!(findings.len(), 1, "findings: {findings:?}");
         assert_eq!(findings[0].code, Code::Syntax);
         assert_eq!(findings[0].position, Some((5, 4)));
-        // The similar-anchor hint is offset the same way.
+        // The similar-anchor hint names the anchor's line in the stream.
         let hinted = check_str("a: 1\n---\nb: &nope 1\nc: *nop\n", false);
         assert_eq!(hinted.len(), 1, "findings: {hinted:?}");
         assert_eq!(hinted[0].position, Some((4, 4)));
@@ -636,14 +683,59 @@ mod tests {
             hinted[0].help.as_deref(),
             Some("a similar anchor &nope is declared at line 3")
         );
+        // An alias to an anchor of an earlier document is suggested under
+        // its own name; the hint says why it does not resolve, whether the
+        // boundary is a `---` or a `...`.
+        let hint = "`&x` appears at line 1, in an earlier document; anchors do not cross `---`";
+        for src in ["a: &x 1\n---\nb: *x\n", "a: &x 1\n...\nb: *x\n"] {
+            let crossed = check_str(src, false);
+            assert_eq!(crossed.len(), 1, "findings: {crossed:?}");
+            assert_eq!(crossed[0].position, Some((3, 4)), "{src:?}");
+            assert_eq!(crossed[0].help.as_deref(), Some(hint), "{src:?}");
+        }
+        // The parser finds that earlier `&x` by text, so the hint does not
+        // claim it is an anchor: here it is a comment.
+        let commented = check_str("a: 1 # see &x\n---\nb: *x\n", false);
+        assert_eq!(commented[0].help.as_deref(), Some(hint));
     }
 
     #[test]
-    fn document_starts_follow_the_parsers_marker_rule() {
-        assert_eq!(document_starts("a: 1\n"), vec![0]);
-        assert_eq!(document_starts("---\na: 1\n---\nb: 2\n"), vec![0, 9]);
-        // A marker opens a line and is followed by whitespace or the end
-        // of input; a lone CR is a line break too.
+    fn document_starts_match_the_parsers_split() {
+        // Held to the lengths of the documents the parser returns, so the
+        // prologue and `...` rules cannot drift from it unnoticed.
+        let streams = [
+            "a: 1\n",
+            "---\na: 1\n---\nb: 2\n",
+            "%YAML 1.2\n---\na: 1\n",
+            "# lead\n\n---\na: 1\n---\nb: 2\n",
+            "a: 1\n...\nb: 2\n",
+            "a: 1\n...\n---\nb: 2\n",
+            "a: 1\n...\nb: 1\n---\nc: 2\n",
+            "...\na: 1\n",
+            "a: 1\n...\n...\nb: 2\n",
+            "a: 1\n...\n# trailing\n",
+            "a: 1\n...\n",
+            "a: 1\r\n---\r\nb: 2\r\n",
+            "\u{FEFF}a: 1\n---\nb: 2\n",
+            "a: 1\n--- # c\nb: 2\n",
+            "a: |\n  ---\n---\nb: 2\n",
+            "--- a\n--- b\n",
+            "---\n---\n",
+        ];
+        for src in streams {
+            let docs =
+                ::noyalib::cst::parse_stream_with_config(src, &crate::fidelity::cst_config())
+                    .unwrap_or_else(|e| panic!("{src:?}: {e}"));
+            let mut expected = vec![0];
+            let mut offset = 0;
+            for doc in &docs[..docs.len() - 1] {
+                offset += doc.source().len();
+                expected.push(offset);
+            }
+            assert_eq!(document_starts(src), expected, "stream {src:?}");
+        }
+        // The marker itself opens a line and is followed by whitespace or
+        // the end of the line; a lone CR is a line break too.
         assert_eq!(
             document_starts("a: ---\n--- # doc\nb: 1\r---"),
             vec![0, 7, 22]
@@ -693,6 +785,7 @@ error[Y001]: expected a node but found StreamEnd
   |
 3 | b: [1,
   |       ^
+  = note: in document 2 (starting at line 2)
 ";
         assert_eq!(rendered, expected);
     }
