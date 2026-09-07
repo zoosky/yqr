@@ -124,7 +124,7 @@ fn run(args: &Cli, filter: &str) -> Result<String, YqrError> {
                 return render(&values, args.raw_output);
             }
             // Default: byte-preserving fidelity read. Untouched nodes are emitted
-            // as their original source bytes; computed, absent, and unaddressable
+            // as their original source bytes; computed and absent
             // nodes fall back to typed rendering per node.
             fidelity::run_target(&target, &input, args.raw_output)
         }

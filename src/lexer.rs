@@ -339,6 +339,21 @@ mod tests {
         );
     }
 
+    // Feature f030: a quoted key after the dot is an ordinary string token;
+    // the parser gives it its meaning.
+    #[test]
+    fn lexes_a_quoted_field() {
+        assert_eq!(
+            lex(r#"."a.b".c"#).unwrap(),
+            vec![
+                Token::Dot,
+                Token::Str("a.b".into()),
+                Token::Dot,
+                Token::Ident("c".into()),
+            ]
+        );
+    }
+
     // Feature f007: the reorder verb's argument separator.
     #[test]
     fn lexes_a_reorder_verb() {

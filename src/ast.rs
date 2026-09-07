@@ -248,7 +248,8 @@ impl Builtin {
 pub enum Ast {
     /// `.` — yields the input unchanged.
     Identity,
-    /// `.foo` / `.["foo"]` — look up a key in a mapping.
+    /// `.foo` / `."foo"` / `.["foo"]` — look up a key in a mapping; the two
+    /// quoted spellings hold a key the bare one cannot, such as `a.b`.
     Field(String),
     /// `.[n]` — index into a sequence (negative counts from the end).
     Index(i64),

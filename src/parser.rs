@@ -539,9 +539,11 @@ impl Parser {
         self.expect(&Token::Dot)?;
         let mut steps: Vec<Ast> = Vec::new();
 
-        // Optional first component immediately after the leading dot.
+        // Optional first component immediately after the leading dot. A quoted
+        // key (`."a.b"`, jq's spelling) is the same step as `.["a.b"]`.
+        // Feature f030.
         match self.peek() {
-            Some(Token::Ident(name)) => {
+            Some(Token::Ident(name) | Token::Str(name)) => {
                 let name = name.clone();
                 self.advance();
                 steps.push(Ast::Field(name));
@@ -555,7 +557,7 @@ impl Parser {
     }
 
     /// Consume the chained components that may follow a path's first
-    /// component or a builtin: `[...]`, `.field`, `.[...]`.
+    /// component or a builtin: `[...]`, `.field`, `."quoted key"`, `.[...]`.
     ///
     /// Shared by both so that `to_entries[].key` and `.a[].key` cannot drift
     /// apart in what they accept.
@@ -565,10 +567,11 @@ impl Parser {
             match self.peek() {
                 Some(Token::LBracket) => steps.push(self.parse_bracket()?),
                 Some(Token::Dot) => match self.peek_at(1) {
-                    Some(Token::Ident(name)) => {
+                    // Feature f030: `."a.b"` alongside `.a`.
+                    Some(Token::Ident(name) | Token::Str(name)) => {
                         let name = name.clone();
                         self.advance(); // dot
-                        self.advance(); // ident
+                        self.advance(); // ident or quoted key
                         steps.push(Ast::Field(name));
                     }
                     Some(Token::LBracket) => {
@@ -577,7 +580,7 @@ impl Parser {
                     }
                     other => {
                         return Err(YqrError::parse(format!(
-                            "expected field name or '[' after '.', found {other:?}"
+                            "expected a field name, a quoted key or '[' after '.', found {other:?}"
                         )));
                     }
                 },
@@ -654,6 +657,66 @@ mod tests {
     #[test]
     fn parses_bracket_string_field() {
         assert_eq!(parse(r#".["a b"]"#).unwrap(), Ast::Field("a b".into()));
+    }
+
+    // Feature f030: jq's quoted field is the bracket form under another
+    // spelling, at the head of a path and at every later step.
+    #[test]
+    fn parses_quoted_field() {
+        assert_eq!(parse(r#"."a.b""#).unwrap(), Ast::Field("a.b".into()));
+        assert_eq!(parse(r#"."a.b""#).unwrap(), parse(r#".["a.b"]"#).unwrap());
+        assert_eq!(parse(r#"."""#).unwrap(), Ast::Field(String::new()));
+    }
+
+    #[test]
+    fn parses_quoted_field_in_a_chain() {
+        assert_eq!(
+            parse(r#".labels."app.kubernetes.io/name""#).unwrap(),
+            Ast::pipe(
+                Ast::Field("labels".into()),
+                Ast::Field("app.kubernetes.io/name".into())
+            )
+        );
+        assert_eq!(
+            parse(r#"."a.b".c[0]"#).unwrap(),
+            Ast::pipe(
+                Ast::pipe(Ast::Field("a.b".into()), Ast::Field("c".into())),
+                Ast::Index(0)
+            )
+        );
+        assert_eq!(
+            parse(r#"to_entries[]."k.v""#).unwrap(),
+            Ast::pipe(
+                Ast::pipe(Ast::Builtin(Builtin::ToEntries), Ast::Iterate),
+                Ast::Field("k.v".into())
+            )
+        );
+    }
+
+    #[test]
+    fn quoted_field_is_a_mutation_target() {
+        assert_eq!(
+            parse_program(r#"key(."a.b") = "c""#).unwrap(),
+            Program::Mutate(Mutation::Assign {
+                target: Target::Key(Ast::Field("a.b".into())),
+                rhs: Rhs::Literal(Value::String("c".into())),
+            })
+        );
+        assert_eq!(
+            parse_program(r#"del(."a.b")"#).unwrap(),
+            Program::Mutate(Mutation::Delete {
+                target: Target::Value(Ast::Field("a.b".into())),
+            })
+        );
+    }
+
+    #[test]
+    fn a_dot_followed_by_a_literal_is_still_refused() {
+        let err = parse(".a.5").unwrap_err();
+        assert!(
+            matches!(err, YqrError::Parse(ref m) if m.contains("quoted key")),
+            "{err:?}"
+        );
     }
 
     #[test]

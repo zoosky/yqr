@@ -66,6 +66,10 @@ segments with `push_key` instead of `.`. That is a feature of its own on
 `yqr-a002`'s grammar, not part of an adoption; it is recorded here so the
 next reader of §7.3 knows the upstream side is done.
 
+**Done 2026-09-07 as `yqr-f030`:** `to_noyalib_path` composes with
+`push_key` and is total, `."a.b"` parses, and the `Unaddressable` arm of
+the seam is gone.
+
 ## 5. Benchmarks
 
 `cargo bench --bench eval`, the target `benchmark.yml` tracks, debug-free

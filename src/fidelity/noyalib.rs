@@ -15,7 +15,7 @@ use std::fmt::Write as _;
 use crate::Value;
 
 use crate::error::{Result, YqrError};
-use crate::fidelity::{FidelityEngine, Path, PathSeg, Resolved, Span, Unaddressable};
+use crate::fidelity::{FidelityEngine, Path, PathSeg, Resolved, Span};
 
 /// [`FidelityEngine`] implementation backed by `noyalib::cst`.
 pub(crate) struct NoyalibEngine {
@@ -101,13 +101,7 @@ impl FidelityEngine for NoyalibEngine {
             });
         }
 
-        // noyalib addresses nodes through an unescaped string-path grammar;
-        // a key it cannot express must fail loudly, never resolve wrongly.
-        let Some(path_str) = to_noyalib_path(path) else {
-            return Ok(Resolved::Unaddressable(Unaddressable::SpecialCharKey(
-                offending_key(path),
-            )));
-        };
+        let path_str = to_noyalib_path(path);
 
         let typed = walk_value(&self.values[doc], path.segments());
 
@@ -141,9 +135,7 @@ impl FidelityEngine for NoyalibEngine {
     // Feature f007.
     fn comment_body(&self, doc: usize, path: &Path, head: bool) -> Result<Option<String>> {
         self.check_doc(doc)?;
-        let Some(path_str) = to_noyalib_path(path) else {
-            return Ok(None);
-        };
+        let path_str = to_noyalib_path(path);
         let d = &self.docs[doc];
         if d.span_at(&path_str).is_none() {
             return Ok(None);
@@ -180,15 +172,12 @@ impl FidelityEngine for NoyalibEngine {
 
     fn key_bytes(&self, doc: usize, path: &Path) -> Result<Option<&str>> {
         self.check_doc(doc)?;
-        // The root is the document, not an entry, so it has no key. Same for
-        // a path this backend cannot address — reads stay total, so both are
-        // `None` rather than an error.
+        // The root is the document, not an entry, so it has no key — reads
+        // stay total, so that is `None` rather than an error.
         if path.is_root() {
             return Ok(None);
         }
-        let Some(path_str) = to_noyalib_path(path) else {
-            return Ok(None);
-        };
+        let path_str = to_noyalib_path(path);
         // `key_span` is `None` for exactly the cases with no key token of
         // their own: a sequence item, an absent path, a key produced by a
         // `<<` merge, and alias-expanded content. That makes it both the
@@ -310,44 +299,31 @@ pub(super) fn verify_stream_tiles_input(
     Ok(offsets)
 }
 
-/// The first non-plain key of `path`, for an "unaddressable" diagnostic (empty
-/// when the path has no such key). Shared by the read `resolve` and the write
-/// path-string builder so both name the offending key the same way.
-pub(super) fn offending_key(path: &Path) -> String {
-    path.segments()
-        .iter()
-        .find_map(|seg| match seg {
-            PathSeg::Key(k) if !seg.is_plain() => Some(k.clone()),
-            _ => None,
-        })
-        .unwrap_or_default()
-}
-
-/// Render a [`Path`] in noyalib's string-path grammar (`a.b[0].c`), or `None`
-/// when a key cannot be expressed in it.
+/// Render a [`Path`] in noyalib's string-path grammar: `a.b[0].c`, with any
+/// key the plain spelling would misread bracket-quoted, as in
+/// `labels["app.kubernetes.io/name"]`.
+///
+/// Every key is expressible. One holding `.`, `[`, `]` or `*`, or the empty
+/// key, goes through `noyalib::path::push_key`, which spells it as the
+/// segment every noyalib locator and mutator reads back as exactly that key.
+/// yqr never composes a segment by hand, so it cannot disagree with the
+/// engine about what one means.
 ///
 /// Shared with the write adapter (`super::write`): the read path resolves a
 /// span from this string and the write path targets the same string with a
 /// mutator, so both must address a node identically.
-pub(super) fn to_noyalib_path(path: &Path) -> Option<String> {
+// Feature f030: bracket-quoted segments, in place of the plain-key refusal.
+pub(super) fn to_noyalib_path(path: &Path) -> String {
     let mut out = String::new();
     for seg in path.segments() {
         match seg {
-            PathSeg::Key(k) => {
-                if !seg.is_plain() {
-                    return None;
-                }
-                if !out.is_empty() {
-                    out.push('.');
-                }
-                out.push_str(k);
-            }
+            PathSeg::Key(k) => ::noyalib::path::push_key(&mut out, k),
             PathSeg::Index(i) => {
                 write!(out, "[{i}]").expect("writing to String cannot fail");
             }
         }
     }
-    Some(out)
+    out
 }
 
 /// Walk yqr's typed value by path segments (used to tell "exists without
@@ -561,14 +537,75 @@ mod tests {
         assert!(matches!(e.resolve(0, &path).unwrap(), Resolved::Absent));
     }
 
+    /// The bytes `path` resolves to, or a panic naming what came back.
+    fn found(e: &NoyalibEngine, path: &Path) -> String {
+        match e.resolve(0, path).unwrap() {
+            Resolved::Found { bytes, .. } => bytes.to_string(),
+            other => panic!("expected Found, got {other:?}"),
+        }
+    }
+
+    fn keys(keys: &[&str]) -> Path {
+        keys.iter()
+            .fold(Path::root(), |p, k| p.child(PathSeg::Key((*k).to_string())))
+    }
+
+    // Feature f030: a key the plain path grammar would misread reaches the
+    // engine as a bracket-quoted segment and resolves to its own bytes.
     #[test]
-    fn resolve_special_char_key_is_unaddressable() {
-        let e = engine("'a.b': 1\n");
-        let path = Path::root().child(PathSeg::Key("a.b".into()));
-        assert!(matches!(
-            e.resolve(0, &path).unwrap(),
-            Resolved::Unaddressable(Unaddressable::SpecialCharKey(k)) if k == "a.b"
-        ));
+    fn resolve_special_char_key_is_found() {
+        let e = engine("'a.b': 1\n'*': 2\n'x[0]': 3\n");
+        assert_eq!(found(&e, &keys(&["a.b"])), "1");
+        assert_eq!(found(&e, &keys(&["*"])), "2");
+        assert_eq!(found(&e, &keys(&["x[0]"])), "3");
+    }
+
+    #[test]
+    fn resolve_empty_key_is_found() {
+        let e = engine("'': 1\nx:\n  '': 2\n");
+        assert_eq!(found(&e, &keys(&[""])), "1");
+        assert_eq!(found(&e, &keys(&["x", ""])), "2");
+    }
+
+    #[test]
+    fn resolve_key_holding_a_quote_or_a_backslash_is_found() {
+        let e = engine("'say \"hi\"': q\n'back\\slash': b\n");
+        assert_eq!(found(&e, &keys(&["say \"hi\""])), "q");
+        assert_eq!(found(&e, &keys(&["back\\slash"])), "b");
+    }
+
+    #[test]
+    fn resolve_below_a_dotted_key_is_found() {
+        let e = engine("a.b:\n  xs:\n    - 1\n    - 2\n");
+        let path = keys(&["a.b", "xs"]).child(PathSeg::Index(1));
+        assert_eq!(found(&e, &path), "2");
+    }
+
+    #[test]
+    fn noyalib_path_quotes_only_what_the_plain_spelling_would_misread() {
+        let path = keys(&["labels", "app.kubernetes.io/name"])
+            .child(PathSeg::Index(0))
+            .child(PathSeg::Key(String::new()))
+            .child(PathSeg::Key("*".into()));
+        assert_eq!(
+            to_noyalib_path(&path),
+            r#"labels["app.kubernetes.io/name"][0][""]["*"]"#
+        );
+        assert_eq!(to_noyalib_path(&keys(&["a b/c", "d-e"])), "a b/c.d-e");
+        assert_eq!(to_noyalib_path(&Path::root()), "");
+    }
+
+    #[test]
+    fn key_bytes_of_a_dotted_key_is_its_token() {
+        let e = engine("labels:\n  'a.b': 1\n  c.d: 2\n");
+        assert_eq!(
+            e.key_bytes(0, &keys(&["labels", "a.b"])).unwrap(),
+            Some("'a.b'")
+        );
+        assert_eq!(
+            e.key_bytes(0, &keys(&["labels", "c.d"])).unwrap(),
+            Some("c.d")
+        );
     }
 
     #[test]

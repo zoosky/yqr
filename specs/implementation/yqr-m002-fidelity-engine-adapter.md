@@ -2,7 +2,7 @@
 
 **Status:** In Progress (read floor shipped on the single noyalib backend via `yqr-f002`; backend A retired in `yqr-m005`; write tier unstarted — `yqr-b004` is its driver)
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-03
+**Last updated:** 2026-09-07 (`yqr-f030`: the `Unaddressable` arm removed; every key is addressable)
 **Implements:** `yqr-a001` §4.3 (the source/span implementation seam)
 **Related:** `yqr-b001` (the fidelity bug this unblocks), `yqr-r001` §9, `yqr-r002` (the rust-yaml-vs-noyalib backend decision this abstracts over)
 
@@ -61,21 +61,28 @@ maps to **both** backends. The synthesis:
    implementation with no `unimplemented!` stubs — "can it mutate?" is a
    compile-time fact (does it implement `FidelityEdit`?), surfaced at runtime via
    the `Loaded` enum.
-2. **Per-node `Resolved` enum is the fidelity-correctness core.** A four-way
-   outcome — `Found` / `Synthetic` / `Absent` / `Unaddressable` — keeps jq-`null`
-   (`Absent`) cleanly separate from "this backend cannot slice it faithfully"
-   (`Unaddressable`). The latter triggers *visible* lossy fallback for that one
-   node; every other byte stays faithful. This is what lets two structurally
-   different backends coexist without a lowest-common-denominator.
+2. **Per-node `Resolved` enum is the fidelity-correctness core.** A three-way
+   outcome — `Found` / `Synthetic` / `Absent` — keeps jq-`null` (`Absent`)
+   cleanly separate from a node with no bytes of its own (`Synthetic`), which
+   triggers *visible* typed rendering for that one node; every other byte
+   stays faithful. *Until `yqr-f030` (2026-09-07) a fourth arm,
+   `Unaddressable`, carried "this backend cannot slice it faithfully"; noyalib
+   0.0.33's bracket-quoted path segments made every key addressable and the
+   arm was removed.*
 3. **One structural parse owns both `value()` and `resolve()`.** A contract, not a
    hint: the typed value the evaluator walks and the spans the emitter slices must
    come from the *same* parse, so a path valid against `value()` can never resolve
    to the wrong span (duplicate keys, merge keys, anchors).
 4. **Parsing lives outside the object-safe traits** (the `open()` factory), so the
    trait objects carry no lifetime and each engine owns its source bytes.
-5. **Structured `Path`/`PathSeg` with `is_plain()`** turns noyalib's
-   "no-key-escaping" limit into a *deterministic* `Unaddressable::SpecialCharKey`
-   instead of a silent mis-resolution.
+5. **Structured `Path`/`PathSeg`, lowered through `noyalib::path::push_key`.**
+   A key the plain string-path spelling would misread (`.`, `[`, `]`, `*`,
+   or empty) is bracket-quoted by the engine's own helper, so yqr never
+   composes a segment by hand and cannot disagree with the engine about what
+   one means. *Before `yqr-f030`, `PathSeg::is_plain()` turned the same
+   keys into a deterministic `Unaddressable::SpecialCharKey` instead of a
+   silent mis-resolution; with quoting available the refusal had nothing
+   left to guard.*
 
 ## 4. The interface (canonical)
 
@@ -111,18 +118,6 @@ pub enum PathSeg {
     Index(i64), // may be negative; backend resolves against live length
 }
 
-impl PathSeg {
-    /// Expressible through a plain dotted/bracketed string-path backend (noyalib)
-    /// with no key escaping. Lets such a backend return `Unaddressable`
-    /// deterministically instead of mis-resolving a key like `"a.b"`.
-    pub fn is_plain(&self) -> bool {
-        match self {
-            PathSeg::Index(_) => true,
-            PathSeg::Key(k) => !k.is_empty() && !k.contains(['.', '[', ']', '*']),
-        }
-    }
-}
-
 /// A concrete path root→node. Empty == document root (how `.` round-trips).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Path(pub Vec<PathSeg>);
@@ -132,27 +127,11 @@ impl Path {
     pub fn is_root(&self) -> bool { self.0.is_empty() }
     pub fn child(&self, seg: PathSeg) -> Self { let mut n = self.0.clone(); n.push(seg); Path(n) }
     pub fn segments(&self) -> &[PathSeg] { &self.0 }
-    pub fn is_fully_plain(&self) -> bool { self.0.iter().all(PathSeg::is_plain) }
 }
 
-/// Why a node that genuinely exists cannot be sliced from source on this backend.
-/// NOT absence (jq `null`) — "no faithful span available here".
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Unaddressable {
-    /// Key uses characters a string-path backend cannot express. The rust-yaml
-    /// backend addresses these natively (token-text match) and never returns this
-    /// — a declared, honest inter-backend gap.
-    SpecialCharKey(String),
-    /// Reachable only through an alias/merge; no stable source bytes without
-    /// materialising (write-path concern).
-    AliasIndirect,
-    /// Recognised path, no span index for this node kind yet (e.g. flow interior
-    /// in the first increment). `&str` names the kind for diagnostics.
-    Unindexed(&'static str),
-}
-
-/// Outcome of resolving a concrete path against one document. The four arms are
-/// mutually exclusive and each drives a distinct emit choice in yqr.
+/// Outcome of resolving a concrete path against one document. The three arms are
+/// mutually exclusive and each drives a distinct emit choice in yqr. (A fourth,
+/// `Unaddressable(Unaddressable)`, existed until `yqr-f030`.)
 #[derive(Debug)]
 pub enum Resolved<'a> {
     /// Found. `bytes` is the exact original source (read path emits verbatim);
@@ -163,9 +142,6 @@ pub enum Resolved<'a> {
     Synthetic,
     /// Path does not resolve here. jq `null`, not an error.
     Absent,
-    /// Real node this backend cannot address faithfully. yqr falls back to lossy
-    /// `crate::render` for THIS node only (and may warn); every other byte stays faithful.
-    Unaddressable(Unaddressable),
 }
 
 /// Stable backend id (diagnostics + the `open` factory).
@@ -248,11 +224,12 @@ enforced, one node at a time:
 | `Found { span, bytes }` | node exists with original source bytes | **slice** `bytes` verbatim (zero re-serialization) |
 | `Synthetic` | valid path, implicit node (e.g. implicit null value) | re-serialize from the typed `Value` |
 | `Absent` | path does not resolve | emit `null` (jq semantics) — not an error |
-| `Unaddressable(_)` | real node this backend cannot slice | **visible** lossy fallback via `crate::render` for this node only; everything else faithful |
 
-The critical separation is `Absent` (jq `null`) vs `Unaddressable` (a fidelity
-compromise). Collapsing them — as a naive `Option<Span>` would — is exactly the
-silent-rewrite failure a001 forbids.
+The critical separation is `Absent` (jq `null`) vs `Synthetic` (a real node
+with no bytes of its own, rendered from the typed value). Collapsing them — as
+a naive `Option<Span>` would — is exactly the silent-rewrite failure a001
+forbids. Until `yqr-f030` a fourth row, `Unaddressable(_)`, covered a real
+node the backend could not slice; no such node exists now.
 
 ## 6. Read path and write path
 
@@ -334,7 +311,7 @@ pre-formats to `Verbatim`. Structural edits are a later extension.
 |---|---|
 | `source()` | reconstructed whole-stream bytes (`parse_stream` docs each own a slice) |
 | `value(doc)` | lower `Document::as_value()` (noyalib `Value`) into `rust_yaml::Value` |
-| `resolve(doc, path)` | if `path.is_fully_plain()` → build noyalib string path (`a.b`, `items[0].name`), call `span_at` → `Found`; else → `Unaddressable::SpecialCharKey`; root → whole-doc span; missing → `Absent` |
+| `resolve(doc, path)` | build the noyalib string path through `path::push_key` (`a.b`, `items[0].name`, `labels["app.kubernetes.io/name"]`), call `span_at` → `Found`; root → whole-doc span; missing → `Absent` (`yqr-f030`; before it a non-plain key was `Unaddressable::SpecialCharKey`) |
 | `splice` (`FidelityEdit`) | `Document::replace_span` (`Replacement::Scalar` → `set_value`, scalar-only); `render` via `to_string` |
 
 ## 8. Module layout
@@ -399,7 +376,7 @@ This seam is correct when, on backend A:
 - [ ] A path projection (`.a.b`) emits the selected node's **original bytes**
       (comments/quotes/indent intact), via `Found`.
 - [ ] A computed result (`{x: 1}`, `1+1`) re-serializes (carries no path).
-- [ ] A missing path emits `null` (`Absent`), distinct from any `Unaddressable`.
+- [ ] A missing path emits `null` (`Absent`), distinct from `Synthetic`.
 - [ ] Multi-document, BOM, and CRLF inputs round-trip (doc-boundary policy holds).
 - [ ] (When `FidelityEdit` lands) a single-scalar assignment changes only that
       span; `diff` shows exactly one hunk.
@@ -435,7 +412,9 @@ they do, backend C drops in.
   noyalib's `parse_stream` inter-doc trivia ownership must match.
 - **Inter-backend fidelity divergence is real and by design:** special-char/quoted
   keys are `Found` on backend A (token match) yet `Unaddressable::SpecialCharKey`
-  → lossy on backend C. Documented, not hidden.
+  → lossy on backend C. Documented, not hidden. *Closed: backend A was retired
+  (`yqr-m005`) and backend C addresses them through bracket-quoted segments
+  (`yqr-f030`).*
 - **Provenance threading is an evaluator change** (`eval` carries `Option<Path>`
   beside each `Value`, `None` for computed) — a prerequisite, not part of the trait.
 - **`value()` returns an owned `Value` clone per document** (object-safe; no borrow

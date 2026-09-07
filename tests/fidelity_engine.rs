@@ -125,12 +125,15 @@ fn merged_entry_degrades_to_typed_rendering() {
     assert_eq!(fid(".service.timeout", input, false), "30\n");
 }
 
+// Feature f030: a dotted key reaches the engine as a bracket-quoted segment,
+// so the read is the node's own bytes, quotes included, rather than the typed
+// fallback it used to be.
 #[test]
-fn special_char_key_degrades_to_typed_rendering() {
+fn special_char_key_reads_its_source_bytes() {
     let input = "'a.b': 'quoted value'\n";
-    // The engine cannot address the dotted key; output falls back to the
-    // typed value (quotes normalized away) instead of failing.
-    assert_eq!(fid(r#".["a.b"]"#, input, false), "quoted value\n");
+    assert_eq!(fid(r#".["a.b"]"#, input, false), "'quoted value'\n");
+    assert_eq!(fid(r#"."a.b""#, input, false), "'quoted value'\n");
+    assert_eq!(fid(r#"."a.b""#, input, true), "quoted value\n");
 }
 
 #[test]

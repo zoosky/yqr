@@ -1041,6 +1041,38 @@ pub fn cli_cases() -> Vec<CliCase> {
             stderr: Out::Empty,
             after: None,
         },
+        // Feature f030: the production file's Helm-style dotted keys, through
+        // the quoted field, read and written on the default path.
+        CliCase {
+            id: "cli/values/dotted-key-reads-its-bytes",
+            doc: VALUES,
+            feed: Feed::File,
+            args: &[
+                "._commonOfficeCountry_helmExtraSets.\"office.tenantType\"",
+                "@doc",
+            ],
+            status: 0,
+            stdout: Out::Exact("\"local\"\n"),
+            stderr: Out::Empty,
+            after: Some(Out::Input),
+        },
+        CliCase {
+            id: "cli/values/dotted-key-edited-in-place",
+            doc: VALUES,
+            feed: Feed::File,
+            args: &[
+                "-i",
+                "._commonOfficeCountry_helmExtraSets.\"office.tenantType\" = \"remote\"",
+                "@doc",
+            ],
+            status: 0,
+            stdout: Out::Empty,
+            stderr: Out::Empty,
+            after: Some(Out::Rewrites(&[(
+                "office.tenantType: \"local\"",
+                "office.tenantType: \"remote\"",
+            )])),
+        },
         CliCase {
             id: "cli/values/validate-passes",
             doc: VALUES,
