@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788806708958,
+  "lastUpdate": 1788811797926,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2351,6 +2351,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 259627,
             "range": "± 4031",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "71dca6107f7e1942584db25cb0cea68d55e585d3",
+          "message": "chore: release v0.8.0 (#119)\n\nEleven commits since v0.7.2. Minor, not patch: f030 removed\n`fidelity::Resolved::Unaddressable`, the `Unaddressable` enum and the\ntwo `PathSeg` predicates from the public library API.\n\nThe tool: any mapping key is addressable, dotted ones included, and\n`.\"a.b\"` parses (f030); merge-heavy values files parse everywhere\n(b025); an anchored scalar keeps its anchor on write (b026); `validate`\npositions every finding from the stream, names its document, locates a\nkey collision, and is no longer quadratic (b027, b028); noyalib 0.0.28\nto 0.0.41 across four adoptions, each measured.\n\nDocumentation: every console block on the guide, comparison and README\npages re-run against the 0.8.0 build. What drifted, fixed: the fidelity\npage read `.mode` at the root and showed `640` where the binary prints\n`null`; the validate page showed an indentation error with no position,\nwhich the parser has located since noyalib 0.0.36; the Kubernetes\npage's dotted-key and reorder examples ran against a manifest without\nthe labels and items they address, so the manifest and workflow gained\nthem; the front page and README disagreed on a caret column and both\nwere stale. The README's write and query tables now list what shipped\nin August, replacing an \"unsupported operations\" bullet that named four\noperations that all exist.",
+          "timestamp": "2026-09-07T22:08:34+02:00",
+          "tree_id": "e941f5cacf59f08957e81906e9f6d7bffe30afda",
+          "url": "https://github.com/zoosky/yqr/commit/71dca6107f7e1942584db25cb0cea68d55e585d3"
+        },
+        "date": 1788811795954,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 562,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5817,
+            "range": "± 95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 274758,
+            "range": "± 1050",
             "unit": "ns/iter"
           }
         ]
