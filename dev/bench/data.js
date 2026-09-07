@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788766272851,
+  "lastUpdate": 1788805771372,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2267,6 +2267,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 278948,
             "range": "± 2391",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0fed5664991966e40cc5179110d25e5aeb46fe9",
+          "message": "Address any mapping key: bracket-quoted segments and the .\"a.b\" field (f030) (#117)\n\nA key holding `.`, `[`, `]` or `*`, the Kubernetes label style, could be\nread through `.[\"a.b\"]` only; every write to it was refused with \"cannot\naddress key\", and `key(...)` on it read null. noyalib 0.0.33 added\nbracket-quoted key segments and `path::push_key` (f028 §4); yqr's path\nlowering now composes every key through it and is total, so a dotted key\nis read as its own bytes and reached by assign, insert, del, key(...),\nline_comment, head_comment, swap, move and -i.\n\nThe parser accepts jq's `.\"a.b\"` wherever it accepts `.a`; it is the same\nstep as `.[\"a.b\"]`.\n\nWith no path left unaddressable, `Resolved::Unaddressable`, the\n`Unaddressable` enum, `PathSeg::is_plain` and `PathSeg::key_is_plain`\nare removed, and yqr-m002 records the three-arm seam. The empty-key\nrename pre-check (a002 §5.3) goes too: `.[\"\"]` names the result, so the\naddressable set stays closed under rename without it.\n\nEvery noyalib Document call yqr makes was probed on 0.0.39 with quoted\npaths before the refusals came out; the spec records the table. Corpus:\none classic, two engine, seven write and two CLI cases on genuine\ndocuments.",
+          "timestamp": "2026-09-07T20:27:56+02:00",
+          "tree_id": "62aa451693fa71b2d82b25832c13b1ab19a7ef6a",
+          "url": "https://github.com/zoosky/yqr/commit/f0fed5664991966e40cc5179110d25e5aeb46fe9"
+        },
+        "date": 1788805767782,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 553,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6051,
+            "range": "± 46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 278472,
+            "range": "± 3079",
             "unit": "ns/iter"
           }
         ]
