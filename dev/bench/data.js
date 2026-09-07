@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788688062066,
+  "lastUpdate": 1788766272851,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2225,6 +2225,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 273611,
             "range": "± 2309",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "72aa2aa091c1716115a7c70cd50a02c3b3bc95b6",
+          "message": "Adopt noyalib 0.0.39: trust the stream location, drop the re-parse (f029) (#116)\n\n* Adopt noyalib 0.0.39: trust the stream location, drop the re-parse (f029)\n\n0.0.36 carries yqr's noyalib#408 (b028): the CST stream parser locates\nan error in the stream, as the typed loaders do. The re-parse in\nvalidate that mapped document-relative positions back is gone; positions\ncome straight from the parser, and the collision's document note is\nderived from the marker split and the error's byte index.\n\n0.0.38 suggests the alias's own name when its anchor lives in an earlier\ndocument; the similar-anchor hint now tells that case apart and says\nthat anchors do not cross ---, instead of the false \"declared in the\nsame document\" the old fallback produced.\n\nThe other changes across 0.0.35-0.0.39 are measured against a 0.0.34\nbuild and recorded in the spec and CHANGELOG: new parser diagnostics\npassed through, one upstream parse change (a tab before - on the first\nline is refused), byte-identical writes and normalize output, flat\nbenchmarks.\n\n* Follow the parser's document split, anchor conflicts at the marker, pin the two refusals (f029 review)\n\nA code review of the adoption confirmed six findings against the built\nbinary, all fixed:\n\n- document_starts mirrored only the --- rule while the CST parser\n  splits by tokens: a --- opens a document only after content, and a\n  ... closes at the end of its line. A directive prologue was noted as a\n  document of its own and a collision after a ... was placed in the\n  wrong document. The split now mirrors both rules, and a test holds it\n  to the lengths of the documents the parser returns across seventeen\n  streams.\n- The cross-document hint keys on the same-name suggestion alone, as\n  upstream's Display does, and says \"appears\" rather than \"is declared\":\n  the parser finds that earlier &x by text, so a comment satisfies it.\n- A merge-conflict file is anchored at its first marker whether or not\n  the parser located its own failure; since noyalib 0.0.36 it always\n  does, at a symptom line.\n- Every located finding in a stream carries the \"in document N\" note.\n- The two accept-to-reject changes are pinned in the CLI suite, where\n  a refused document can live; the corpus is the validator's\n  no-false-positives guard.\n- The stream test is named for what it asserts; render::lines, whose\n  only caller was the old marker search, is gone.",
+          "timestamp": "2026-09-07T09:29:48+02:00",
+          "tree_id": "94bed920e8077efa29473f740c1895fcf5c7286d",
+          "url": "https://github.com/zoosky/yqr/commit/72aa2aa091c1716115a7c70cd50a02c3b3bc95b6"
+        },
+        "date": 1788766271554,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 557,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5853,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 278948,
+            "range": "± 2391",
             "unit": "ns/iter"
           }
         ]
