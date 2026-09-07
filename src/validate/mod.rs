@@ -154,38 +154,50 @@ pub fn encoding_diagnostic(valid_prefix: &str) -> Diagnostic {
 /// so directly and anchors itself at the first marker if the parser gave
 /// no location.
 fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
-    let (base, document_note) = match failing_document(err, source) {
-        Some((base, note)) => (Some(base), note),
-        None => (None, None),
-    };
     // Every location the parser reports counts from the start of the
-    // document that failed (see `failing_document`). Positions are derived
-    // from that byte index through yqr's own line model rather than the
+    // input, in a stream too (noyalib 0.0.36). Positions are derived from
+    // that byte index through yqr's own line model rather than the
     // parser's line/column, which does not count lone-CR line breaks and
     // would garble CR-only files.
-    let locate = |index: usize| base.map(|base| render::position_of(source, base + index));
+    let locate = |index: usize| render::position_of(source, index);
+    let starts = document_starts(source);
     // The location-less collision is built only by noyalib's streaming
     // reader, which validate never uses; it is matched so a collision can
     // never degrade to a generic Y001.
     if let ::noyalib::Error::KeyCollision(key) | ::noyalib::Error::KeyCollisionAt { key, .. } = err
     {
-        let position = err.location().and_then(|loc| locate(loc.index()));
-        return key_collision_diagnostic(key, position, document_note);
+        let position = err.location().map(|loc| locate(loc.index()));
+        let note = err
+            .location()
+            .and_then(|loc| document_note(source, &starts, loc.index()));
+        return key_collision_diagnostic(key, position, note);
     }
     let (message, help) = match err {
         ::noyalib::Error::Parse(m) | ::noyalib::Error::ParseWithLocation { message: m, .. } => {
             (m.clone(), None)
         }
         ::noyalib::Error::UnknownAnchorAt {
-            name, suggestion, ..
+            name,
+            location,
+            suggestion,
         } => (
             format!("unknown anchor {name:?}"),
-            suggestion
-                .as_ref()
-                .map(|(s, loc)| match locate(loc.index()) {
-                    Some((line, _)) => format!("a similar anchor &{s} is declared at line {line}"),
-                    None => format!("a similar anchor &{s} is declared in the same document"),
-                }),
+            suggestion.as_ref().map(|(s, at)| {
+                let (line, _) = locate(at.index());
+                // The parser suggests the alias's own name when that anchor
+                // is defined in an earlier document of the stream.
+                if s == name
+                    && document_index(&starts, at.index())
+                        != document_index(&starts, location.index())
+                {
+                    format!(
+                        "&{s} is declared at line {line}, in an earlier document; \
+                         anchors do not cross `---`"
+                    )
+                } else {
+                    format!("a similar anchor &{s} is declared at line {line}")
+                }
+            }),
         ),
         other => {
             // Located variants embed " at line L, column C" in their
@@ -201,7 +213,7 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
             (m, None)
         }
     };
-    let mut position = err.location().and_then(|loc| locate(loc.index()));
+    let mut position = err.location().map(|loc| locate(loc.index()));
     let mut help = help;
     if let Some(marker_line) = first_conflict_marker_line(source) {
         help = Some(format!(
@@ -360,49 +372,35 @@ fn key_collision_diagnostic(
     }
 }
 
-/// Where in `source` the document whose parse failed with `err` starts,
-/// with a note naming that document when `source` is a stream.
-///
-/// The stream parser splits its input at column-0 `---` markers and
-/// parses each document on its own, so every location in `err` counts
-/// from the start of the failing document rather than from the start of
-/// the stream, and the error does not say which document that is. The
-/// documents are re-parsed here in order, the way the stream parser does,
-/// until one fails; the failure has to be the same one, or the parser
-/// split the stream differently than [`document_starts`] did and no
-/// offset is trusted (`None`). A single document starts at byte 0 and
-/// needs no note.
-fn failing_document(err: &::noyalib::Error, source: &str) -> Option<(usize, Option<String>)> {
-    let starts = document_starts(source);
+/// Name the document of a multi-document stream that holds byte `index`,
+/// given the document starts from [`document_starts`]. `None` for a
+/// single-document source, where the note would only repeat the
+/// position.
+fn document_note(source: &str, starts: &[usize], index: usize) -> Option<String> {
     if starts.len() < 2 {
-        return Some((0, None));
+        return None;
     }
-    let config = crate::fidelity::cst_config();
-    for (index, &start) in starts.iter().enumerate() {
-        let end = starts.get(index + 1).copied().unwrap_or(source.len());
-        let Err(again) = ::noyalib::cst::parse_document_with_config(&source[start..end], &config)
-        else {
-            continue;
-        };
-        if again.to_string() != err.to_string() {
-            return None;
-        }
-        let (line, _) = render::position_of(source, start);
-        return Some((
-            start,
-            Some(format!(
-                "in document {} (starting at line {line})",
-                index + 1
-            )),
-        ));
-    }
-    None
+    let document = document_index(starts, index);
+    let (line, _) = render::position_of(source, starts[document]);
+    Some(format!(
+        "in document {} (starting at line {line})",
+        document + 1
+    ))
+}
+
+/// Zero-based index of the document holding byte `index`, given the
+/// document starts from [`document_starts`].
+fn document_index(starts: &[usize], index: usize) -> usize {
+    starts
+        .iter()
+        .rposition(|&start| start <= index)
+        .unwrap_or(0)
 }
 
 /// Byte offsets at which the documents of `source` start: 0, then every
 /// `---` that opens a line and is followed by whitespace or the end of
-/// input — the parser's own boundary rule, mirrored so the two agree on
-/// where each document begins.
+/// input — the parser's own boundary rule, mirrored so the document a
+/// finding is said to be in matches the one the parser failed on.
 fn document_starts(source: &str) -> Vec<usize> {
     let bytes = source.as_bytes();
     let mut starts = vec![0];
@@ -511,8 +509,9 @@ mod tests {
         assert_eq!(d.code, Code::Syntax);
         // The position counts from the start of the stream, not of the
         // document the parser was on: end of input, one past the last
-        // character, exactly where a single document reports it (bug b028;
-        // the parser's document-relative index used to land on the `[`).
+        // character, exactly where a single document reports it. Bug b028:
+        // until noyalib 0.0.36 the parser counted from the document and the
+        // unmapped index landed on the `[`.
         assert_eq!(d.position, Some((3, 7)));
     }
 
@@ -622,19 +621,28 @@ mod tests {
 
     #[test]
     fn located_errors_in_a_stream_count_from_the_failing_document() {
-        // The parser locates an error relative to the document it was
-        // parsing; the finding maps it back onto the stream.
+        // The parser locates an error in the stream (noyalib 0.0.36, bug
+        // b028); the finding renders that position through yqr's line model.
         let findings = check_str("a: 1\n---\nb: 2\n---\nc: *nope\n", false);
         assert_eq!(findings.len(), 1, "findings: {findings:?}");
         assert_eq!(findings[0].code, Code::Syntax);
         assert_eq!(findings[0].position, Some((5, 4)));
-        // The similar-anchor hint is offset the same way.
+        // The similar-anchor hint names the anchor's line in the stream.
         let hinted = check_str("a: 1\n---\nb: &nope 1\nc: *nop\n", false);
         assert_eq!(hinted.len(), 1, "findings: {hinted:?}");
         assert_eq!(hinted[0].position, Some((4, 4)));
         assert_eq!(
             hinted[0].help.as_deref(),
             Some("a similar anchor &nope is declared at line 3")
+        );
+        // An alias to an anchor of an earlier document is suggested under
+        // its own name; the hint says why it does not resolve.
+        let crossed = check_str("a: &x 1\n---\nb: *x\n", false);
+        assert_eq!(crossed.len(), 1, "findings: {crossed:?}");
+        assert_eq!(crossed[0].position, Some((3, 4)));
+        assert_eq!(
+            crossed[0].help.as_deref(),
+            Some("&x is declared at line 1, in an earlier document; anchors do not cross `---`")
         );
     }
 

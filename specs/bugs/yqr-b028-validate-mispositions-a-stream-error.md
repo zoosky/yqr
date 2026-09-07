@@ -111,7 +111,15 @@ guard. The re-parse of the document alone still reports the
 slice-relative line, the stream error now reports the stream line, the
 two strings differ, and every stream finding loses its position. The
 adoption has to drop the re-parse and trust the location; `f029` §2 has
-the diff. The draft as filed, for the record:
+the diff.
+
+**Shipped in noyalib 0.0.36** (2026-09-06; upstream #410 carried the
+cherry-pick of #408 with authorship intact, and #407 is closed as
+completed). **Adopted 2026-09-07 on 0.0.39** by `yqr-f029` §4: the
+re-parse in §2 is gone, every position comes straight from the parser
+through yqr's line model, and the collision's document note is derived
+from the marker split and the error's own byte index. The draft as
+filed, for the record:
 
 > **`parse_stream*` errors carry document-relative locations and no
 > document index.** `cst::parse_stream_with_config` splits at `---` and
