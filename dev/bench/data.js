@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788805771372,
+  "lastUpdate": 1788806708958,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2309,6 +2309,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 278472,
             "range": "± 3079",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "306cc0fdf9ce06e8cd3221cdef21aa66d37c4b9b",
+          "message": "Adopt noyalib 0.0.41: two fixes on paths yqr does not take (f031) (#118)\n\n0.0.40 fixes the serializer's spelling of a tag a %TAG directive\nresolves and the CST formatter's handling of a mapping used as an\nexplicit key and of keep-chomped scalars. Neither path is yqr's: a tag\nis lowered away at the Value boundary before the emitter sees it, and\nyqr does not call the formatter. 0.0.41 is a lockstep CI release with\nno core change.\n\nMeasured against a main build on 0.0.39: 44 reads, writes, validate\nverdicts and --normalize outputs over the release notes' shapes, the\ncorpus deployment and the production values file, byte-identical with\nthe same exit codes; benchmarks flat. The full suite passes on the bare\nbump with no expectation moved.\n\nThe corpus gains a document holding all three shapes, read byte for\nbyte on the engine path and through .foo on the classic one, so a\nrelease that moves either fix onto the emitter yqr does use fails a\ntest rather than passing silently.",
+          "timestamp": "2026-09-07T20:43:38+02:00",
+          "tree_id": "1f9d38816683047342c2a94f5d0d95a145922a76",
+          "url": "https://github.com/zoosky/yqr/commit/306cc0fdf9ce06e8cd3221cdef21aa66d37c4b9b"
+        },
+        "date": 1788806707206,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 692,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5216,
+            "range": "± 62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 259627,
+            "range": "± 4031",
             "unit": "ns/iter"
           }
         ]
