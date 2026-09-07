@@ -125,6 +125,14 @@ pub fn classic_cases() -> Vec<Case> {
             filter: ".metadata.labels[\"app.kubernetes.io/name\"]",
             expect: Expect::Values("web"),
         },
+        // Feature f030: jq's quoted field is the bracket form under another
+        // spelling.
+        Case {
+            id: "field/quoted-special-key",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels.\"app.kubernetes.io/name\"",
+            expect: Expect::Values("web"),
+        },
         Case {
             id: "field/quoted-scalar-value",
             doc: APP_CONFIG,
@@ -407,6 +415,22 @@ pub fn engine_cases() -> Vec<EngineCase> {
             filter: "key(.metadata.name)",
             raw: false,
             expect: "name\n",
+        },
+        // Feature f030: a key holding `.` is addressable, so its token reads
+        // back where it used to read `null` like a keyless node.
+        EngineCase {
+            id: "engine/key/dotted-key-reads-its-token",
+            doc: K8S_DEPLOYMENT,
+            filter: "key(.metadata.labels[\"app.kubernetes.io/name\"])",
+            raw: false,
+            expect: "app.kubernetes.io/name\n",
+        },
+        EngineCase {
+            id: "engine/field/dotted-key-through-the-quoted-field",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels.\"app.kubernetes.io/component\"",
+            raw: true,
+            expect: "frontend\n",
         },
         EngineCase {
             id: "engine/key/merge-produced-key-is-null",
@@ -865,6 +889,67 @@ pub fn write_cases() -> Vec<WriteCase> {
                 ("name: settings", "name: core"),
                 ("name: web", "name: core"),
             ]),
+        },
+        // -- Feature f030: keys the bare spelling cannot hold ----------------
+        // Every verb reaches a key holding `.` through a bracket-quoted
+        // segment, so the standard Kubernetes label block is editable. Each
+        // rewrite below was read off the binary's output on this document.
+        WriteCase {
+            id: "write/dotted-key/assign-in-place",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels[\"app.kubernetes.io/name\"] = \"api\"",
+            expect: WriteExpect::Rewrites(&[(
+                "app.kubernetes.io/name: web",
+                "app.kubernetes.io/name: api",
+            )]),
+        },
+        WriteCase {
+            id: "write/dotted-key/quoted-field-is-the-same-edit",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels.\"app.kubernetes.io/component\" = \"backend\"",
+            expect: WriteExpect::Rewrites(&[("component: frontend", "component: backend")]),
+        },
+        WriteCase {
+            id: "write/dotted-key/insert-beside-dotted-keys",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels[\"app.kubernetes.io/version\"] = \"1.4.2\"",
+            expect: WriteExpect::Rewrites(&[(
+                "    app.kubernetes.io/component: frontend\n",
+                "    app.kubernetes.io/component: frontend\n    app.kubernetes.io/version: 1.4.2\n",
+            )]),
+        },
+        WriteCase {
+            id: "write/dotted-key/delete-takes-its-line",
+            doc: K8S_DEPLOYMENT,
+            filter: "del(.metadata.labels[\"app.kubernetes.io/component\"])",
+            expect: WriteExpect::Rewrites(&[("    app.kubernetes.io/component: frontend\n", "")]),
+        },
+        WriteCase {
+            id: "write/dotted-key/rename-to-a-dotted-key",
+            doc: K8S_DEPLOYMENT,
+            filter: "key(.metadata.labels[\"app.kubernetes.io/name\"]) = \"app.kubernetes.io/part-of\"",
+            expect: WriteExpect::Rewrites(&[(
+                "app.kubernetes.io/name: web",
+                "app.kubernetes.io/part-of: web",
+            )]),
+        },
+        WriteCase {
+            id: "write/dotted-key/inline-comment",
+            doc: K8S_DEPLOYMENT,
+            filter: "line_comment(.metadata.labels.\"app.kubernetes.io/name\") = \"the app\"",
+            expect: WriteExpect::Rewrites(&[(
+                "app.kubernetes.io/name: web\n",
+                "app.kubernetes.io/name: web  # the app\n",
+            )]),
+        },
+        WriteCase {
+            id: "write/dotted-key/head-comment",
+            doc: K8S_DEPLOYMENT,
+            filter: "head_comment(.metadata.labels.\"app.kubernetes.io/name\") = \"selector labels\"",
+            expect: WriteExpect::Rewrites(&[(
+                "    app.kubernetes.io/name: web\n",
+                "    # selector labels\n    app.kubernetes.io/name: web\n",
+            )]),
         },
     ];
     cases.extend(values::write_cases());

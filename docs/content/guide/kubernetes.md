@@ -3,6 +3,7 @@
 # editing, reorder). Bug b012, the dotted-key insert, was the sibling half
 # of the limitation section; fixed in noyalib 0.0.25.
 # "Computing a new value from the old one" is Feature f008.
+# "Keys with dots in them" is Feature f030.
 title: Editing Kubernetes manifests without reformatting them
 lead: >-
   How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.
@@ -124,6 +125,33 @@ used to be refused:
 - **An item of a flow collection** like `ports: [80, 443]`. Exactly one
   separator goes with the item, so you never get `[, 443]` or `[80, ]`.
 
+## Keys with dots in them
+
+Kubernetes labels and annotations are dotted: `app.kubernetes.io/name`. A
+bare path reads that as four steps, so quote the key. Both of jq's
+spellings work, at the head of a path and after any later dot:
+
+```console
+$ yqr -r '.metadata.labels."app.kubernetes.io/name"' deploy.yaml
+web
+$ yqr -r '.metadata.labels["app.kubernetes.io/name"]' deploy.yaml
+web
+```
+
+Every edit works on a quoted key the way it works on a bare one:
+
+```console
+$ yqr -i '.metadata.labels."app.kubernetes.io/name" = "api"' deploy.yaml
+$ yqr -i '.metadata.labels."app.kubernetes.io/version" = "1.4.2"' deploy.yaml  # add one
+$ yqr -i 'del(.metadata.labels."app.kubernetes.io/component")' deploy.yaml
+$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/name"' deploy.yaml
+$ yqr -i 'line_comment(.metadata.labels."app.kubernetes.io/name") = "selector"' deploy.yaml
+```
+
+The quotes belong to the filter, not the file. A new key is written the way
+its neighbours are, so `app.kubernetes.io/version: 1.4.2` lands unquoted
+beside unquoted labels, and a read gives you the bytes as the file has them.
+
 ## Computing a new value from the old one
 
 `=` writes what you tell it. `|=` runs a filter on the value that is already
@@ -244,11 +272,9 @@ failing a batch. Writing to those is refused with the reason, as is a
 rename that would collide with an existing sibling, or one to a name the
 path syntax could not address afterwards.
 
-One edge worth knowing, because it reads as a wrong answer rather than an
-error: a key containing `.` or `[` -- the `app.kubernetes.io/name` style --
-cannot be addressed by the path syntax at all, so `key(...)` on one reports
-`null` like any other keyless node. That limitation is not specific to
-renames; it is the same one listed below.
+A key containing `.` -- the `app.kubernetes.io/name` style -- needs quotes
+in the filter, and then `key(...)` reads and renames it like any other. See
+[Keys with dots in them](#keys-with-dots-in-them).
 
 ## Reordering a list
 
@@ -320,28 +346,6 @@ Being straight about the edges, because finding them yourself is annoying:
 
 - **The right-hand side must be a scalar.** Assigning a whole nested block
   is not supported yet.
-- **Writing a key that contains `.` or `[`** -- the Kubernetes
-  `app.kubernetes.io/name` style. Reading one works with the bracket form:
-
-  ```console
-  $ yqr '.metadata.labels["app.kubernetes.io/name"]' deploy.yaml
-  web
-  ```
-
-  Changing, deleting or renaming it does not:
-
-  ```console
-  $ yqr '.metadata.labels["app.kubernetes.io/name"] = "api"' deploy.yaml
-  yqr: runtime error: cannot address key "app.kubernetes.io/name": it uses
-  characters the write path cannot express
-  ```
-
-  The edit is refused, so nothing is damaged. Adding a **plain-named key next
-  to** dotted ones does work, which is the common case:
-
-  ```console
-  $ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
-  ```
 - **No builtins beyond `to_entries`.** There is no `select`, no `map`, and no
   string interpolation, so a filter cannot yet pick entries by a condition or
   reshape them.

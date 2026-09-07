@@ -12,7 +12,7 @@
 //! - The evaluator threads a concrete [`Path`] alongside each value it
 //!   produces; [`run`] resolves that path per result and chooses between a
 //!   verbatim slice ([`Resolved::Found`]) and a visible, per-node fallback to
-//!   typed rendering ([`Resolved::Synthetic`] / [`Resolved::Unaddressable`]).
+//!   typed rendering ([`Resolved::Synthetic`]).
 //! - Multi-document streams are first-class: the filter runs against every
 //!   document, and identity output concatenates the original document slices
 //!   byte-for-byte.
@@ -75,30 +75,6 @@ pub enum PathSeg {
     Index(usize),
 }
 
-impl PathSeg {
-    /// Whether this segment is expressible through a backend that only speaks
-    /// a plain dotted/bracketed string path with no key escaping. `Index` is
-    /// always plain; a key is plain unless it is empty or contains one of the
-    /// path metacharacters. A string-path backend uses this to report
-    /// [`Unaddressable::SpecialCharKey`] deterministically instead of
-    /// silently resolving the wrong node.
-    #[must_use]
-    pub fn is_plain(&self) -> bool {
-        match self {
-            PathSeg::Index(_) => true,
-            PathSeg::Key(k) => Self::key_is_plain(k),
-        }
-    }
-
-    /// Whether a mapping key string is expressible in a plain dotted/bracketed
-    /// string path. Lets a caller test a bare `&str` key (a not-yet-inserted
-    /// key) without constructing a [`PathSeg`].
-    #[must_use]
-    pub fn key_is_plain(key: &str) -> bool {
-        !key.is_empty() && !key.contains(['.', '[', ']', '*'])
-    }
-}
-
 /// A concrete path from a document root to a single node.
 ///
 /// The empty path denotes the document root, which is how the identity filter
@@ -135,23 +111,14 @@ impl Path {
     }
 }
 
-/// Why a node that exists in the typed value cannot be sliced from the
-/// original source on this backend.
-///
-/// This is deliberately distinct from absence (which is jq `null`): it means
-/// "no faithful span available here", and the caller degrades to lossy
-/// re-serialization *visibly*, for this node only.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Unaddressable {
-    /// The key uses characters the backend's path layer cannot express.
-    SpecialCharKey(String),
-}
-
 /// Outcome of resolving a concrete path against one document.
 ///
-/// The four arms are mutually exclusive and each drives a distinct emit
+/// The three arms are mutually exclusive and each drives a distinct emit
 /// choice: verbatim bytes on `Found`, jq `null` on `Absent`, and a visible
-/// fallback to typed rendering on `Synthetic`/`Unaddressable`.
+/// fallback to typed rendering on `Synthetic`. Every mapping key is
+/// addressable — one holding `.`, `[`, `]` or `*`, or the empty key, reaches
+/// the engine as a bracket-quoted segment — so there is no arm for a node the
+/// engine cannot name.
 #[derive(Debug)]
 pub enum Resolved<'a> {
     /// Node found with original source bytes; the read path emits `bytes`
@@ -170,8 +137,6 @@ pub enum Resolved<'a> {
     Synthetic,
     /// The path does not resolve in this document: jq `null`, not an error.
     Absent,
-    /// The node exists but this backend cannot address it faithfully.
-    Unaddressable(Unaddressable),
 }
 
 /// A source-preserving view over one parsed YAML input (read path).
@@ -230,8 +195,8 @@ pub trait FidelityEngine {
     /// the engine reports, so writing it back reproduces it — the round-trip
     /// property. A multi-line head comment is `\n`-joined.
     ///
-    /// Reads are total, so an unresolved path, an unaddressable key and a
-    /// shape that cannot carry the comment are all `None` rather than errors.
+    /// Reads are total, so an unresolved path and a shape that cannot carry
+    /// the comment are both `None` rather than errors.
     ///
     /// # Errors
     ///
@@ -279,8 +244,8 @@ pub fn open(input: &str) -> Result<Box<dyn FidelityEngine>> {
 ///   multi-document streams),
 /// - other path-derived results emit their original bytes,
 ///   newline-terminated,
-/// - computed, absent, and unaddressable results fall back to yqr's regular
-///   typed rendering (`null` for absent paths, matching jq),
+/// - computed and absent results fall back to yqr's regular typed rendering
+///   (`null` for absent paths, matching jq),
 /// - `raw` keeps its usual meaning: top-level string results print their
 ///   value without quoting.
 ///
@@ -410,9 +375,7 @@ pub fn run_ast(ast: &Ast, input: &str, raw: bool) -> Result<String> {
                         }
                     }
                     Resolved::Absent => out.push_str(&crate::render(&[Value::Null], raw)?),
-                    Resolved::Synthetic | Resolved::Unaddressable(_) => {
-                        out.push_str(&crate::render(&[value], raw)?);
-                    }
+                    Resolved::Synthetic => out.push_str(&crate::render(&[value], raw)?),
                 },
                 None => out.push_str(&crate::render(&[value], raw)?),
             }
@@ -436,15 +399,6 @@ mod tests {
             child.child(PathSeg::Index(2)).segments(),
             &[PathSeg::Key("a".into()), PathSeg::Index(2)]
         );
-    }
-
-    #[test]
-    fn plain_segments() {
-        assert!(PathSeg::Key("normal_key".into()).is_plain());
-        assert!(PathSeg::Index(0).is_plain());
-        assert!(!PathSeg::Key("dotted.key".into()).is_plain());
-        assert!(!PathSeg::Key(String::new()).is_plain());
-        assert!(!PathSeg::Key("a[0]".into()).is_plain());
     }
 
     #[test]

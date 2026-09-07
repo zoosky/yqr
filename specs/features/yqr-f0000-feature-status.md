@@ -97,6 +97,7 @@ dependency/release timing.
 | [f027](yqr-f027-upstream-anchor-policy-and-span-model.md) | Upstream the anchor policy and span model; shrink the definition-write surgery | Draft (ready-to-file issue drafts embedded, every claim measured on 0.0.31; filing is the owner's action) |
 | [f028](yqr-f028-noyalib-0-0-34-adoption.md) | Adopt noyalib 0.0.34: the located key collision, and the stream position it exposed | Done (0.0.34, 2026-09-06: `Y102` points at the colliding key; `b028` found and fixed, every located stream error now positioned from the stream; emitter block-scalar changes and #375 spans measured, nothing else moved) |
 | [f029](yqr-f029-noyalib-407-adoption.md) | Adopt the noyalib release that carries #407: trust the stream location, drop the re-parse | Done (0.0.39, 2026-09-07: the fix shipped in 0.0.36; the re-parse is gone, the cross-document alias hint added; four crossed releases measured, one upstream parse-behaviour change passed through) |
+| [f030](yqr-f030-dotted-key-addressing.md) | Address any mapping key: bracket-quoted segments and the `."a.b"` field | Done (2026-09-07: the `f007` §6 / `a002` §7.3 limit closed on noyalib 0.0.33's quoted segments; every write reaches a dotted key, `Resolved::Unaddressable` removed) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -241,6 +242,18 @@ the positive test would pass on a fix that stripped whitespace
 indiscriminately, and only the controls distinguish the rule that was
 implemented from the easier one.
 
+f030 **done** (2026-09-07): the last addressing item `f007` §6 carried. noyalib
+0.0.33 (`f028` §4) had added bracket-quoted key segments and `path::push_key`;
+yqr's lowering now goes through it and is total, so a key holding `.`, `[`,
+`]` or `*` — the Kubernetes label block — is read as its own bytes and reached
+by every write verb, and `."a.b"` joins `.["a.b"]` in the grammar. Every
+noyalib call yqr makes was probed on 0.0.39 with quoted paths before the
+refusal came out, including nesting *below* a dotted key and the empty key,
+which `.[""]` names — so the `a002` §5.3 empty-key pre-check went too, on its
+own argument. The `Unaddressable` arm of the seam (`m002` §5) had nothing left
+to report and is removed. Still open from `f007` §6: collection right-hand
+sides.
+
 ## Epic: Editing-loop tooling (f012)
 
 | Feature | Title | Status |
@@ -282,11 +295,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 29
+- Total features: 30
 - Draft: 2 (f025, f027)
 - In Progress: 0
-- Done: 23 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
-  f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029)
+- Done: 24 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+  f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
+  f030)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

@@ -402,6 +402,11 @@ addressing work above, which `yqr-a002` §8 explicitly does not decide — the
 delete-delegation question, collection right-hand sides, and keys holding `.`
 or `[`, whose insert face is now filed as `yqr-b012`.)_
 
+_(Keys holding `.` or `[` closed 2026-09-07: `yqr-f030` lowers every key
+through noyalib 0.0.33's bracket-quoted segments, so the whole write tier
+reaches them. The delegation question is settled above; collection
+right-hand sides stay open.)_
+
 ## 7. Key rename (shipped)
 
 `yqr-a002` slice 1, and the first use of its addressing grammar. Landed
@@ -456,7 +461,9 @@ One edge is documented rather than solved: a key holding `.` or `[` is
 unaddressable (§6, `yqr-a002` §7.3), so `key(...)` on one reads `null` — the
 same answer as "this node has no key". Reads are total (`yqr-a002` §4.4) and
 there is no correct typed fallback, so the honest move was to say so in the
-guide. It resolves when the dotted-key item does.
+guide. It resolves when the dotted-key item does — and it did: `yqr-f030`
+(2026-09-07) makes every key addressable, so `key(...)` on a dotted key reads
+its token.
 
 ### 7.4 Coverage
 

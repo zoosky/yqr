@@ -110,9 +110,9 @@ echo "zip: 007" | yqr --normalize '.zip'   # => 7    (re-typed)
 yqr --normalize '.' config.yaml            # comments dropped, scalars canonicalized
 ```
 
-Results that are computed rather than selected (and nodes an engine cannot
-address faithfully — entries merged in via `<<`, alias references) fall back to
-the regular typed rendering. Multi-document inputs run the filter against every
+Results that are computed rather than selected, and nodes with no bytes of
+their own (entries merged in via `<<`, alias references), fall back to the
+regular typed rendering. Multi-document inputs run the filter against every
 document. `-r` keeps its usual meaning and prints string *values*.
 
 Fidelity notes:
@@ -255,7 +255,7 @@ first marker.
 | Filter    | Meaning                                          |
 |-----------|--------------------------------------------------|
 | `.`       | Identity                                         |
-| `.foo`    | Field access (`.["foo"]` for non-bareword keys)  |
+| `.foo`    | Field access (`."a.b"` or `.["a.b"]` for a key the bare form cannot hold) |
 | `.a.b`    | Nested field access                              |
 | `.[n]`    | Array index (`.[-1]` counts from the end)        |
 | `.[]`     | Iterate sequence elements / mapping values       |

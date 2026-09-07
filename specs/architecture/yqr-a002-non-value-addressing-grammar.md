@@ -431,7 +431,7 @@ appear here only where the interesting answer is not "the obvious one".
 | new key collides with an existing sibling | `=` | refuses | forwards: the rename would create a duplicate |
 | new key is `<<` | `=` | refuses | forwards: it would become a merge directive |
 | new key holds a non-printable character (`\n` included) | `=` | refuses, naming the code point | forwards |
-| new key is **empty** | `=` | **`Ok`** — writes `"": 1` | yqr refuses: `key_is_plain` rejects it, so yqr could never address the result again (§7.3) |
+| new key is **empty** | `=` | **`Ok`** — writes `"": 1` | yqr refused: `key_is_plain` rejected it, so yqr could never address the result again (§7.3). **Lifted by `yqr-f030`:** `.[""]` names the result, so the check is gone |
 
 `rename_key` also refuses a bracket segment that is not a non-negative integer
 (`servers[web]`), which is unreachable from yqr: the evaluator resolves every
@@ -452,7 +452,7 @@ Recorded so the seam does not grow a hand-built path string later.
 
 | Case | What yqr does |
 |---|---|
-| any form, key containing `.`, `[`, `]`, `*`, or empty | inherited refusal, §7.3 |
+| any form, key containing `.`, `[`, `]`, `*`, or empty | inherited refusal, §7.3 — **closed by `yqr-f030`**, nothing is refused here now |
 | `foot_comment(...)` | refused when the target is built; no upstream mutator exists (§8) |
 | `del(key(.a))` | refused when the target is built (§2.3): a key cannot outlive its entry; use `del(.a)` |
 | `key(...) += ...`, `line_comment(...) += ...` | refused at parse: `+=` takes a value path |
@@ -591,11 +591,19 @@ after which no yqr path can address the entry again. §5.3 refuses it on the
 same predicate the path lowering already uses, so the addressable set is
 closed under rename.
 
+**Resolved 2026-09-07 (`yqr-f030`).** noyalib 0.0.33 added bracket-quoted
+key segments and `path::push_key`; `to_noyalib_path` composes every key
+through it and is total. `key_is_plain` and the `Unaddressable` arm are
+gone, `."a.b"` parses, and the closure argument holds for the empty key
+too because `.[""]` names it. The label case is now the demo, not the
+caveat.
+
 ## 8. What this does not decide
 
 - **The `.`/`[` key-addressing escape** (§7.3). Orthogonal; noyalib's
   `parse_query_path` has no escape form at all, so it is an upstream grammar
-  question, not a yqr one.
+  question, not a yqr one. *Settled: upstream in noyalib 0.0.33 (#388), in
+  yqr by `yqr-f030`.*
 - **`foot_comment`.** It is a production in §2.3 and a `Target` variant, so the
   parser builds it and then refuses it with a reason instead of reporting an
   unexpected token. There is no upstream mutator and no design here.
@@ -644,6 +652,7 @@ Two things the slice settled that this section had not anticipated:
   Documented in the guide rather than papered over. The value read has the same
   shape — `Unaddressable` degrades to typed rendering — so this is the existing
   contract rather than a new wrinkle, and it resolves when §7.3 does.
+  *Resolved by `yqr-f030`: the key reads its token, the value its bytes.*
 
 **Slice 2 — `line_comment` / `head_comment`. Shipped 2026-08-18
 (`yqr-f007`).** Adds the second and third selectors, `del(...)` composition,

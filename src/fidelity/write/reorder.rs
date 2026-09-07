@@ -34,13 +34,13 @@
 
 // Feature f007 (see specs/features/): write tier — structural edits.
 
-use super::{FidelityWriter, NoyalibWriter, noyalib_path, type_name};
+use super::{FidelityWriter, NoyalibWriter, type_name};
 use crate::Value;
 use crate::ast::ReorderOp;
 use crate::error::{Result, YqrError};
 use crate::eval::resolve_seq_index;
 use crate::fidelity::Path;
-use crate::fidelity::noyalib::walk_value;
+use crate::fidelity::noyalib::{to_noyalib_path, walk_value};
 
 impl NoyalibWriter {
     /// The length of the block sequence a reorder addresses.
@@ -78,7 +78,7 @@ impl NoyalibWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, does not name a sequence, either
+    /// Errors when the path does not name a sequence, either
     /// index falls outside it, or the engine refuses the splice.
     pub(super) fn reorder_items(
         &mut self,
@@ -88,7 +88,7 @@ impl NoyalibWriter {
         from: i64,
         to: i64,
     ) -> Result<()> {
-        let path_str = noyalib_path(path)?;
+        let path_str = to_noyalib_path(path);
         let len = self.reorder_len(doc, path, &path_str, op)?;
         let i = reorder_index(from, len, &path_str, op, true)?;
         let j = reorder_index(to, len, &path_str, op, false)?;
@@ -389,12 +389,13 @@ mod tests {
         );
     }
 
+    // Feature f030: a sequence under a dotted key is reached through a
+    // bracket-quoted segment, so the reorder lands like on any other path.
     #[test]
-    fn a_reorder_of_an_unaddressable_key_is_reported() {
-        let err = format!(
-            "{}",
-            swap(r#".["a.b"]"#, 0, 1, "'a.b':\n  - x\n  - y\n").unwrap_err()
+    fn a_reorder_under_a_dotted_key_lands() {
+        assert_eq!(
+            swap(r#".["a.b"]"#, 0, 1, "'a.b':\n  - x\n  - y\n").unwrap(),
+            "'a.b':\n  - y\n  - x\n"
         );
-        assert!(err.contains("cannot address"), "got: {err}");
     }
 }

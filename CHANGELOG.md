@@ -6,6 +6,21 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **Any mapping key is addressable, dotted ones included.** A key holding
+  `.`, `[`, `]` or `*` -- the Kubernetes `app.kubernetes.io/name` style --
+  could be read through `.["a.b"]` only, and every write to it was refused
+  with "cannot address key". Every operation now reaches it: assignment,
+  inserting a new dotted key, `del`, `key(...)` in both directions,
+  `line_comment` and `head_comment`, `swap` and `move` below it, and `-i`.
+  The read emits the node's own bytes, quotes included, where it used to
+  fall back to the typed value. noyalib 0.0.33's bracket-quoted path
+  segments supply the engine side; yqr lowers every key through them.
+- **`."a.b"`, jq's quoted field.** The same step as `.["a.b"]`, at the
+  head of a path and after any later dot:
+  `.metadata.labels."app.kubernetes.io/name"`.
+
 ### Fixed
 
 - **`validate` explains an alias that reaches into an earlier document.**
@@ -64,6 +79,13 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- **A rename to the empty key is no longer refused.** It was refused
+  because no filter could name the result; `.[""]` names it, so the
+  addressable set stays closed under rename without the check.
+- **Library API:** `fidelity::Resolved::Unaddressable`, the
+  `fidelity::Unaddressable` enum, `PathSeg::is_plain` and
+  `PathSeg::key_is_plain` are gone. No path is unaddressable any more, so
+  the arm had nothing left to report; `Resolved` has three arms.
 - **noyalib 0.0.34 → 0.0.39.** Diagnostics the parser now makes, passed
   through: `!!!int` (one bang too many) is refused with "did you mean
   `!!int`?" where it used to be accepted; a self-referential anchor

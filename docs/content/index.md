@@ -421,6 +421,7 @@ true</pre>
         <tr><td><code>.foo</code></td><td class="meaning">Field access</td></tr>
         <tr><td><code>.a.b</code></td><td class="meaning">Nested field access</td></tr>
         <tr><td><code>.["a.b"]</code></td><td class="meaning">Field access for a key holding a <code>.</code>, <code>/</code> or a space</td></tr>
+        <tr><td><code>."a.b"</code></td><td class="meaning">The same step, spelled the jq way; both forms read and edit the key</td></tr>
         <tr><td><code>.[n]</code></td><td class="meaning">Array index (<code>.[-1]</code> counts from the end)</td></tr>
         <tr><td><code>.[]</code></td><td class="meaning">Iterate sequence elements / mapping values</td></tr>
         <tr><td><code>a | b</code></td><td class="meaning">Pipe</td></tr>

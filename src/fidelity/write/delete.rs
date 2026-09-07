@@ -44,10 +44,10 @@
 
 // Feature f007 (see specs/features/): write tier — structural edits.
 
-use super::{FidelityWriter, NoyalibWriter, noyalib_path};
+use super::{FidelityWriter, NoyalibWriter};
 use crate::Value;
 use crate::error::{Result, YqrError};
-use crate::fidelity::noyalib::walk_value;
+use crate::fidelity::noyalib::{to_noyalib_path, walk_value};
 use crate::fidelity::{Path, PathSeg};
 
 impl NoyalibWriter {
@@ -65,13 +65,11 @@ impl NoyalibWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, uses a source layout this path
-    /// cannot map, or the edit would restructure the document.
+    /// Errors when the path uses a source layout this path cannot map, or the
+    /// edit would restructure the document.
     pub(super) fn delete_entry(&mut self, doc: usize, path: &Path) -> Result<()> {
-        // Fail early on a key the string-path grammar cannot express (the same
-        // honest gap the assign path declares); this also names the target in
-        // every message below.
-        let path_str = noyalib_path(path)?;
+        // Names the target in every message below.
+        let path_str = to_noyalib_path(path);
 
         let Some((last, parent_segs)) = path.segments().split_last() else {
             return Err(YqrError::eval(
@@ -101,8 +99,7 @@ impl NoyalibWriter {
         // misleading message.
         let parent_is_flow = {
             let d = self.doc_ref(doc)?;
-            segs_to_noyalib_path(parent_segs)
-                .and_then(|parent_str| d.get(&parent_str))
+            d.get(&segs_to_noyalib_path(parent_segs))
                 .is_some_and(|bytes| bytes.trim_start().starts_with(['[', '{']))
         };
         if parent_is_flow {
@@ -198,8 +195,8 @@ impl NoyalibWriter {
                     // its indent there emits `on:` / `[]`, which noyalib
                     // accepts and a spec-conformant parser rejects. The
                     // re-parse guard cannot catch it for the same reason.
-                    let key_col = segs_to_noyalib_path(parent_segs)
-                        .and_then(|parent| d.key_span(&parent))
+                    let key_col = d
+                        .key_span(&segs_to_noyalib_path(parent_segs))
                         .map(|(ks, _)| ks - src[..ks].rfind('\n').map_or(0, |n| n + 1));
                     let own_indent = indent_width(&src[start..]);
                     let indent = match key_col {
@@ -400,13 +397,13 @@ fn navigate_mut<'a>(mut value: &'a mut Value, segs: &[PathSeg]) -> Option<&'a mu
 }
 
 /// Lower a segment slice to noyalib's string-path grammar (used to fetch the
-/// parent's bytes for the flow-collection check), or `None` for a non-plain key.
-fn segs_to_noyalib_path(segs: &[PathSeg]) -> Option<String> {
+/// parent's bytes for the flow-collection check).
+fn segs_to_noyalib_path(segs: &[PathSeg]) -> String {
     let mut path = Path::root();
     for seg in segs {
         path = path.child(seg.clone());
     }
-    noyalib_path(&path).ok()
+    to_noyalib_path(&path)
 }
 
 #[cfg(test)]

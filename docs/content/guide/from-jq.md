@@ -48,7 +48,7 @@ services:
 |---|---|
 | `.` | same |
 | `.name`, `.a.b.c` | same |
-| `.["name"]` | same |
+| `.["name"]`, `."a.b"` | same |
 | `.tags[0]`, `.tags[-1]` | same |
 | `.tags[]` | same |
 | `.services[]` | same |

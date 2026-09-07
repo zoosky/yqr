@@ -37,6 +37,7 @@ use crate::eval::{
     AssignTarget, eval_single, resolve_assign_target, resolve_rhs, resolve_target,
     resolve_update_target,
 };
+use crate::fidelity::noyalib::to_noyalib_path;
 use crate::fidelity::{Path, PathSeg};
 
 // Structural delete lives in a sub-module so the byte-arithmetic concern stays
@@ -122,8 +123,8 @@ pub(crate) trait FidelityWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, does not resolve to a scalar, the
-    /// value is a collection, or the edit would re-parse differently.
+    /// Errors when the path does not resolve to a scalar, the value is a
+    /// collection, or the edit would re-parse differently.
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
 
     /// Whether the value at `path` lives elsewhere in the document rather than
@@ -154,20 +155,19 @@ pub(crate) trait FidelityWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the parent is unaddressable, is not a non-empty block
-    /// mapping, or `key` cannot be addressed once written. Also errors when
-    /// the result would not **load back** as the pre-edit value with exactly
-    /// this insertion applied — a stronger contract than "still parses", and
-    /// the one an alternative implementation must meet.
+    /// Errors when the parent is not a non-empty block mapping. Also errors
+    /// when the result would not **load back** as the pre-edit value with
+    /// exactly this insertion applied — a stronger contract than "still
+    /// parses", and the one an alternative implementation must meet.
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()>;
 
     /// Append `value` as a new item to the block sequence at `path`.
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, is not a non-empty block
-    /// sequence, or the result would not load back as the pre-edit value with
-    /// exactly this insertion applied (see [`Self::insert_key`]).
+    /// Errors when the path is not a non-empty block sequence, or the result
+    /// would not load back as the pre-edit value with exactly this insertion
+    /// applied (see [`Self::insert_key`]).
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
 
     /// Remove the block entry at `path`, whether single-line, multi-line, or a
@@ -181,8 +181,7 @@ pub(crate) trait FidelityWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, or the edit would re-parse to a
-    /// different document.
+    /// Errors when the edit would re-parse to a different document.
     fn delete(&mut self, doc: usize, path: &Path) -> Result<()>;
 
     /// Set (or replace) a comment attached to the entry at `path`.
@@ -194,8 +193,8 @@ pub(crate) trait FidelityWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, the entry cannot carry that kind
-    /// of comment, or the block above it is not the entry's to rewrite.
+    /// Errors when the entry cannot carry that kind of comment, or the block
+    /// above it is not the entry's to rewrite.
     fn set_comment(&mut self, doc: usize, path: &Path, kind: CommentKind, text: &str)
     -> Result<()>;
 
@@ -234,8 +233,7 @@ pub(crate) trait FidelityWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable or names a sequence item, when
-    /// `new_key` cannot be addressed once written, when the rename would
+    /// Errors when the path names a sequence item, when the rename would
     /// collide with an existing sibling, and when the entry has no key token
     /// of its own (a `<<` merge or an alias site).
     fn rename_key(&mut self, doc: usize, path: &Path, new_key: &str) -> Result<()>;
@@ -253,8 +251,8 @@ pub(crate) trait FidelityWriter {
     ///
     /// # Errors
     ///
-    /// Errors when the path is unaddressable, does not name a sequence, or
-    /// either index falls outside it, and when the engine refuses the splice
+    /// Errors when the path does not name a sequence, or either index falls
+    /// outside it, and when the engine refuses the splice
     /// or its result fails the integrity check (which leaves the document
     /// unchanged).
     fn reorder(&mut self, doc: usize, path: &Path, op: ReorderOp, from: i64, to: i64)
@@ -280,7 +278,7 @@ pub(crate) trait FidelityWriter {
 /// # Errors
 ///
 /// Returns an error when the input is not valid YAML, the target is
-/// ambiguous/unaddressable, or an edit is refused by the re-parse guard.
+/// ambiguous, or an edit is refused by the re-parse guard.
 pub fn apply(mutation: &Mutation, input: &str) -> Result<String> {
     let mut writer = NoyalibWriter::open(input)?;
     for doc in 0..writer.doc_count() {
@@ -318,7 +316,7 @@ fn append_item(
     current: &Value,
     item: &Value,
 ) -> Result<()> {
-    let path_str = noyalib_path(target)?;
+    let path_str = to_noyalib_path(target);
     let remedy = |v: &Value| match v {
         // Only the numeric arm carries an arithmetic example, because only
         // there does one work: `(. + 1)` over a string is a type error, and a
@@ -575,9 +573,8 @@ fn comment_text(value: &Value) -> Result<String> {
 ///
 /// yqr's path model addresses mapping keys as strings (`PathSeg::Key`), so a
 /// rename target has to be one. A number or boolean would produce an entry the
-/// typed view could hold but no filter could name, which is the same trap the
-/// `key_is_plain` check exists to prevent — refused here, where the message can
-/// name what was given.
+/// typed view could hold but no filter could name — refused here, where the
+/// message can name what was given.
 fn key_name(value: &Value) -> Result<String> {
     match value {
         Value::String(s) => Ok(s.clone()),
@@ -709,11 +706,7 @@ impl NoyalibWriter {
     // Bugs b019, b020.
     fn borrowed_site(&self, doc: usize, path: &Path) -> Result<Option<Borrowed>> {
         let d = self.doc_ref(doc)?;
-        // A path yqr cannot express reaches no site to inspect. Nothing is
-        // established, and the caller's fallback covers it.
-        let Some(path_str) = super::noyalib::to_noyalib_path(path) else {
-            return Ok(None);
-        };
+        let path_str = to_noyalib_path(path);
         // A key the source does not contain is not the mapping's own — a `<<`
         // merge or an alias expansion produced it. Restricting this to paths
         // ending in a key is what keeps a sequence item and the root out: both
@@ -747,8 +740,8 @@ impl NoyalibWriter {
                     Some(prev) => rebased(path, Some(PathSeg::Index(prev))),
                     None => rebased(path, None),
                 };
-                let neighbour = super::noyalib::to_noyalib_path(&neighbour);
-                neighbour.and_then(|n| d.span_at(&n)).map(|(start, end)| {
+                let neighbour = to_noyalib_path(&neighbour);
+                d.span_at(&neighbour).map(|(start, end)| {
                     if i.checked_sub(1).is_some() {
                         end
                     } else {
@@ -789,7 +782,7 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
-        let path_str = noyalib_path(path)?;
+        let path_str = to_noyalib_path(path);
         // A merged-in key is refused either way; what yqr owns here is the
         // *reason*. Only the anchor route is named, because it is the only one
         // that works: writing an *overriding* entry here is this very check,
@@ -860,17 +853,7 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
-        // A key holding `.` or `[` composes into a path meaning something else,
-        // so it cannot be *addressed*. Creating one is still refused here even
-        // though the typed tier can splice it (it only needs a path to replace
-        // an existing key), because a key yqr can write but not read back is
-        // its own trap. Lifting this is tracked as structural-edit work.
-        if !PathSeg::key_is_plain(key) {
-            return Err(YqrError::eval(format!(
-                "cannot create key {key:?}: it uses characters the write path cannot express"
-            )));
-        }
-        let parent_str = noyalib_path(parent)?;
+        let parent_str = to_noyalib_path(parent);
         let ny = insertable(value)?;
         self.doc_mut(doc)?
             .insert_entry_value(&parent_str, key, &ny)
@@ -878,7 +861,7 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
-        let path_str = noyalib_path(path)?;
+        let path_str = to_noyalib_path(path);
         let ny = insertable(value)?;
         self.doc_mut(doc)?
             .push_back_value(&path_str, &ny)
@@ -907,7 +890,7 @@ impl FidelityWriter for NoyalibWriter {
         kind: CommentKind,
         text: &str,
     ) -> Result<()> {
-        let path_str = noyalib_path(path)?;
+        let path_str = to_noyalib_path(path);
         self.check_comment_site(doc, &path_str, kind)?;
         let d = self.doc_mut(doc)?;
         match kind {
@@ -924,9 +907,7 @@ impl FidelityWriter for NoyalibWriter {
         kind: CommentKind,
     ) -> Result<Option<String>> {
         self.doc_ref(doc)?;
-        let Some(path_str) = super::noyalib::to_noyalib_path(path) else {
-            return Ok(None);
-        };
+        let path_str = to_noyalib_path(path);
         // Report nothing at a site `set_comment` would refuse, so an equal
         // body can never stand in for a refusal — the lesson `value_is_borrowed`
         // records on the value side.
@@ -954,7 +935,7 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn remove_comment(&mut self, doc: usize, path: &Path, kind: CommentKind) -> Result<()> {
-        let path_str = noyalib_path(path)?;
+        let path_str = to_noyalib_path(path);
         self.check_comment_site(doc, &path_str, kind)?;
         // Upstream's removers refuse nothing, so "there is no comment here" has
         // to be yqr's own check: `del` is a mutation, and a mutation refuses
@@ -994,19 +975,12 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn rename_key(&mut self, doc: usize, path: &Path, new_key: &str) -> Result<()> {
-        // A key yqr can write but not address again is a trap, and rename is
-        // where the addressable set could stop being closed under editing:
-        // upstream accepts an empty new key and writes `"": 1`, after which no
-        // yqr path reaches the entry. Checked against the same predicate the
-        // path lowering uses, so what a rename can produce is exactly what a
-        // filter can name.
-        if !PathSeg::key_is_plain(new_key) {
-            return Err(YqrError::eval(format!(
-                "cannot rename to {new_key:?}: it uses characters the path grammar \
-                 cannot address, so the renamed entry could not be selected again"
-            )));
-        }
-        let path_str = noyalib_path(path)?;
+        // The addressable set is closed under rename without a check here:
+        // every string is a key some filter can name, the empty one included
+        // (`.[""]`), so no rename can produce an entry yqr cannot reach again.
+        // Upstream still refuses `<<` and a non-printable character, and yqr
+        // forwards both.
+        let path_str = to_noyalib_path(path);
         self.doc_mut(doc)?
             .rename_key(&path_str, new_key)
             .map_err(|e| YqrError::eval(format!("cannot rename key at {path_str:?}: {e}")))
@@ -1055,17 +1029,6 @@ fn rebased(path: &Path, seg: Option<PathSeg>) -> Path {
         Some(s) => out.child(s),
         None => out,
     }
-}
-
-/// Lower a [`Path`] to noyalib's string-path grammar, erroring when a key is
-/// not expressible in it (the same "unaddressable" gap the read path reports).
-fn noyalib_path(path: &Path) -> Result<String> {
-    super::noyalib::to_noyalib_path(path).ok_or_else(|| {
-        let key = super::noyalib::offending_key(path);
-        YqrError::eval(format!(
-            "cannot address key {key:?}: it uses characters the write path cannot express"
-        ))
-    })
 }
 
 /// Lower a scalar [`Value`] to the noyalib value the typed mutators take.
@@ -1375,28 +1338,6 @@ mod tests {
             format!("{err}").contains("merge key"),
             "message should name the merge, got: {err}"
         );
-    }
-
-    #[test]
-    fn rename_refuses_an_empty_key_as_yqrs_own_precheck() {
-        // Upstream accepts this and writes `"": 1`, after which no yqr path
-        // reaches the entry. The refusal is yqr's, so the message is yqr's —
-        // it must not read like a forwarded backend error.
-        let err = rename(".a", "", "a: 1\n").unwrap_err();
-        let text = format!("{err}");
-        assert!(text.contains("could not be selected again"), "got: {text}");
-        assert!(!text.contains("rename_key:"), "should not forward: {text}");
-    }
-
-    #[test]
-    fn rename_refuses_a_key_the_path_grammar_cannot_address() {
-        for bad in ["a.b", "a[0]", "a*b"] {
-            let err = rename(".a", bad, "a: 1\n").unwrap_err();
-            assert!(
-                format!("{err}").contains("cannot rename to"),
-                "{bad:?} should be refused"
-            );
-        }
     }
 
     #[test]
@@ -1886,19 +1827,80 @@ mod tests {
         }
     }
 
+    // Feature f030: a dotted key is addressed through a bracket-quoted
+    // segment, so the write lands on it like on any other key.
     #[test]
-    fn unaddressable_key_is_reported() {
-        // A dotted key cannot be expressed in the string-path grammar. The
-        // value differs from the one in the document, so the write is really
-        // attempted and the limitation is really reached.
-        let err = apply(
+    fn a_dotted_key_is_assigned_in_place() {
+        let out = apply(
             &Mutation::Assign {
                 target: Target::Value(crate::parser::parse(r#".["a.b"]"#).expect("valid")),
                 rhs: Rhs::Literal(Value::Int(2)),
             },
-            "'a.b': 1\n",
+            "'a.b': 1  # kept\nc: 3\n",
         )
-        .unwrap_err();
-        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("cannot address")));
+        .expect("writes");
+        assert_eq!(out, "'a.b': 2  # kept\nc: 3\n");
+    }
+
+    #[test]
+    fn a_dotted_key_is_created_beside_dotted_keys() {
+        let out = apply(
+            &Mutation::Assign {
+                target: Target::Value(
+                    crate::parser::parse(r#".labels["app.kubernetes.io/version"]"#).expect("valid"),
+                ),
+                rhs: Rhs::Literal(Value::String("1.4.2".into())),
+            },
+            "labels:\n  app.kubernetes.io/name: web\n",
+        )
+        .expect("writes");
+        assert_eq!(
+            out,
+            "labels:\n  app.kubernetes.io/name: web\n  app.kubernetes.io/version: 1.4.2\n"
+        );
+    }
+
+    #[test]
+    fn a_rename_to_a_dotted_key_is_addressable_again() {
+        let out = rename(
+            ".labels.name",
+            "app.kubernetes.io/name",
+            "labels:\n  name: web\n",
+        )
+        .expect("renames");
+        assert_eq!(out, "labels:\n  app.kubernetes.io/name: web\n");
+        let again = apply(
+            &Mutation::Assign {
+                target: Target::Value(
+                    crate::parser::parse(r#".labels."app.kubernetes.io/name""#).expect("valid"),
+                ),
+                rhs: Rhs::Literal(Value::String("api".into())),
+            },
+            &out,
+        )
+        .expect("the renamed entry is reachable");
+        assert_eq!(again, "labels:\n  app.kubernetes.io/name: api\n");
+    }
+
+    #[test]
+    fn a_rename_to_the_empty_key_is_addressable_again() {
+        // The empty key used to be refused because no filter could name the
+        // result. `.[""]` names it, so the addressable set stays closed under
+        // rename without the refusal.
+        let out = rename(".a", "", "a: 1\nb: 2\n").expect("renames");
+        let again = apply(
+            &Mutation::Assign {
+                target: Target::Value(crate::parser::parse(r#".[""]"#).expect("valid")),
+                rhs: Rhs::Literal(Value::Int(3)),
+            },
+            &out,
+        )
+        .expect("the renamed entry is reachable");
+        assert_eq!(again.lines().count(), 2);
+        assert!(again.ends_with("b: 2\n"), "{again:?}");
+        assert_eq!(
+            crate::eval_str(r#".[""]"#, &again).expect("evaluates"),
+            vec![Value::Int(3)]
+        );
     }
 }
