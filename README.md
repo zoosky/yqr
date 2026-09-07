@@ -144,10 +144,16 @@ The mutation surface:
 | `<path> = <value>`        | Replace the scalar at `path` (style-matched quoting) |
 | `<path>.<newkey> = <value>` | Add a new mapping entry under an existing mapping  |
 | `<path> += <value>`       | Append an item to the block sequence at `path`       |
+| `<path> \|= <filter>`     | Replace the scalar with the filter's result; `.` is the current value, arithmetic is `+ - * / %` |
 | `del(<path>)`             | Remove the block entry at `path` (single- or multi-line) |
+| `key(<path>) = "new"`     | Rename the key of the entry at `path`; `key(<path>)` reads its token |
+| `line_comment(<path>) = "text"` | Set the `# ...` after the value; `head_comment(...)` the block above it; `del(...)` on either removes it |
+| `swap(<path>; i; j)`, `move(<path>; from; to)` | Reorder a block sequence; comments travel with the item |
 
-`<value>` is a scalar literal (`5`, `1.5`, `"web"`, `true`, `false`, `null`) or a
-`.`-rooted path that copies the value found at another location.
+`<value>` is a scalar literal (`5`, `1.5`, `"web"`, `true`, `false`, `null`), a
+`.`-rooted path that copies the value found at another location, or an
+arithmetic expression over those (`.n = .n + 1`). A key holding `.` or `/`
+is addressed as `."app.kubernetes.io/name"` or `["app.kubernetes.io/name"]`.
 
 ```bash
 # Replace a value; the comment and every other line are preserved verbatim
@@ -194,8 +200,10 @@ Guarantees and limits:
   surviving byte identical. Deleting the *only* entry of a block (which would
   empty it) or an item of a *flow* collection (`[a, b]`) is refused with a clear
   message.
-- **Unsupported operations.** Computed updates (`|=`), key rename, and sequence
-  reorder / comment edits each fail with a clear message.
+- **Refusals name their reason.** A comment write on an entry whose value
+  starts on the next line, a rename that would collide with a sibling, a
+  write to an entry a `<<` merge or alias produced, and a reorder index out
+  of range each fail with exit 5 and a message that says what to do instead.
 
 ## Validating files (`yqr validate`)
 
@@ -221,10 +229,10 @@ a suggested fix where one exists:
 
 ```text
 error[Y001]: expected a node but found StreamEnd
-  --> deploy.yaml:3:1
+  --> deploy.yaml:3:7
   |
 3 | b: [1,
-  | ^
+  |       ^
 ```
 
 A pass certifies more than "parses": the parsed documents must reproduce the
@@ -261,9 +269,13 @@ first marker.
 | `.[]`     | Iterate sequence elements / mapping values       |
 | `a \| b`  | Pipe                                             |
 | `f?`      | Suppress errors from `f`                         |
+| `to_entries` | A mapping as `{key, value}` pairs, in document order |
+| `+ - * / %` | Arithmetic; `+` also joins strings. Integers stay integers |
+| `key(p)`, `line_comment(p)`, `head_comment(p)` | Read a key token or a comment as the file spells it |
 
-Planned: object/array construction, builtins (`length`, `keys`, `select`,
-`map`, …), arithmetic, multi-document/slurp mode, and more. See the spec.
+Not there: object/array construction, `select`, `map`, `length`, `keys`,
+string interpolation, and recursive descent. See the guide's
+[jq comparison](https://zoosky.github.io/yqr/guide/from-jq).
 
 ## Website
 

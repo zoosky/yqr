@@ -119,7 +119,7 @@ landing in a pull request. That is the trade, and it is why the byte-exact
 path is the default and `--normalize` is the flag you have to ask for.
 
 ```console
-$ yqr -rN '.mode' config.yaml
+$ yqr -rN '.defaults.mode' config.yaml
 640
 $ yqr -rN '.ver' config.yaml
 1.1

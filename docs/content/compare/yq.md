@@ -1,8 +1,12 @@
 ---
-# Every command and its output on this page was run against yq v4.53.6 and a
-# real yqr build (v0.7.1). Re-measure rather than re-assert when either moves;
-# see yqr-k001 §7. Traceability: Feature f007 (the write tier the yqr examples
-# use), f012 (validate), f017 (to_entries).
+# Every command and its output on this page was run against yq v4.53.6 and
+# a real yqr build. The yqr commands were re-run against v0.8.0 on
+# 2026-09-07 (first measured on v0.7.1) and every output held. The yq
+# outputs stand as measured on v4.53.6; the v4.53.3 to hand differs only by
+# writing `!!merge <<:` in the anchors round trip. Re-measure rather than
+# re-assert when either moves; see yqr-k001 §7.
+# Traceability: Feature f007 (the write tier the yqr examples use), f012
+# (validate), f017 (to_entries).
 title: yqr and yq -- which tool for which job
 lead: >-
   Two YAML tools with overlapping surfaces and different jobs. Here is what each one is good at, measured rather than argued.

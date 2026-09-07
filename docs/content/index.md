@@ -163,10 +163,10 @@ spec:
       spot:
       <pre><span class="prompt">$</span> yqr validate deploy.yaml
 error[Y001]: expected a node but found StreamEnd
-  --> deploy.yaml:3:3
+  --> deploy.yaml:3:7
   |
 3 | b: [1,
-  |   ^</pre>
+  |       ^</pre>
       <code>--strict</code> also flags duplicate mapping keys
       (<code>Y101</code>) — accepted last-wins by ordinary reads, so a
       bad edit silently drops data — reporting every duplicate,
