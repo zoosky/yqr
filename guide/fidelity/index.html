@@ -359,7 +359,7 @@ now carries its own copies of <code>mode</code> and <code>retries</code>. And <c
 <p>Every one of those is correct as <em>data</em>. None of them is what you want
 landing in a pull request. That is the trade, and it is why the byte-exact
 path is the default and <code>--normalize</code> is the flag you have to ask for.</p>
-<pre><code class="language-console">$ yqr -rN '.mode' config.yaml
+<pre><code class="language-console">$ yqr -rN '.defaults.mode' config.yaml
 640
 $ yqr -rN '.ver' config.yaml
 1.1

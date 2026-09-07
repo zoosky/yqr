@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 1914
+  "wordCount": 1937
 }
 </script>
 <script type="application/ld+json">
@@ -314,6 +314,8 @@ comment explaining a number, and a quoted image reference.</p>
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">labels</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">app</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">app.kubernetes.io/name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">app.kubernetes.io/component</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">frontend
 </span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3          </span><span style="color:#65737e;"># bumped for the Black Friday load test
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">template</span><span style="color:#c0c5ce;">:
@@ -323,6 +325,8 @@ comment explaining a number, and a quoted image reference.</p>
 </span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: &quot;</span><span style="color:#a3be8c;">registry.example.com/web:1.4.2</span><span style="color:#c0c5ce;">&quot;
 </span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">ports</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">            - </span><span style="color:#bf616a;">containerPort</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
+</span><span style="color:#c0c5ce;">        - </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">log-shipper
+</span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: &quot;</span><span style="color:#a3be8c;">registry.example.com/shipper:2.0</span><span style="color:#c0c5ce;">&quot;
 </span></pre>
 <h2 id="reading-a-field">Reading a field<a class="heading-anchor" href="#reading-a-field" aria-label="Link to this section"></a></h2>
 <p>Paths look like jq, because that is the idea:</p>
@@ -359,7 +363,7 @@ one-line diffs, which is a review someone can actually do.</p>
 <h2 id="other-edits-you-can-make-today">Other edits you can make today<a class="heading-anchor" href="#other-edits-you-can-make-today" aria-label="Link to this section"></a></h2>
 <pre><code class="language-console">$ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
 $ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
-$ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
+$ yqr -i 'del(.spec.template.spec.containers[1])' deploy.yaml    # remove an entry
 $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 $ yqr -i 'swap(.spec.template.spec.containers; 0; 1)' deploy.yaml # reorder a list
 </code></pre>
@@ -397,7 +401,7 @@ web
 <pre><code class="language-console">$ yqr -i '.metadata.labels."app.kubernetes.io/name" = "api"' deploy.yaml
 $ yqr -i '.metadata.labels."app.kubernetes.io/version" = "1.4.2"' deploy.yaml  # add one
 $ yqr -i 'del(.metadata.labels."app.kubernetes.io/component")' deploy.yaml
-$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/name"' deploy.yaml
+$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/part-of"' deploy.yaml
 $ yqr -i 'line_comment(.metadata.labels."app.kubernetes.io/name") = "selector"' deploy.yaml
 </code></pre>
 <p>The quotes belong to the filter, not the file. A new key is written the way
@@ -525,6 +529,8 @@ jobs:
       - uses: actions/checkout@v4  # pinned
       - name: test
         run:  cargo test
+      - name: package
+        run: cargo build --release
 $ yqr -i 'swap(.jobs.build.steps; 0; 1)' ci.yaml
 $ cat ci.yaml
 jobs:
@@ -534,6 +540,8 @@ jobs:
         run:  cargo test
       # check out first
       - uses: actions/checkout@v4  # pinned
+      - name: package
+        run: cargo build --release
 </code></pre>
 <p>Both comments moved with the item they document, and the odd spacing in
 <code>run:  cargo test</code> came through untouched, because nothing was re-emitted.</p>

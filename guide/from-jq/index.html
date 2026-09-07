@@ -13,7 +13,7 @@
 
 
 
-<meta name="description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.">
+<meta name="description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.8.0 and jq 1.8.2.">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;from-jq">
@@ -29,7 +29,7 @@
 
 
 <meta property="og:title" content="Coming to yqr from jq">
-<meta property="og:description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.">
+<meta property="og:description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.8.0 and jq 1.8.2.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;from-jq">
 <meta property="og:site_name" content="yqr">
@@ -42,7 +42,7 @@
 
 
 <meta name="twitter:title" content="Coming to yqr from jq">
-<meta name="twitter:description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.">
+<meta name="twitter:description" content="A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.8.0 and jq 1.8.2.">
 
 
 
@@ -92,7 +92,7 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-09-07",
-  "description": "A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.",
+  "description": "A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.8.0 and jq 1.8.2.",
   "inLanguage": "en",
   "name": "Coming to yqr from jq",
   "url": "https://zoosky.github.io/yqr/guide/from-jq",
@@ -327,7 +327,7 @@ else, so it is the only thing on this page you have to actively remember.</p>
 <p>In jq, <code>+=</code> is addition or concatenation, and appending to a list takes a
 <strong>list</strong> on the right. In yqr, <code>+=</code> means <strong>append one element to a
 sequence</strong>, and the right-hand side is the <strong>element</strong>:</p>
-<table><thead><tr><th></th><th>jq 1.8.2</th><th>yqr 0.7.1</th></tr></thead><tbody>
+<table><thead><tr><th></th><th>jq 1.8.2</th><th>yqr 0.8.0</th></tr></thead><tbody>
 <tr><td><code>.tags += ["x"]</code></td><td>appends <code>x</code></td><td>parse error – yqr has no array literal</td></tr>
 <tr><td><code>.tags += "x"</code></td><td>appends the characters <code>x</code></td><td>appends <code>x</code> as one item</td></tr>
 <tr><td><code>.replicas += 1</code></td><td><code>4</code></td><td>error – <code>+=</code> wants a sequence</td></tr>

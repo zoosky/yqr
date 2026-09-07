@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
   "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 903
+  "wordCount": 916
 }
 </script>
 <script type="application/ld+json">
@@ -289,15 +289,22 @@ put in a script or a pre-commit hook.</p>
 documents reproduce the input byte-for-byte, so a file that parses but
 round-trips differently is reported rather than waved through.</p>
 <h2 id="when-something-is-wrong">When something is wrong<a class="heading-anchor" href="#when-something-is-wrong" aria-label="Link to this section"></a></h2>
-<pre><code class="language-console">$ yqr validate broken.yaml
+<pre><code class="language-console">$ cat broken.yaml
+a:
+  b: 1
+ c: 2
+$ yqr validate broken.yaml
 error[Y001]: inconsistent indentation: token at a column that does not match any open block scope
-  --&gt; broken.yaml
+  --&gt; broken.yaml:3:2
+  |
+3 |  c: 2
+  |  ^
 $ echo $?
 1
 </code></pre>
-<p>Diagnostics are compiler-shaped on purpose: an error code, the file, and
-where possible the line, column, and a pointer into the source. That is as
-readable for a person as it is parseable for whatever is running it.</p>
+<p>Diagnostics are compiler-shaped on purpose: an error code, the file, the
+line and column, and a pointer into the source. That is as readable for a
+person as it is parseable for whatever is running it.</p>
 <p>Several files at once works, and the exit code covers all of them:</p>
 <pre><code class="language-console">$ yqr validate deploy.yaml service.yaml configmap.yaml
 </code></pre>

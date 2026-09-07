@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "timestamp": "2026-09-07T18:28:11Z",
+  "timestamp": "2026-09-07T20:08:48Z",
   "pages": {
     "/": {
-      "content_hash": "0a184abed2fcf175",
+      "content_hash": "e398e8629920fc98",
       "template": "home.html.jinja",
-      "template_hash": "27a7d3ac220eefff"
+      "template_hash": "89ccbe3f5d6e623b"
     },
     "/compare": {
       "content_hash": "bc8a282e0d7a7fe3",
@@ -33,22 +33,22 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/fidelity": {
-      "content_hash": "0d479bddeb25f582",
+      "content_hash": "ee782fe00c1e4d1c",
       "template": "fidelity.html.jinja",
       "template_hash": "30406ea523c53def"
     },
     "/guide/from-jq": {
-      "content_hash": "4fed14eb4f4dce03",
+      "content_hash": "935bd05f0c6ca67c",
       "template": "from-jq.html.jinja",
       "template_hash": "30406ea523c53def"
     },
     "/guide/kubernetes": {
-      "content_hash": "4de8335afc7670ab",
+      "content_hash": "c93aa53f3d3d9661",
       "template": "kubernetes.html.jinja",
       "template_hash": "30406ea523c53def"
     },
     "/guide/validate": {
-      "content_hash": "797309097723e8c8",
+      "content_hash": "2497e70fe06a43c9",
       "template": "validate.html.jinja",
       "template_hash": "30406ea523c53def"
     }
@@ -132,7 +132,7 @@
       ]
     },
     "home.html.jinja": {
-      "hash": "a51e3802cf9f2553",
+      "hash": "a2da4141bc8b4f4b",
       "includes": [
         "base.html.jinja"
       ]
@@ -252,5 +252,5 @@
     }
   },
   "config_hash": "f6d6c3b154754094",
-  "theme_hash": "6576d4335a66fb93"
+  "theme_hash": "2e7489902f9fdd6e"
 }

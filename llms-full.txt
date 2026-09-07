@@ -106,7 +106,7 @@ landing in a pull request. That is the trade, and it is why the byte-exact
 path is the default and `--normalize` is the flag you have to ask for.
 
 ```console
-$ yqr -rN '.mode' config.yaml
+$ yqr -rN '.defaults.mode' config.yaml
 640
 $ yqr -rN '.ver' config.yaml
 1.1
@@ -277,7 +277,7 @@ In jq, `+=` is addition or concatenation, and appending to a list takes a
 **list** on the right. In yqr, `+=` means **append one element to a
 sequence**, and the right-hand side is the **element**:
 
-| | jq 1.8.2 | yqr 0.7.1 |
+| | jq 1.8.2 | yqr 0.8.0 |
 |---|---|---|
 | `.tags += ["x"]` | appends `x` | parse error -- yqr has no array literal |
 | `.tags += "x"` | appends the characters `x` | appends `x` as one item |
@@ -415,6 +415,8 @@ metadata:
   name: web
   labels:
     app: web
+    app.kubernetes.io/name: web
+    app.kubernetes.io/component: frontend
 spec:
   replicas: 3          # bumped for the Black Friday load test
   template:
@@ -424,6 +426,8 @@ spec:
           image: "registry.example.com/web:1.4.2"
           ports:
             - containerPort: 8080
+        - name: log-shipper
+          image: "registry.example.com/shipper:2.0"
 ```
 
 ## Reading a field
@@ -482,7 +486,7 @@ one-line diffs, which is a review someone can actually do.
 ```console
 $ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
 $ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
-$ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
+$ yqr -i 'del(.spec.template.spec.containers[1])' deploy.yaml    # remove an entry
 $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 $ yqr -i 'swap(.spec.template.spec.containers; 0; 1)' deploy.yaml # reorder a list
 ```
@@ -527,7 +531,7 @@ Every edit works on a quoted key the way it works on a bare one:
 $ yqr -i '.metadata.labels."app.kubernetes.io/name" = "api"' deploy.yaml
 $ yqr -i '.metadata.labels."app.kubernetes.io/version" = "1.4.2"' deploy.yaml  # add one
 $ yqr -i 'del(.metadata.labels."app.kubernetes.io/component")' deploy.yaml
-$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/name"' deploy.yaml
+$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/part-of"' deploy.yaml
 $ yqr -i 'line_comment(.metadata.labels."app.kubernetes.io/name") = "selector"' deploy.yaml
 ```
 
@@ -689,6 +693,8 @@ jobs:
       - uses: actions/checkout@v4  # pinned
       - name: test
         run:  cargo test
+      - name: package
+        run: cargo build --release
 $ yqr -i 'swap(.jobs.build.steps; 0; 1)' ci.yaml
 $ cat ci.yaml
 jobs:
@@ -698,6 +704,8 @@ jobs:
         run:  cargo test
       # check out first
       - uses: actions/checkout@v4  # pinned
+      - name: package
+        run: cargo build --release
 ```
 
 Both comments moved with the item they document, and the odd spacing in
@@ -928,16 +936,23 @@ round-trips differently is reported rather than waved through.
 ## When something is wrong
 
 ```console
+$ cat broken.yaml
+a:
+  b: 1
+ c: 2
 $ yqr validate broken.yaml
 error[Y001]: inconsistent indentation: token at a column that does not match any open block scope
-  --> broken.yaml
+  --> broken.yaml:3:2
+  |
+3 |  c: 2
+  |  ^
 $ echo $?
 1
 ```
 
-Diagnostics are compiler-shaped on purpose: an error code, the file, and
-where possible the line, column, and a pointer into the source. That is as
-readable for a person as it is parseable for whatever is running it.
+Diagnostics are compiler-shaped on purpose: an error code, the file, the
+line and column, and a pointer into the source. That is as readable for a
+person as it is parseable for whatever is running it.
 
 Several files at once works, and the exit code covers all of them:
 
