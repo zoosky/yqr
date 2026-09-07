@@ -11,11 +11,15 @@ All notable changes to `yqr` are documented here. The format is based on
 - **`validate` explains an alias that reaches into an earlier document.**
   `b: *x` after a `---`, with `&x` defined in the document before, was an
   "unknown anchor" with a hint about a similar anchor; the hint now says
-  the anchor is declared at its line in an earlier document and that
-  anchors do not cross `---`. The position is right too: with noyalib
-  0.0.36 the parser counts every stream error from the start of the
-  stream, so yqr's re-parse that mapped document-relative positions back
-  is gone.
+  where that `&x` appears in an earlier document and that anchors do not
+  cross `---`. The position is right too: with noyalib 0.0.36 the parser
+  counts every stream error from the start of the stream, so yqr's
+  re-parse that mapped document-relative positions back is gone.
+- **Every finding in a stream names its document.** The "in document N
+  (starting at line L)" note used to be attached to a key collision only;
+  a syntax error in the twelfth document of a manifest now says so too.
+  The document count follows the parser's rules for a `...` and for a
+  directive or comment prologue, which the earlier note got wrong.
 - **`validate` points at the right line in a multi-document stream.** A
   parse error in any document after the first was placed as if that
   document started the file: an unknown anchor on line 5 was reported at

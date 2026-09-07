@@ -75,10 +75,48 @@ every entry point on 0.0.39.
 earlier document of the stream (its Display says "anchors do not cross
 `---`"), and on the unadopted code that case rendered no position and
 the fallback "declared in the same document", which is false. The
-similar-anchor arm now tells the two apart — same name, different
-document by `document_index` — and says "`&x` is declared at line 1,
-in an earlier document; anchors do not cross `---`". One test added for
-it; the four §1 tests unchanged.
+similar-anchor arm now tells the two apart the way upstream's own
+Display does, by the suggestion carrying the alias's own name, and says
+"`&x` appears at line 1, in an earlier document; anchors do not cross
+`---`". "Appears", not "is declared": the parser finds that earlier
+`&x` by a text search over the earlier bytes, so a `# see &x` comment
+satisfies it (measured; the test pins it). Tests added for `---`, `...`
+and the comment; the four §1 tests unchanged.
+
+**Review round.** A code review of the adoption confirmed six findings
+against the built binary, all fixed here:
+
+- `document_starts` mirrored only the `---` rule, while the CST parser
+  splits by tokens: a `---` opens a document only after content
+  (directives, comments and blank lines ahead of it are its prologue),
+  and a `...` closes at the end of its line. So `%YAML 1.2\n---\n1: a\n"1":
+  b\n` was noted as "document 2" on a one-document file, and a collision
+  after a `...` was placed in the wrong document, where the deleted
+  re-parse guard had stayed silent. The split now mirrors both rules,
+  and a test holds it to the byte lengths of the documents the parser
+  returns across seventeen streams (prologues, `...` before content, a
+  `...` closing nothing, a trailing comment after `...`, CRLF, a BOM).
+- The cross-document hint keyed on that split, so a `...` boundary lost
+  it; it keys on the same-name suggestion alone now, as above.
+- A merge-conflict file is anchored at its first marker again. Since
+  noyalib 0.0.36 every scanner error carries a position, so the parser's
+  own caret landed on the `>>>>>>>` line while the help named line 2;
+  the marker wins whenever there is one, and the tests pin `2:1`
+  instead of "some position".
+- The two accept-to-reject changes (`<tab>- a` on the first line,
+  `!!!int`) are pinned, so a later release that takes either back fails a
+  test; the pin comment counted one. They live in the CLI suite, not the
+  corpus: `yqr-m003` makes every corpus document one the validator must
+  accept, and a first attempt to add them there failed exactly that
+  guard.
+- Every located finding in a stream now carries the "in document N"
+  note, not only a collision; it is a pure function of the split.
+- The stream test is renamed to what it asserts
+  (`located_errors_in_a_stream_count_from_the_stream`).
+
+What the review found and this does not do: the parser's earlier-anchor
+search is textual where the typed loaders keep real definitions; that
+is upstream's to align, and the hint's wording no longer depends on it.
 
 **The crossed releases.** Measured against a `main` build on 0.0.34,
 same inputs through both binaries:

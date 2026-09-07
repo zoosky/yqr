@@ -49,8 +49,9 @@ clap = { version = "4.6.1", features = ["derive"] }
 # crates.io 0.0.39 release. 0.0.36 carries yqr's noyalib#408 (b028): the CST
 # stream parser locates an error in the stream, as the typed loaders do, so
 # `validate` reads positions straight from the parser. 0.0.38 diagnoses a
-# cross-document alias and `!!!int`; 0.0.36 refuses a tab before `-` on the
-# first line, its one parse change. 0.0.33 locates a stringified-key
+# cross-document alias. Two files that read on 0.0.34 are refused now, both
+# pinned in the CLI suite: a tab before `-` on the first line (0.0.36) and
+# a `!!!int` tag (0.0.38). 0.0.33 locates a stringified-key
 # collision (`Error::KeyCollisionAt`), which `validate` reports as a
 # positioned Y102, and adds bracket-quoted key segments to the path grammar,
 # the upstream half of the dotted-key addressing limit (f007 s6); its emitter

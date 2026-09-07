@@ -16,7 +16,7 @@ use super::Diagnostic;
 ///
 /// Splits on `\r\n`, `\n`, and lone `\r` — the YAML line-break set — so
 /// line numbers agree with the parser's own accounting.
-fn line_spans(source: &str) -> Vec<(usize, usize)> {
+pub(crate) fn line_spans(source: &str) -> Vec<(usize, usize)> {
     let bytes = source.as_bytes();
     let mut spans = Vec::new();
     let mut start = 0;
@@ -55,16 +55,6 @@ pub(crate) fn line_count(source: &str) -> usize {
 pub(crate) fn line_text(source: &str, line: usize) -> Option<&str> {
     let (start, end) = *line_spans(source).get(line.checked_sub(1)?)?;
     Some(&source[start..end])
-}
-
-/// Every line of `source` in order, breaks excluded, from one pass over
-/// the line table. Callers that visit every line use this rather than
-/// `line_text` in a loop, which would rebuild the table per line and turn
-/// a whole-file scan quadratic. Bug b027.
-pub(crate) fn lines(source: &str) -> impl Iterator<Item = &str> {
-    line_spans(source)
-        .into_iter()
-        .map(move |(start, end)| &source[start..end])
 }
 
 /// The 1-based `(line, column)` of byte offset `byte` in `source`.
