@@ -253,6 +253,28 @@ pub const BLANK_TAIL_FRAGMENT: &str = concat!(
     "digest:",
 );
 
+/// A document with a `%TAG` directive, a mapping used as an explicit key
+/// and a keep-chomped block scalar: the three shapes noyalib 0.0.40 fixed
+/// in its serializer and formatter. Neither of those is on yqr's path — a
+/// tag is lowered away at the `Value` boundary and yqr does not use the
+/// formatter — so the default read has to reproduce this byte for byte,
+/// and a release that moved either fix onto the emitter yqr does use would
+/// show here first.
+// Feature f031.
+pub const TAG_DIRECTIVE_EXPLICIT_KEY: &str = "\
+%TAG !e! tag:example.com,2000:app/
+---
+foo: !e!bar baz
+plain: !!str 007
+? a: 1
+  b: 2
+: value
+k: |+
+  kept
+
+next: 1
+";
+
 /// Build a large inventory document with `n` host records — used by the
 /// benchmark to measure iteration/projection at scale. Only the benchmark crate
 /// consumes it, so it is dead code from the validation crate's point of view.
