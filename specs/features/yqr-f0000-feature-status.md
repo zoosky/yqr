@@ -98,6 +98,7 @@ dependency/release timing.
 | [f028](yqr-f028-noyalib-0-0-34-adoption.md) | Adopt noyalib 0.0.34: the located key collision, and the stream position it exposed | Done (0.0.34, 2026-09-06: `Y102` points at the colliding key; `b028` found and fixed, every located stream error now positioned from the stream; emitter block-scalar changes and #375 spans measured, nothing else moved) |
 | [f029](yqr-f029-noyalib-407-adoption.md) | Adopt the noyalib release that carries #407: trust the stream location, drop the re-parse | Done (0.0.39, 2026-09-07: the fix shipped in 0.0.36; the re-parse is gone, the cross-document alias hint added; four crossed releases measured, one upstream parse-behaviour change passed through) |
 | [f030](yqr-f030-dotted-key-addressing.md) | Address any mapping key: bracket-quoted segments and the `."a.b"` field | Done (2026-09-07: the `f007` §6 / `a002` §7.3 limit closed on noyalib 0.0.33's quoted segments; every write reaches a dotted key, `Resolved::Unaddressable` removed) |
+| [f031](yqr-f031-noyalib-0-0-41-adoption.md) | Adopt noyalib 0.0.41: two fixes on paths yqr does not take | Done (0.0.41, 2026-09-07: 44 comparisons against the 0.0.39 build byte-identical; the fixed serializer and formatter paths are unreachable from yqr; benchmarks flat; the three shapes pinned in the corpus) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -254,6 +255,18 @@ own argument. The `Unaddressable` arm of the seam (`m002` §5) had nothing left
 to report and is removed. Still open from `f007` §6: collection right-hand
 sides.
 
+f031 **done** (2026-09-07): noyalib 0.0.40 and 0.0.41, the same day as f030.
+0.0.40's two fixes are in the serializer (a `%TAG`-resolved tag written in a
+form that did not read back) and the CST formatter (a mapping used as an
+explicit key torn apart; a keep-chomped scalar growing a newline per format).
+yqr reaches neither: a tag is lowered away at the `Value` boundary before the
+emitter sees it, and yqr does not call the formatter. So the adoption is a
+measurement — 44 reads, writes, `validate` verdicts and `--normalize` outputs
+through both builds, byte-identical with the same exit codes; benchmarks flat
+— plus a corpus document holding all three shapes, so a release that moves
+either fix onto the emitter yqr does use would fail a test rather than pass
+silently. 0.0.41 is a lockstep CI release with no core change.
+
 ## Epic: Editing-loop tooling (f012)
 
 | Feature | Title | Status |
@@ -295,12 +308,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 30
+- Total features: 31
 - Draft: 2 (f025, f027)
 - In Progress: 0
-- Done: 24 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 25 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030)
+  f030, f031)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

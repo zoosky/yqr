@@ -86,6 +86,13 @@ All notable changes to `yqr` are documented here. The format is based on
   `fidelity::Unaddressable` enum, `PathSeg::is_plain` and
   `PathSeg::key_is_plain` are gone. No path is unaddressable any more, so
   the arm had nothing left to report; `Resolved` has three arms.
+- **noyalib 0.0.39 → 0.0.41.** No observable change, measured: 0.0.40
+  fixes the serializer's spelling of a tag a `%TAG` directive resolves,
+  and the CST formatter's handling of a mapping used as an explicit key
+  and of keep-chomped scalars. yqr lowers tags away at its value boundary
+  and does not use the formatter, so every read, write, `validate`
+  verdict and `--normalize` output compared against the 0.0.39 build is
+  byte-identical, exit codes included. 0.0.41 has no core change.
 - **noyalib 0.0.34 → 0.0.39.** Diagnostics the parser now makes, passed
   through: `!!!int` (one bang too many) is refused with "did you mean
   `!!int`?" where it used to be accepted; a self-referential anchor

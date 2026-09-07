@@ -82,7 +82,7 @@ pub struct EngineCase {
 
 use docs::{
     APP_CONFIG, BLANK_TAIL_FRAGMENT, CRLF_APP_CONFIG, DOCKER_COMPOSE, FIDELITY_RICH, GH_ACTIONS,
-    GH_ACTIONS_FLOW, HELM_VALUES, K8S_DEPLOYMENT, MULTI_DOC,
+    GH_ACTIONS_FLOW, HELM_VALUES, K8S_DEPLOYMENT, MULTI_DOC, TAG_DIRECTIVE_EXPLICIT_KEY,
 };
 
 /// Every classic-pipeline case. Covers identity, field access (top-level,
@@ -132,6 +132,14 @@ pub fn classic_cases() -> Vec<Case> {
             doc: K8S_DEPLOYMENT,
             filter: ".metadata.labels.\"app.kubernetes.io/name\"",
             expect: Expect::Values("web"),
+        },
+        // Feature f031: a tag is lowered away at the value boundary, so the
+        // classic pipeline sees the scalar under it.
+        Case {
+            id: "field/tagged-scalar-is-its-value",
+            doc: TAG_DIRECTIVE_EXPLICIT_KEY,
+            filter: ".foo",
+            expect: Expect::Values("baz"),
         },
         Case {
             id: "field/quoted-scalar-value",
@@ -385,6 +393,15 @@ pub fn engine_cases() -> Vec<EngineCase> {
         },
         // Bug b022 §3: the misparse never cost bytes, and the fix must not
         // either. A document with no trailing newline comes back without one.
+        // Feature f031: the shapes noyalib 0.0.40 fixed in its serializer and
+        // formatter, neither of which the default read goes through.
+        EngineCase {
+            id: "engine/identity/tag-directive-explicit-key-keep-chomped",
+            doc: TAG_DIRECTIVE_EXPLICIT_KEY,
+            filter: ".",
+            raw: false,
+            expect: TAG_DIRECTIVE_EXPLICIT_KEY,
+        },
         EngineCase {
             id: "engine/identity/blank-tail-fragment",
             doc: BLANK_TAIL_FRAGMENT,
