@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-27",
+  "dateModified": "2026-09-07",
   "description": "A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.",
   "inLanguage": "en",
   "name": "Coming to yqr from jq",
   "url": "https://zoosky.github.io/yqr/guide/from-jq",
-  "wordCount": 996
+  "wordCount": 997
 }
 </script>
 <script type="application/ld+json">
@@ -292,7 +292,7 @@ has no way to express.</p>
 <table><thead><tr><th>Your jq habit</th><th>In yqr</th></tr></thead><tbody>
 <tr><td><code>.</code></td><td>same</td></tr>
 <tr><td><code>.name</code>, <code>.a.b.c</code></td><td>same</td></tr>
-<tr><td><code>.["name"]</code></td><td>same</td></tr>
+<tr><td><code>.["name"]</code>, <code>."a.b"</code></td><td>same</td></tr>
 <tr><td><code>.tags[0]</code>, <code>.tags[-1]</code></td><td>same</td></tr>
 <tr><td><code>.tags[]</code></td><td>same</td></tr>
 <tr><td><code>.services[]</code></td><td>same</td></tr>
@@ -466,7 +466,7 @@ already know.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-27</span>
+        <span>Site last updated: 2026-09-07</span>
         
     </footer>
 

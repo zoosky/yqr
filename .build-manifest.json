@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "timestamp": "2026-08-27T11:01:35Z",
+  "timestamp": "2026-09-07T18:28:11Z",
   "pages": {
     "/": {
-      "content_hash": "d332d9ba9870766c",
+      "content_hash": "0a184abed2fcf175",
       "template": "home.html.jinja",
       "template_hash": "27a7d3ac220eefff"
     },
@@ -38,12 +38,12 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/from-jq": {
-      "content_hash": "1f89ab5f6da8b939",
+      "content_hash": "4fed14eb4f4dce03",
       "template": "from-jq.html.jinja",
       "template_hash": "30406ea523c53def"
     },
     "/guide/kubernetes": {
-      "content_hash": "80f360c02a5fa867",
+      "content_hash": "4de8335afc7670ab",
       "template": "kubernetes.html.jinja",
       "template_hash": "30406ea523c53def"
     },

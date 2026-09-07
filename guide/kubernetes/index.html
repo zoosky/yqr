@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-08-27",
+  "dateModified": "2026-09-07",
   "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 1886
+  "wordCount": 1914
 }
 </script>
 <script type="application/ld+json">
@@ -258,6 +258,10 @@
         </li>
     
         <li class="toc-level-2">
+            <a href="#keys-with-dots-in-them">Keys with dots in them</a>
+        </li>
+    
+        <li class="toc-level-2">
             <a href="#computing-a-new-value-from-the-old-one">Computing a new value from the old one</a>
         </li>
     
@@ -380,6 +384,25 @@ left behind describing an empty collection.</p>
 separator goes with the item, so you never get <code>[, 443]</code> or <code>[80, ]</code>.</p>
 </li>
 </ul>
+<h2 id="keys-with-dots-in-them">Keys with dots in them<a class="heading-anchor" href="#keys-with-dots-in-them" aria-label="Link to this section"></a></h2>
+<p>Kubernetes labels and annotations are dotted: <code>app.kubernetes.io/name</code>. A
+bare path reads that as four steps, so quote the key. Both of jq’s
+spellings work, at the head of a path and after any later dot:</p>
+<pre><code class="language-console">$ yqr -r '.metadata.labels."app.kubernetes.io/name"' deploy.yaml
+web
+$ yqr -r '.metadata.labels["app.kubernetes.io/name"]' deploy.yaml
+web
+</code></pre>
+<p>Every edit works on a quoted key the way it works on a bare one:</p>
+<pre><code class="language-console">$ yqr -i '.metadata.labels."app.kubernetes.io/name" = "api"' deploy.yaml
+$ yqr -i '.metadata.labels."app.kubernetes.io/version" = "1.4.2"' deploy.yaml  # add one
+$ yqr -i 'del(.metadata.labels."app.kubernetes.io/component")' deploy.yaml
+$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/name"' deploy.yaml
+$ yqr -i 'line_comment(.metadata.labels."app.kubernetes.io/name") = "selector"' deploy.yaml
+</code></pre>
+<p>The quotes belong to the filter, not the file. A new key is written the way
+its neighbours are, so <code>app.kubernetes.io/version: 1.4.2</code> lands unquoted
+beside unquoted labels, and a read gives you the bytes as the file has them.</p>
 <h2 id="computing-a-new-value-from-the-old-one">Computing a new value from the old one<a class="heading-anchor" href="#computing-a-new-value-from-the-old-one" aria-label="Link to this section"></a></h2>
 <p><code>=</code> writes what you tell it. <code>|=</code> runs a filter on the value that is already
 there and writes the result, so you can say “one more than this” without
@@ -476,11 +499,9 @@ key that arrived through a <code>&lt;&lt;</code> merge, so both read <code>null<
 failing a batch. Writing to those is refused with the reason, as is a
 rename that would collide with an existing sibling, or one to a name the
 path syntax could not address afterwards.</p>
-<p>One edge worth knowing, because it reads as a wrong answer rather than an
-error: a key containing <code>.</code> or <code>[</code> – the <code>app.kubernetes.io/name</code> style –
-cannot be addressed by the path syntax at all, so <code>key(...)</code> on one reports
-<code>null</code> like any other keyless node. That limitation is not specific to
-renames; it is the same one listed below.</p>
+<p>A key containing <code>.</code> – the <code>app.kubernetes.io/name</code> style – needs quotes
+in the filter, and then <code>key(...)</code> reads and renames it like any other. See
+<a href="#keys-with-dots-in-them">Keys with dots in them</a>.</p>
 <h2 id="reordering-a-list">Reordering a list<a class="heading-anchor" href="#reordering-a-list" aria-label="Link to this section"></a></h2>
 <p>An ordering is the one thing here with no node to name – there is no path
 that means “third”. So it is a verb with arguments rather than a selector
@@ -532,31 +553,11 @@ stdin. That is deliberate; there is nothing to write back to.</p>
 <h2 id="what-is-not-here-yet">What is not here yet<a class="heading-anchor" href="#what-is-not-here-yet" aria-label="Link to this section"></a></h2>
 <p>Being straight about the edges, because finding them yourself is annoying:</p>
 <ul>
-<li>
-<p><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
-is not supported yet.</p>
-</li>
-<li>
-<p><strong>Writing a key that contains <code>.</code> or <code>[</code></strong> – the Kubernetes
-<code>app.kubernetes.io/name</code> style. Reading one works with the bracket form:</p>
-<pre><code class="language-console">$ yqr '.metadata.labels["app.kubernetes.io/name"]' deploy.yaml
-web
-</code></pre>
-<p>Changing, deleting or renaming it does not:</p>
-<pre><code class="language-console">$ yqr '.metadata.labels["app.kubernetes.io/name"] = "api"' deploy.yaml
-yqr: runtime error: cannot address key "app.kubernetes.io/name": it uses
-characters the write path cannot express
-</code></pre>
-<p>The edit is refused, so nothing is damaged. Adding a <strong>plain-named key next
-to</strong> dotted ones does work, which is the common case:</p>
-<pre><code class="language-console">$ yqr '.metadata.labels.tier = "frontend"' deploy.yaml
-</code></pre>
-</li>
-<li>
-<p><strong>No builtins beyond <code>to_entries</code>.</strong> There is no <code>select</code>, no <code>map</code>, and no
+<li><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
+is not supported yet.</li>
+<li><strong>No builtins beyond <code>to_entries</code>.</strong> There is no <code>select</code>, no <code>map</code>, and no
 string interpolation, so a filter cannot yet pick entries by a condition or
-reshape them.</p>
-</li>
+reshape them.</li>
 </ul>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
 <ul>
@@ -625,7 +626,7 @@ reshape them.</p>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-08-27</span>
+        <span>Site last updated: 2026-09-07</span>
         
     </footer>
 
