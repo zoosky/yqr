@@ -6,6 +6,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-07
+
 ### Added
 
 - **Any mapping key is addressable, dotted ones included.** A key holding

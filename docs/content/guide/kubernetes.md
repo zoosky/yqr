@@ -4,6 +4,9 @@
 # of the limitation section; fixed in noyalib 0.0.25.
 # "Computing a new value from the old one" is Feature f008.
 # "Keys with dots in them" is Feature f030.
+# Every console block re-run against v0.8.0 on 2026-09-07; the manifest and
+# ci.yaml hold what the examples address (two containers, dotted labels,
+# three steps).
 title: Editing Kubernetes manifests without reformatting them
 lead: >-
   How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.
@@ -32,6 +35,8 @@ metadata:
   name: web
   labels:
     app: web
+    app.kubernetes.io/name: web
+    app.kubernetes.io/component: frontend
 spec:
   replicas: 3          # bumped for the Black Friday load test
   template:
@@ -41,6 +46,8 @@ spec:
           image: "registry.example.com/web:1.4.2"
           ports:
             - containerPort: 8080
+        - name: log-shipper
+          image: "registry.example.com/shipper:2.0"
 ```
 
 ## Reading a field
@@ -99,7 +106,7 @@ one-line diffs, which is a review someone can actually do.
 ```console
 $ yqr -i '.spec.ports += 9090' service.yaml          # append to a sequence
 $ yqr -i '.metadata.labels.tier = "frontend"' deploy.yaml   # add a key
-$ yqr -i 'del(.spec.template.metadata.annotations)' deploy.yaml   # remove an entry
+$ yqr -i 'del(.spec.template.spec.containers[1])' deploy.yaml    # remove an entry
 $ yqr -i 'key(.metadata.labels.app) = "application"' deploy.yaml  # rename a key
 $ yqr -i 'swap(.spec.template.spec.containers; 0; 1)' deploy.yaml # reorder a list
 ```
@@ -144,7 +151,7 @@ Every edit works on a quoted key the way it works on a bare one:
 $ yqr -i '.metadata.labels."app.kubernetes.io/name" = "api"' deploy.yaml
 $ yqr -i '.metadata.labels."app.kubernetes.io/version" = "1.4.2"' deploy.yaml  # add one
 $ yqr -i 'del(.metadata.labels."app.kubernetes.io/component")' deploy.yaml
-$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/name"' deploy.yaml
+$ yqr -i 'key(.metadata.labels.app) = "app.kubernetes.io/part-of"' deploy.yaml
 $ yqr -i 'line_comment(.metadata.labels."app.kubernetes.io/name") = "selector"' deploy.yaml
 ```
 
@@ -306,6 +313,8 @@ jobs:
       - uses: actions/checkout@v4  # pinned
       - name: test
         run:  cargo test
+      - name: package
+        run: cargo build --release
 $ yqr -i 'swap(.jobs.build.steps; 0; 1)' ci.yaml
 $ cat ci.yaml
 jobs:
@@ -315,6 +324,8 @@ jobs:
         run:  cargo test
       # check out first
       - uses: actions/checkout@v4  # pinned
+      - name: package
+        run: cargo build --release
 ```
 
 Both comments moved with the item they document, and the odd spacing in

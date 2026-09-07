@@ -1,7 +1,8 @@
 ---
-# Traceability: yqr-k002. Every yqr filter here was run against v0.7.1 and
-# every jq claim against jq 1.8.2; re-measure rather than re-assert when
-# either moves (yqr-m001 §3 carries the release-time check).
+# Traceability: yqr-k002. Every yqr filter here was run against v0.8.0
+# (re-measured 2026-09-07; first measured on v0.7.1) and every jq claim
+# against jq 1.8.2; re-measure rather than re-assert when either moves
+# (yqr-m001 §3 carries the release-time check).
 # Features: f001 (the grammar), f008 (arithmetic and |=), f017 (to_entries),
 # f007 (the write forms jq has no counterpart for).
 title: Coming to yqr from jq
@@ -10,7 +11,7 @@ lead: >-
 description: >-
   A guide for jq users picking up yqr: which jq idioms work unchanged, the
   one operator that means something different, and what each tool can do
-  that the other cannot. Measured against yqr 0.7.1 and jq 1.8.2.
+  that the other cannot. Measured against yqr 0.8.0 and jq 1.8.2.
 menu:
   title: Coming from jq
   order: 5
@@ -90,7 +91,7 @@ In jq, `+=` is addition or concatenation, and appending to a list takes a
 **list** on the right. In yqr, `+=` means **append one element to a
 sequence**, and the right-hand side is the **element**:
 
-| | jq 1.8.2 | yqr 0.7.1 |
+| | jq 1.8.2 | yqr 0.8.0 |
 |---|---|---|
 | `.tags += ["x"]` | appends `x` | parse error -- yqr has no array literal |
 | `.tags += "x"` | appends the characters `x` | appends `x` as one item |

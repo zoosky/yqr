@@ -1,6 +1,7 @@
 ---
 # Traceability: Feature f012 (the validate subcommand); bug b014 §3.2 is
-# the Y103 check.
+# the Y103 check. Every console block re-run against v0.8.0 on 2026-09-07;
+# the indentation error gained its position with noyalib 0.0.36 (f029).
 title: Validating YAML from the command line
 lead: >-
   How to check a file is still correct after an edit, what each exit code means, and how duplicate keys are reported.
@@ -34,16 +35,23 @@ round-trips differently is reported rather than waved through.
 ## When something is wrong
 
 ```console
+$ cat broken.yaml
+a:
+  b: 1
+ c: 2
 $ yqr validate broken.yaml
 error[Y001]: inconsistent indentation: token at a column that does not match any open block scope
-  --> broken.yaml
+  --> broken.yaml:3:2
+  |
+3 |  c: 2
+  |  ^
 $ echo $?
 1
 ```
 
-Diagnostics are compiler-shaped on purpose: an error code, the file, and
-where possible the line, column, and a pointer into the source. That is as
-readable for a person as it is parseable for whatever is running it.
+Diagnostics are compiler-shaped on purpose: an error code, the file, the
+line and column, and a pointer into the source. That is as readable for a
+person as it is parseable for whatever is running it.
 
 Several files at once works, and the exit code covers all of them:
 
