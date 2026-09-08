@@ -713,11 +713,72 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: ".replicaCount |= .",
             expect: WriteExpect::Unchanged,
         },
-        // `|=` inherits `=`'s scalar boundary: a collection result is refused.
+        // Feature f032: a collection result is written where a collection
+        // already is. The whole labels block is replaced, and the engine
+        // spells the pairs at the site's own indent.
         WriteCase {
-            id: "write/update/refuses-a-collection-result",
+            id: "write/update/collection-result-over-a-collection",
             doc: K8S_DEPLOYMENT,
             filter: ".metadata.labels |= to_entries",
+            expect: WriteExpect::Rewrites(&[(
+                "    app.kubernetes.io/name: web\n    app.kubernetes.io/component: frontend\n",
+                "    - key: app.kubernetes.io/name\n      value: web\n    \
+                 - key: app.kubernetes.io/component\n      value: frontend\n",
+            )]),
+        },
+        // -- Feature f032: collection right-hand sides ------------------------
+        // Every site that can take one, on the deployment: a new key, an
+        // append, and a replacement. The right-hand side is a path, since the
+        // grammar has no collection literal.
+        WriteCase {
+            id: "write/collection-rhs/new-key",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.annotations = .spec.selector.matchLabels",
+            expect: WriteExpect::Rewrites(&[(
+                "    app.kubernetes.io/component: frontend\n",
+                "    app.kubernetes.io/component: frontend\n  annotations:\n    app: web\n",
+            )]),
+        },
+        WriteCase {
+            id: "write/collection-rhs/appended-as-a-sequence-item",
+            doc: K8S_DEPLOYMENT,
+            filter: ".spec.template.spec.containers[0].env += .spec.selector.matchLabels",
+            expect: WriteExpect::Rewrites(&[(
+                "              value: \"30\"\n",
+                "              value: \"30\"\n            - app: web\n",
+            )]),
+        },
+        WriteCase {
+            id: "write/collection-rhs/replaces-a-collection",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels = .spec.selector.matchLabels",
+            expect: WriteExpect::Rewrites(&[(
+                "    app.kubernetes.io/name: web\n    app.kubernetes.io/component: frontend\n",
+                "    app: web\n",
+            )]),
+        },
+        // The one shape the engine has no route for: a scalar cannot become a
+        // collection in place.
+        WriteCase {
+            id: "write/collection-rhs/refuses-a-collection-over-a-scalar",
+            doc: K8S_DEPLOYMENT,
+            filter: ".spec.replicas = .metadata.labels",
+            expect: WriteExpect::Err(5),
+        },
+        // Bug b029: the reverse direction wrote a value at its key's own
+        // column, which noyalib reads back and PyYAML and Psych reject.
+        WriteCase {
+            id: "write/collection-rhs/refuses-a-scalar-over-a-block-collection",
+            doc: K8S_DEPLOYMENT,
+            filter: ".metadata.labels = .spec.replicas",
+            expect: WriteExpect::Err(5),
+        },
+        // Bug b030: the engine joins a multi-line replacement's own lines with
+        // LF, so this would leave the CRLF document with mixed endings.
+        WriteCase {
+            id: "write/collection-rhs/refuses-a-multi-line-write-into-crlf",
+            doc: CRLF_APP_CONFIG,
+            filter: ".logging.level = \"warn\nverbose\"",
             expect: WriteExpect::Err(5),
         },
         // -- append -----------------------------------------------------------

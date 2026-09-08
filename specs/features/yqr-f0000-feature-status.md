@@ -99,6 +99,7 @@ dependency/release timing.
 | [f029](yqr-f029-noyalib-407-adoption.md) | Adopt the noyalib release that carries #407: trust the stream location, drop the re-parse | Done (0.0.39, 2026-09-07: the fix shipped in 0.0.36; the re-parse is gone, the cross-document alias hint added; four crossed releases measured, one upstream parse-behaviour change passed through) |
 | [f030](yqr-f030-dotted-key-addressing.md) | Address any mapping key: bracket-quoted segments and the `."a.b"` field | Done (2026-09-07: the `f007` §6 / `a002` §7.3 limit closed on noyalib 0.0.33's quoted segments; every write reaches a dotted key, `Resolved::Unaddressable` removed) |
 | [f031](yqr-f031-noyalib-0-0-41-adoption.md) | Adopt noyalib 0.0.41: two fixes on paths yqr does not take | Done (0.0.41, 2026-09-07: 44 comparisons against the 0.0.39 build byte-identical; the fixed serializer and formatter paths are unreachable from yqr; benchmarks flat; the three shapes pinned in the corpus) |
+| [f032](yqr-f032-collection-right-hand-sides.md) | Collection right-hand sides for `=`, `+=` and a new key | Done (2026-09-08: the last open `f007` §6 scope item; a mapping or sequence can be assigned, appended and written over an existing collection, and the measurement found `b029` and `b030`, two silent-corruption defects on shipped paths) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -267,6 +268,25 @@ through both builds, byte-identical with the same exit codes; benchmarks flat
 either fix onto the emitter yqr does use would fail a test rather than pass
 silently. 0.0.41 is a lockstep CI release with no core change.
 
+f032 **done** (2026-09-08): the last open scope item in `f007` §6, and the
+end of that section's roadmap. A collection right-hand side was refused at
+all three write sites by one predicate, which had been a *scope* limit
+rather than a backend one since `b008` gave the write path a typed tier
+that spells nested collections. Lifting it took measuring every site with a
+collection first, and that is what earned the feature: upstream writes a
+new key, an append and a collection-over-collection replacement correctly,
+refuses a scalar replaced by a collection (yqr now words that refusal and
+names a remedy a test runs), and gets two things wrong that had **nothing
+to do with collections and were already shipping**. `b029`: a scalar
+written over a block collection lands at the key's own column, which
+PyYAML and Psych reject and `yqr validate` reports on yqr's own output, at
+exit 0. `b030`: a multi-line write gives a CRLF file mixed line endings,
+`b009` in the one mutator that patch never reached. Both passed every
+existing guard for the same reason — the engine reads its own output back
+— so the fix is a post-write integrity check that compares the document
+against itself on two properties no parser will complain about, reusing
+`validate`'s own `Y103` scanner so the two commands cannot drift.
+
 ## Epic: Editing-loop tooling (f012)
 
 | Feature | Title | Status |
@@ -308,12 +328,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 31
+- Total features: 32
 - Draft: 2 (f025, f027)
 - In Progress: 0
-- Done: 25 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 26 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031)
+  f030, f031, f032)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

@@ -612,7 +612,9 @@ caveat.
   (it applies equally to `.items[].a = 5`), not a comment question.
 - **`|=` on any of these.** Computed update is `yqr-f008`, gated on M2.
 - **Collection right-hand sides** for `+=` / new-key assignment — the third open
-  `yqr-f007` §6 item, unrelated to addressing.
+  `yqr-f007` §6 item, unrelated to addressing. *Settled by `yqr-f032`
+  (2026-09-08): allowed at every site the engine can spell, refused where a
+  scalar would have to become a collection.*
 
 ## 9. Staging and acceptance criteria
 

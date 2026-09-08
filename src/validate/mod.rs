@@ -29,7 +29,7 @@
 // Feature f012: the validate subcommand (spec: editing-loop verification).
 
 mod render;
-mod scan;
+pub(crate) mod scan;
 
 pub use render::render;
 

@@ -389,7 +389,36 @@ fn set_value_unless_unchanged(
     if new == current && !writer.value_is_borrowed(doc, path)? {
         return Ok(());
     }
+    refuse_scalar_to_collection(path, new, current)?;
     writer.set_value(doc, path, new)
+}
+
+/// Refuse replacing a scalar with a collection, in yqr's words.
+///
+/// The engine writes a collection over a collection and a scalar over a
+/// scalar; it has no typed route from one to the other, and says so by naming
+/// `set` and "fragment", an API yqr does not expose. The remedy it does not
+/// mention is the one that works: the entry has to be removed and written
+/// again, because a new key *is* the insertion path, and that one spells a
+/// collection (`yqr-f032` §3).
+///
+/// Checked here rather than in the backend because this is the one caller
+/// holding both the current value and the new one, and both are needed to
+/// name the shape that is wrong.
+// Feature f032.
+fn refuse_scalar_to_collection(path: &Path, new: &Value, current: &Value) -> Result<()> {
+    let new_is_collection = matches!(new, Value::Sequence(_) | Value::Mapping(_));
+    let current_is_collection = matches!(current, Value::Sequence(_) | Value::Mapping(_));
+    if !new_is_collection || current_is_collection {
+        return Ok(());
+    }
+    let path_str = to_noyalib_path(path);
+    Err(YqrError::eval(format!(
+        "cannot assign at {path_str:?}: the value there is {}, and yqr writes a collection \
+         only where one already is. Remove the entry and write it again, as in `del(.{path_str})` \
+         then `.{path_str} = <path>`, which places it at the end of its mapping",
+        type_name(current)
+    )))
 }
 
 /// Write the `kind` comment at `path`, unless it already says that.
@@ -598,6 +627,31 @@ fn type_name(value: &Value) -> &'static str {
 }
 
 /// [`FidelityWriter`] backed by noyalib's editable `cst::Document` stream.
+/// The structural facts [`NoyalibWriter::check_integrity`] compares on either
+/// side of a write. Counts rather than positions: a write is refused when it
+/// *adds* a violation, so a document that already had one stays editable.
+// Bugs b029, b030.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Integrity {
+    /// Block mapping values sitting at or before their key's column (`Y103`).
+    under_indented: usize,
+    /// `\r\n` pairs.
+    crlf: usize,
+    /// Line feeds with no carriage return before them.
+    bare_lf: usize,
+}
+
+/// Line feeds in `source` that no carriage return precedes.
+// Bug b030.
+fn bare_line_feeds(source: &str) -> usize {
+    let bytes = source.as_bytes();
+    bytes
+        .iter()
+        .enumerate()
+        .filter(|(i, b)| **b == b'\n' && (*i == 0 || bytes[i - 1] != b'\r'))
+        .count()
+}
+
 pub(crate) struct NoyalibWriter {
     /// One editable CST document per logical YAML document.
     docs: Vec<::noyalib::cst::Document>,
@@ -759,6 +813,107 @@ impl NoyalibWriter {
 
     /// Bounds-checked shared document accessor (used by the structural-delete
     /// fallback, which reads spans and source bytes before it mutates).
+    /// Refuse replacing a *block* collection with a scalar, in yqr's words.
+    ///
+    /// The engine writes the scalar where the collection's first line began,
+    /// which is the key's own column, so `k:` gains a value line no other
+    /// implementation accepts. Its own guard cannot see it (the result parses,
+    /// for this parser) and its message where it does refuse blames the input
+    /// for an "inconsistent indentation" it does not have — the `yqr-b024`
+    /// shape, on a document that parsed fine.
+    ///
+    /// Two collections are deliberately left alone, because neither has a
+    /// mapping value to under-indent: a **flow** collection sits on the key's
+    /// line, and a **sequence item** is not a mapping entry at all. Both were
+    /// measured writing correctly.
+    ///
+    /// [`Self::check_integrity`] would catch the same class afterwards; this
+    /// exists so the message is yqr's for every shape rather than for some.
+    // Bug b029.
+    fn refuse_block_collection_to_scalar(
+        &self,
+        doc: usize,
+        path: &Path,
+        path_str: &str,
+        new: &Value,
+    ) -> Result<()> {
+        if matches!(new, Value::Sequence(_) | Value::Mapping(_)) {
+            return Ok(());
+        }
+        if !matches!(path.segments().last(), Some(PathSeg::Key(_))) {
+            return Ok(());
+        }
+        let current = self.value(doc)?;
+        if !matches!(
+            super::noyalib::walk_value(&current, path.segments()),
+            Some(Value::Sequence(_) | Value::Mapping(_))
+        ) {
+            return Ok(());
+        }
+        let d = self.doc_ref(doc)?;
+        if d.get(path_str)
+            .is_some_and(|bytes| bytes.trim_start().starts_with(['[', '{']))
+        {
+            return Ok(());
+        }
+        Err(YqrError::eval(format!(
+            "cannot assign at {path_str:?}: the value there is a block collection, and writing a \
+             scalar over one would leave it at its key's own column, which this engine reads \
+             back but other YAML parsers reject. Remove the entry and write it again, as in \
+             `del(.{path_str})` then `.{path_str} = <value>`, which places it at the end of its \
+             mapping"
+        )))
+    }
+
+    /// The structural properties an edit must not make worse.
+    ///
+    /// Both are things the engine's own re-parse guard cannot see, because
+    /// both produce a document *it* reads back: the parser accepts a block
+    /// mapping value at its key's own column (`yqr-b014`'s class, and what
+    /// `validate` reports as `Y103`), and a line ending is not structure at
+    /// all. Measuring them on either side of a write turns each into a
+    /// refusal rather than a file yqr quietly damaged.
+    // Bugs b029, b030.
+    fn integrity(&self, doc: usize) -> Result<Integrity> {
+        let d = self.doc_ref(doc)?;
+        Ok(Integrity {
+            under_indented: crate::validate::scan::under_indented_values(d, 0).len(),
+            crlf: d.source().matches("\r\n").count(),
+            bare_lf: bare_line_feeds(d.source()),
+        })
+    }
+
+    /// Refuse the edit just made when it broke either property of
+    /// [`Self::integrity`].
+    ///
+    /// The caller has already mutated the document; returning `Err` is what
+    /// undoes it, because [`apply`] emits nothing unless every document
+    /// succeeded.
+    // Bugs b029, b030.
+    fn check_integrity(&self, doc: usize, before: Integrity, path_str: &str) -> Result<()> {
+        let after = self.integrity(doc)?;
+        if after.under_indented > before.under_indented {
+            return Err(YqrError::eval(format!(
+                "cannot assign at {path_str:?}: the result would leave a block mapping's value at \
+                 its key's own column, which this engine reads back but other YAML parsers \
+                 reject. Replacing a block collection with a scalar is what does this; remove the \
+                 entry and write it again, as in `del(.{path_str})` then `.{path_str} = <value>`, \
+                 which places it at the end of its mapping"
+            )));
+        }
+        // Only a document that is wholly CRLF is held to it. One already
+        // mixing the two is not made worse by this rule, and an all-LF
+        // document gains a bare line feed per added line, legitimately.
+        if before.crlf > 0 && before.bare_lf == 0 && after.bare_lf > 0 {
+            return Err(YqrError::eval(format!(
+                "cannot assign at {path_str:?}: this file's lines end with CRLF, and the \
+                 replacement's own lines would end with LF, leaving the file with mixed line \
+                 endings. yqr refuses rather than change bytes the edit does not name"
+            )));
+        }
+        Ok(())
+    }
+
     fn doc_ref(&self, doc: usize) -> Result<&::noyalib::cst::Document> {
         let len = self.docs.len();
         self.docs
@@ -804,20 +959,19 @@ impl FidelityWriter for NoyalibWriter {
                  alias. Assign where the key is defined instead"
             )));
         }
-        // Same scalar-only limit as the insert paths, checked here rather than
-        // left to the engine: `set_value`'s own refusal names `set` and
-        // fragments, APIs yqr never exposes, and reports a *parse* error for
-        // input that parses fine.
-        let ny = insertable(value)?;
+        let ny = insertable(value);
         // A value led by a `&anchor` or `!tag` property is not `set_value`'s
         // to rewrite: its span starts at the property, so the edit would
         // delete the definition. Bug b026; handled by the guarded span
         // surgery in `write::anchor`, which also decides the tagged case.
+        self.refuse_block_collection_to_scalar(doc, path, &path_str, value)?;
+        let before = self.integrity(doc)?;
         if self.value_has_leading_property(doc, &path_str)? {
-            return self.assign_at_definition(doc, path, &path_str, value, &ny);
+            self.assign_at_definition(doc, path, &path_str, value, &ny)?;
+            return self.check_integrity(doc, before, &path_str);
         }
         match self.doc_mut(doc)?.set_value(&path_str, &ny) {
-            Ok(()) => Ok(()),
+            Ok(()) => self.check_integrity(doc, before, &path_str),
             // Since noyalib 0.0.29 (#338) every mutator refuses a write into
             // a value that live alias sites share — the anchor's own
             // definition included, which is the one remedy the merged-key
@@ -826,7 +980,8 @@ impl FidelityWriter for NoyalibWriter {
             // at; a test pins the marker. The definition write goes through
             // the guarded span surgery instead.
             Err(e) if e.to_string().contains("materialise_aliases_of") => {
-                self.assign_at_definition(doc, path, &path_str, value, &ny)
+                self.assign_at_definition(doc, path, &path_str, value, &ny)?;
+                self.check_integrity(doc, before, &path_str)
             }
             Err(e) => Err(YqrError::eval(format!(
                 "cannot assign at {path_str:?}: {e}"
@@ -854,7 +1009,7 @@ impl FidelityWriter for NoyalibWriter {
 
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
         let parent_str = to_noyalib_path(parent);
-        let ny = insertable(value)?;
+        let ny = insertable(value);
         self.doc_mut(doc)?
             .insert_entry_value(&parent_str, key, &ny)
             .map_err(|e| YqrError::eval(format!("cannot insert key {key:?}: {e}")))
@@ -862,7 +1017,7 @@ impl FidelityWriter for NoyalibWriter {
 
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
         let path_str = to_noyalib_path(path);
-        let ny = insertable(value)?;
+        let ny = insertable(value);
         self.doc_mut(doc)?
             .push_back_value(&path_str, &ny)
             .map_err(|e| YqrError::eval(format!("cannot append at {path_str:?}: {e}")))
@@ -1031,28 +1186,24 @@ fn rebased(path: &Path, seg: Option<PathSeg>) -> Path {
     }
 }
 
-/// Lower a scalar [`Value`] to the noyalib value the typed mutators take.
+/// Lower a [`Value`] to the noyalib value the typed mutators take.
 ///
 /// Passing a value rather than a rendered fragment is what lets the engine
-/// place and spell it. Hand-building the fragment instead put yqr on the wrong
-/// side of the guard: a string containing a newline renders to a block scalar,
-/// which the fragment-taking mutators splice without re-indenting its
-/// continuation lines, silently producing a wrong value or unparseable output.
+/// place and spell it: quoting follows the edit site, indentation follows the
+/// document, and a collection is written as a block or a flow member
+/// according to where it lands. Hand-building the fragment instead put yqr on
+/// the wrong side of the guard, which is why this tier exists at all
+/// (`yqr-b008`).
 ///
-/// A collection value stays refused. The typed tier can express one, so this is
-/// now a scope limit on the mutating filters rather than a backend constraint —
-/// lifting it is structural-edit work, not a bug fix.
-// Bug b008: the fragment-splice corruption this refusal and the typed lowering
-// together replace.
-fn insertable(value: &Value) -> Result<::noyalib::Value> {
-    if matches!(value, Value::Sequence(_) | Value::Mapping(_)) {
-        return Err(YqrError::eval(
-            "the right-hand side of '+=' or a new-key assignment must be a scalar \
-             (number, string, boolean, or null); collections are not yet supported"
-                .to_string(),
-        ));
-    }
-    Ok(::noyalib::Value::from(value))
+/// Collections pass through. They were refused here until `yqr-f032` — a
+/// scope limit rather than a backend one, since the typed tier has spelled a
+/// nested collection since `yqr-b008`. What the sites still refuse is the one
+/// shape the engine has no route for, a scalar replaced by a collection, and
+/// that check lives with the current value it needs
+/// ([`set_value_unless_unchanged`]).
+// Feature f032.
+fn insertable(value: &Value) -> ::noyalib::Value {
+    ::noyalib::Value::from(value)
 }
 
 #[cfg(test)]
@@ -1554,23 +1705,190 @@ mod tests {
         );
     }
 
-    #[test]
-    fn collection_rhs_is_refused_the_same_way_on_an_existing_key() {
-        // The scalar-only limit is yqr's, so all three write paths must report
-        // it in yqr's words. Left to the engine, this one named `set` and
-        // "fragment" — APIs yqr does not expose — and called it a parse error.
-        let err = apply(
+    // -- Feature f032: collection right-hand sides ------------------------
+
+    /// Run `<path> = <rhs path>` over `input`.
+    fn assign_path(path: &str, rhs: &str, input: &str) -> Result<String> {
+        apply(
             &assign(
-                ".a",
-                Rhs::Path(crate::parser::parse(".src").expect("valid")),
+                path,
+                Rhs::Path(crate::parser::parse(rhs).expect("valid rhs")),
             ),
-            "a: 1\nsrc:\n  k: 1\n",
+            input,
+        )
+    }
+
+    #[test]
+    fn a_collection_becomes_a_new_key() {
+        let out = assign_path(".m.new", ".src", "m:\n  a: 1\nsrc:\n  x: 1\n  y: two\n").unwrap();
+        assert_eq!(
+            out,
+            "m:\n  a: 1\n  new:\n    x: 1\n    y: two\nsrc:\n  x: 1\n  y: two\n"
+        );
+    }
+
+    #[test]
+    fn a_sequence_becomes_a_new_key() {
+        let out = assign_path(".m.new", ".src", "m:\n  a: 1\nsrc:\n  - one\n  - two\n").unwrap();
+        assert_eq!(
+            out,
+            "m:\n  a: 1\n  new:\n    - one\n    - two\nsrc:\n  - one\n  - two\n"
+        );
+    }
+
+    #[test]
+    fn a_collection_is_appended_as_a_sequence_item() {
+        let out = apply(
+            &Mutation::Append {
+                path: crate::parser::parse(".xs").expect("valid"),
+                rhs: Rhs::Path(crate::parser::parse(".src").expect("valid")),
+            },
+            "xs:\n  - a: 1\nsrc:\n  a: 2\n  b: 3\n",
+        )
+        .unwrap();
+        assert_eq!(
+            out,
+            "xs:\n  - a: 1\n  - a: 2\n    b: 3\nsrc:\n  a: 2\n  b: 3\n"
+        );
+    }
+
+    #[test]
+    fn a_collection_replaces_a_collection_at_the_sites_own_indent() {
+        let out = assign_path(
+            ".top.k",
+            ".src",
+            "top:\n  k:\n    old: 1\n  after: keep   # tail\nsrc:\n  new: 2\n",
+        )
+        .unwrap();
+        assert_eq!(
+            out,
+            "top:\n  k:\n    new: 2\n  after: keep   # tail\nsrc:\n  new: 2\n"
+        );
+    }
+
+    #[test]
+    fn writing_a_collection_over_an_equal_one_is_a_no_op() {
+        // The no-op guard compares values, so it holds for a collection the
+        // same way it holds for a scalar: nothing is re-spelled.
+        let input = "k:\n  a: 1      # kept\n  b: 'two'\n";
+        assert_eq!(assign_path(".k", ".k", input).unwrap(), input);
+    }
+
+    #[test]
+    fn a_collection_over_a_scalar_names_a_remedy_that_works() {
+        let input = "c: 1\nsrc:\n  a: 1\n";
+        let err = assign_path(".c", ".src", input).unwrap_err();
+        let text = format!("{err}");
+        assert!(
+            text.contains("yqr writes a collection only where one already is"),
+            "got: {text}"
+        );
+        assert!(text.contains("del(.c)"), "no remedy named: {text}");
+        // The remedy has to work (`yqr-f025`).
+        let removed = apply(
+            &Mutation::Delete {
+                target: Target::Value(crate::parser::parse(".c").expect("valid")),
+            },
+            input,
+        )
+        .unwrap();
+        assert_eq!(
+            assign_path(".c", ".src", &removed).unwrap(),
+            "src:\n  a: 1\nc:\n  a: 1\n"
+        );
+    }
+
+    // -- Bug b029: a scalar must not be written over a block collection -----
+
+    #[test]
+    fn a_scalar_over_a_block_collection_is_refused() {
+        // Upstream writes the scalar at column 0 (`k:` then `5`), which its
+        // own parser reads back and PyYAML and Psych reject, so neither the
+        // re-parse guard nor upstream's own guard sees it.
+        for (path, input) in [
+            (".k", "k:\n  a: 1\nafter: 1\n"),
+            (".k", "k:\n  - 1\n  - 2\nafter: 1\n"),
+            (".top.k", "top:\n  k:\n    a: 1\n  after: 2\n"),
+        ] {
+            let err = apply(&assign(path, Rhs::Literal(Value::Int(5))), input).unwrap_err();
+            assert!(
+                format!("{err}").contains("at its key's own column"),
+                "{input:?} was not refused in yqr's words: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_scalar_over_a_flow_collection_or_a_sequence_item_still_writes() {
+        // The guard is the Y103 property, not a ban on the type change: a
+        // flow value has no line of its own to under-indent, and a sequence
+        // item is not a mapping entry.
+        assert_eq!(
+            apply(
+                &assign(".k", Rhs::Literal(Value::Int(5))),
+                "k: {a: 1}\nafter: 1\n"
+            )
+            .unwrap(),
+            "k: 5\nafter: 1\n"
+        );
+        assert_eq!(
+            apply(
+                &assign(".xs[0]", Rhs::Literal(Value::Int(5))),
+                "xs:\n  - a: 1\n  - b: 2\n"
+            )
+            .unwrap(),
+            "xs:\n  - 5\n  - b: 2\n"
+        );
+    }
+
+    #[test]
+    fn an_absent_right_hand_path_does_not_flatten_a_block() {
+        // `.k = .missing` resolves to null, a scalar, so this is the b029
+        // shape reached without naming a scalar at all.
+        let err = assign_path(".k", ".missing", "k:\n  a: 1\n").unwrap_err();
+        assert!(format!("{err}").contains("block collection"), "{err}");
+    }
+
+    // -- Bug b030: a write must not give a CRLF file mixed line endings -----
+
+    #[test]
+    fn a_multi_line_write_into_a_crlf_document_is_refused() {
+        // The engine joins the replacement's own lines with LF while the
+        // file's are CRLF. Shipped since the multi-line string write existed;
+        // the collection arm would have inherited it.
+        let err = apply(
+            &assign(".a", Rhs::Literal(Value::String("one\ntwo".into()))),
+            "a: 1\r\nb: 2\r\n",
         )
         .unwrap_err();
-        assert!(
-            err.to_string().contains("must be a scalar"),
-            "engine wording leaked: {err}"
+        assert!(format!("{err}").contains("mixed line endings"), "{err}");
+    }
+
+    #[test]
+    fn the_crlf_guard_leaves_the_paths_that_are_correct_alone() {
+        // The insertion mutators derive the terminator from the document
+        // (`yqr-b009`, fixed upstream), so they are untouched by the guard —
+        // and a single-line write never trips it.
+        assert_eq!(
+            assign_path(".m.new", ".src", "m:\r\n  a: 1\r\nsrc:\r\n  x: 1\r\n").unwrap(),
+            "m:\r\n  a: 1\r\n  new:\r\n    x: 1\r\nsrc:\r\n  x: 1\r\n"
         );
+        assert_eq!(
+            apply(
+                &assign(".a", Rhs::Literal(Value::Int(9))),
+                "a: 1\r\nb: 2\r\n"
+            )
+            .unwrap(),
+            "a: 9\r\nb: 2\r\n"
+        );
+    }
+
+    #[test]
+    fn an_all_lf_document_may_still_grow_lines() {
+        // The rule keys on a document that is wholly CRLF, so an LF file
+        // gaining a line per inserted entry is not a violation.
+        let out = assign_path(".m.new", ".src", "m:\n  a: 1\nsrc:\n  x: 1\n  y: 2\n").unwrap();
+        assert!(!out.contains('\r'), "{out:?}");
     }
 
     #[test]
@@ -1628,22 +1946,6 @@ mod tests {
         )
         .unwrap();
         assert_eq!(out, input);
-    }
-
-    #[test]
-    fn non_scalar_rhs_is_rejected() {
-        // A collection RHS is refused by scope, not by capability — the typed
-        // tier could spell one. What this pins is that the refusal is yqr's
-        // own message rather than an engine error naming engine APIs.
-        let err = apply(
-            &Mutation::Append {
-                path: crate::parser::parse(".list").expect("valid"),
-                rhs: Rhs::Path(crate::parser::parse(".src").expect("valid")),
-            },
-            "list:\n  - 1\nsrc:\n  a: 1\n",
-        )
-        .unwrap_err();
-        assert!(matches!(err, YqrError::Eval(ref m) if m.contains("must be a scalar")));
     }
 
     #[test]

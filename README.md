@@ -151,8 +151,9 @@ The mutation surface:
 | `swap(<path>; i; j)`, `move(<path>; from; to)` | Reorder a block sequence; comments travel with the item |
 
 `<value>` is a scalar literal (`5`, `1.5`, `"web"`, `true`, `false`, `null`), a
-`.`-rooted path that copies the value found at another location, or an
-arithmetic expression over those (`.n = .n + 1`). A key holding `.` or `/`
+`.`-rooted path that copies the value found at another location — a whole
+mapping or sequence included — or an arithmetic expression over those
+(`.n = .n + 1`). A key holding `.` or `/`
 is addressed as `."app.kubernetes.io/name"` or `["app.kubernetes.io/name"]`.
 
 ```bash
@@ -193,8 +194,12 @@ Guarantees and limits:
   temp-file+rename tradeoff `sed -i` makes.
 - **Multi-document.** The edit applies to each document whose path resolves; the
   others are emitted byte-identically.
-- **Scalar RHS only.** `=`, `+=`, and new-key values are scalars (number, string,
-  bool, null) or a path copying a scalar; a collection RHS is refused.
+- **Collections on the right.** `=`, `+=` and a new key take a scalar or a
+  path, and that path may name a mapping or a sequence: `.m.new = .defaults`
+  writes the block, `.xs += .item` appends one. The value is copied, so the
+  block is spelled at its destination and comments inside it do not travel.
+  Replacing a *scalar* with a collection is refused, as is writing a scalar
+  over a block collection; both name a remedy.
 - **Structural delete.** `del` removes multi-line and nested block entries too,
   not just single-line ones; it closes up the entry's lines and leaves every
   surviving byte identical. Deleting the *only* entry of a block (which would
