@@ -8,7 +8,9 @@ status tracker convention).
 
 ## Open
 
-None — see the summary.
+| Bug | Title | Severity | Status | Related |
+|-----|-------|----------|--------|---------|
+| [b031](yqr-b031-cannot-delete-an-entry-whose-value-is-absent.md) | An entry left empty cannot be deleted or commented, though it can be read, written and renamed | Low | Open — filed **2026-09-08** from `yqr-f032`'s code review, which hit it looking for a remedy to name in a refusal. `del(.k)` over `k:` with nothing after the colon answers "cannot delete k: cannot locate its bytes", while the same value written `k: null` deletes fine — the two-spellings-of-one-value shape `b021` and `b022` both had. Wider than delete: `line_comment(...)` refuses the same entry with a different message, while read, assignment and rename all work. One cause behind both faces: each derives what it needs from `span_at`, the **value's** span, which an implicit null does not have, though `key_span` resolves and the entry is perfectly locatable. Refused in every layout measured — trailing comment, trailing spaces, nested, last in file, sole entry, and an empty sequence item. **Upstream's `Document::remove` handles all four shapes correctly**, so the fix is either deriving the range from the key or delegating this class as the flow class already is (`f016` §5); neither is chosen in the filing. Nothing is corrupted and the file is left untouched, which is why it is Low | `yqr-b021`, `yqr-b022`, `yqr-b014`, `yqr-f007`, `yqr-f016`, `yqr-f025`, `yqr-f032` |
 
 ## Resolved
 
@@ -47,8 +49,10 @@ None — see the summary.
 
 ## Summary
 
-- Total bugs: 30
-- Open: **0** — `b028` found and closed 2026-09-06 by `yqr-f028`, the
+- Total bugs: 31
+- Open: **1** — `b031`, the empty entry that cannot be
+  deleted or commented, filed 2026-09-08 and not yet fixed.
+  Previously: `b028` found and closed 2026-09-06 by `yqr-f028`, the
   noyalib 0.0.34 adoption: the located collision the release added put a
   position on `Y102`, and the first stream test showed every located
   stream error had been off by its document's start since `f012`.
@@ -64,8 +68,9 @@ None — see the summary.
   are `a001` violations at exit 0 that every existing guard passed,
   because the engine reads its own output back. Guarded in yqr; the
   upstream drafts are written and not filed.
-- **Every bug is fixed** (`b027`, the quadratic `validate`, the same day
-  the values corpus found it), in yqr or in a released dependency.
+- **Every bug but `b031` is fixed** (`b027`, the quadratic `validate`, the
+  same day the values corpus found it), in yqr or in a released
+  dependency.
   `b024` was found by writing documentation rather than by running the tool —
   the jq on-ramp page had to state what `+=` does, and the message it gives
   when it declines turned out to be the defect.

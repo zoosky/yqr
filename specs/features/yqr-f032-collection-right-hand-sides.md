@@ -169,9 +169,10 @@ the next person does not have to guess it.
   deep-merge form and this feature does not propose one.
 - **`del` on an entry left empty.** `del(.k)` over `k:` with nothing after
   it is refused with "cannot locate its bytes", which is why the
-  scalar-to-collection refusal names no remedy for that shape. Pre-existing,
-  unrelated to collections, and unfiled: it is the delete face of `yqr-b021`,
-  which fixed the write face.
+  scalar-to-collection refusal names no remedy for that shape. Pre-existing
+  and unrelated to collections; filed as **`yqr-b031`**, which found the
+  comment path refuses the same entry for the same reason and that upstream
+  removes it correctly.
 
 ## 6. Acceptance criteria
 
