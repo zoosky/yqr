@@ -425,23 +425,18 @@ fn refuse_scalar_to_collection(path: &Path, new: &Value, current: &Value) -> Res
         Some(PathSeg::Index(_)) => {
             let seq = to_noyalib_path(&rebased(path, None));
             format!(
-                "A sequence takes a collection through `+=`, which appends it: `.{seq} += <path>`"
+                "There is no in-place route for a sequence item: removing it shifts the rest up, \
+                 so the same index then names the next one. `+=` is a different edit and it does \
+                 work, appending to the end: `.{seq} += <path>`"
             )
         }
         // An entry left empty has no bytes, so `del` refuses it too; one
         // written `k: null` does not. The sentence has to hold for both,
         // because the typed value cannot tell them apart.
         _ if matches!(current, Value::Null) => format!(
-            "A null takes no collection in place. If the entry is written `{}: null` rather \
-             than left empty, `del(.{path_str})` removes it and assigning again writes the \
-             collection at the end of its mapping",
-            path.segments()
-                .last()
-                .and_then(|seg| match seg {
-                    PathSeg::Key(k) => Some(k.as_str()),
-                    PathSeg::Index(_) => None,
-                })
-                .unwrap_or("key")
+            "A null takes no collection in place. If the entry carries an explicit `null` \
+             rather than being left empty, `del(.{path_str})` removes it and assigning again \
+             writes the collection at the end of its mapping"
         ),
         _ => format!(
             "Remove the entry and write it again, as in `del(.{path_str})` then \
@@ -682,11 +677,25 @@ struct Integrity {
 /// how the `yqr-b029` guard came to refuse `.k = 5` over `k: &an {a: 1}`, an
 /// edit that works and that `write::anchor` has its own accurate message for.
 /// Both spellings are skipped, in either order, since a node may carry both.
-// Bug b029, found in code review.
+///
+/// A property ends at whitespace **or** at a flow indicator, because YAML
+/// forbids those characters in an anchor name or a tag and so does not
+/// require a space between the two: `k: &an{a: 1}` is an anchored flow
+/// mapping, which noyalib parses and the first version of this function
+/// stopped short of. Splitting on whitespace alone left `1}` behind, which
+/// kept the answer on the refusing side and was still the wrong answer.
+// Bug b029, found in code review; the no-space spelling in the round after.
 fn after_properties(bytes: &str) -> &str {
     let mut rest = bytes.trim_start();
     while rest.starts_with(['&', '!']) {
-        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+        let end = rest
+            .find(|c: char| c.is_whitespace() || "[]{},".contains(c))
+            .unwrap_or(rest.len());
+        // A property with nothing after it is the whole slice; stop rather
+        // than loop on an unchanged `rest`.
+        if end == 0 {
+            break;
+        }
         rest = rest[end..].trim_start();
     }
     rest
@@ -1928,6 +1937,38 @@ mod tests {
         );
     }
 
+    // Review round two: YAML forbids a flow indicator in an anchor name, so a
+    // property need not be followed by a space. Splitting on whitespace alone
+    // left `1}` behind and the value read as a block collection again.
+    #[test]
+    fn a_property_with_no_space_before_a_flow_collection_is_not_a_block() {
+        let err = apply(
+            &assign(".k", Rhs::Literal(Value::Int(5))),
+            "k: &an{a: 1}\nafter: 1\n",
+        )
+        .unwrap_err();
+        let text = format!("{err}");
+        // Still refused — the anchor writer cannot splice a scalar where the
+        // property runs into the value, and its own guard catches that. What
+        // this pins is the *diagnosis*: not the block-collection one.
+        assert!(
+            !text.contains("block collection"),
+            "wrong diagnosis: {text}"
+        );
+        assert!(text.contains("does not re-parse"), "{text}");
+    }
+
+    #[test]
+    fn after_properties_stops_at_a_flow_indicator() {
+        assert_eq!(after_properties("&an {a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("&an{a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("!!map {a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("&an !!map {a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("&an [1, 2]"), "[1, 2]");
+        assert_eq!(after_properties("a: 1"), "a: 1");
+        assert_eq!(after_properties("&an"), "");
+    }
+
     #[test]
     fn an_anchored_block_collection_is_still_refused() {
         // The property skip must not turn the guard off for a block value.
@@ -1969,7 +2010,10 @@ mod tests {
         // An entry left empty has no bytes, so `del` refuses it too; the
         // message says which null it is talking about rather than promising.
         let err = assign_path(".k", ".src", "k:\nsrc:\n  a: 1\n").unwrap_err();
-        assert!(format!("{err}").contains("rather than left empty"), "{err}");
+        assert!(
+            format!("{err}").contains("rather than being left empty"),
+            "{err}"
+        );
 
         // Written `k: null`, the entry has bytes and the remedy works.
         let removed = apply(

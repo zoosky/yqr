@@ -103,6 +103,16 @@ being wrong in the *refusing* direction is the cheap failure, but it was
 still a regression, and only a test on a shape the guard was not written
 for would have caught it.
 
+**And one more from the round after.** The first skip split on whitespace,
+but YAML forbids a flow indicator inside an anchor name, so no space is
+required between the two: `k: &an{a: 1}` left `1}` behind and read as a
+block collection again. The skip stops at a flow indicator now. That
+spelling is still refused, by the anchor writer's own re-parse guard —
+splicing a scalar where the property runs into the value needs a separating
+space, which is a span replacement plus an insertion — but it is refused
+for the reason that is true. A tag cannot be written that way at all;
+noyalib rejects `!!map{a: 1}` at parse time.
+
 ## 5. Upstream (drafted, not filed)
 
 noyalib's `set_value` resolves a block collection's span to a range that
