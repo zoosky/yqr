@@ -69,17 +69,31 @@ has what it needs.
 This is the one shape upstream has no typed route for, and its own message
 names `set` and "fragment", an API yqr does not expose. The check sits in
 `set_value_unless_unchanged`, the one caller holding both the current
-value and the new one — `=` and `|=` reach it alike. The remedy it names is
-the one that works, and the test runs it: remove the entry, then assign,
-because a *new key* is the insertion path and that one spells a
-collection.
+value and the new one — `=` and `|=` reach it alike.
+
+The remedy depends on the shape, and the first draft used one sentence for
+all of them, which the code review found to be wrong for two. Removing the
+entry and assigning again works for a mapping entry with a value, because a
+*new key* is the insertion path and that one spells a collection. It does
+not work for a **sequence item** — `del` shifts the items up, so the same
+path then names the next one and the refusal repeats — where the route in
+is `+=`. And it does not work for an entry **left empty**, because `del` on
+an implicit null is itself refused (§5); there the message says which null
+it is talking about rather than promising anything. Each is executed by a
+test, which is what `yqr-f025` asks and what a sentence alone cannot give.
 
 **A block collection cannot become a scalar** (`yqr-b029`). Refused before
 the document is touched, so the message is yqr's for every shape rather
 than for the flat ones only.
 
 **The result must not be structurally worse than the document it started
-from** (`check_integrity`). Measured on either side of the write:
+from** (`check_integrity`). Measured on either side of every `set_value` —
+that is, of `=` and `|=`, the two operations these defects reached. The
+insertion, delete, rename, comment and reorder paths are not wrapped: each
+carries a load-back oracle or yqr's own range arithmetic, and all were
+probed on CRLF input and behave correctly. Widening the guard to them is a
+change of its own, not a side effect of this one. Measured on either side
+of the write:
 
 | property | why the existing guards miss it |
 |---|---|
@@ -107,6 +121,16 @@ the pairs a filter computes exist in no file, and neither does a value
 lifted out of one and put somewhere else. Every byte outside the edit is
 untouched, which is the guarantee `a001` actually makes.
 
+### 3.2 What the guard costs
+
+`set_value` now materialises the typed document once for the type-change
+pre-check, and walks the green tree and the source twice for the integrity
+comparison. On the 282 KB production values file a write went from 24 ms to
+26 ms, against 14 ms for a read of the same file. Two milliseconds on the
+largest file in the corpus does not justify threading the current value
+through the writer seam, so the structure stays; the number is recorded so
+the next person does not have to guess it.
+
 ## 4. Coverage
 
 - **Unit** (`src/fidelity/write.rs`): a mapping and a sequence into a new
@@ -122,6 +146,12 @@ untouched, which is the guarantee `a001` actually makes.
   a scalar over a block collection, and a multi-line write into the CRLF
   document. Two command-line cases on the tenants shape, one `-i` write
   copying a tenant's block and one refusal leaving the file untouched.
+- **Code review round**: a flow collection carrying an `&anchor` or a
+  `!tag` does not start with `[`, so the `yqr-b029` guard read it as a block
+  one and refused `.k = 5` over `k: &an {a: 1}` — an edit that works on
+  `main`, and one `write::anchor` has an accurate tag message for. The
+  property is skipped before the prefix test now, with tests for both
+  spellings and for the anchored *block* that must stay refused.
 - **Flipped**: `write/update/refuses-a-collection-result` becomes
   `write/update/collection-result-over-a-collection`, and the CLI test that
   pinned `|= to_entries` as a refusal now pins its output. Both were
@@ -137,6 +167,12 @@ untouched, which is the guarantee `a001` actually makes.
   too; if either is built, both are.
 - **Merging rather than replacing.** `=` replaces. There is no `*=` or
   deep-merge form and this feature does not propose one.
+- **`del` on an entry left empty.** `del(.k)` over `k:` with nothing after
+  it is refused with "cannot locate its bytes", which is why the
+  scalar-to-collection refusal names no remedy for that shape. Pre-existing
+  and unrelated to collections; filed as **`yqr-b031`**, which found the
+  comment path refuses the same entry for the same reason and that upstream
+  removes it correctly.
 
 ## 6. Acceptance criteria
 

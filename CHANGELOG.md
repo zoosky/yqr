@@ -26,18 +26,23 @@ All notable changes to `yqr` are documented here. The format is based on
   The write is refused now, with a remedy that works. A flow collection
   (`k: {a: 1}`) and a sequence item were never affected and still write.
 - **A multi-line write no longer gives a CRLF file mixed line endings.**
-  Assigning a multi-line string to a document whose lines end with CRLF
-  wrote the replacement's own lines with LF. The write is refused until
-  the engine derives the terminator from the document, as it already
-  does when inserting a key or appending an item.
+  Assigning a multi-line string, or a collection that spans more lines
+  than the one it replaces, to a document whose lines end with CRLF wrote
+  the replacement's own lines with LF. Both are refused until the engine
+  derives the terminator from the document, as it already does when
+  inserting a key or appending an item. Inserting and appending were
+  never affected, and neither was a replacement that keeps the line
+  count.
 
 ### Changed
 
-- **Every write is checked against the document it started from.** A
-  write that would leave a block mapping's value at its key's own column,
-  or add a bare line feed to a wholly CRLF file, is refused rather than
-  emitted. Neither is something a YAML parser complains about, which is
-  why both defects above reached a released version.
+- **Value assignment is checked against the document it started from.**
+  An `=` or `|=` write that would leave a block mapping's value at its
+  key's own column, or add a bare line feed to a wholly CRLF file, is
+  refused rather than emitted. Neither is something a YAML parser
+  complains about, which is why both defects above reached a released
+  version. The insertion, delete, rename, comment and reorder paths keep
+  the guards they already had.
 
 ## [0.8.0] - 2026-09-07
 

@@ -397,15 +397,23 @@ fn set_value_unless_unchanged(
 ///
 /// The engine writes a collection over a collection and a scalar over a
 /// scalar; it has no typed route from one to the other, and says so by naming
-/// `set` and "fragment", an API yqr does not expose. The remedy it does not
-/// mention is the one that works: the entry has to be removed and written
-/// again, because a new key *is* the insertion path, and that one spells a
-/// collection (`yqr-f032` §3).
+/// `set` and "fragment", an API yqr does not expose.
 ///
 /// Checked here rather than in the backend because this is the one caller
 /// holding both the current value and the new one, and both are needed to
 /// name the shape that is wrong.
-// Feature f032.
+///
+/// The remedy differs by shape, and each is one this refusal was measured
+/// running — `yqr-f025`'s rule, which a single remedy sentence broke in three
+/// ways. Removing the entry and assigning it again works for a mapping entry
+/// with a value, because a *new key* is the insertion path and that one spells
+/// a collection. It does **not** work for a sequence item (`del` shifts the
+/// items up, so the same path then names the next one and the refusal
+/// repeats), and it does not work for an entry whose value is absent
+/// altogether (`del` on an implicit null is itself refused). A sequence takes
+/// a collection through `+=`; an implicit null has no route at all, so this
+/// names none rather than one that fails.
+// Feature f032; the per-shape remedies are the code review of that feature.
 fn refuse_scalar_to_collection(path: &Path, new: &Value, current: &Value) -> Result<()> {
     let new_is_collection = matches!(new, Value::Sequence(_) | Value::Mapping(_));
     let current_is_collection = matches!(current, Value::Sequence(_) | Value::Mapping(_));
@@ -413,10 +421,31 @@ fn refuse_scalar_to_collection(path: &Path, new: &Value, current: &Value) -> Res
         return Ok(());
     }
     let path_str = to_noyalib_path(path);
+    let remedy = match path.segments().last() {
+        Some(PathSeg::Index(_)) => {
+            let seq = to_noyalib_path(&rebased(path, None));
+            format!(
+                "There is no in-place route for a sequence item: removing it shifts the rest up, \
+                 so the same index then names the next one. `+=` is a different edit and it does \
+                 work, appending to the end: `.{seq} += <path>`"
+            )
+        }
+        // An entry left empty has no bytes, so `del` refuses it too; one
+        // written `k: null` does not. The sentence has to hold for both,
+        // because the typed value cannot tell them apart.
+        _ if matches!(current, Value::Null) => format!(
+            "A null takes no collection in place. If the entry carries an explicit `null` \
+             rather than being left empty, `del(.{path_str})` removes it and assigning again \
+             writes the collection at the end of its mapping"
+        ),
+        _ => format!(
+            "Remove the entry and write it again, as in `del(.{path_str})` then \
+             `.{path_str} = <path>`, which places it at the end of its mapping"
+        ),
+    };
     Err(YqrError::eval(format!(
         "cannot assign at {path_str:?}: the value there is {}, and yqr writes a collection \
-         only where one already is. Remove the entry and write it again, as in `del(.{path_str})` \
-         then `.{path_str} = <path>`, which places it at the end of its mapping",
+         only where one already is. {remedy}",
         type_name(current)
     )))
 }
@@ -641,6 +670,37 @@ struct Integrity {
     bare_lf: usize,
 }
 
+/// `bytes` with any leading `&anchor` and `!tag` properties removed.
+///
+/// A node's properties precede its value, so a flow collection carrying one
+/// does not start with `[` or `{` — and reading it as a block collection is
+/// how the `yqr-b029` guard came to refuse `.k = 5` over `k: &an {a: 1}`, an
+/// edit that works and that `write::anchor` has its own accurate message for.
+/// Both spellings are skipped, in either order, since a node may carry both.
+///
+/// A property ends at whitespace **or** at a flow indicator, because YAML
+/// forbids those characters in an anchor name or a tag and so does not
+/// require a space between the two: `k: &an{a: 1}` is an anchored flow
+/// mapping, which noyalib parses and the first version of this function
+/// stopped short of. Splitting on whitespace alone left `1}` behind, which
+/// kept the answer on the refusing side and was still the wrong answer.
+// Bug b029, found in code review; the no-space spelling in the round after.
+fn after_properties(bytes: &str) -> &str {
+    let mut rest = bytes.trim_start();
+    while rest.starts_with(['&', '!']) {
+        let end = rest
+            .find(|c: char| c.is_whitespace() || "[]{},".contains(c))
+            .unwrap_or(rest.len());
+        // A property with nothing after it is the whole slice; stop rather
+        // than loop on an unchanged `rest`.
+        if end == 0 {
+            break;
+        }
+        rest = rest[end..].trim_start();
+    }
+    rest
+}
+
 /// Line feeds in `source` that no carriage return precedes.
 // Bug b030.
 fn bare_line_feeds(source: &str) -> usize {
@@ -852,7 +912,7 @@ impl NoyalibWriter {
         }
         let d = self.doc_ref(doc)?;
         if d.get(path_str)
-            .is_some_and(|bytes| bytes.trim_start().starts_with(['[', '{']))
+            .is_some_and(|bytes| after_properties(bytes).starts_with(['[', '{']))
         {
             return Ok(());
         }
@@ -1847,6 +1907,126 @@ mod tests {
         // shape reached without naming a scalar at all.
         let err = assign_path(".k", ".missing", "k:\n  a: 1\n").unwrap_err();
         assert!(format!("{err}").contains("block collection"), "{err}");
+    }
+
+    // Found in code review of f032: a flow collection carrying a property
+    // does not start with `[`, so the b029 guard read it as a block one and
+    // refused an edit that works.
+    #[test]
+    fn a_scalar_over_a_flow_collection_with_a_property_still_writes() {
+        assert_eq!(
+            apply(
+                &assign(".k", Rhs::Literal(Value::Int(5))),
+                "k: &an {a: 1}\nafter: 1\n"
+            )
+            .unwrap(),
+            "k: &an 5\nafter: 1\n"
+        );
+        // A tag is refused, but by the guard that knows why: replacing the
+        // scalar under a tag can change what the tag makes of it.
+        let err = apply(
+            &assign(".k", Rhs::Literal(Value::Int(5))),
+            "k: !!map {a: 1}\nafter: 1\n",
+        )
+        .unwrap_err();
+        let text = format!("{err}");
+        assert!(text.contains("carries the tag"), "{text}");
+        assert!(
+            !text.contains("block collection"),
+            "wrong diagnosis: {text}"
+        );
+    }
+
+    // Review round two: YAML forbids a flow indicator in an anchor name, so a
+    // property need not be followed by a space. Splitting on whitespace alone
+    // left `1}` behind and the value read as a block collection again.
+    #[test]
+    fn a_property_with_no_space_before_a_flow_collection_is_not_a_block() {
+        let err = apply(
+            &assign(".k", Rhs::Literal(Value::Int(5))),
+            "k: &an{a: 1}\nafter: 1\n",
+        )
+        .unwrap_err();
+        let text = format!("{err}");
+        // Still refused — the anchor writer cannot splice a scalar where the
+        // property runs into the value, and its own guard catches that. What
+        // this pins is the *diagnosis*: not the block-collection one.
+        assert!(
+            !text.contains("block collection"),
+            "wrong diagnosis: {text}"
+        );
+        assert!(text.contains("does not re-parse"), "{text}");
+    }
+
+    #[test]
+    fn after_properties_stops_at_a_flow_indicator() {
+        assert_eq!(after_properties("&an {a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("&an{a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("!!map {a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("&an !!map {a: 1}"), "{a: 1}");
+        assert_eq!(after_properties("&an [1, 2]"), "[1, 2]");
+        assert_eq!(after_properties("a: 1"), "a: 1");
+        assert_eq!(after_properties("&an"), "");
+    }
+
+    #[test]
+    fn an_anchored_block_collection_is_still_refused() {
+        // The property skip must not turn the guard off for a block value.
+        let err = apply(
+            &assign(".k", Rhs::Literal(Value::Int(5))),
+            "k: &an\n  a: 1\nafter: 1\n",
+        )
+        .unwrap_err();
+        assert!(format!("{err}").contains("block collection"), "{err}");
+    }
+
+    // Each refusal names the remedy for its own shape, and the remedy is run
+    // here rather than asserted to exist (`yqr-f025`). One sentence for all
+    // three was wrong for two of them.
+    #[test]
+    fn the_collection_over_a_scalar_remedy_fits_the_shape() {
+        // A sequence item: `del` would shift the items up, so the remedy is
+        // `+=`, which appends.
+        let seq = "xs:\n  - 1\n  - 2\nsrc:\n  a: 1\n";
+        let err = assign_path(".xs[0]", ".src", seq).unwrap_err();
+        let text = format!("{err}");
+        assert!(text.contains("`.xs += <path>`"), "{text}");
+        assert!(
+            !text.contains("end of its mapping"),
+            "no mapping here: {text}"
+        );
+        assert_eq!(
+            apply(
+                &Mutation::Append {
+                    path: crate::parser::parse(".xs").expect("valid"),
+                    rhs: Rhs::Path(crate::parser::parse(".src").expect("valid")),
+                },
+                seq,
+            )
+            .unwrap(),
+            "xs:\n  - 1\n  - 2\n  - a: 1\nsrc:\n  a: 1\n"
+        );
+
+        // An entry left empty has no bytes, so `del` refuses it too; the
+        // message says which null it is talking about rather than promising.
+        let err = assign_path(".k", ".src", "k:\nsrc:\n  a: 1\n").unwrap_err();
+        assert!(
+            format!("{err}").contains("rather than being left empty"),
+            "{err}"
+        );
+
+        // Written `k: null`, the entry has bytes and the remedy works.
+        let removed = apply(
+            &Mutation::Delete {
+                target: Target::Value(crate::parser::parse(".k").expect("valid")),
+            },
+            "k: null\nsrc:\n  a: 1\n",
+        )
+        .unwrap();
+        assert_eq!(
+            assign_path(".k", ".src", &removed).unwrap(),
+            "src:\n  a: 1\nk:\n  a: 1\n"
+        );
     }
 
     // -- Bug b030: a write must not give a CRLF file mixed line endings -----
