@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-09-07",
+  "dateModified": "2026-09-08",
   "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 1937
+  "wordCount": 2220
 }
 </script>
 <script type="application/ld+json">
@@ -227,7 +227,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">10 min read</span>
+                    <span class="reading-time">12 min read</span>
                 </div>
                 
 
@@ -259,6 +259,10 @@
     
         <li class="toc-level-2">
             <a href="#keys-with-dots-in-them">Keys with dots in them</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#copying-a-whole-block">Copying a whole block</a>
         </li>
     
         <li class="toc-level-2">
@@ -407,6 +411,43 @@ $ yqr -i 'line_comment(.metadata.labels."app.kubernetes.io/name") = "selector"' 
 <p>The quotes belong to the filter, not the file. A new key is written the way
 its neighbours are, so <code>app.kubernetes.io/version: 1.4.2</code> lands unquoted
 beside unquoted labels, and a read gives you the bytes as the file has them.</p>
+<h2 id="copying-a-whole-block">Copying a whole block<a class="heading-anchor" href="#copying-a-whole-block" aria-label="Link to this section"></a></h2>
+<p>The right-hand side of <code>=</code> can name a mapping or a sequence, not just a
+scalar. That is how you copy one block over another:</p>
+<pre><code class="language-console">$ yqr -i '.spec.template.spec.containers[0].resources.requests = .spec.template.spec.containers[0].resources.limits' deploy.yaml
+</code></pre>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">-              cpu: 250m
+</span><span style="color:#bf616a;">-              memory: 256Mi
+</span><span style="color:#a3be8c;">+              cpu: &quot;1&quot;
+</span><span style="color:#a3be8c;">+              memory: 512Mi
+</span></pre>
+<p>The same right-hand side creates a key that is not there yet, which is the
+usual way to seed a block:</p>
+<pre><code class="language-console">$ yqr -i '.metadata.annotations = .metadata.labels' deploy.yaml
+</code></pre>
+<pre style="background-color:#2b303b;">
+<span style="color:#c0c5ce;">     app: web
+</span><span style="color:#a3be8c;">+  annotations:
+</span><span style="color:#a3be8c;">+    app: web
+</span></pre>
+<p><code>+=</code> takes one too, appending a whole mapping as a sequence item – a
+container, a step, an env entry.</p>
+<p>What is copied is the <strong>value</strong>, not the bytes. The block is written at its
+new home’s indentation and quoting, and comments inside the block you
+copied from do not come with it. Everything outside the edit is untouched,
+as always.</p>
+<p>Two shapes are refused rather than guessed at, both because the entry
+would have to change shape in place:</p>
+<pre><code class="language-console">$ yqr '.spec.replicas = .metadata.labels' deploy.yaml
+yqr: runtime error: cannot assign at "spec.replicas": the value there is a
+number, and yqr writes a collection only where one already is. Remove the
+entry and write it again, as in `del(.spec.replicas)` then
+`.spec.replicas = &lt;path&gt;`, which places it at the end of its mapping
+</code></pre>
+<p>The reverse – a scalar written over a block – is refused for the same
+reason. Both messages name the remedy, and the remedy is a delete followed
+by an assignment, which moves the key to the end of its mapping.</p>
 <h2 id="computing-a-new-value-from-the-old-one">Computing a new value from the old one<a class="heading-anchor" href="#computing-a-new-value-from-the-old-one" aria-label="Link to this section"></a></h2>
 <p><code>=</code> writes what you tell it. <code>|=</code> runs a filter on the value that is already
 there and writes the result, so you can say “one more than this” without
@@ -561,8 +602,9 @@ stdin. That is deliberate; there is nothing to write back to.</p>
 <h2 id="what-is-not-here-yet">What is not here yet<a class="heading-anchor" href="#what-is-not-here-yet" aria-label="Link to this section"></a></h2>
 <p>Being straight about the edges, because finding them yourself is annoying:</p>
 <ul>
-<li><strong>The right-hand side must be a scalar.</strong> Assigning a whole nested block
-is not supported yet.</li>
+<li><strong>There is no way to write a value the file does not already hold.</strong> A
+collection has to be copied from somewhere, because the filter grammar
+has no <code>{}</code> or <code>[]</code> literal.</li>
 <li><strong>No builtins beyond <code>to_entries</code>.</strong> There is no <code>select</code>, no <code>map</code>, and no
 string interpolation, so a filter cannot yet pick entries by a condition or
 reshape them.</li>
@@ -634,7 +676,7 @@ reshape them.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-09-07</span>
+        <span>Site last updated: 2026-09-08</span>
         
     </footer>
 

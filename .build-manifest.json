@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-09-07T20:08:48Z",
+  "timestamp": "2026-09-08T09:14:39Z",
   "pages": {
     "/": {
       "content_hash": "e398e8629920fc98",
@@ -43,7 +43,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/kubernetes": {
-      "content_hash": "c93aa53f3d3d9661",
+      "content_hash": "6c3e1a655f6c3c01",
       "template": "kubernetes.html.jinja",
       "template_hash": "30406ea523c53def"
     },
