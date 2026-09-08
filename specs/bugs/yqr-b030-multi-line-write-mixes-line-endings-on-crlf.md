@@ -77,6 +77,13 @@ document that had none. The rule is deliberately narrow:
 - only `set_value` is guarded, because the insertion paths were measured
   clean and carry upstream's fix.
 
+The cost is that a collection replacement which *grows* the line count is
+refused on a CRLF file even though it is a perfectly reasonable edit. That
+is the same defect, not a second one, and it lifts when the engine's fix
+does. The refusal names no remedy because there is none short of converting
+the file's line endings, and `yqr-f025` prefers no remedy to one that
+fails.
+
 Refusing rather than repairing follows `yqr-b022`'s precedent: a
 workaround that rewrites bytes to hide an engine defect trades a visible
 failure for an invisible one. `yqr-f014` did carry a local restore for

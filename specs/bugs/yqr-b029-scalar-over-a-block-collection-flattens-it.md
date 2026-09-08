@@ -93,6 +93,16 @@ Two parts, both in `yqr-f032`:
 The pre-check exists for the message; the post-check is the net, and it
 covers shapes nobody has thought of yet.
 
+**One correction from the code review of the fix.** The flow test read the
+value's first byte, and a node's properties come before its value, so
+`k: &an {a: 1}` and `k: !!map {a: 1}` were read as block collections and
+refused — the first an edit that works on `main` (`k: &an 5`), the second
+shadowing `write::anchor`'s accurate message about rewriting a scalar under
+a tag. The properties are skipped before the prefix test now. The guard
+being wrong in the *refusing* direction is the cheap failure, but it was
+still a regression, and only a test on a shape the guard was not written
+for would have caught it.
+
 ## 5. Upstream (drafted, not filed)
 
 noyalib's `set_value` resolves a block collection's span to a range that
@@ -120,3 +130,9 @@ becoming a ban on the type change;
 `an_absent_right_hand_path_does_not_flatten_a_block` covers the shape
 reached without naming a scalar at all. One corpus write case pins the
 refusal on the deployment.
+
+From the review round:
+`a_scalar_over_a_flow_collection_with_a_property_still_writes` holds both
+property spellings, and `an_anchored_block_collection_is_still_refused`
+holds the other side, so skipping the property cannot switch the guard
+off.
