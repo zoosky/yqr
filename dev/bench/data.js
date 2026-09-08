@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788858954065,
+  "lastUpdate": 1788894933942,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2435,6 +2435,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 270944,
             "range": "± 1731",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c8d5760584d4e68d17f9542cdf569909582d1a3",
+          "message": "Fix six code-review findings on f032, including a regression on main (#121)\n\n* Fix six code-review findings on f032\n\nThree behaviour fixes and three documentation corrections. The review ran\nagainst the f032 branch; the findings arrived after it merged, so this is\na follow-up. One of them is a regression now live on main.\n\nA flow collection carrying an &anchor or a !tag does not start with `[`,\nso the b029 guard read it as a block collection: `.k = 5` over\n`k: &an {a: 1}` is refused on main today, an edit that worked before\nf032, and the tag case shadows write::anchor's accurate message. The\nproperties are skipped before the prefix test now, with tests for both\nspellings and for the anchored block that must stay refused.\n\nThe collection-over-a-scalar refusal named one remedy for every shape and\nit was wrong for two. `del` shifts a sequence's items up, so the same\npath then names the next one and the refusal repeats; the route in is\n`+=`. `del` on an entry left empty is itself refused, so that shape gets\nno promise. Each remedy is executed by a test rather than asserted to\nexist.\n\nThe changelog claimed every write is checked against the document it\nstarted from; the guard runs on value assignment only, and the other\npaths keep the guards they already had. It also described the CRLF\nlimitation as applying to multi-line strings when a collection\nreplacement that grows the line count is refused the same way.\n\nThe measured cost of the guard, 24 ms to 26 ms on the 282 KB values\nfile, is recorded in f032 §3.2 rather than acted on: two milliseconds\ndoes not justify threading the current value through the writer seam.\n\n* docs(specs): file b031, the empty entry that cannot be deleted (f032 review)\n\nThe f032 review wanted a remedy to name in the scalar-to-collection\nrefusal, and `del` then assign fails for an entry left empty. Measuring\nthat made it a bug worth filing rather than a footnote.\n\n`del(.k)` over `k:` with nothing after the colon answers \"cannot delete\nk: cannot locate its bytes\", while the same value written `k: null`\ndeletes fine — two spellings of one value behaving differently, the\nshape b021 and b022 both had. It is wider than delete: line_comment\nrefuses the same entry with a different message, while read, assignment\nand rename all work.\n\nOne cause behind both faces. Each derives what it needs from span_at,\nthe value's span, which an implicit null does not have, though key_span\nresolves and the entry is perfectly locatable.\n\nUpstream's Document::remove handles every shape yqr refuses, including\nthe trailing comment and the empty sequence item, so the filing records\ntwo routes without choosing: derive the range from the key, or delegate\nthis class as the flow class already is.\n\n* Address the second review round: a property needs no space, and file f033\n\nThree wording and correctness fixes, and one filing.\n\nYAML forbids a flow indicator inside an anchor name, so no space is\nrequired between a property and its value. after_properties split on\nwhitespace alone, so `k: &an{a: 1}` left `1}` behind and read as a block\ncollection — the same wrong diagnosis the round before fixed, one\nspelling further out. It stops at a flow indicator now. That shape is\nstill refused, by the anchor writer's own re-parse guard, but for the\nreason that is true; a tag cannot be written that way at all, since\nnoyalib rejects it at parse time.\n\nThe sequence remedy named `+=`, which appends rather than replaces. The\nmessage says that outright now: there is no in-place route, and `+=` is a\ndifferent edit that does work.\n\nThe null remedy interpolated the key name through a fallback reachable\nonly at the root, where the advice would have read `del(.)`. It names no\nkey now.\n\nf033 files the 500-line rule: write.rs is 1259 production lines against\na limit of about 500, the write/ directory already exists, and each round\nadds to the file rather than to it. Filed rather than done, because the\nshape of the split deserves thought rather than moving whichever function\nwas touched last.",
+          "timestamp": "2026-09-08T21:14:08+02:00",
+          "tree_id": "4b0351730cc9a3d1b0b6e46f9e3ccef58179bc91",
+          "url": "https://github.com/zoosky/yqr/commit/4c8d5760584d4e68d17f9542cdf569909582d1a3"
+        },
+        "date": 1788894932086,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 557,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5460,
+            "range": "± 93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 267115,
+            "range": "± 799",
             "unit": "ns/iter"
           }
         ]
