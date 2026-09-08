@@ -713,6 +713,43 @@ pub fn cli_cases() -> Vec<CliCase> {
                 "      - values-sdw03.yaml\n      - values-extra.yaml\n",
             )])),
         },
+        // Feature f032: a collection right-hand side, in place on the shape.
+        // The value is copied from another tenant, which is the realistic
+        // shape of the edit — the grammar has no collection literal.
+        CliCase {
+            id: "cli/write/collection-rhs-new-key-in-place",
+            doc: SHAPE,
+            feed: Feed::File,
+            args: &[
+                "-i",
+                ".argo.tenants.t3.newBlock = .argo.tenants.t0.categories",
+                "@doc",
+            ],
+            status: 0,
+            stdout: Out::Empty,
+            stderr: Out::Empty,
+            after: Some(Out::Rewrites(&[(
+                "        DOCS_FILE_AWS_S3_BUCKET: \"website-docs-prod-t3-files\"\n",
+                "        DOCS_FILE_AWS_S3_BUCKET: \"website-docs-prod-t3-files\"\n      \
+                 newBlock:\n        stage: prd\n        liveness: temporary\n        weight: 0\n",
+            )])),
+        },
+        // A collection cannot replace a scalar in place; the file is left
+        // untouched and the message names the remedy.
+        CliCase {
+            id: "cli/write/collection-over-a-scalar-is-refused",
+            doc: SHAPE,
+            feed: Feed::File,
+            args: &[
+                "-i",
+                ".argo.tenants.t3.enabledProjects = .argo.tenants.t0.categories",
+                "@doc",
+            ],
+            status: 5,
+            stdout: Out::Empty,
+            stderr: Out::Contains(&["writes a collection only where one already is", "del("]),
+            after: Some(Out::Input),
+        },
         CliCase {
             id: "cli/write/delete-in-place",
             doc: SHAPE,

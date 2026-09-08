@@ -6,6 +6,39 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **A mapping or a sequence can be the right-hand side of a write.**
+  `.m.new = .defaults` adds a nested block, `.xs += .item` appends one as
+  a sequence item, and `.k = .other` or `.k |= to_entries` replaces a
+  collection that is already there. The value is copied from the
+  document, since the filter grammar has no collection literal. Every
+  byte outside the edit is unchanged, and the block is spelled at the
+  destination: quoting follows the site and comments inside the copied
+  value do not travel, the same rule `to_entries` output follows.
+
+### Fixed
+
+- **Writing a scalar over a block collection no longer damages the
+  file.** `.k = 5` where `k:` held an indented block emitted the value at
+  the key's own column, which this engine reads back but PyYAML and
+  Psych reject, at exit 0 — `yqr validate` rejected yqr's own output.
+  The write is refused now, with a remedy that works. A flow collection
+  (`k: {a: 1}`) and a sequence item were never affected and still write.
+- **A multi-line write no longer gives a CRLF file mixed line endings.**
+  Assigning a multi-line string to a document whose lines end with CRLF
+  wrote the replacement's own lines with LF. The write is refused until
+  the engine derives the terminator from the document, as it already
+  does when inserting a key or appending an item.
+
+### Changed
+
+- **Every write is checked against the document it started from.** A
+  write that would leave a block mapping's value at its key's own column,
+  or add a bare line feed to a wholly CRLF file, is refused rather than
+  emitted. Neither is something a YAML parser complains about, which is
+  why both defects above reached a released version.
+
 ## [0.8.0] - 2026-09-07
 
 ### Added

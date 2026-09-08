@@ -347,6 +347,12 @@ first is settled; the other three are open:
   nested collection — so the "collections are not yet supported" refusal is now
   a scope limit, not a backend one. Lifting it is a user-facing surface change
   and belongs here or in `yqr-f008`, with its own tests and docs.
+
+  **Done 2026-09-08 as `yqr-f032`**, and it took `=` over an existing
+  collection with it. The one shape left refused is a scalar replaced by a
+  collection, which the engine has no typed route for. Measuring the sites
+  before lifting the refusal found `yqr-b029` and `yqr-b030`, two
+  silent-corruption defects on paths that had already shipped.
 - **Keys that hold `.` or `[` — and it is wider than "creating" one.** Measured
   2026-08-15 on the 0.0.22 pin, against `app.kubernetes.io/name`:
   - yqr's **filter** grammar already addresses such a key —
@@ -404,8 +410,9 @@ or `[`, whose insert face is now filed as `yqr-b012`.)_
 
 _(Keys holding `.` or `[` closed 2026-09-07: `yqr-f030` lowers every key
 through noyalib 0.0.33's bracket-quoted segments, so the whole write tier
-reaches them. The delegation question is settled above; collection
-right-hand sides stay open.)_
+reaches them. Collection right-hand sides closed 2026-09-08 by `yqr-f032`.
+With the delegation question settled above, **this section has no open
+items left**.)_
 
 ## 7. Key rename (shipped)
 

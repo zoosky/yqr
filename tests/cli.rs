@@ -1350,29 +1350,34 @@ fn the_update_filter_sees_the_node_not_the_document() {
     assert_eq!(assign.stdout, "x: 9\na:\n  t: 9\n");
 }
 
+// Feature f032: a collection result is written where a collection already is,
+// and refused where a scalar is. `to_entries` is the collection case reached
+// through a filter yqr actually has.
 #[test]
-fn update_inherits_the_scalar_boundary_of_assignment() {
-    // `set_value` writes scalar leaves, so a collection result is refused --
-    // the same refusal `=` gives for a collection right-hand side. This is
-    // f006's limitation inherited, not one f008 introduces.
-    // `to_entries` returns a sequence, so it is the collection case reached
-    // through a filter yqr actually has.
+fn update_writes_a_collection_over_a_collection() {
     let update = run(&[".m |= to_entries"], "m:\n  a: 1\n");
-    assert_eq!(update.status, 5, "stdout: {}", update.stdout);
-    assert!(
-        update.stderr.contains("must be a scalar"),
-        "unexpected stderr: {}",
-        update.stderr
-    );
+    assert_eq!(update.status, 0, "stderr: {}", update.stderr);
+    assert_eq!(update.stdout, "m:\n  - key: a\n    value: 1\n");
+}
 
-    // The same refusal `=` gives for a collection right-hand side.
+#[test]
+fn a_collection_over_a_scalar_is_refused_with_a_working_remedy() {
     let assign = run(&[".c = .a"], "a:\n  b: hi\nc: 1\n");
     assert_eq!(assign.status, 5, "stdout: {}", assign.stdout);
     assert!(
-        assign.stderr.contains("must be a scalar"),
+        assign
+            .stderr
+            .contains("yqr writes a collection only where one already is"),
         "unexpected stderr: {}",
         assign.stderr
     );
+    // The remedy the message names has to work, or it is worse than none
+    // (`yqr-f025`).
+    let removed = run(&["del(.c)"], "a:\n  b: hi\nc: 1\n");
+    assert_eq!(removed.status, 0, "stderr: {}", removed.stderr);
+    let again = run(&[".c = .a"], &removed.stdout);
+    assert_eq!(again.status, 0, "stderr: {}", again.stderr);
+    assert_eq!(again.stdout, "a:\n  b: hi\nc:\n  b: hi\n");
 }
 
 #[test]

@@ -14,6 +14,8 @@ None — see the summary.
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b029](yqr-b029-scalar-over-a-block-collection-flattens-it.md) | A scalar written over a block collection lands at its key's own column | High | Resolved **2026-09-08** by `yqr-f032`, whose measurement found it. `.k = 5` over `k:` / `  a: 1` emitted `k:` / `5` at **exit 0** on the shipped 0.8.0: the value landed at the key's own column, where PyYAML and Psych reject the document and `yqr validate` reports `Y103` on yqr's own output. Every guard was blind for one reason — noyalib reads the result back, so the re-parse guard, upstream's own guard and the load-back oracle all pass. That is `b014`'s class, recorded for *delete* in August and never checked for assignment. Ten shapes measured: `=` and `\|=` corrupt alike, a literal and a path right-hand side alike, an **absent** path (`null`) included; a flow collection and a sequence item are correct and stay allowed, and the nested case was already refused with "inconsistent indentation" over a document that has none — the `b024` shape. Fixed with a pre-check that names a remedy the test runs, plus a post-write integrity check that counts `Y103` sites on either side of every `set_value` using `validate`'s own scanner, so the two commands cannot drift on what a broken document is. Upstream draft in §5, not filed | `yqr-f032`, `yqr-b014`, `yqr-b024`, `yqr-b030`, `yqr-a001`, `yqr-f012` |
+| [b030](yqr-b030-multi-line-write-mixes-line-endings-on-crlf.md) | A multi-line write gives a CRLF document mixed line endings | Medium | Resolved **2026-09-08** by `yqr-f032`, found in the same pass. `.a = "one\ntwo"` on a CRLF file wrote three LF-terminated lines into it at exit 0 — bytes the edit did not name, which is what `a001` forbids. This is **`b009` in a mutator that patch did not reach**: yqr's own noyalib#261 taught the *insertion* mutators to derive a line's terminator from the document and shipped in 0.0.22, and `yqr-f015` deleted the local workaround; `set_value` was never in scope and no test covered a multi-line `set_value` on CRLF, so this half has been live since. Measured per mutator on 0.0.41: `set_value` mixes when the replacement *grows* the line count and is clean when it does not, the insertion paths are clean, a flow replacement is clean. The re-parse guard and the load-back oracle cannot see it, because mixed endings mean the same thing — the defect is fidelity, not correctness. Guarded by counting bare line feeds on either side of a `set_value` and refusing a write that adds one to a wholly CRLF document; refusing rather than repairing follows `b022`. Upstream draft in §5, not filed | `yqr-b009`, `yqr-f015`, `yqr-f032`, `yqr-b029`, `yqr-a001` |
 | [b028](yqr-b028-validate-mispositions-a-stream-error.md) | `validate` positions a stream error relative to the document that failed | Medium | Resolved **2026-09-06** by `yqr-f028` (noyalib 0.0.34), which found it: the parser splits a stream at `---` and locates an error from the start of the document that failed, and `validate` had rendered that index against the whole stream since `f012` — an unknown anchor on line 5 pointed at the `---` on line 2. It survived because the one pinned case, `b: [1,` in a second document, put the caret on the `[` by coincidence; three tests asserted it, one with a comment saying the position was absolute. Surfaced when 0.0.33's located `KeyCollisionAt` gave the `Y102` finding a position. Fixed by finding the failing document the way the parser does (mirror its marker rule, re-parse in order, require the identical failure) and offsetting every location through it; no trusted offset means no position rather than a wrong one. The old re-parsing collision note (`b027` §1, row 3) went with it. **Filed upstream 2026-09-06 as noyalib#407 and fixed the same day in PR #408**: only the CST stream entry points were affected, the typed loaders already reported stream positions for the same bytes. Verified on the branch with a path patch: the fix inverts yqr's re-parse guard, so adopting the release is `yqr-f029`, not a pin bump. **Shipped in noyalib 0.0.36, adopted 2026-09-07 on 0.0.39**: the re-parse is gone | `yqr-f012`, `yqr-f028`, `yqr-f029`, `yqr-b027` |
 | [b025](yqr-b025-alias-anchor-ratio-refuses-a-legitimate-values-file.md) | The alias-to-anchor ratio heuristic refuses a legitimate values file, and the refusal reads as a syntax error | Medium | Resolved **2026-09-03** by `yqr-f026` (noyalib 0.0.31, the first release carrying noyalib#373, filed for this bug the day it was filed). Filed 2026-09-02 from a field report: a Helm-style tenants file (22 anchored defaults merged into 221 tenants, ratio 10.05 vs. the default cap of 10) failed to open at all, with a message implying a syntax defect. yqr's classic-pipeline half shipped the day it was filed; the default byte-preserving read, `validate`, and the write tier now parse through `cst::parse_stream_with_config` with the ratio heuristic disabled and every absolute budget intact, and the special-cased refusal wording is gone as unreachable. Verified against the published crate on the field file (`tests/data/values.yaml`): default read exit 0 and byte-identical, `validate` exit 0, writes apply | `yqr-b022`, `yqr-b024`, `yqr-f023`, `yqr-f026`, `yqr-b026`, `yqr-r002` |
 | [b026](yqr-b026-assigning-to-an-anchored-scalar-drops-the-anchor.md) | Assigning to an anchored scalar drops the anchor, then fails on the alias it orphaned | Medium | Resolved **2026-09-03** by `yqr-f026` §6, found 2026-09-02 while verifying `b025`: the rewritten range covered `&x 1`, so the edit removed the definition and the re-parse guard tripped on the alias it orphaned (or, with no aliases, dropped the anchor silently). The span noyalib resolves still starts at the property on 0.0.31, so yqr's write adapter routes property-led targets through the definition write it grew for noyalib#338: the `&name` property is kept, the scalar token is spliced, and the guarded re-parse requires exactly the original document with the assignment applied, reflected at alias sites. `.a = 2` over `a: &x 1` yields `a: &x 2`; the tagged case is a refusal naming the tag | `yqr-b025`, `yqr-b020`, `yqr-f006`, `yqr-f026` |
@@ -45,7 +47,7 @@ None — see the summary.
 
 ## Summary
 
-- Total bugs: 28
+- Total bugs: 30
 - Open: **0** — `b028` found and closed 2026-09-06 by `yqr-f028`, the
   noyalib 0.0.34 adoption: the located collision the release added put a
   position on `Y102`, and the first stream test showed every located
@@ -54,6 +56,14 @@ None — see the summary.
   noyalib 0.0.31 adoption: the configurable CST entry points yqr filed for
   (noyalib#372/#373) shipped, and the anchored-scalar write landed as yqr's
   own guarded span surgery.
+- `b029` and `b030` found and closed 2026-09-08 by `yqr-f032`, the
+  collection right-hand side feature: driving every write site with a
+  collection before lifting a refusal turned up two silent-corruption
+  defects on paths that had shipped — a scalar flattening a block
+  collection, and a multi-line write mixing line endings on CRLF. Both
+  are `a001` violations at exit 0 that every existing guard passed,
+  because the engine reads its own output back. Guarded in yqr; the
+  upstream drafts are written and not filed.
 - **Every bug is fixed** (`b027`, the quadratic `validate`, the same day
   the values corpus found it), in yqr or in a released dependency.
   `b024` was found by writing documentation rather than by running the tool —
@@ -85,7 +95,7 @@ None — see the summary.
   yqr's noyalib#296, released hours after it merged. Verified against the
   published crate on its own reproduction with all four controls
   (`yqr-f020` §3).
-- Resolved: 25 (b028 and b024 — see above;
+- Resolved: 27 (b029, b030, b028 and b024 — see above;
   b022 and b021 — closed by noyalib 0.0.28, see above;
   b023, b020, b019, b018, b017, b016, b015 — see above; b014, b013, b012, b011 —
   closed by noyalib 0.0.25, `yqr-f019`;

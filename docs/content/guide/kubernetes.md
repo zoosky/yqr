@@ -4,6 +4,8 @@
 # of the limitation section; fixed in noyalib 0.0.25.
 # "Computing a new value from the old one" is Feature f008.
 # "Keys with dots in them" is Feature f030.
+# "Copying a whole block" is Feature f032; the two refusals are b029 and
+# the scalar-to-collection limit.
 # Every console block re-run against v0.8.0 on 2026-09-07; the manifest and
 # ci.yaml hold what the examples address (two containers, dotted labels,
 # three steps).
@@ -158,6 +160,56 @@ $ yqr -i 'line_comment(.metadata.labels."app.kubernetes.io/name") = "selector"' 
 The quotes belong to the filter, not the file. A new key is written the way
 its neighbours are, so `app.kubernetes.io/version: 1.4.2` lands unquoted
 beside unquoted labels, and a read gives you the bytes as the file has them.
+
+## Copying a whole block
+
+The right-hand side of `=` can name a mapping or a sequence, not just a
+scalar. That is how you copy one block over another:
+
+```console
+$ yqr -i '.spec.template.spec.containers[0].resources.requests = .spec.template.spec.containers[0].resources.limits' deploy.yaml
+```
+```diff
+-              cpu: 250m
+-              memory: 256Mi
++              cpu: "1"
++              memory: 512Mi
+```
+
+The same right-hand side creates a key that is not there yet, which is the
+usual way to seed a block:
+
+```console
+$ yqr -i '.metadata.annotations = .metadata.labels' deploy.yaml
+```
+```diff
+     app: web
++  annotations:
++    app: web
+```
+
+`+=` takes one too, appending a whole mapping as a sequence item -- a
+container, a step, an env entry.
+
+What is copied is the **value**, not the bytes. The block is written at its
+new home's indentation and quoting, and comments inside the block you
+copied from do not come with it. Everything outside the edit is untouched,
+as always.
+
+Two shapes are refused rather than guessed at, both because the entry
+would have to change shape in place:
+
+```console
+$ yqr '.spec.replicas = .metadata.labels' deploy.yaml
+yqr: runtime error: cannot assign at "spec.replicas": the value there is a
+number, and yqr writes a collection only where one already is. Remove the
+entry and write it again, as in `del(.spec.replicas)` then
+`.spec.replicas = <path>`, which places it at the end of its mapping
+```
+
+The reverse -- a scalar written over a block -- is refused for the same
+reason. Both messages name the remedy, and the remedy is a delete followed
+by an assignment, which moves the key to the end of its mapping.
 
 ## Computing a new value from the old one
 
@@ -355,8 +407,9 @@ stdin. That is deliberate; there is nothing to write back to.
 
 Being straight about the edges, because finding them yourself is annoying:
 
-- **The right-hand side must be a scalar.** Assigning a whole nested block
-  is not supported yet.
+- **There is no way to write a value the file does not already hold.** A
+  collection has to be copied from somewhere, because the filter grammar
+  has no `{}` or `[]` literal.
 - **No builtins beyond `to_entries`.** There is no `select`, no `map`, and no
   string interpolation, so a filter cannot yet pick entries by a condition or
   reshape them.
