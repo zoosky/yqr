@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788811797926,
+  "lastUpdate": 1788858954065,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2393,6 +2393,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 274758,
             "range": "± 1050",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e7b0a36c8335a92fea08ed092af9006f303f5b6b",
+          "message": "Collection right-hand sides, and two corruptions the measurement found (f032, b029, b030) (#120)",
+          "timestamp": "2026-09-08T11:14:25+02:00",
+          "tree_id": "b11a1dea662888d3fe5f164f0e06abd374870d80",
+          "url": "https://github.com/zoosky/yqr/commit/e7b0a36c8335a92fea08ed092af9006f303f5b6b"
+        },
+        "date": 1788858951443,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 559,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5612,
+            "range": "± 88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 270944,
+            "range": "± 1731",
             "unit": "ns/iter"
           }
         ]
