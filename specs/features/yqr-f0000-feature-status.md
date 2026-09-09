@@ -99,7 +99,7 @@ dependency/release timing.
 | [f029](yqr-f029-noyalib-407-adoption.md) | Adopt the noyalib release that carries #407: trust the stream location, drop the re-parse | Done (0.0.39, 2026-09-07: the fix shipped in 0.0.36; the re-parse is gone, the cross-document alias hint added; four crossed releases measured, one upstream parse-behaviour change passed through) |
 | [f030](yqr-f030-dotted-key-addressing.md) | Address any mapping key: bracket-quoted segments and the `."a.b"` field | Done (2026-09-07: the `f007` §6 / `a002` §7.3 limit closed on noyalib 0.0.33's quoted segments; every write reaches a dotted key, `Resolved::Unaddressable` removed) |
 | [f031](yqr-f031-noyalib-0-0-41-adoption.md) | Adopt noyalib 0.0.41: two fixes on paths yqr does not take | Done (0.0.41, 2026-09-07: 44 comparisons against the 0.0.39 build byte-identical; the fixed serializer and formatter paths are unreachable from yqr; benchmarks flat; the three shapes pinned in the corpus) |
-| [f033](yqr-f033-split-the-write-module.md) | Split `src/fidelity/write.rs` into its directory module | Draft (filed 2026-09-08 from the `f032` review: the file is 1259 production lines against ground rule 9's ~500, the `write/` directory already exists, and every round adds to the file rather than to it) |
+| [f033](yqr-f033-split-the-write-module.md) | Split `src/fidelity/write.rs` into its directory module | Done (2026-09-09: four files by what each decides, none over 419 production lines; three visibility keywords were the only non-move edit, and the test-name list is identical to before) |
 | [f032](yqr-f032-collection-right-hand-sides.md) | Collection right-hand sides for `=`, `+=` and a new key | Done (2026-09-08: the last open `f007` §6 scope item; a mapping or sequence can be assigned, appended and written over an existing collection, and the measurement found `b029` and `b030`, two silent-corruption defects on shipped paths) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
@@ -330,11 +330,11 @@ dashboard.
 ## Summary
 
 - Total features: 33
-- Draft: 3 (f025, f027, f033)
+- Draft: 2 (f025, f027)
 - In Progress: 0
-- Done: 26 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 27 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031, f032)
+  f030, f031, f032, f033)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

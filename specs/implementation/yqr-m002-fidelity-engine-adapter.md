@@ -2,7 +2,7 @@
 
 **Status:** In Progress (read floor shipped on the single noyalib backend via `yqr-f002`; backend A retired in `yqr-m005`; write tier unstarted — `yqr-b004` is its driver)
 **Owner:** yqr maintainers
-**Last updated:** 2026-09-07 (`yqr-f030`: the `Unaddressable` arm removed; every key is addressable)
+**Last updated:** 2026-09-09 (`yqr-f033`: the write tier is a directory module, §8)
 **Implements:** `yqr-a001` §4.3 (the source/span implementation seam)
 **Related:** `yqr-b001` (the fidelity bug this unblocks), `yqr-r001` §9, `yqr-r002` (the rust-yaml-vs-noyalib backend decision this abstracts over)
 
@@ -328,20 +328,36 @@ re-exported from `lib.rs` via `pub mod fidelity;`:
   (`src/fidelity/rust_yaml/span_index.rs`) before it crosses the limit.
 - `src/fidelity/noyalib.rs` — `NoyalibEngine` (backend C), behind a
   `noyalib-backend` feature.
-- `src/fidelity/write.rs` — the write seam (`FidelityWriter`, `NoyalibWriter`,
-  `apply`), with one sibling sub-module per edit whose implementation is more
-  than a call plus an error map: `write/delete.rs` (`yqr-f007` §5, the byte
-  arithmetic) and `write/reorder.rs` (`yqr-f007` §9, the index arithmetic and
-  refusals around `swap_items` / `move_item`).
+- `src/fidelity/write/` — the write tier, a directory module since
+  `yqr-f033` (2026-09-09). Seven files, none over the rule 9 limit:
 
-  **Owed:** `write.rs` itself is past the rule 9 limit — ~710 lines of
-  production code as of the reorder slice, and already ~670 before it. The
-  sub-modules keep new concerns out of it but do not shrink it. The natural
-  further split follows the same seam: the comment mutators and their
-  pre-checks (`write/comment.rs`), and the rename (`write/rename.rs`), leaving
-  `write.rs` as the trait, `apply`/`apply_to_doc`, and the shared path/value
-  lowering. Not done inside the reorder slice, because a same-PR refactor of
-  three unrelated edits is how a byte-fidelity change stops being reviewable.
+  | file | holds | production lines |
+  |---|---|---|
+  | `mod.rs` | `apply`, `apply_to_doc`, the small shared helpers, and the shared test helpers | 329 |
+  | `seam.rs` | the `FidelityWriter` trait and the two enums it speaks in | 226 |
+  | `guards.rs` | everything deciding whether a write happens: the no-op guards, the type-change refusals, the post-write integrity check | 334 |
+  | `backend.rs` | `NoyalibWriter` and its implementation of the trait | 419 |
+  | `anchor.rs` | the definition write for an anchored value (`yqr-b026`) | 263 |
+  | `delete.rs` | structural delete (`yqr-f007` §5, the byte arithmetic) | 482 |
+  | `reorder.rs` | `swap` / `move` (`yqr-f007` §9, the index arithmetic) | 159 |
+
+  The split is **by what a piece decides**, not by which type owns it. Three
+  guards need the document and so are `NoyalibWriter` methods; they live in
+  `guards.rs` beside the free functions they run with, because splitting the
+  two type-change guards across files is what made them hard to follow.
+
+  `apply` is the only item anything outside the module reaches
+  (`src/main.rs`, two integration suites, one bench), and it stays defined in
+  `mod.rs`, so the split needed no re-export and changed no caller. What it
+  did need is three visibility keywords: `doc_ref`, `doc_mut` and `type_name`
+  were reachable from the edit sub-modules only through ancestor-module
+  privacy, which a sibling file does not get.
+
+  The earlier note here owed a split along a different seam, one file per
+  edit family (`write/comment.rs`, `write/rename.rs`). That was rejected when
+  the work came: the comment and rename mutators are four short methods on
+  the trait impl, so pulling each into its own file would have left
+  `backend.rs` no smaller and scattered one type across five files.
 
 ## 9. First increment
 
