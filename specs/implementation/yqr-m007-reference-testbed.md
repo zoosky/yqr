@@ -43,9 +43,15 @@ every commit; the testbed runs when someone has a question.
 testbed/
   cases.yaml     the questions, each with the decision that raised it
   run.py         the runner, and `--check` for drift
-  answers.md     the recorded answers, with every library's version
+  answers.json   the record: every answer, keyed by case, op and library
+  answers.md     the same, rendered for reading
   adapters/      one per implementation, all speaking the same protocol
 ```
+
+Two artifacts because they have two jobs. `answers.md` is what a person
+reads and what a spec links to; `answers.json` is what `--check` compares,
+because comparing rendered markdown makes a formatting change look like a
+finding.
 
 **The protocol is four lines of JSON.** An adapter reads
 `{"op", "source", "path"}` on stdin and writes one of `{"result"}`,
@@ -83,15 +89,33 @@ python3 testbed/run.py            # rewrite testbed/answers.md
 python3 testbed/run.py --check    # fail if the answers have drifted
 ```
 
-`--check` is what makes the record worth having: an answer a spec leans on
-cannot change without someone noticing. It is **not** in the pull-request
-CI job, which stays a single Rust build; five language runtimes on every
-commit would buy a class of failure that has nothing to do with yqr. It
-runs from `.github/workflows/testbed.yml` on demand and weekly, which is
-the cadence the evidence actually changes at.
+`--check` compares **per implementation, and only against its own
+version**. That distinction is the whole design, and the first run in CI
+is what taught it: the machine that wrote the record had Psych 3.1.0,
+the runner had 5.1.2, and Psych 5 emits `k:` where Psych 3 emits `k: `
+with a trailing space. Comparing the files wholesale made a true and
+uninteresting fact — two machines have different Rubies — indistinguishable
+from the thing worth catching.
 
-An implementation that is not installed reports as missing rather than
-failing the run, so a partial answer is still an answer.
+So there are three outcomes, and only one of them is an error:
+
+| situation | outcome |
+|---|---|
+| same version, same answer | compared, silent |
+| **same version, different answer** | **drift, exit 1**: a library changed behaviour without changing version, or the record was edited |
+| different version | reported, not an error, and the answers that differ are named |
+
+The third line matters as much as the second. An upgrade changing an
+answer a spec leans on is exactly what the record exists to surface, and
+it must not be silent just because it cannot honestly be an error. A
+missing implementation reports as missing rather than failing, so a
+partial answer is still an answer.
+
+It is **not** in the pull-request CI job, which stays a single Rust build;
+five language runtimes on every commit would buy a class of failure that
+has nothing to do with yqr. It runs from `.github/workflows/testbed.yml`
+on demand, weekly, and on any push touching `testbed/`, which is the
+cadence the evidence actually changes at.
 
 ## 5. What the first run settled
 

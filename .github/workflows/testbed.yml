@@ -55,4 +55,4 @@ jobs:
         if: failure()
         run: |
           python3 testbed/run.py
-          git --no-pager diff -- testbed/answers.md
+          git --no-pager diff -- testbed/answers.md testbed/answers.json
