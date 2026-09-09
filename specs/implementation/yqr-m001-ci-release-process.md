@@ -20,7 +20,7 @@ here.
 
 ## 2. Workflows
 
-Three workflows live in `.github/workflows/`. There are no others.
+Four workflows live in `.github/workflows/`. There are no others.
 
 ### 2.1 `ci.yml` — build, test, lint
 
@@ -63,7 +63,22 @@ Three workflows live in `.github/workflows/`. There are no others.
 - `gh-pages` is shared with the website deploy (`yqr-f010`), which is why
   `pages.yml` excludes `dev/` from its `rsync --delete`.
 
-### 2.3 `pages.yml` — website
+### 2.3 `testbed.yml` — the reference testbed
+
+Runs `testbed/run.py --check` over five YAML implementations and fails
+when their recorded answers have drifted from `testbed/answers.md`.
+**Triggers:** `workflow_dispatch`, a weekly cron, and any push touching
+`testbed/`. Never on an unrelated pull request.
+
+Deliberately outside `ci.yml`. That job is one Rust build on one runner;
+installing Python, Ruby, Go and Bun on every commit would add minutes and
+a class of failure with no bearing on whether yqr is correct. The evidence
+the testbed records changes when an upstream library releases, which is
+what the weekly run is for. On failure the job re-runs without `--check`
+and prints the diff, because a drifted answer is a finding to read rather
+than a red mark to clear. Full rationale in `yqr-m007`.
+
+### 2.4 `pages.yml` — website
 
 Builds the public Accent CMS site from `docs/` (the spec tree is not part
 of it -- `yqr-f021`)

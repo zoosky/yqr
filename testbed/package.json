@@ -1,0 +1,8 @@
+{
+  "name": "yqr-testbed",
+  "private": true,
+  "description": "js-yaml, pinned, for the reference testbed (yqr-m007)",
+  "dependencies": {
+    "js-yaml": "4.1.0"
+  }
+}
