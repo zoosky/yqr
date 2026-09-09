@@ -1,24 +1,17 @@
 name: CI
 
-# Only run when Rust-relevant files change; docs/spec/config-only changes
-# (Markdown, LICENSE files, other workflows, etc.) skip CI entirely.
-# GitHub Actions does not support YAML anchors, so the path list is repeated.
+# Runs on every push and every pull request, with no path filter.
+#
+# It used to skip anything that touched no Rust, which was cheap and made
+# this check *unrequirable*: a docs-only pull request showed no check at
+# all, so a branch rule requiring it would wait on a run that never
+# starts. A check that is sometimes absent cannot gate anything, and
+# gating is what it is for. The cost is about a minute of cached build on
+# a change that could not have broken the build.
 on:
   push:
     branches: ["**"]
-    paths:
-      - "**/*.rs"
-      - "**/Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - ".github/workflows/ci.yml"
   pull_request:
-    paths:
-      - "**/*.rs"
-      - "**/Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - ".github/workflows/ci.yml"
 
 env:
   CARGO_TERM_COLOR: always

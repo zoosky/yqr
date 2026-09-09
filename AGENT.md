@@ -393,11 +393,11 @@ below must stay in sync with it.
 
 ### CI Pipeline (`.github/workflows/ci.yml`)
 
-**Triggers**: pushes to any branch and pull requests, both filtered to
-Rust-relevant paths (`**/*.rs`, `**/Cargo.toml`, `Cargo.lock`,
-`rust-toolchain.toml`, and `ci.yml` itself) via GitHub's native
-`on.<event>.paths`. Markdown/spec-only changes skip CI entirely — such PRs
-show **no** `build · test · lint` check rather than a green one.
+**Triggers**: every push to any branch, and every pull request. No path
+filter, so the check is always present and can therefore be required by
+`main`'s ruleset. It was filtered to Rust paths until 2026-09-09; a
+docs-only PR then showed **no** check at all, which is what made it
+unrequirable (`yqr-m001` §2.1).
 
 **Runner**: `ubuntu-latest`. There is no self-hosted runner.
 
@@ -485,10 +485,11 @@ it is a separately authorized step — never inferred from an instruction to
   when `cargo package --list` names a dev-only path (`docs/`, `specs/`,
   `CLAUDE.md`, ...); `ci.yml` cannot catch that, since the change that causes
   it touches no Rust path.
-- **Docs/specs-only PRs**: CI and benchmarks skip when no Rust-relevant path
-  changes, so those PRs show no CI check at all. No `cargo` run is needed
-  for markdown-only changes; do rebuild the site (`cd docs && accent build
-  --clean --strict-links`) when touching `docs/`.
+- **Docs/specs-only PRs**: CI runs on these too, so they show the same
+  `build · test · lint` check as any other PR; benchmarks still skip. No
+  `cargo` run is needed locally for markdown-only changes; do rebuild the
+  site (`cd docs && accent build --clean --strict-links`) when touching
+  `docs/`.
 
 **When CI fails**:
 

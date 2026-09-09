@@ -24,12 +24,18 @@ Four workflows live in `.github/workflows/`. There are no others.
 
 ### 2.1 `ci.yml` — build, test, lint
 
-- **Triggers:** pushes to **any** branch and pull requests, both filtered to
-  Rust-relevant paths (`**/*.rs`, `**/Cargo.toml`, `Cargo.lock`,
-  `rust-toolchain.toml`, `ci.yml` itself). Filtering is GitHub's native
-  `on.<event>.paths`; no filter action is involved. Markdown- and
-  spec-only changes therefore skip CI entirely, which is why docs PRs show
-  no `build · test · lint` check at all rather than a green one.
+- **Triggers:** every push to any branch, and every pull request. No path
+  filter.
+
+  It had one until 2026-09-09: Rust-relevant paths only, so a docs- or
+  spec-only change skipped CI entirely. That was cheap and it made the
+  check **unrequirable**. A docs pull request showed no `build · test ·
+  lint` at all, so a branch rule requiring it would wait forever on a run
+  that never starts, and PR #124 is the recorded example. A check that is
+  sometimes absent cannot gate anything, and gating is what this one is
+  for. The filter came off when `main`'s ruleset began requiring it. The
+  cost is about a minute of cached build on a change that could not have
+  broken the build, which is the cheaper side of the trade.
 - **Runner:** `ubuntu-latest`. There is no self-hosted runner.
 - **Jobs:** exactly one, `test` (displayed as `build · test · lint`), on the
   pinned 1.97.1 toolchain with a cargo registry/target cache:
