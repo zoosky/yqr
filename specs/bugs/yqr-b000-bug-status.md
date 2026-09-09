@@ -8,14 +8,13 @@ status tracker convention).
 
 ## Open
 
-| Bug | Title | Severity | Status | Related |
-|-----|-------|----------|--------|---------|
-| [b031](yqr-b031-cannot-delete-an-entry-whose-value-is-absent.md) | An entry left empty cannot be deleted or commented, though it can be read, written and renamed | Low | Open — filed **2026-09-08** from `yqr-f032`'s code review, which hit it looking for a remedy to name in a refusal. `del(.k)` over `k:` with nothing after the colon answers "cannot delete k: cannot locate its bytes", while the same value written `k: null` deletes fine — the two-spellings-of-one-value shape `b021` and `b022` both had. Wider than delete: `line_comment(...)` refuses the same entry with a different message, while read, assignment and rename all work. One cause behind both faces: each derives what it needs from `span_at`, the **value's** span, which an implicit null does not have, though `key_span` resolves and the entry is perfectly locatable. Refused in every layout measured — trailing comment, trailing spaces, nested, last in file, sole entry, and an empty sequence item. **Upstream's `Document::remove` handles all four shapes correctly**, so the fix is either deriving the range from the key or delegating this class as the flow class already is (`f016` §5); neither is chosen in the filing. Nothing is corrupted and the file is left untouched, which is why it is Low | `yqr-b021`, `yqr-b022`, `yqr-b014`, `yqr-f007`, `yqr-f016`, `yqr-f025`, `yqr-f032` |
+None — see the summary.
 
 ## Resolved
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b031](yqr-b031-cannot-delete-an-entry-whose-value-is-absent.md) | An entry left empty cannot be deleted or commented, though it can be read, written and renamed | Low | Resolved **2026-09-09**, filed the day before from `yqr-f032`'s code review. `del(.k)` over `k:` with nothing after the colon answered "cannot delete k: cannot locate its bytes", while `k: null` deleted fine — the two-spellings-of-one-value shape `b021` and `b022` both had. One cause behind both faces: each derived what it needed from `span_at`, the **value's** span, which an implicit null does not have, though `key_span` resolves. The delete face is fixed in yqr: the range comes from the key token, through an infallible sibling of `owned_line_span` that needs no marker scan, because the key *is* the entry's first content byte. Delegating the mapping shapes instead was measured and rejected on a fact the filing did not have — upstream takes an **unguarded** fast path for a single-line entry, so delegation would have moved five of six shapes out from under yqr's re-parse and typed oracle; a duplicate-key test pins that. The one shape with neither span, an empty sequence item, **is** delegated for the flow reason, and the sole such item is refused in yqr's words rather than forwarded as upstream's parse error. The `b014` risk did not materialise: upstream refuses `on:` / `-` before the splice. The comment face **stays refused** and is upstream's: `comments_at` reports an empty bundle for the shape, both setters refuse, and both removers return `Ok` having done nothing, so relaxing yqr's check would trade a clear refusal for a worse one. What changed is that it says which case it is and names `.k = ""` — not `.k = null`, which the `b018` equal-value guard skips. The read side is pinned unmoved, with the coupling named, so the read/write pair invariant holds. Upstream half not yet filed | `yqr-b021`, `yqr-b022`, `yqr-b014`, `yqr-b018`, `yqr-f007`, `yqr-f016`, `yqr-f025`, `yqr-f032` |
 | [b029](yqr-b029-scalar-over-a-block-collection-flattens-it.md) | A scalar written over a block collection lands at its key's own column | High | Resolved **2026-09-08** by `yqr-f032`, whose measurement found it. `.k = 5` over `k:` / `  a: 1` emitted `k:` / `5` at **exit 0** on the shipped 0.8.0: the value landed at the key's own column, where PyYAML and Psych reject the document and `yqr validate` reports `Y103` on yqr's own output. Every guard was blind for one reason — noyalib reads the result back, so the re-parse guard, upstream's own guard and the load-back oracle all pass. That is `b014`'s class, recorded for *delete* in August and never checked for assignment. Ten shapes measured: `=` and `\|=` corrupt alike, a literal and a path right-hand side alike, an **absent** path (`null`) included; a flow collection and a sequence item are correct and stay allowed, and the nested case was already refused with "inconsistent indentation" over a document that has none — the `b024` shape. Fixed with a pre-check that names a remedy the test runs, plus a post-write integrity check that counts `Y103` sites on either side of every `set_value` using `validate`'s own scanner, so the two commands cannot drift on what a broken document is. Upstream draft in §5, not filed | `yqr-f032`, `yqr-b014`, `yqr-b024`, `yqr-b030`, `yqr-a001`, `yqr-f012` |
 | [b030](yqr-b030-multi-line-write-mixes-line-endings-on-crlf.md) | A multi-line write gives a CRLF document mixed line endings | Medium | Resolved **2026-09-08** by `yqr-f032`, found in the same pass. `.a = "one\ntwo"` on a CRLF file wrote three LF-terminated lines into it at exit 0 — bytes the edit did not name, which is what `a001` forbids. This is **`b009` in a mutator that patch did not reach**: yqr's own noyalib#261 taught the *insertion* mutators to derive a line's terminator from the document and shipped in 0.0.22, and `yqr-f015` deleted the local workaround; `set_value` was never in scope and no test covered a multi-line `set_value` on CRLF, so this half has been live since. Measured per mutator on 0.0.41: `set_value` mixes when the replacement *grows* the line count and is clean when it does not, the insertion paths are clean, a flow replacement is clean. The re-parse guard and the load-back oracle cannot see it, because mixed endings mean the same thing — the defect is fidelity, not correctness. Guarded by counting bare line feeds on either side of a `set_value` and refusing a write that adds one to a wholly CRLF document; refusing rather than repairing follows `b022`. Upstream draft in §5, not filed | `yqr-b009`, `yqr-f015`, `yqr-f032`, `yqr-b029`, `yqr-a001` |
 | [b028](yqr-b028-validate-mispositions-a-stream-error.md) | `validate` positions a stream error relative to the document that failed | Medium | Resolved **2026-09-06** by `yqr-f028` (noyalib 0.0.34), which found it: the parser splits a stream at `---` and locates an error from the start of the document that failed, and `validate` had rendered that index against the whole stream since `f012` — an unknown anchor on line 5 pointed at the `---` on line 2. It survived because the one pinned case, `b: [1,` in a second document, put the caret on the `[` by coincidence; three tests asserted it, one with a comment saying the position was absolute. Surfaced when 0.0.33's located `KeyCollisionAt` gave the `Y102` finding a position. Fixed by finding the failing document the way the parser does (mirror its marker rule, re-parse in order, require the identical failure) and offsetting every location through it; no trusted offset means no position rather than a wrong one. The old re-parsing collision note (`b027` §1, row 3) went with it. **Filed upstream 2026-09-06 as noyalib#407 and fixed the same day in PR #408**: only the CST stream entry points were affected, the typed loaders already reported stream positions for the same bytes. Verified on the branch with a path patch: the fix inverts yqr's re-parse guard, so adopting the release is `yqr-f029`, not a pin bump. **Shipped in noyalib 0.0.36, adopted 2026-09-07 on 0.0.39**: the re-parse is gone | `yqr-f012`, `yqr-f028`, `yqr-f029`, `yqr-b027` |
@@ -50,8 +49,9 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 31
-- Open: **1** — `b031`, the empty entry that cannot be
-  deleted or commented, filed 2026-09-08 and not yet fixed.
+- Open: **0** — `b031` closed 2026-09-09, the day after it was
+  filed: an entry left empty is deletable, and its comment face is
+  refused accurately with a remedy that runs.
   Previously: `b028` found and closed 2026-09-06 by `yqr-f028`, the
   noyalib 0.0.34 adoption: the located collision the release added put a
   position on `Y102`, and the first stream test showed every located
@@ -68,9 +68,10 @@ status tracker convention).
   are `a001` violations at exit 0 that every existing guard passed,
   because the engine reads its own output back. Guarded in yqr; the
   upstream drafts are written and not filed.
-- **Every bug but `b031` is fixed** (`b027`, the quadratic `validate`, the
-  same day the values corpus found it), in yqr or in a released
-  dependency.
+- **Every bug is fixed** (`b027`, the quadratic `validate`, the same day
+  the values corpus found it), in yqr or in a released dependency. Two,
+  `b029` and `b030`, are guarded locally and filed upstream as
+  noyalib#423 and noyalib#421, each with a fix in review.
   `b024` was found by writing documentation rather than by running the tool —
   the jq on-ramp page had to state what `+=` does, and the message it gives
   when it declines turned out to be the defect.
@@ -100,7 +101,7 @@ status tracker convention).
   yqr's noyalib#296, released hours after it merged. Verified against the
   published crate on its own reproduction with all four controls
   (`yqr-f020` §3).
-- Resolved: 27 (b029, b030, b028 and b024 — see above;
+- Resolved: 28 (b031, b029, b030, b028 and b024 — see above;
   b022 and b021 — closed by noyalib 0.0.28, see above;
   b023, b020, b019, b018, b017, b016, b015 — see above; b014, b013, b012, b011 —
   closed by noyalib 0.0.25, `yqr-f019`;

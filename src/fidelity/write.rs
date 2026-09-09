@@ -404,15 +404,15 @@ fn set_value_unless_unchanged(
 /// name the shape that is wrong.
 ///
 /// The remedy differs by shape, and each is one this refusal was measured
-/// running — `yqr-f025`'s rule, which a single remedy sentence broke in three
-/// ways. Removing the entry and assigning it again works for a mapping entry
-/// with a value, because a *new key* is the insertion path and that one spells
-/// a collection. It does **not** work for a sequence item (`del` shifts the
-/// items up, so the same path then names the next one and the refusal
-/// repeats), and it does not work for an entry whose value is absent
-/// altogether (`del` on an implicit null is itself refused). A sequence takes
-/// a collection through `+=`; an implicit null has no route at all, so this
-/// names none rather than one that fails.
+/// running — `yqr-f025`'s rule, which a single remedy sentence broke in two
+/// ways. Removing the entry and assigning it again works for a mapping entry,
+/// because a *new key* is the insertion path and that one spells a collection.
+/// It does **not** work for a sequence item: `del` shifts the items up, so the
+/// same path then names the next one and the refusal repeats. A sequence takes
+/// a collection through `+=` instead.
+///
+/// An entry left empty was a third case until `yqr-b031` taught `del` to
+/// remove one; the mapping remedy covers it now.
 // Feature f032; the per-shape remedies are the code review of that feature.
 fn refuse_scalar_to_collection(path: &Path, new: &Value, current: &Value) -> Result<()> {
     let new_is_collection = matches!(new, Value::Sequence(_) | Value::Mapping(_));
@@ -430,14 +430,8 @@ fn refuse_scalar_to_collection(path: &Path, new: &Value, current: &Value) -> Res
                  work, appending to the end: `.{seq} += <path>`"
             )
         }
-        // An entry left empty has no bytes, so `del` refuses it too; one
-        // written `k: null` does not. The sentence has to hold for both,
-        // because the typed value cannot tell them apart.
-        _ if matches!(current, Value::Null) => format!(
-            "A null takes no collection in place. If the entry carries an explicit `null` \
-             rather than being left empty, `del(.{path_str})` removes it and assigning again \
-             writes the collection at the end of its mapping"
-        ),
+        // The null arm this used to carry is gone: it hedged only because
+        // `del` refused an entry left empty, which `yqr-b031` fixed.
         _ => format!(
             "Remove the entry and write it again, as in `del(.{path_str})` then \
              `.{path_str} = <path>`, which places it at the end of its mapping"
@@ -764,6 +758,24 @@ impl NoyalibWriter {
     fn check_comment_site(&self, doc: usize, path_str: &str, kind: CommentKind) -> Result<()> {
         let d = self.doc_ref(doc)?;
         if d.span_at(path_str).is_none() {
+            // An entry written with nothing after its `:` has a key but no
+            // value bytes, so there is nothing for a comment to sit beside.
+            // That is a different fact from "this path reaches no entry", and
+            // unlike that one it has a way out.
+            //
+            // The engine cannot simply be relaxed into allowing it:
+            // `comments_at` reports an empty bundle for this shape, both
+            // setters refuse it, and both removers return `Ok` having done
+            // nothing. So yqr refuses too, and the only thing it owns here is
+            // saying which case this is. Bug b031.
+            if d.key_span(path_str).is_some() {
+                return Err(YqrError::eval(format!(
+                    "cannot address {}({path_str}): nothing is written after the `:`, so the \
+                     entry has no value bytes for a comment to sit beside. Write a value first, \
+                     as in `.{path_str} = \"\"`, then comment it",
+                    kind.word()
+                )));
+            }
             return Err(YqrError::eval(format!(
                 "cannot address {}({path_str}): the path does not resolve to a node",
                 kind.word()
@@ -2007,25 +2019,67 @@ mod tests {
             "xs:\n  - 1\n  - 2\n  - a: 1\nsrc:\n  a: 1\n"
         );
 
-        // An entry left empty has no bytes, so `del` refuses it too; the
-        // message says which null it is talking about rather than promising.
-        let err = assign_path(".k", ".src", "k:\nsrc:\n  a: 1\n").unwrap_err();
-        assert!(
-            format!("{err}").contains("rather than being left empty"),
-            "{err}"
-        );
+        // A mapping entry, including one left empty: `del` then assign. That
+        // second shape needed a hedge until `yqr-b031` taught `del` to remove
+        // an entry with no value of its own; it takes the ordinary remedy now,
+        // and this runs it.
+        for input in ["c: 1\nsrc:\n  a: 1\n", "c:\nsrc:\n  a: 1\n"] {
+            let err = assign_path(".c", ".src", input).unwrap_err();
+            let text = format!("{err}");
+            assert!(text.contains("`del(.c)`"), "{text}");
+            let removed = apply(
+                &Mutation::Delete {
+                    target: Target::Value(crate::parser::parse(".c").expect("valid")),
+                },
+                input,
+            )
+            .unwrap();
+            assert_eq!(
+                assign_path(".c", ".src", &removed).unwrap(),
+                "src:\n  a: 1\nc:\n  a: 1\n",
+                "the remedy did not work for {input:?}"
+            );
+        }
+    }
 
-        // Written `k: null`, the entry has bytes and the remedy works.
-        let removed = apply(
-            &Mutation::Delete {
-                target: Target::Value(crate::parser::parse(".k").expect("valid")),
-            },
-            "k: null\nsrc:\n  a: 1\n",
+    // -- Bug b031: the comment face of an entry left empty -----------------
+
+    #[test]
+    fn commenting_an_entry_left_empty_says_which_case_it_is() {
+        // The refusal stands: `comments_at` reports an empty bundle for this
+        // shape, both setters refuse it, and both removers return `Ok` having
+        // done nothing, so relaxing yqr's check would trade a clear refusal
+        // for a worse one. What yqr owns is naming the case and a way out.
+        for target in [line_of(".k"), head_of(".k")] {
+            let err = set_comment_on(target, "why", "k:   # todo\nafter: 1\n").unwrap_err();
+            let text = format!("{err}");
+            assert!(text.contains("nothing is written after the `:`"), "{text}");
+            assert!(text.contains(r#"`.k = """#), "no remedy named: {text}");
+        }
+
+        // The remedy has to work (`yqr-f025`). `.k = null` would not: an
+        // equal value is a no-op, so it writes no bytes.
+        let filled = apply(
+            &assign(".k", Rhs::Literal(Value::String(String::new()))),
+            "k:   # todo\nafter: 1\n",
         )
         .unwrap();
+        assert_eq!(filled, "k: \"\"   # todo\nafter: 1\n");
         assert_eq!(
-            assign_path(".k", ".src", &removed).unwrap(),
-            "src:\n  a: 1\nk:\n  a: 1\n"
+            set_comment_on(line_of(".k"), "why", &filled).unwrap(),
+            "k: \"\"   # why\nafter: 1\n"
+        );
+    }
+
+    #[test]
+    fn a_path_that_reaches_no_entry_keeps_the_old_wording() {
+        // The other half of the split: no value span *and* no key span still
+        // means the entry is not the mapping's own.
+        let err =
+            set_comment_on(line_of(".c.k"), "why", "base: &m\n  k: 1\nc:\n  <<: *m\n").unwrap_err();
+        assert!(
+            format!("{err}").contains("does not resolve to a node"),
+            "{err}"
         );
     }
 
