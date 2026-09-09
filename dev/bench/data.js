@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788929624542,
+  "lastUpdate": 1788931244003,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2519,6 +2519,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 278566,
             "range": "± 1600",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2d1bcd8fa242c933d2f846cbc86923cf8b1b0cbd",
+          "message": "Split the write tier into its directory module (f033) (#123)",
+          "timestamp": "2026-09-09T07:19:23+02:00",
+          "tree_id": "a97e2a9406d5baefda1e5c1a4383a551283aa325",
+          "url": "https://github.com/zoosky/yqr/commit/2d1bcd8fa242c933d2f846cbc86923cf8b1b0cbd"
+        },
+        "date": 1788931242320,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 561,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5895,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 278873,
+            "range": "± 8205",
             "unit": "ns/iter"
           }
         ]
