@@ -17,3 +17,7 @@ docs/.remote-cache/
 
 # Browser-automation scratch output (playwright MCP snapshots/screenshots).
 .playwright-mcp/
+
+# Reference testbed (yqr-m007): the js-yaml install and the go build cache.
+# `bun.lock` and `package.json` are committed so the pin is reproducible.
+testbed/node_modules/

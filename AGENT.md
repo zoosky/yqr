@@ -220,6 +220,8 @@ yqr/
 │   ├── cli.rs         # Black-box tests of the compiled binary
 │   └── integration.rs # Library end-to-end tests via the public API
 ├── build.rs           # Stamps git hash / build time / target into --version
+├── testbed/           # The reference testbed (yqr-m007): five YAML
+│                      # implementations, one protocol, recorded answers
 ├── specs/features/    # Feature specs (yqr.fNNN-*.md)
 ├── .agent/            # Agent toolkit: skills, command, hook, settings
 ├── .github/
@@ -384,8 +386,8 @@ bash .github/scripts/local-ci.sh   # fmt, clippy, build, test (x2), bench compil
 
 This project uses automated CI/CD pipelines to maintain code quality, especially important for multi-agent development where multiple AGENT instances may be working concurrently.
 
-There are exactly three workflows: `ci.yml`, `benchmark.yml`, and
-`pages.yml`. `specs/implementation/yqr-m001-ci-release-process.md` is the
+There are four workflows: `ci.yml`, `benchmark.yml`, `pages.yml`, and
+`testbed.yml`. `specs/implementation/yqr-m001-ci-release-process.md` is the
 source of truth for all of them and for the release process; the summary
 below must stay in sync with it.
 
@@ -419,6 +421,15 @@ passes are equivalent today — yqr has no `[features]` section since
   `benchmark-action/github-action-benchmark@v1`
 - Comments on a commit when a benchmark regresses more than 30%
   (`alert-threshold: 130%`)
+
+### Reference testbed (`.github/workflows/testbed.yml`)
+
+Runs `testbed/run.py --check` against five YAML implementations (PyYAML,
+Psych, js-yaml on Bun, go-yaml, ruamel.yaml) and fails when their recorded
+answers have drifted. **Manual and weekly, plus any push touching
+`testbed/`** — deliberately not part of `ci.yml`, which stays one Rust
+build. See `yqr-m007`; the answers live in `testbed/answers.md` and are
+what a design question about other implementations is measured against.
 
 ### Website (`.github/workflows/pages.yml`)
 

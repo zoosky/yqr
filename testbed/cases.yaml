@@ -1,0 +1,92 @@
+# The reference testbed's case table (yqr-m007).
+#
+# Each case is a question yqr has actually had to answer, or one it is
+# likely to face again. `source` is the document, `ops` the questions to
+# ask of it, and `path` the node an op addresses, as a list of segments
+# so every adapter can walk it without a path parser.
+#
+# Ops: load (accept it, and what value?), roundtrip (emit what was parsed),
+# comments (what comment attaches where?), delete (remove the path).
+# An adapter that cannot answer an op reports `unsupported`, which is an
+# answer too: it is why PyYAML cannot settle a comment question.
+
+- id: implicit-null-inline-comment
+  why: >-
+    noyalib#425 and yqr-b031. Does a comment after a colon with no value
+    belong to the entry? noyalib's comment API says there is nothing there;
+    its own `remove` says the comment is the entry's.
+  source: "k:   # todo\nafter: 1  # kept\n"
+  path: [k]
+  ops: [load, roundtrip, comments, delete]
+
+- id: implicit-null-head-comment
+  why: >-
+    The other half of the same question, and the one where implementations
+    are known to disagree about deletion.
+  source: "# doc k\nk:\nafter: 1\n"
+  path: [k]
+  ops: [load, comments, delete]
+
+- id: block-value-at-its-keys-column
+  why: >-
+    yqr-b014 and the Y103 check. noyalib reads this; the question is whether
+    anyone else does.
+  source: "on:\n[]\njobs: {}\n"
+  ops: [load]
+
+- id: scalar-at-its-keys-column
+  why: >-
+    yqr-b029. What `set_value` used to emit when a scalar replaced a block
+    collection. yqr refuses to produce it; this records who would read it.
+  source: "k:\n5\nafter: 1\n"
+  ops: [load]
+
+- id: colon-at-end-of-input
+  why: yqr-b022. `a:` and `a:\n` are one byte apart and must mean the same thing.
+  source: "a:"
+  ops: [load, roundtrip]
+
+- id: empty-sequence-item
+  why: yqr-b031. A `-` with nothing after it, and what removing it leaves.
+  source: "xs:\n  - 1\n  -\n"
+  path: [xs, 1]
+  ops: [load, delete]
+
+- id: sole-entry-of-a-block
+  why: >-
+    yqr-f016 §5. Deleting the only entry cannot leave a dangling `spec:`,
+    which would re-parse as null. What each implementation writes instead is
+    the design question.
+  source: "spec:\n  replicas: 3\nkind: Deployment\n"
+  path: [spec, replicas]
+  ops: [load, delete]
+
+- id: octal-and-version-scalars
+  why: >-
+    yqr-b018 and the fidelity guide's two headline examples. `0640` must not
+    become 640, `1.10` must not become 1.1.
+  source: "mode: 0640\nver: 1.10\nzip: 007\n"
+  ops: [load, roundtrip]
+
+- id: merge-key
+  why: yqr-b020. Whether `<<` is resolved on load, and into what.
+  source: "d: &d\n  a: 1\nu:\n  <<: *d\n  b: 2\n"
+  ops: [load]
+
+- id: duplicate-key
+  why: yqr-f012's Y101. Every implementation accepts it; the question is which wins.
+  source: "a: 1\nb: 2\na: 3\n"
+  ops: [load]
+
+- id: crlf-document
+  why: yqr-b009 and yqr-b030. Whether a round trip keeps the document's terminators.
+  source: "a: 1\r\nb: 2\r\n"
+  ops: [load, roundtrip]
+
+- id: tab-before-a-sequence-dash
+  why: >-
+    noyalib 0.0.36 started refusing this on the first line, having read it
+    before. yqr passes the parser's answer through, so it is worth knowing
+    whose answer that matches.
+  source: "\t- a\n"
+  ops: [load]

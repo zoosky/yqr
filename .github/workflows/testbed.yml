@@ -1,0 +1,58 @@
+# The reference testbed (specs/implementation/yqr-m007-reference-testbed.md).
+#
+# Deliberately not part of `ci.yml`. That job is one Rust build and stays
+# one; five language runtimes on every pull request would buy a class of
+# failure that has nothing to do with yqr. This runs when someone asks and
+# once a week, which is the cadence the evidence actually changes at.
+name: reference testbed
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays, early. Drift in a peer library is news, not an emergency.
+    - cron: "17 6 * * 1"
+  push:
+    paths:
+      - "testbed/**"
+      - ".github/workflows/testbed.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  testbed:
+    name: five implementations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python3 -m pip install --quiet "PyYAML==6.0.3" "ruamel.yaml==0.19.1"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: testbed/adapters/goyaml/go.sum
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+        working-directory: testbed
+
+      - name: Answers match the record
+        run: python3 testbed/run.py --check
+
+      # A drifted answer is worth reading, not just failing on: the diff is
+      # the finding. Only runs when the step above failed.
+      - name: Show the drift
+        if: failure()
+        run: |
+          python3 testbed/run.py
+          git --no-pager diff -- testbed/answers.md testbed/answers.json
