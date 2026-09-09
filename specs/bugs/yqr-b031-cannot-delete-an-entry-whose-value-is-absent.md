@@ -3,9 +3,11 @@
 **Status:** Resolved — 2026-09-09. The delete face is fixed: the range
 comes from the key token when the value owns no bytes, and the one shape
 with neither span, an empty sequence item, is delegated. The comment face
-**stays refused**, because it cannot be fixed here (§4); what changed is
-that the refusal says which case it is and names a value to write first,
-and the upstream half is filed
+**stays refused**, because it cannot be fixed here (§4.2); what changed is
+that the refusal says which case it is and names a value to write first.
+The upstream half is **filed as noyalib#425**, which also carries a second
+defect the measurement found: both comment removers report success for a
+path that does not resolve at all
 **Severity:** Low — an ordinary edit at a resolvable path is refused, and
 the message describes an internal step rather than anything the user can
 act on. Nothing is corrupted, and the file is left untouched
@@ -165,9 +167,22 @@ comment while the write refused it, reading a comment and writing it back
 would stop being a no-op. A test pins the read with the coupling named, so
 whoever fixes one is forced to see the other.
 
-The upstream half is worth filing: `comments_at` and the four mutators
-should anchor on the key line for an implicit null, the way `resolve_span`
-was taught to keep the zero-width leaf for `yqr-b021`. Not filed yet.
+**Filed 2026-09-09 as noyalib#425**, and measuring it for the filing found
+a second defect beside the one this bug is about. Both removers return
+`Ok(())` for a path that does not resolve **at all**, not just for this
+shape: `remove_inline_comment("nope")` on `a: 1  # keep` reports success
+and removes nothing, while `set_inline_comment("nope")` refuses the same
+path with a clear message. That is `yqr-a002` §5.2's catalogue entry from
+August, confirmed as reachable with a path that simply does not exist, and
+it needs no decision about implicit nulls to fix.
+
+The half this bug is about does need one: whether a comment after `k:`
+belongs to the entry. The filing argues it does, on the grounds that
+`remove` already takes that comment away with the entry when the entry is
+deleted, so the two APIs disagree today about whose comment it is. If that
+reading is accepted the fix is one resolution point rather than five,
+since `key_span` already gives the entry's line. Left to the maintainer
+rather than patched, the way `yqr-b029` was.
 
 ## 6. Why it was not fixed on the spot
 
