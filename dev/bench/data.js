@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788894933942,
+  "lastUpdate": 1788929624542,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2477,6 +2477,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 267115,
             "range": "± 799",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c94d392d126f7a7ae7b350b35b7ea2d93805837",
+          "message": "Delete an entry that was left empty, and say why one cannot be commented (b031) (#122)\n\nAn entry written `k:` with nothing after the colon could be read,\nassigned and renamed but not deleted or commented. Both faces asked for\nthe value's span, which an implicit null does not have, while the key's\nspan resolves and the entry is perfectly locatable.\n\nThe delete face is fixed in yqr. The range comes from the key token when\nthe value owns no bytes, through an infallible sibling of\nowned_line_span: it needs no backward marker scan, because the key is\nthe entry's first content byte rather than something below it, and no\nmulti-line extent, because a value occupying no bytes occupies no lines.\nEvery layout is covered by a test, since each is a different thing to\nget wrong at its edges.\n\nDelegating the mapping shapes to upstream instead was measured and\nrejected. For a single-line entry upstream takes an unguarded fast path,\nwith no re-parse and no typed oracle, so delegation would have moved\nfive of six shapes out from under yqr's structural-integrity contract. A\nduplicate-key test pins that the yardstick still governs them.\n\nThe empty sequence item is delegated, for the flow reason rather than a\ncapability one: it has no key span either, and the only route left is\nthe column-counting scan b006 removed, which would be a second copy\nrather than a second opinion. The sole such item is refused in yqr's\nwords, because upstream refuses it as a parse error over a document that\nparsed fine. The b014 risk did not materialise: upstream refuses that\nshape before the splice.\n\nThe comment face stays refused and is upstream's. comments_at reports an\nempty bundle for the shape, both setters refuse, and both removers\nreturn Ok having done nothing, so relaxing yqr's check would trade a\nclear refusal for a worse one. What changed is that it says which case\nit is and names `.k = \"\"`, which is the remedy that works: `.k = null`\nis an equal-value write and the b018 guard skips it. The read side is\npinned unmoved with the coupling named, so reading a comment and writing\nit back stays a no-op.\n\nThe f032 refusal's per-shape hedge for this null goes with it: the\nordinary remedy now works there.\n\nAlso records noyalib#421 and #423, filed with fixes in PRs #422 and\n#424, in the b029 and b030 specs.",
+          "timestamp": "2026-09-09T06:52:25+02:00",
+          "tree_id": "c7d1957a4fcd5ab506b1be4ddf613644b806197a",
+          "url": "https://github.com/zoosky/yqr/commit/5c94d392d126f7a7ae7b350b35b7ea2d93805837"
+        },
+        "date": 1788929622978,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 573,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5823,
+            "range": "± 81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 278566,
+            "range": "± 1600",
             "unit": "ns/iter"
           }
         ]
