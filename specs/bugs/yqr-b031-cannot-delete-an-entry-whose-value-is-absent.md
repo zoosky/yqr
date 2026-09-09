@@ -5,9 +5,9 @@ comes from the key token when the value owns no bytes, and the one shape
 with neither span, an empty sequence item, is delegated. The comment face
 **stays refused**, because it cannot be fixed here (§4.2); what changed is
 that the refusal says which case it is and names a value to write first.
-The upstream half is **filed as noyalib#425**, which also carries a second
-defect the measurement found: both comment removers report success for a
-path that does not resolve at all
+The upstream half is **filed as noyalib#425**. That filing's second
+finding, about the comment removers reporting success for an unresolvable
+path, was withdrawn as wrong: it is a documented contract (§4.2)
 **Severity:** Low — an ordinary edit at a resolvable path is refused, and
 the message describes an internal step rather than anything the user can
 act on. Nothing is corrupted, and the file is left untouched
@@ -167,14 +167,23 @@ comment while the write refused it, reading a comment and writing it back
 would stop being a no-op. A test pins the read with the coupling named, so
 whoever fixes one is forced to see the other.
 
-**Filed 2026-09-09 as noyalib#425**, and measuring it for the filing found
-a second defect beside the one this bug is about. Both removers return
-`Ok(())` for a path that does not resolve **at all**, not just for this
-shape: `remove_inline_comment("nope")` on `a: 1  # keep` reports success
-and removes nothing, while `set_inline_comment("nope")` refuses the same
-path with a clear message. That is `yqr-a002` §5.2's catalogue entry from
-August, confirmed as reachable with a path that simply does not exist, and
-it needs no decision about implicit nulls to fix.
+**Filed 2026-09-09 as noyalib#425.** The filing carried a second finding
+beside the one this bug is about, and **that half was wrong and has been
+withdrawn.** Both removers return `Ok(())` for a path that does not
+resolve at all, where their setters refuse it, and the report called that
+a defect needing no decision. It is a documented contract: both removers'
+rustdoc says so in as many words ("A missing comment or path is a no-op,
+not an error"), three tests hold it, and one of them writes out the
+reasoning — a sequence item owns no leading block, so `set` refuses and
+`remove` is a no-op. Removal is idempotent and total there, the choice
+`rm -f` makes.
+
+The error was reading the call sites and not the documentation above
+them, and it was caught by going to write the patch. `yqr-a002` §5.2's
+August catalogue entry was right about the behaviour; the mistake was in
+calling it a defect. yqr keeps its own refusal, because a command-line
+edit that silently does nothing is worse than one that fails loudly, and
+that is a difference of context rather than a fault in the library.
 
 The half this bug is about does need one: whether a comment after `k:`
 belongs to the entry. The filing argues it does, on the grounds that
