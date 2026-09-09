@@ -2,8 +2,8 @@
 
 **Status:** Resolved — guarded 2026-09-08 in `yqr-f032`. yqr refuses a
 write that would introduce a bare line feed into a wholly CRLF document.
-The upstream half is drafted in §5 and not yet filed; adopting a fix
-lifts the refusal
+**Filed upstream 2026-09-09 as noyalib#421, with a fix in PR #422**;
+adopting a release that carries it lifts the refusal
 **Severity:** Medium — a fidelity violation at exit 0, on bytes the edit
 did not name, but confined to CRLF documents and to multi-line
 replacements
@@ -90,12 +90,18 @@ failure for an invisible one. `yqr-f014` did carry a local restore for
 `b009` while its fix was unreleased, and `yqr-f015` deleted it; if that is
 wanted again here it should be a decision of its own, not a side effect.
 
-## 5. Upstream (drafted, not filed)
+## 5. Upstream — filed as noyalib#421, fixed in PR #422
 
 noyalib#261 taught the insertion mutators to derive an inserted line's
 terminator from the document. `set_value`'s multi-line replacement path
 and the collection arm (#328) do not. The fix is the same one, applied to
-the emitted fragment before it is spliced.
+the finished fragment at the splice: a `respell_breaks` helper beside
+`document_break`, called from both arms. Threading a terminator through
+the formatter was measured and rejected, because it misses the comment
+hoist from #333, does not reach the collection arm at all, and would make
+the shared `format_block_literal` an emitter that has to be told to stay
+LF. In the collection arm the re-spelling lands above the pre-splice
+oracle, so the bytes it parses are the bytes spliced.
 
 Reproduction for the filing:
 

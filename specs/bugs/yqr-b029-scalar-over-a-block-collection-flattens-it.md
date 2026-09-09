@@ -2,8 +2,9 @@
 
 **Status:** Resolved — guarded 2026-09-08 in `yqr-f032`. yqr refuses the
 write before the document is touched, and a post-write integrity check
-catches the class generally. The upstream half is drafted in §5 and not
-yet filed
+catches the class generally. **Filed upstream 2026-09-09 as noyalib#423,
+with a fix in PR #424**; adopting a release that carries it turns yqr's
+refusal into an ordinary write
 **Severity:** High — silent corruption at exit 0, on the default write
 path, in a tool whose contract is that it never damages a file it edits
 **Component:** write tier (`src/fidelity/write.rs`), scalar assignment
@@ -113,15 +114,23 @@ space, which is a span replacement plus an insertion — but it is refused
 for the reason that is true. A tag cannot be written that way at all;
 noyalib rejects `!!map{a: 1}` at parse time.
 
-## 5. Upstream (drafted, not filed)
+## 5. Upstream — filed as noyalib#423, fixed in PR #424
 
 noyalib's `set_value` resolves a block collection's span to a range that
 starts at the collection's first line, indent included, and splices the
-scalar into it. Either it should refuse the shape the way it refuses a
-scalar replaced by a collection, or it should collapse the entry onto the
-key's line (`k: 5`), which is what every other implementation would read
-back. The nested case shows it already refuses *sometimes*, with a message
-that blames the input, so the shapes disagree with each other.
+scalar into it. The filing offered two behaviours: refuse the shape, or
+collapse the entry onto the key's line.
+
+**The patch does neither**, and the reason is worth recording because it
+came from reading upstream rather than from either option. `remove`
+already places a one-line value over a block collection's span when it
+empties a sole entry, at the collection's own column, and `set_value`
+already writes a scalar on its own line where the old value was one
+(`k:` / `  hello` becomes `k:` / `  5`). So the answer that agrees with
+both is `k:` / `  5`, one indent step past the key when the collection
+sat at the key's own column. Collapsing would disagree with two shipped
+behaviours, rewrite the key's line, swallow an inline comment there, and
+lose idempotence.
 
 Reproduction for the filing:
 

@@ -1896,6 +1896,30 @@ fn a_value_is_written_into_an_implicit_null() {
     assert_eq!(out.stdout, "a: 1\nb: 2\n");
 }
 
+// Bug b031: the delete face of the same shape. An entry with no value bytes
+// could be read, written and renamed but not removed, and the refusal named a
+// step inside yqr rather than anything the user could act on.
+#[test]
+fn an_entry_left_empty_can_be_deleted() {
+    let out = run(&["del(.k)"], "k:\nafter: 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "after: 1\n");
+}
+
+// The comment face stays refused, because the engine reports no comment there
+// and both of its removers would silently do nothing. What changed is that the
+// refusal says which case it is and names a value to write first.
+#[test]
+fn commenting_an_entry_left_empty_is_refused_with_a_remedy() {
+    let out = run(&["line_comment(.k) = \"why\""], "k:   # todo\nafter: 1\n");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert!(
+        out.stderr.contains("nothing is written after the `:`"),
+        "unexpected stderr: {}",
+        out.stderr
+    );
+}
+
 // The sequence half. A `-` with nothing after it is the same shape reached by
 // the other indicator, so one rule covers both -- and the item's column is the
 // sequence's, which a wrong insertion point would move.

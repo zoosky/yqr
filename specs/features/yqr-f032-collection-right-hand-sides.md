@@ -167,12 +167,9 @@ the next person does not have to guess it.
   too; if either is built, both are.
 - **Merging rather than replacing.** `=` replaces. There is no `*=` or
   deep-merge form and this feature does not propose one.
-- **`del` on an entry left empty.** `del(.k)` over `k:` with nothing after
-  it is refused with "cannot locate its bytes", which is why the
-  scalar-to-collection refusal names no remedy for that shape. Pre-existing
-  and unrelated to collections; filed as **`yqr-b031`**, which found the
-  comment path refuses the same entry for the same reason and that upstream
-  removes it correctly.
+- ~~**`del` on an entry left empty.**~~ Filed as `yqr-b031` and **fixed
+  2026-09-09**, so the scalar-to-collection refusal names the ordinary
+  remedy for that shape too and its per-shape hedge is gone.
 
 ## 6. Acceptance criteria
 

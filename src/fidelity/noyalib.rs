@@ -841,6 +841,21 @@ mod tests {
 
     // -- Feature f007: key-token reads ------------------------------------
 
+    // Bug b031: the read side of the comment face, pinned deliberately.
+    //
+    // `line_comment(.k)` on an entry left empty reads `null` even though a
+    // `# todo` is right there, because upstream's `comments_at` reports an
+    // empty bundle for a node with no value span. The write face refuses the
+    // same site (`check_comment_site`). The two must move together or neither:
+    // a read that reported `" todo"` while the write refused would break the
+    // rule that reading a comment and writing it straight back is a no-op.
+    #[test]
+    fn a_comment_beside_an_entry_left_empty_reads_none() {
+        let e = engine("k:   # todo\nafter: 1\n");
+        let path = Path::root().child(PathSeg::Key("k".into()));
+        assert_eq!(e.comment_body(0, &path, false).unwrap(), None);
+    }
+
     #[test]
     fn key_bytes_returns_the_token_verbatim() {
         let e = engine("\"quoted\": 1\n'single': 2\nplain: 3\n");

@@ -6,6 +6,26 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- **An entry left empty can be deleted.** `del(.k)` over `k:` with
+  nothing after the colon answered "cannot locate its bytes", while the
+  same value written `k: null` deleted fine. The entry owns no value
+  bytes, and the range every delete is derived from came from the value;
+  it comes from the key token when there is no value, which is where the
+  entry starts anyway. Every layout works: a trailing comment goes with
+  the entry, an attached head comment goes with it, a blank-detached
+  block and the next sibling's comment stay, CRLF is preserved, and the
+  sole entry of a block still leaves the collection written out. An
+  empty sequence item works too. The one shape still refused, the sole
+  empty item, says so in yqr's words and names the edit that does work.
+- **Commenting an entry left empty says why it cannot.** The refusal was
+  "the path does not resolve to a node", which is the message for an
+  entry that is not there at all. It now says nothing is written after
+  the colon and names a value to write first. The refusal itself stands:
+  the engine reports no comment at such a site and its removers would
+  silently do nothing.
+
 ### Added
 
 - **A mapping or a sequence can be the right-hand side of a write.**

@@ -726,6 +726,15 @@ pub fn write_cases() -> Vec<WriteCase> {
                  - key: app.kubernetes.io/component\n      value: frontend\n",
             )]),
         },
+        // Bug b031: the corpus document that ends with a blank value, deleted.
+        // `BLANK_TAIL_FRAGMENT` also has no final newline, so this covers the
+        // end-of-file layout at the same time.
+        WriteCase {
+            id: "write/delete/an-entry-left-empty",
+            doc: BLANK_TAIL_FRAGMENT,
+            filter: "del(.digest)",
+            expect: WriteExpect::Rewrites(&[("replicas: 2\ndigest:", "replicas: 2\n")]),
+        },
         // -- Feature f032: collection right-hand sides ------------------------
         // Every site that can take one, on the deployment: a new key, an
         // append, and a replacement. The right-hand side is a path, since the

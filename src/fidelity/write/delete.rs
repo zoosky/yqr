@@ -140,6 +140,42 @@ impl NoyalibWriter {
             Some(Value::Sequence(items)) if !items.is_empty() => Some(items.len()),
             _ => None,
         };
+        // An entry written with nothing after its `:` or `-` is an implicit
+        // null: it is in the typed value but owns no bytes, so the value span
+        // every range below is derived from does not resolve. Bug b031.
+        let target_is_null = matches!(walk_value(&doc_value, path.segments()), Some(Value::Null));
+
+        // A sequence item is the one shape with no anchor at all when its
+        // value is absent: it has no key span either, and the only route left
+        // would be a column-counting scan from the parent, which is the
+        // indentation heuristic `yqr-b006` removed. That would be a second
+        // copy rather than a second opinion, so this class goes to upstream
+        // for the reason the flow class does (`yqr-f016` §5): it locates the
+        // `-` from the zero-width leaf it keeps, and it is on its guarded path
+        // here, since the fast path needs a key span an index never has.
+        //
+        // The sole item is refused rather than forwarded. Upstream refuses it
+        // too, but as a parse error over a document that parsed fine, which is
+        // the `yqr-b024` shape; and yqr's own answer for a sole item is to
+        // write the collection out explicitly, which needs a range it cannot
+        // derive here either. Bug b031.
+        if target_is_null
+            && matches!(last, PathSeg::Index(_))
+            && self.doc_ref(doc)?.span_at(&path_str).is_none()
+        {
+            if empty_collection.is_some() {
+                let parent = segs_to_noyalib_path(parent_segs);
+                return Err(YqrError::eval(format!(
+                    "cannot delete {path_str}: the item has no value of its own and it is the \
+                     only item, so there are no bytes to remove and nothing to leave in their \
+                     place. Delete the whole entry instead, as in `del(.{parent})`"
+                )));
+            }
+            return self
+                .doc_mut(doc)?
+                .remove(&path_str)
+                .map_err(|e| YqrError::eval(format!("cannot delete {path_str}: {e}")));
+        }
 
         // The exact document value with the target removed — the yardstick the
         // spliced result must re-parse to. Computed in yqr's model so key order
@@ -158,26 +194,43 @@ impl NoyalibWriter {
             let d = self.doc_ref(doc)?;
             let src = d.source();
 
-            let (value_start, value_end) = d.span_at(&path_str).ok_or_else(|| {
-                YqrError::eval(format!("cannot delete {path_str}: cannot locate its bytes"))
-            })?;
-
-            // Recover the true end of a same-column block sequence from its last
-            // item (which always resolves); a no-op for an indented sequence,
-            // whose whole-sequence span is already correct.
-            let value_end = match target_seq_len {
-                Some(len) => d
-                    .span_at(&format!("{path_str}[{}]", len - 1))
-                    .map_or(value_end, |(_, last_end)| value_end.max(last_end)),
-                None => value_end,
+            // An entry whose value is absent owns no value bytes, so the
+            // range comes from the key token instead. That is not a fallback
+            // for a missing span: the key *is* the entry's first content byte,
+            // which is what the backward marker scan exists to find. Bug b031.
+            let (start, end) = match d.span_at(&path_str) {
+                Some((value_start, value_end)) => {
+                    // Recover the true end of a same-column block sequence from its
+                    // last item (which always resolves); a no-op for an indented
+                    // sequence, whose whole-sequence span is already correct.
+                    let value_end = match target_seq_len {
+                        Some(len) => d
+                            .span_at(&format!("{path_str}[{}]", len - 1))
+                            .map_or(value_end, |(_, last_end)| value_end.max(last_end)),
+                        None => value_end,
+                    };
+                    owned_line_span(src, value_start, value_end, last).ok_or_else(|| {
+                        YqrError::eval(format!(
+                            "cannot delete {path_str}: its source layout is not supported"
+                        ))
+                    })?
+                }
+                None => {
+                    // With no value span and no key span the entry is not the
+                    // mapping's own: a `<<` merge produced it, or an alias
+                    // resolved through to it. The wording is borrowed from
+                    // upstream's `rename_key`, as the assign path already does,
+                    // rather than invented.
+                    let (key_start, key_end) = d.key_span(&path_str).ok_or_else(|| {
+                        YqrError::eval(format!(
+                            "cannot delete {path_str}: the mapping has no entry of its own to \
+                             remove; it is merged in from elsewhere, through a `<<` merge key or \
+                             an alias. Delete it where the key is defined instead"
+                        ))
+                    })?;
+                    owned_key_line_span(src, key_start, key_end)
+                }
             };
-
-            let (start, end) =
-                owned_line_span(src, value_start, value_end, last).ok_or_else(|| {
-                    YqrError::eval(format!(
-                        "cannot delete {path_str}: its source layout is not supported"
-                    ))
-                })?;
 
             // A sole entry leaves its collection's spelling behind; every other
             // delete leaves nothing. The empty collection takes the entry's own
@@ -322,6 +375,27 @@ fn owned_line_span(
     Some((start, content_end))
 }
 
+/// The byte range an entry owns when its value occupies no bytes at all.
+///
+/// The sibling of [`owned_line_span`] for an implicit null. It needs no
+/// backward marker scan, because the key token *is* the entry's first content
+/// byte rather than something below it, and no multi-line extent, because a
+/// value that occupies no bytes occupies no lines. Ending from the key's own
+/// end keeps a key whose token spans lines correct, and taking the whole line
+/// carries a trailing comment away with the entry, which is the rule
+/// [`owned_line_span`] applies to every other shape.
+///
+/// Infallible for the same reason: there is nothing to search for.
+// Bug b031.
+fn owned_key_line_span(src: &str, key_start: usize, key_end: usize) -> (usize, usize) {
+    let first_line_start = src[..key_start].rfind('\n').map_or(0, |n| n + 1);
+    let entry_indent = indent_width(&src[first_line_start..]);
+    (
+        absorb_head_comments(src, first_line_start, entry_indent),
+        line_end(src, key_end),
+    )
+}
+
 /// Move `start` up over a contiguous run of full-line comments directly above
 /// the entry, each at column `indent`, stopping at a blank line, a non-comment
 /// line, or a differently-indented comment. A comment immediately preceding a
@@ -420,6 +494,118 @@ mod tests {
             },
             input,
         )
+    }
+
+    // -- Bug b031: an entry whose value occupies no bytes ------------------
+    //
+    // One test per source layout, because the range now comes from the key
+    // token and every one of these is a different thing to get wrong at its
+    // edges. The trivia rules are the ones every other delete follows: the
+    // entry's own trailing comment goes with it, an attached head-comment run
+    // goes with it, a blank-detached block and the next sibling's comment stay.
+
+    #[test]
+    fn deletes_an_entry_left_empty() {
+        assert_eq!(del(".k", "k:\nafter: 1\n").unwrap(), "after: 1\n");
+    }
+
+    #[test]
+    fn deletes_an_entry_left_empty_with_a_trailing_comment() {
+        assert_eq!(del(".k", "k:   # todo\nafter: 1\n").unwrap(), "after: 1\n");
+    }
+
+    #[test]
+    fn deletes_an_entry_left_empty_with_trailing_spaces() {
+        assert_eq!(del(".k", "k:   \nafter: 1\n").unwrap(), "after: 1\n");
+    }
+
+    #[test]
+    fn deletes_a_nested_entry_left_empty() {
+        assert_eq!(del(".a.b", "a:\n  b:\n  c: 1\n").unwrap(), "a:\n  c: 1\n");
+    }
+
+    #[test]
+    fn deletes_an_entry_left_empty_at_the_end_of_the_file() {
+        assert_eq!(del(".k", "after: 1\nk:\n").unwrap(), "after: 1\n");
+        // `yqr-b022`'s shape: a `:` at end of input, with no final newline.
+        assert_eq!(del(".k", "after: 1\nk:").unwrap(), "after: 1\n");
+    }
+
+    #[test]
+    fn deleting_the_sole_entry_left_empty_writes_the_collection_out() {
+        // The sole-entry rule is unchanged by the new range derivation: a
+        // dangling `a:` would re-parse as `null`, a type change rather than a
+        // removal.
+        assert_eq!(del(".k", "k:\n").unwrap(), "{}\n");
+        assert_eq!(del(".a.b", "a:\n  b:\n").unwrap(), "a:\n  {}\n");
+    }
+
+    #[test]
+    fn an_entry_left_empty_takes_its_head_comment_with_it() {
+        assert_eq!(del(".k", "# doc k\nk:\nafter: 1\n").unwrap(), "after: 1\n");
+    }
+
+    #[test]
+    fn a_blank_detached_comment_above_an_empty_entry_stays() {
+        assert_eq!(
+            del(".k", "# header\n\nk:\nafter: 1\n").unwrap(),
+            "# header\n\nafter: 1\n"
+        );
+    }
+
+    #[test]
+    fn the_next_siblings_comment_survives_an_empty_entry_delete() {
+        assert_eq!(
+            del(".k", "k:\n# note\nafter: 1\n").unwrap(),
+            "# note\nafter: 1\n"
+        );
+    }
+
+    #[test]
+    fn deleting_an_entry_left_empty_keeps_crlf() {
+        assert_eq!(del(".k", "k:\r\nafter: 1\r\n").unwrap(), "after: 1\r\n");
+    }
+
+    #[test]
+    fn deletes_an_empty_sequence_item() {
+        // Delegated: an index has no key span either, so yqr has no second
+        // opinion to offer here. Both positions, since the dash is located
+        // differently for the last item and for one with an item after it.
+        assert_eq!(del(".xs[1]", "xs:\n  - 1\n  -\n").unwrap(), "xs:\n  - 1\n");
+        assert_eq!(del(".xs[0]", "xs:\n  -\n  - 1\n").unwrap(), "xs:\n  - 1\n");
+    }
+
+    #[test]
+    fn the_sole_empty_sequence_item_is_refused_with_a_remedy_that_works() {
+        let input = "xs:\n  -\nafter: 1\n";
+        let err = del(".xs[0]", input).unwrap_err();
+        let text = format!("{err}");
+        assert!(text.contains("`del(.xs)`"), "{text}");
+        // Upstream refuses this too, but as a parse error over a document
+        // that parsed fine. What is pinned is that yqr does not forward that.
+        assert!(
+            !text.contains("parse error"),
+            "engine wording leaked: {text}"
+        );
+        assert_eq!(del(".xs", input).unwrap(), "after: 1\n");
+    }
+
+    #[test]
+    fn a_merge_provided_key_is_refused_by_name() {
+        // The only mapping shape left with neither span. It used to report
+        // "cannot locate its bytes", which describes a step inside yqr.
+        let err = del(".c.k", "base: &m\n  k: 1\nc:\n  <<: *m\n").unwrap_err();
+        let text = format!("{err}");
+        assert!(text.contains("merged in from elsewhere"), "{text}");
+        assert!(!text.contains("cannot locate its bytes"), "{text}");
+    }
+
+    #[test]
+    fn a_duplicate_key_still_fails_the_typed_yardstick() {
+        // The mapping shapes stay under yqr's own re-parse and typed oracle.
+        // Upstream's fast path for a single-line entry has neither, which is
+        // the reason this class was not delegated.
+        assert!(del(".k", "k:\nk: 1\n").is_err());
     }
 
     #[test]
