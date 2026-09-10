@@ -140,18 +140,21 @@ Indentation decides which trailing comments are the entry's:
 - a comment at the key's own column or shallower is not inside it, and
   the sibling goes above.
 
-The equal-column case is a genuine tie. Going above is what the anchor
-did before 0.0.25, and it keeps the comment next to whatever follows it,
-which is what a reader who wrote `# why z matters` meant.
+The equal-column case looked like a genuine tie, and the reporter settled
+it: their follow-up names that shape as part of the defect and expects
+the new key above the comment. Going above is also what the anchor did
+before 0.0.25.
 
-Both insert tiers reach the same anchor and both are fixed, at either
-nesting depth and under CRLF. Eighteen tests in
-`cst_insert_anchor_trailing_comment.rs`; eleven of them fail without the
-patch and the seven that pass are the controls.
+`insert_entry`, `insert_entry_value` and `set_path` all reach the anchor,
+so all three are fixed, at either nesting depth and under CRLF. Only the
+first two matter to yqr: a path with a missing intermediate level is a
+no-op here, not a creation, so yqr never takes upstream's multi-level
+route. Twenty-one tests in `cst_insert_anchor_trailing_comment.rs`;
+eleven of the first eighteen fail without the patch and the seven that
+pass are the controls.
 
-**Filed as noyalib#427**, 2026-09-10. The one judgment call in it is the
-equal-column tie, flagged as such in the PR: the maintainer may prefer
-the other reading, and the root-mapping case rides on it.
+**Filed as noyalib#427**, 2026-09-10, and the root-mapping case rides on
+the equal-column rule, since both columns are 0 there.
 
 ## 6. What yqr does now
 
