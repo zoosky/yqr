@@ -506,3 +506,67 @@ noyalib 0.0.36 started refusing this on the first line, having read it before. y
 | go-yaml | **refused** `*errors.errorString: yaml: found character that cannot start any token` |
 | ruamel | **refused** `ScannerError: while scanning for the next token` |
 
+## tab-indented-comment-after-a-plain-scalar
+
+Found while validating the noyalib#418 fix. A comment line indented with a leading tab, after a plain scalar. noyalib accepts it; the question is whether anyone else does.
+
+```yaml
+k: 1
+	# t
+
+```
+
+Path: `["k"]`
+
+### load
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found a tab character that violate indentation while scanning a plain scalar at line 1 column 4` |
+| js-yaml | `{"k":1}` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found a tab character that violates indentation` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+
+### roundtrip
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found a tab character that violate indentation while scanning a plain scalar at line 1 column 4` |
+| js-yaml | `k: 1\n` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found a tab character that violates indentation` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+
+## tab-indented-comment-after-a-quoted-scalar
+
+The same line after a quoted scalar. noyalib rejects this one, so its answer depends on the quote style of the line above, which no rule about tabs should. Whichever way it settles, one of the two is wrong.
+
+```yaml
+k: "1"
+	# t
+
+```
+
+Path: `["k"]`
+
+### load
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found character that cannot start any token while scanning for the next token at line 2 column 1` |
+| js-yaml | `{"k":"1"}` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found character that cannot start any token` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+
+### roundtrip
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found character that cannot start any token while scanning for the next token at line 2 column 1` |
+| js-yaml | `k: '1'\n` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found character that cannot start any token` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+

@@ -114,3 +114,21 @@
     whose answer that matches.
   source: "\t- a\n"
   ops: [load]
+
+- id: tab-indented-comment-after-a-plain-scalar
+  why: >-
+    Found while validating the noyalib#418 fix. A comment line indented
+    with a leading tab, after a plain scalar. noyalib accepts it; the
+    question is whether anyone else does.
+  source: "k: 1\n\t# t\n"
+  path: [k]
+  ops: [load, roundtrip]
+
+- id: tab-indented-comment-after-a-quoted-scalar
+  why: >-
+    The same line after a quoted scalar. noyalib rejects this one, so its
+    answer depends on the quote style of the line above, which no rule
+    about tabs should. Whichever way it settles, one of the two is wrong.
+  source: "k: \"1\"\n\t# t\n"
+  path: [k]
+  ops: [load, roundtrip]

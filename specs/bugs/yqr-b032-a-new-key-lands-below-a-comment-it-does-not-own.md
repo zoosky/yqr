@@ -156,6 +156,22 @@ pass are the controls.
 **Filed as noyalib#427**, 2026-09-10, and the root-mapping case rides on
 the equal-column rule, since both columns are 0 there.
 
+**Verified by sweep, not only by tests.** 220 shapes through
+`insert_entry_value` with and without the patch, checking that the output
+differs from the input only by the inserted line and that it re-parses
+with the key present. Both hold on every shape that succeeds, either way.
+
+Three shapes change from success to refusal, all a nested block mapping
+followed by a comment indented with a literal **tab**. The new key now
+lands on the far side of that line, and the result does not re-parse, so
+the guard rolls back. The cause is not the anchor: noyalib accepts a
+tab-indented comment after a *plain* scalar and rejects it after a
+*quoted* one. Filed as **noyalib#428**, with the testbed table — four of
+five reference implementations reject both documents, js-yaml accepts
+both, and noyalib is the only one that splits. Refusing a document four
+parsers call invalid is the better of the two answers, so nothing here
+needs a workaround.
+
 ## 6. What yqr does now
 
 **Nothing is patched locally.** There is no yqr-side workaround worth
