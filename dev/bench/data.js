@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788931244003,
+  "lastUpdate": 1789023654200,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2561,6 +2561,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 278873,
             "range": "± 8205",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "83992e6594ed2113397eea4326b0d55332d408e3",
+          "message": "fix(specs): pin the insert-anchor comment defect as b032, file b033 (#128)\n\n* test(testbed): the set_comment op and three shapes behind noyalib#426\n\nThe comment question the testbed was built to answer needed one more\ndirection. Reading a comment on an entry with no value and deleting the\nentry were covered; setting one was not, and setting is where the peers\ndiffer most usefully.\n\n`set_comment` writes an inline comment at the case's path and records\nthe resulting document. Three shapes join it: a comment at end of input\nwith no final newline, the same entry nested one level down, and the\nempty sequence item, which is the shape noyalib#426 deliberately leaves\nout and now has recorded evidence for. Both peers orphan the existing\ncomment onto a line of its own there, which is the argument for\nexcluding it rather than inventing an answer.\n\nThe record is regenerated and the check is clean across all five\nimplementations.\n\n* fix(specs): pin the insert-anchor comment defect as b032, file b033\n\nAdding a key to a mapping whose last entry is a nested block collection\nwrites the new key below the comment that follows it. A comment\ndocumenting the next top-level key ends up documenting the new one:\n`head_comment(.revision)` goes from the comment's text to null on a\nwrite that named neither.\n\nEvery original byte survives in its original order, so this is not a\nfidelity break and no guard can see it. The typed oracle, the re-parse\nguard, the integrity check and `validate --strict` all ask about\nvalues, and a comment is not a value. It is the third defect of that\nclass after b029 and b030.\n\nThe cause is the insert anchor upstream, and the anchor moved to the\nspan tree to fix b012, which was yqr's own filing. So a yqr fix caused\nthis and yqr shipped it for three weeks. Fixed upstream in noyalib#427;\nnothing is patched here, because yqr does not compute the anchor and\nreimplementing it is the indentation heuristic b006 removed.\n\nThe behaviour is pinned as it behaves, per m003: a corpus write case, a\nCLI test that reads the detached comment back, and five unit tests\nincluding two controls that must survive the upstream fix unchanged.\nAdopting the fixed release flips the rest, which is the signal the\nadoption delivered something.\n\nFiling b033 alongside: yqr reads no head comment above a key whose\nvalue is a block collection, because its own scan anchors on the key\nand upstream's `comments_at` anchors on the value, which starts a line\nlower. That is the reader that could have caught b032, blind on exactly\nthe shape b032 needs, and it is why the corpus case had to be built on\na scalar-valued key.\n\n* docs(specs): record the upstream PR's scope and who settled the tie\n\n`set_path` reaches the same anchor upstream and is covered there, but\nyqr never takes that route: a path with a missing intermediate level is\na no-op here rather than a creation, so yqr's exposure is the\nsingle-level insert the tests already pin.\n\nThe equal-column case is no longer an open judgment call. The\nreporter's follow-up names it as part of the defect and expects the new\nkey above the comment, which is what noyalib#427 does, and the root\nmapping rides on the same rule since both columns are 0 there.\n\n* test(testbed): record the tab-indented comment split behind noyalib#428\n\nSweeping 220 shapes through the insert to validate the noyalib#427 fix\nturned up three that change from success to refusal, all a nested block\nfollowed by a comment indented with a literal tab.\n\nThe anchor is not the cause. noyalib accepts a tab-indented comment\nafter a plain scalar and rejects it after a quoted one, so its answer\ndepends on the quote style of the line above, which no rule about tabs\nshould. Refusing is the better of the two answers here, so yqr needs no\nworkaround; the split itself is the defect.\n\nTwo cases record it. Four of the five implementations reject both\ndocuments, js-yaml accepts both, and noyalib is the only one that gives\ntwo answers, which is the argument the filing rests on.\n\n* docs(specs): file b034 and record what the sweep separated\n\nReviewing yqr's own noyalib#427 found that the patch as first written\nskipped every blank line as trivia, which truncated a keep-chomped\nblock scalar: the value went from \"x\\n\\n\" to \"x\\n\" on an insert that\nnamed a different key. Worse than the bug it was fixing, because it\nchanges a value rather than where a comment sits, and the byte diff\nstill reads as a clean insertion. Fixed on that branch, with eight\ntests asserting the value as well as the bytes.\n\nConfirming the fix swept 374 shapes through both insert tiers, checking\ntwo invariants per insert: that the output differs from the input only\nby the added line, and that the document minus the added key loads back\nexactly as before. Only the second sees this class, since the blank\nlines are all still present, on the wrong side of the new key. A\nbyte-fidelity check is not a value-fidelity check, and b032 now says so\nwhere the next round will read it.\n\nEight shapes still lose a value, identically with the patch, without\nit, and on the published 0.0.43. That identifies them as pre-existing\nrather than fallout: upstream trims a nested kept scalar's blank lines\nas though they were the anchor's trivia. Filed as noyalib#429 and as\nb034 here, where the visible face is a refusal that blames a merge the\nfile does not have. The capability is not yqr's to restore; the wording\nis, and that is deferred until #429 answers.\n\n* test(cli): pin the insert path beside a kept block scalar\n\nA `|+` scalar keeps the blank lines at its end as part of its value, so\na new key must go below them. yqr covered that for `del` and covered\nnothing on the insert path, which is where yqr's own noyalib#427 first\nput the key above the blank and took a line off the value at exit 0.\n\nThree tests. The working shape asserts the document and then reads the\nscalar back, which is the assertion that matters: the byte comparison\npasses on the truncation, because the blank lines are all still there,\non the wrong side of the new key. Clip and strip are controls that must\nnot move when b034 is fixed. The refusal asserts exit 5 and that\nnothing was written, and deliberately not the message, since the\nmessage is the part expected to change.",
+          "timestamp": "2026-09-10T08:59:35+02:00",
+          "tree_id": "d778b8c5da03293d8cc28a6982c7391968fd7617",
+          "url": "https://github.com/zoosky/yqr/commit/83992e6594ed2113397eea4326b0d55332d408e3"
+        },
+        "date": 1789023653174,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 564,
+            "range": "± 38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5890,
+            "range": "± 35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 278223,
+            "range": "± 7813",
             "unit": "ns/iter"
           }
         ]
