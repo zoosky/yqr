@@ -17,7 +17,7 @@
     its own `remove` says the comment is the entry's.
   source: "k:   # todo\nafter: 1  # kept\n"
   path: [k]
-  ops: [load, roundtrip, comments, delete]
+  ops: [load, roundtrip, comments, delete, set_comment]
 
 - id: implicit-null-head-comment
   why: >-
@@ -26,6 +26,30 @@
   source: "# doc k\nk:\nafter: 1\n"
   path: [k]
   ops: [load, comments, delete]
+
+- id: implicit-null-comment-at-end-of-input
+  why: >-
+    The `yqr-b022` layout crossed with the comment question: the entry has
+    no value and the file has no final newline, so there is nothing after
+    the comment to anchor on either.
+  source: "a: 1\nk:   # todo"
+  path: [k]
+  ops: [load, comments, set_comment]
+
+- id: empty-sequence-item-with-a-comment
+  why: >-
+    The sequence half. A `-` with nothing after it carries a comment the
+    same way a key does, and the entry has no key token to hang it on.
+  source: "xs:\n  -   # todo\n  - 1\n"
+  path: [xs, 0]
+  ops: [load, comments, delete, set_comment]
+
+- id: implicit-null-nested
+  why: >-
+    Whether the answer depends on depth, which it should not.
+  source: "outer:\n  k:   # todo\n  after: 1\n"
+  path: [outer, k]
+  ops: [comments, set_comment]
 
 - id: block-value-at-its-keys-column
   why: >-

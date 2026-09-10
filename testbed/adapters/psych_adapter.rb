@@ -36,7 +36,7 @@ out =
       case op
       when 'load' then { 'result' => JSON.generate(canon(load_any(req['source']))) }
       when 'roundtrip' then { 'result' => Psych.dump(load_any(req['source'])) }
-      when 'comments', 'delete'
+      when 'comments', 'delete', 'set_comment'
         { 'unsupported' => 'Psych keeps no comments and has no editing model' }
       else { 'error' => "unknown op #{op}" }
       end

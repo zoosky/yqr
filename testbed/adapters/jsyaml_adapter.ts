@@ -34,6 +34,7 @@ if (req.op === "version") {
         break;
       case "comments":
       case "delete":
+      case "set_comment":
         out = { unsupported: "js-yaml keeps no comments and has no editing model" };
         break;
       default:
