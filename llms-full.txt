@@ -791,6 +791,27 @@ Being straight about the edges, because finding them yourself is annoying:
 - **No builtins beyond `to_entries`.** There is no `select`, no `map`, and no
   string interpolation, so a filter cannot yet pick entries by a condition or
   reshape them.
+- **A new key can land below a comment that belongs to the key after it.**
+  This happens when the block you are adding to ends with a nested block of
+  its own and a comment follows. Adding `.spec.strategy` here writes it under
+  the comment, which then reads as documenting `strategy` rather than
+  `revision`:
+
+  ```yaml
+  spec:
+    replicas: 3
+    template:
+      spec:
+        containers:
+          - name: web
+  # Managed by the release pipeline. Do not edit by hand.
+  revision: 42
+  ```
+
+  The value is written correctly and no other byte moves, so nothing warns
+  you. It is fixed in the YAML engine and arrives with the next engine
+  release. Until then, check the result when the file has a comment in that
+  position.
 
 ## Next
 

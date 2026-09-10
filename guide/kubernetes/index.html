@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-09-08",
+  "dateModified": "2026-09-10",
   "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 2220
+  "wordCount": 2340
 }
 </script>
 <script type="application/ld+json">
@@ -602,12 +602,37 @@ stdin. That is deliberate; there is nothing to write back to.</p>
 <h2 id="what-is-not-here-yet">What is not here yet<a class="heading-anchor" href="#what-is-not-here-yet" aria-label="Link to this section"></a></h2>
 <p>Being straight about the edges, because finding them yourself is annoying:</p>
 <ul>
-<li><strong>There is no way to write a value the file does not already hold.</strong> A
+<li>
+<p><strong>There is no way to write a value the file does not already hold.</strong> A
 collection has to be copied from somewhere, because the filter grammar
-has no <code>{}</code> or <code>[]</code> literal.</li>
-<li><strong>No builtins beyond <code>to_entries</code>.</strong> There is no <code>select</code>, no <code>map</code>, and no
+has no <code>{}</code> or <code>[]</code> literal.</p>
+</li>
+<li>
+<p><strong>No builtins beyond <code>to_entries</code>.</strong> There is no <code>select</code>, no <code>map</code>, and no
 string interpolation, so a filter cannot yet pick entries by a condition or
-reshape them.</li>
+reshape them.</p>
+</li>
+<li>
+<p><strong>A new key can land below a comment that belongs to the key after it.</strong>
+This happens when the block you are adding to ends with a nested block of
+its own and a comment follows. Adding <code>.spec.strategy</code> here writes it under
+the comment, which then reads as documenting <code>strategy</code> rather than
+<code>revision</code>:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">template</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">      </span><span style="color:#bf616a;">containers</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">        - </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+</span><span style="color:#65737e;"># Managed by the release pipeline. Do not edit by hand.
+</span><span style="color:#bf616a;">revision</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">42
+</span></pre>
+<p>The value is written correctly and no other byte moves, so nothing warns
+you. It is fixed in the YAML engine and arrives with the next engine
+release. Until then, check the result when the file has a comment in that
+position.</p>
+</li>
 </ul>
 <h2 id="next">Next<a class="heading-anchor" href="#next" aria-label="Link to this section"></a></h2>
 <ul>
@@ -676,7 +701,7 @@ reshape them.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-09-08</span>
+        <span>Site last updated: 2026-09-10</span>
         
     </footer>
 
