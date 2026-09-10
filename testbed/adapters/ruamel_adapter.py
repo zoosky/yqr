@@ -74,6 +74,13 @@ def main():
         if op == "comments":
             doc = rt().load(src)
             return {"result": json.dumps(comments_of(doc, path), sort_keys=True)}
+        if op == "set_comment":
+            doc = rt().load(src)
+            parent = walk(doc, path[:-1]) if len(path) > 1 else doc
+            parent.yaml_add_eol_comment("set", path[-1])
+            buf = io.StringIO()
+            rt().dump(parent if len(path) == 1 else doc, buf)
+            return {"result": buf.getvalue()}
         if op == "delete":
             doc = rt().load(src)
             parent = walk(doc, path[:-1]) if len(path) > 1 else doc

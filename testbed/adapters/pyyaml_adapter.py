@@ -34,7 +34,7 @@ def main():
             return {"result": json.dumps(canon(yaml.safe_load(src)), sort_keys=False)}
         if op == "roundtrip":
             return {"result": yaml.safe_dump(yaml.safe_load(src), default_flow_style=False)}
-        if op in ("comments", "delete"):
+        if op in ("comments", "delete", "set_comment"):
             return {"unsupported": "PyYAML keeps no comments and has no editing model"}
     except Exception as e:  # noqa: BLE001 - the refusal is the answer
         return {"error": f"{type(e).__name__}: {str(e).splitlines()[0]}"}

@@ -81,8 +81,9 @@ pub struct EngineCase {
 }
 
 use docs::{
-    APP_CONFIG, BLANK_TAIL_FRAGMENT, CRLF_APP_CONFIG, DOCKER_COMPOSE, FIDELITY_RICH, GH_ACTIONS,
-    GH_ACTIONS_FLOW, HELM_VALUES, K8S_DEPLOYMENT, MULTI_DOC, TAG_DIRECTIVE_EXPLICIT_KEY,
+    APP_CONFIG, BLANK_TAIL_FRAGMENT, COMMENTED_TAIL, CRLF_APP_CONFIG, DOCKER_COMPOSE,
+    FIDELITY_RICH, GH_ACTIONS, GH_ACTIONS_FLOW, HELM_VALUES, K8S_DEPLOYMENT, MULTI_DOC,
+    TAG_DIRECTIVE_EXPLICIT_KEY,
 };
 
 /// Every classic-pipeline case. Covers identity, field access (top-level,
@@ -683,6 +684,24 @@ pub fn write_cases() -> Vec<WriteCase> {
             expect: WriteExpect::Rewrites(&[(
                 "    app.kubernetes.io/component: frontend\n",
                 "    app.kubernetes.io/component: frontend\n  annotations: |-\n    owner: platform\n    rotate: yearly\n",
+            )]),
+        },
+        // Bug b032, pinned **as it behaves**, not as it should. The mapping's
+        // last entry is a nested block, so the insert anchor comes from the
+        // span tree, which runs past the entry and sweeps up the comment
+        // below it. The new key therefore lands under a comment that
+        // documents `revision`, and `head_comment(.revision)` goes from the
+        // comment's text to null. Fixed upstream as noyalib#418; adopting
+        // that release flips this pair to
+        // `("    image: web:1.4.2\n", "    image: web:1.4.2\n  strategy: Recreate\n")`,
+        // which is the signal the adoption delivered something.
+        WriteCase {
+            id: "write/insert/lands-below-a-comment-it-does-not-own",
+            doc: COMMENTED_TAIL,
+            filter: ".spec.strategy = \"Recreate\"",
+            expect: WriteExpect::Rewrites(&[(
+                "# set by the release pipeline, do not edit\n",
+                "# set by the release pipeline, do not edit\n  strategy: Recreate\n",
             )]),
         },
         WriteCase {

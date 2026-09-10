@@ -66,6 +66,16 @@ Path: `["k"]`
 | go-yaml | `after: 1 # kept\n` |
 | ruamel | `after: 1  # kept\n` |
 
+### set_comment
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `k: # set\nafter: 1 # kept\n` |
+| ruamel | `k:  # set\nafter: 1  # kept\n` |
+
 ## implicit-null-head-comment
 
 The other half of the same question, and the one where implementations are known to disagree about deletion.
@@ -108,6 +118,133 @@ Path: `["k"]`
 | js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
 | go-yaml | `after: 1\n` |
 | ruamel | `# doc k\nafter: 1\n` |
+
+## implicit-null-comment-at-end-of-input
+
+The `yqr-b022` layout crossed with the comment question: the entry has no value and the file has no final newline, so there is nothing after the comment to anchor on either.
+
+```yaml
+a: 1
+k:   # todo
+```
+
+Path: `["k"]`
+
+### load
+
+| implementation | answer |
+|---|---|
+| PyYAML | `{"a": 1, "k": null}` |
+| Psych | `{"a":1,"k":null}` |
+| js-yaml | `{"a":1,"k":null}` |
+| go-yaml | `{"a":1,"k":null}` |
+| ruamel | `{"a": 1, "k": null}` |
+
+### comments
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `{"key_line":["todo"]}` |
+| ruamel | `{"post_value": ["# todo"]}` |
+
+### set_comment
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `a: 1\nk: # set\n` |
+| ruamel | `a: 1\nk:  # set\n` |
+
+## empty-sequence-item-with-a-comment
+
+The sequence half. A `-` with nothing after it carries a comment the same way a key does, and the entry has no key token to hang it on.
+
+```yaml
+xs:
+  -   # todo
+  - 1
+
+```
+
+Path: `["xs", 0]`
+
+### load
+
+| implementation | answer |
+|---|---|
+| PyYAML | `{"xs": [null, 1]}` |
+| Psych | `{"xs":[null,1]}` |
+| js-yaml | `{"xs":[null,1]}` |
+| go-yaml | `{"xs":[null,1]}` |
+| ruamel | `{"xs": [null, 1]}` |
+
+### comments
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `{}` |
+| ruamel | `{}` |
+
+### delete
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `xs:\n    # todo\n    - 1\n` |
+| ruamel | `xs:\n      # todo\n- 1\n` |
+
+### set_comment
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `xs:\n    - # set\n    # todo\n    - 1\n` |
+| ruamel | `xs:\n-  # set\n      # todo\n- 1\n` |
+
+## implicit-null-nested
+
+Whether the answer depends on depth, which it should not.
+
+```yaml
+outer:
+  k:   # todo
+  after: 1
+
+```
+
+Path: `["outer", "k"]`
+
+### comments
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `{"key_line":["todo"]}` |
+| ruamel | `{"post_value": ["# todo"]}` |
+
+### set_comment
+
+| implementation | answer |
+|---|---|
+| PyYAML | _unsupported: PyYAML keeps no comments and has no editing model_ |
+| Psych | _unsupported: Psych keeps no comments and has no editing model_ |
+| js-yaml | _unsupported: js-yaml keeps no comments and has no editing model_ |
+| go-yaml | `outer:\n    k: # set\n    after: 1\n` |
+| ruamel | `outer:\n  k:  # set\n  after: 1\n` |
 
 ## block-value-at-its-keys-column
 
@@ -367,5 +504,69 @@ noyalib 0.0.36 started refusing this on the first line, having read it before. y
 | Psych | **refused** `Psych::SyntaxError: (<unknown>): found character that cannot start any token while scanning for the next token at line 1 column 1` |
 | js-yaml | **refused** `YAMLException: end of the stream or a document separator is expected (1:2)` |
 | go-yaml | **refused** `*errors.errorString: yaml: found character that cannot start any token` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+
+## tab-indented-comment-after-a-plain-scalar
+
+Found while validating the noyalib#418 fix. A comment line indented with a leading tab, after a plain scalar. noyalib accepts it; the question is whether anyone else does.
+
+```yaml
+k: 1
+	# t
+
+```
+
+Path: `["k"]`
+
+### load
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found a tab character that violate indentation while scanning a plain scalar at line 1 column 4` |
+| js-yaml | `{"k":1}` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found a tab character that violates indentation` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+
+### roundtrip
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found a tab character that violate indentation while scanning a plain scalar at line 1 column 4` |
+| js-yaml | `k: 1\n` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found a tab character that violates indentation` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+
+## tab-indented-comment-after-a-quoted-scalar
+
+The same line after a quoted scalar. noyalib rejects this one, so its answer depends on the quote style of the line above, which no rule about tabs should. Whichever way it settles, one of the two is wrong.
+
+```yaml
+k: "1"
+	# t
+
+```
+
+Path: `["k"]`
+
+### load
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found character that cannot start any token while scanning for the next token at line 2 column 1` |
+| js-yaml | `{"k":"1"}` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found character that cannot start any token` |
+| ruamel | **refused** `ScannerError: while scanning for the next token` |
+
+### roundtrip
+
+| implementation | answer |
+|---|---|
+| PyYAML | **refused** `ScannerError: while scanning for the next token` |
+| Psych | **refused** `Psych::SyntaxError: (<unknown>): found character that cannot start any token while scanning for the next token at line 2 column 1` |
+| js-yaml | `k: '1'\n` |
+| go-yaml | **refused** `*errors.errorString: yaml: line 2: found character that cannot start any token` |
 | ruamel | **refused** `ScannerError: while scanning for the next token` |
 

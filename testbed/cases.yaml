@@ -17,7 +17,7 @@
     its own `remove` says the comment is the entry's.
   source: "k:   # todo\nafter: 1  # kept\n"
   path: [k]
-  ops: [load, roundtrip, comments, delete]
+  ops: [load, roundtrip, comments, delete, set_comment]
 
 - id: implicit-null-head-comment
   why: >-
@@ -26,6 +26,30 @@
   source: "# doc k\nk:\nafter: 1\n"
   path: [k]
   ops: [load, comments, delete]
+
+- id: implicit-null-comment-at-end-of-input
+  why: >-
+    The `yqr-b022` layout crossed with the comment question: the entry has
+    no value and the file has no final newline, so there is nothing after
+    the comment to anchor on either.
+  source: "a: 1\nk:   # todo"
+  path: [k]
+  ops: [load, comments, set_comment]
+
+- id: empty-sequence-item-with-a-comment
+  why: >-
+    The sequence half. A `-` with nothing after it carries a comment the
+    same way a key does, and the entry has no key token to hang it on.
+  source: "xs:\n  -   # todo\n  - 1\n"
+  path: [xs, 0]
+  ops: [load, comments, delete, set_comment]
+
+- id: implicit-null-nested
+  why: >-
+    Whether the answer depends on depth, which it should not.
+  source: "outer:\n  k:   # todo\n  after: 1\n"
+  path: [outer, k]
+  ops: [comments, set_comment]
 
 - id: block-value-at-its-keys-column
   why: >-
@@ -90,3 +114,21 @@
     whose answer that matches.
   source: "\t- a\n"
   ops: [load]
+
+- id: tab-indented-comment-after-a-plain-scalar
+  why: >-
+    Found while validating the noyalib#418 fix. A comment line indented
+    with a leading tab, after a plain scalar. noyalib accepts it; the
+    question is whether anyone else does.
+  source: "k: 1\n\t# t\n"
+  path: [k]
+  ops: [load, roundtrip]
+
+- id: tab-indented-comment-after-a-quoted-scalar
+  why: >-
+    The same line after a quoted scalar. noyalib rejects this one, so its
+    answer depends on the quote style of the line above, which no rule
+    about tabs should. Whichever way it settles, one of the two is wrong.
+  source: "k: \"1\"\n\t# t\n"
+  path: [k]
+  ops: [load, roundtrip]

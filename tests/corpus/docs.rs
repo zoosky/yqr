@@ -275,6 +275,31 @@ k: |+
 next: 1
 ";
 
+/// A manifest whose last entry under `spec` is a **nested block mapping**,
+/// followed by a comment that documents the next top-level key.
+///
+/// The shape is ordinary — a file that groups its settings and annotates
+/// the key below — and it is the only shape in which an insert has to
+/// decide whose comment the line beneath the block is. Add a key under
+/// `spec` and the answer shows in the bytes.
+///
+/// The comment documents `revision`, so a placement that hands it to the
+/// new key is not a matter of taste: it detaches a comment from the key it
+/// describes, and `head_comment(.revision)` reports the change.
+///
+/// `revision` holds a scalar deliberately. yqr reads no head comment on a
+/// key whose value is a block collection (`yqr-b033`), so a mapping there
+/// would leave the case with only its byte assertion.
+// Bug b032.
+pub const COMMENTED_TAIL: &str = "\
+spec:
+  replicas: 2
+  template:
+    image: web:1.4.2
+# set by the release pipeline, do not edit
+revision: 42
+";
+
 /// Build a large inventory document with `n` host records — used by the
 /// benchmark to measure iteration/projection at scale. Only the benchmark crate
 /// consumes it, so it is dead code from the validation crate's point of view.

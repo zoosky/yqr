@@ -5,7 +5,8 @@
 # "Computing a new value from the old one" is Feature f008.
 # "Keys with dots in them" is Feature f030.
 # "Copying a whole block" is Feature f032; the two refusals are b029 and
-# the scalar-to-collection limit.
+# the scalar-to-collection limit. The last bullet of "What is not here
+# yet" is Bug b032, fixed upstream as noyalib#418 and not yet released.
 # Every console block re-run against v0.8.0 on 2026-09-07; the manifest and
 # ci.yaml hold what the examples address (two containers, dotted labels,
 # three steps).
@@ -413,6 +414,27 @@ Being straight about the edges, because finding them yourself is annoying:
 - **No builtins beyond `to_entries`.** There is no `select`, no `map`, and no
   string interpolation, so a filter cannot yet pick entries by a condition or
   reshape them.
+- **A new key can land below a comment that belongs to the key after it.**
+  This happens when the block you are adding to ends with a nested block of
+  its own and a comment follows. Adding `.spec.strategy` here writes it under
+  the comment, which then reads as documenting `strategy` rather than
+  `revision`:
+
+  ```yaml
+  spec:
+    replicas: 3
+    template:
+      spec:
+        containers:
+          - name: web
+  # Managed by the release pipeline. Do not edit by hand.
+  revision: 42
+  ```
+
+  The value is written correctly and no other byte moves, so nothing warns
+  you. It is fixed in the YAML engine and arrives with the next engine
+  release. Until then, check the result when the file has a comment in that
+  position.
 
 ## Next
 

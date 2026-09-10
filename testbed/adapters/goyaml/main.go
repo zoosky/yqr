@@ -130,6 +130,26 @@ func main() {
 		}
 		b, _ := json.Marshal(c)
 		out["result"] = string(b)
+	case "set_comment":
+		// Where does a set comment land when the entry has no value?
+		// go-yaml has a slot on every node, so the question is which one
+		// the library treats as the entry's line.
+		node, parent, idx, err := walk(&doc, req.Path)
+		if err != nil {
+			out["error"] = err.Error()
+			break
+		}
+		if parent != nil && parent.Kind == yaml.MappingNode {
+			parent.Content[idx].LineComment = "# set"
+		} else {
+			node.LineComment = "# set"
+		}
+		b, err := yaml.Marshal(&doc)
+		if err != nil {
+			out["error"] = err.Error()
+			break
+		}
+		out["result"] = string(b)
 	case "delete":
 		_, parent, idx, err := walk(&doc, req.Path)
 		if err != nil {
