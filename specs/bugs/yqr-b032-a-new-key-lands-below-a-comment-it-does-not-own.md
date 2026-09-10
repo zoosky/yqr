@@ -12,7 +12,8 @@ survives in its original order, which is exactly why no guard sees it
 **Related:** `yqr-b012` (whose upstream fix caused this, §4),
 `yqr-b029` and `yqr-b030` (the same class: a defect no value-based guard
 can see), `yqr-b033` (the read that could have caught it, filed from
-here), `yqr-a001` (the fidelity contract this sits just outside of)
+here), `yqr-b034` (the other insert defect the same sweep found),
+`yqr-a001` (the fidelity contract this sits just outside of)
 
 ## 1. Summary
 
@@ -138,7 +139,10 @@ Indentation decides which trailing comments are the entry's:
 - a comment indented **strictly deeper** than the anchor's key sits
   inside that entry's block, so the new sibling goes below it;
 - a comment at the key's own column or shallower is not inside it, and
-  the sibling goes above.
+  the sibling goes above;
+- a blank line is trivia too, **except** where it can be content. Inside
+  a keep-chomped block scalar (`|+`, `>+`) the trailing blanks *are* the
+  value, so a span holding such a header anywhere keeps its blank lines.
 
 The equal-column case looked like a genuine tie, and the reporter settled
 it: their follow-up names that shape as part of the defect and expects
@@ -156,10 +160,27 @@ pass are the controls.
 **Filed as noyalib#427**, 2026-09-10, and the root-mapping case rides on
 the equal-column rule, since both columns are 0 there.
 
-**Verified by sweep, not only by tests.** 220 shapes through
-`insert_entry_value` with and without the patch, checking that the output
-differs from the input only by the inserted line and that it re-parses
-with the key present. Both hold on every shape that succeeds, either way.
+**The blank-line rule came from review, not from the first draft.** The
+patch as first written skipped every blank line as trivia, which
+truncated a keep-chomped scalar: `.c = "2"` over `a: |+` / `  x` / blank
+moved the new key above the blank, and the value went from `"x\n\n"` to
+`"x\n"`. That is worse than the bug being fixed, because it changes a
+value rather than where a comment sits, and the byte diff still looks
+like a clean insertion. Eight tests hold the corrected rule, each
+asserting the scalar's value as well as the bytes.
+
+**Verified by sweep, not only by tests.** 374 shapes through both insert
+tiers, with and without the patch, asserting two things per insert: that
+the output differs from the input only by the added line, and that the
+document minus the added key loads back exactly as before. The first is
+the `yqr-a001` byte property; only the second sees a truncated block
+scalar, since the blank lines are all still present, on the wrong side of
+the new key. A byte-fidelity check is not a value-fidelity check.
+
+The sweep also separated fallout from history. Eight shapes still lose a
+value, identically with the patch, without it, and on the published
+0.0.43 — a pre-existing defect, filed as **noyalib#429** and recorded on
+yqr's side as `yqr-b034`.
 
 Three shapes change from success to refusal, all a nested block mapping
 followed by a comment indented with a literal **tab**. The new key now
