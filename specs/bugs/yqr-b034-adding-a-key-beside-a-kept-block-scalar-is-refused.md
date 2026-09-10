@@ -117,6 +117,18 @@ answer first in case #429 removes the refusal entirely.
 
 ## 6. Tests
 
-None yet. When picked up: one CLI test per row of §2, with the working
-rows asserting the blank line survives, since that is the property a byte
-comparison cannot see.
+Three CLI tests, added with this filing rather than deferred, because the
+working rows are one line of engine code away from data loss and nothing
+else in yqr pins them. yqr covers a keep-chomped scalar in `del` already
+(`delete.rs`) and covered nothing on the insert path.
+
+- The working shape, `a: |+` as the anchor itself, asserting the document
+  **and** reading the scalar back. The read is the point: yqr's own
+  noyalib#427 first placed the key above the blank, which took a line off
+  the value at exit 0 with a byte diff that still looked like a clean
+  insertion. Only a value assertion sees that.
+- Clip and strip as controls, which own no trailing blank and must not
+  move when this bug is fixed.
+- The refusal itself, asserting exit 5 and that nothing was written. It
+  deliberately does **not** assert the message, since the message is the
+  part expected to change.

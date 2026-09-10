@@ -1949,6 +1949,60 @@ fn a_new_key_lands_below_a_comment_it_does_not_own() {
     assert_eq!(after.stdout, "null\n", "stderr: {}", after.stderr);
 }
 
+// Bug b034's working half, pinned because it is one line of engine code away
+// from silent data loss. A `|+` scalar keeps the blank lines at its end as
+// part of its value, so a new key must go below them. yqr's own fix for b032
+// (noyalib#427) first put it above, which took a line off the value at exit 0
+// with a byte diff that still read as a clean insertion -- caught in review,
+// but only by an assertion on the value.
+//
+// So this asserts the value as well as the document. The byte assertion alone
+// cannot see the damage: the blank lines are all still there, on the wrong
+// side of the new key.
+#[test]
+fn a_new_key_goes_below_a_kept_block_scalars_blank_lines() {
+    let doc = "a: |+\n  x\n\n";
+    let out = run(&[".c = \"2\""], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: |+\n  x\n\nc: \"2\"\n");
+
+    // `-r` adds one newline of its own, so the kept blank shows as the
+    // second. Reading it back is the check a byte comparison cannot make.
+    let value = run(&["-r", ".a"], &out.stdout);
+    assert_eq!(value.stdout, "x\n\n\n", "stderr: {}", value.stderr);
+    assert_eq!(
+        run(&["-r", ".a"], doc).stdout,
+        "x\n\n\n",
+        "unchanged by the write"
+    );
+}
+
+// The clipped and stripped forms own no trailing blank, so the new key follows
+// the content directly. Controls, and they must not move when b034 is fixed.
+#[test]
+fn the_other_chomping_modes_take_the_new_key_directly() {
+    for (doc, want) in [
+        ("a: |\n  x\n", "a: |\n  x\nc: \"2\"\n"),
+        ("a: |-\n  x\n", "a: |-\n  x\nc: \"2\"\n"),
+    ] {
+        let out = run(&[".c = \"2\""], doc);
+        assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+        assert_eq!(out.stdout, want, "over {doc:?}");
+    }
+}
+
+// The refusal b034 is about: the kept scalar is *under* the anchor rather than
+// being it, so the engine trims its blank lines as the anchor's trivia, the
+// value changes, and its own oracle rolls the write back. Nothing is corrupted
+// and the file is untouched -- the message is the part that is wrong, and
+// fixing it waits on noyalib#429.
+#[test]
+fn a_key_beside_a_nested_kept_block_scalar_is_refused() {
+    let out = run(&[".c = \"2\""], "a:\n  b: |+\n    x\n\n");
+    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
+    assert!(out.stdout.is_empty(), "the document must not be written");
+}
+
 // The sequence half. A `-` with nothing after it is the same shape reached by
 // the other indicator, so one rule covers both -- and the item's column is the
 // sequence's, which a wrong insertion point would move.
