@@ -1920,6 +1920,35 @@ fn commenting_an_entry_left_empty_is_refused_with_a_remedy() {
     );
 }
 
+// Bug b032, pinned as it behaves. Adding a key to a mapping whose last entry
+// is a nested block writes it *below* the comment that follows, so a comment
+// documenting the next key ends up documenting the new one. Every original
+// byte survives in order, which is why nothing refuses: the guards ask about
+// values, and a comment is not a value. Fixed upstream as noyalib#418;
+// adopting that release flips both assertions below, which is the point of
+// having them.
+#[test]
+fn a_new_key_lands_below_a_comment_it_does_not_own() {
+    let doc = "a:\n  b:\n    n: 1\n# why z matters\nz: 9\n";
+    let out = run(&[".a.c = \"2\""], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stdout,
+        "a:\n  b:\n    n: 1\n# why z matters\n  c: \"2\"\nz: 9\n"
+    );
+
+    // The cost, read back through yqr's own comment reader: the write named
+    // `.a.c` and `z` lost its documentation.
+    let before = run(&["-r", "head_comment(.z)"], doc);
+    assert_eq!(
+        before.stdout, "why z matters\n",
+        "stderr: {}",
+        before.stderr
+    );
+    let after = run(&["-r", "head_comment(.z)"], &out.stdout);
+    assert_eq!(after.stdout, "null\n", "stderr: {}", after.stderr);
+}
+
 // The sequence half. A `-` with nothing after it is the same shape reached by
 // the other indicator, so one rule covers both -- and the item's column is the
 // sequence's, which a wrong insertion point would move.

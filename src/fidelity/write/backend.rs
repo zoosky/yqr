@@ -821,4 +821,92 @@ mod tests {
 
     // Feature f030: a dotted key is addressed through a bracket-quoted
     // segment, so the write lands on it like on any other key.
+
+    // -- Bug b032: where a new key lands beside a comment ----------------------
+
+    /// Run `<path> = "<value>"` over `input`.
+    fn insert(path: &str, value: &str, input: &str) -> String {
+        apply(
+            &assign(path, Rhs::Literal(Value::String(value.to_string()))),
+            input,
+        )
+        .expect("the insert must succeed")
+    }
+
+    #[test]
+    fn a_new_key_lands_below_a_comment_it_does_not_own() {
+        // Pinned as it behaves, not as it should. The anchor an insert
+        // splices after comes from the loader's span tree, which runs past a
+        // nested block collection and takes the comment below it with the
+        // entry. So the new key is written under a comment that documents
+        // the key after it. Fixed upstream as noyalib#418; adopting that
+        // release flips this to `n: 1` / `  c: "2"` / `# trailing`, and this
+        // test is the flag that says so.
+        assert_eq!(
+            insert(".a.c", "2", "a:\n  b:\n    n: 1\n# trailing\n"),
+            "a:\n  b:\n    n: 1\n# trailing\n  c: \"2\"\n"
+        );
+    }
+
+    #[test]
+    fn a_new_root_key_lands_below_it_too() {
+        // Same anchor, reached from the root mapping. Both flip together.
+        assert_eq!(
+            insert(".c", "2", "a:\n  b:\n    n: 1\n# trailing\n"),
+            "a:\n  b:\n    n: 1\n# trailing\nc: \"2\"\n"
+        );
+    }
+
+    #[test]
+    fn the_comment_changes_hands_and_yqr_can_see_it() {
+        // The byte assertions above say where the comment sits. This says
+        // what it costs: a write naming `.a.c` detaches a head comment from
+        // `z`, which named no part of the filter. That is the damage, and it
+        // is the only part of it yqr has a reader for.
+        use crate::fidelity::noyalib::NoyalibEngine;
+        use crate::fidelity::{FidelityEngine, Path, PathSeg};
+
+        let src = "a:\n  b:\n    n: 1\n# why z matters\nz: 9\n";
+        let z = Path::root().child(PathSeg::Key("z".into()));
+        let before = NoyalibEngine::open(src).expect("valid YAML");
+        assert_eq!(
+            before
+                .comment_body(0, &z, true)
+                .expect("in range")
+                .as_deref(),
+            Some("why z matters"),
+            "before the write the comment documents `z`"
+        );
+
+        let after = NoyalibEngine::open(&insert(".a.c", "2", src)).expect("valid YAML");
+        assert_eq!(
+            after.comment_body(0, &z, true).expect("in range"),
+            None,
+            "after it, `z` has none"
+        );
+    }
+
+    #[test]
+    fn a_scalar_last_entry_is_unaffected() {
+        // The control that says how narrow the defect is. A scalar entry has
+        // nothing below it for the span tree to sweep up, so the new key goes
+        // where it belongs. This assertion must survive the upstream fix
+        // unchanged.
+        assert_eq!(
+            insert(".a.c", "2", "a:\n  b: 1\n# trailing\n"),
+            "a:\n  b: 1\n  c: \"2\"\n# trailing\n"
+        );
+    }
+
+    #[test]
+    fn a_comment_inside_the_block_keeps_the_new_key_below_it() {
+        // The other control, and the reason the upstream fix is a rule about
+        // indentation rather than "skip trailing comments". `# inner` is
+        // indented past `b`, so it is part of `b`'s block and the sibling
+        // does belong after it. Also unchanged by the fix.
+        assert_eq!(
+            insert(".a.c", "2", "a:\n  b:\n    n: 1\n    # inner\n"),
+            "a:\n  b:\n    n: 1\n    # inner\n  c: \"2\"\n"
+        );
+    }
 }

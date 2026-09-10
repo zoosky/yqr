@@ -6,6 +6,18 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Known issues
+
+- **Adding a key beneath a nested block can steal the next key's
+  comment.** When the mapping's last entry is a nested block collection
+  followed by a comment, a new key is written below that comment instead
+  of above it, so a comment documenting the key after it ends up
+  documenting the new one. The value written is correct and no other byte
+  moves, which is why nothing refuses. It is fixed in the YAML engine and
+  will land here with the next engine release. Until then, put the new
+  key in yourself if the file has a comment in that position, or add it
+  beside an entry that is not a nested block.
+
 ### Fixed
 
 - **An entry left empty can be deleted.** `del(.k)` over `k:` with
