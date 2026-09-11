@@ -46,10 +46,12 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.41 release. 0.0.40 fixes the serializer's spelling of a tag a
-# `%TAG` directive resolves and the CST formatter's handling of a mapping used
-# as an explicit key and of keep-chomped scalars; neither path is yqr's (a tag
-# is lowered away at the `Value` boundary, and yqr does not use the
+# crates.io 0.0.43 release. 0.0.42 and 0.0.43 are lockstep releases for the
+# language server's editor extension: every source file of the published crate
+# is byte-identical to 0.0.41's (f034). 0.0.40 fixes the serializer's spelling
+# of a tag a `%TAG` directive resolves and the CST formatter's handling of a
+# mapping used as an explicit key and of keep-chomped scalars; neither path is
+# yqr's (a tag is lowered away at the `Value` boundary, and yqr does not use the
 # formatter), so nothing observable moved, and 0.0.41 has no core change
 # (f031). 0.0.36 carries yqr's noyalib#408 (b028): the CST
 # stream parser locates an error in the stream, as the typed loaders do, so
@@ -72,7 +74,7 @@ clap = { version = "4.6.1", features = ["derive"] }
 # b011-b014 in 0.0.25, b015 in 0.0.26, b016 in 0.0.27, b021-b022 in 0.0.28,
 # b025 in 0.0.31, b028 in 0.0.36. Each pin and what it bought is in features
 # f013-f029 and f031; see research r002 and the bug specs.
-noyalib = "0.0.41"
+noyalib = "0.0.43"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
