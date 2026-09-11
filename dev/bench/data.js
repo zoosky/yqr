@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789023654200,
+  "lastUpdate": 1789103746519,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2603,6 +2603,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 278223,
             "range": "± 7813",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c980ffb32d2eba9c9820704e1f700d00658fd0a",
+          "message": "chore(deps): adopt noyalib 0.0.43, two lockstep releases with no source change (#129)\n\n0.0.42 and 0.0.43 ship noyalib's VS Code extension. A diff of the two\npublished crates finds only version strings and packaging metadata; every\nfile under src/ is byte-identical to 0.0.41's, so yqr builds the same\nengine. The suite passes with no expectation moved.\n\nNeither release carries yqr's open upstream PRs (#422, #424, #426, #427),\nso b032 and b034 stay open. Recorded in f034.",
+          "timestamp": "2026-09-11T07:14:21+02:00",
+          "tree_id": "f41863545df8003e45d874a5650e8e6f9963ac24",
+          "url": "https://github.com/zoosky/yqr/commit/5c980ffb32d2eba9c9820704e1f700d00658fd0a"
+        },
+        "date": 1789103744941,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 580,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5818,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 269088,
+            "range": "± 1547",
             "unit": "ns/iter"
           }
         ]
