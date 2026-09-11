@@ -75,6 +75,10 @@ All notable changes to `yqr` are documented here. The format is based on
   complains about, which is why both defects above reached a released
   version. The insertion, delete, rename, comment and reorder paths keep
   the guards they already had.
+- **noyalib 0.0.41 → 0.0.43.** No change in behavior. Both releases
+  ship the engine's editor extension; every source file of the published
+  crate is byte-identical to 0.0.41's. Neither carries the engine fix
+  for the known issue above.
 
 ## [0.8.0] - 2026-09-07
 

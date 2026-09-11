@@ -101,6 +101,7 @@ dependency/release timing.
 | [f031](yqr-f031-noyalib-0-0-41-adoption.md) | Adopt noyalib 0.0.41: two fixes on paths yqr does not take | Done (0.0.41, 2026-09-07: 44 comparisons against the 0.0.39 build byte-identical; the fixed serializer and formatter paths are unreachable from yqr; benchmarks flat; the three shapes pinned in the corpus) |
 | [f033](yqr-f033-split-the-write-module.md) | Split `src/fidelity/write.rs` into its directory module | Done (2026-09-09: four files by what each decides, none over 419 production lines; three visibility keywords were the only non-move edit, and the test-name list is identical to before) |
 | [f032](yqr-f032-collection-right-hand-sides.md) | Collection right-hand sides for `=`, `+=` and a new key | Done (2026-09-08: the last open `f007` §6 scope item; a mapping or sequence can be assigned, appended and written over an existing collection, and the measurement found `b029` and `b030`, two silent-corruption defects on shipped paths) |
+| [f034](yqr-f034-noyalib-0-0-43-adoption.md) | Adopt noyalib 0.0.43: two lockstep releases, no source change | Done (0.0.43, 2026-09-11: every source file of the published crate byte-identical to 0.0.41's; full suite green with no expectation moved; carries none of yqr's four open upstream PRs, so `b032` and `b034` stay open) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -288,6 +289,14 @@ existing guard for the same reason — the engine reads its own output back
 against itself on two properties no parser will complain about, reusing
 `validate`'s own `Y103` scanner so the two commands cannot drift.
 
+f034 **done** (2026-09-11): noyalib 0.0.42 and 0.0.43, lockstep releases
+for the language server's VS Code extension. A `diff -r` of the two
+published crates finds only version strings and packaging metadata; every
+source file is identical, so yqr compiles the same engine and the suite
+passes with no expectation moved. The bump buys currency, not behaviour:
+none of yqr's four open upstream PRs is in a release, so `b032` and `b034`
+stay open, and the bug specs' measurements on 0.0.41 hold for 0.0.43.
+
 ## Epic: Editing-loop tooling (f012)
 
 | Feature | Title | Status |
@@ -329,12 +338,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 33
+- Total features: 34
 - Draft: 2 (f025, f027)
 - In Progress: 0
-- Done: 27 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 28 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031, f032, f033)
+  f030, f031, f032, f033, f034)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
