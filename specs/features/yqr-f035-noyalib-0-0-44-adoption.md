@@ -190,4 +190,27 @@ the control that says so, because nothing but yqr's own parser can move it.
 - [x] Benchmarks run and compared against 0.0.43 (§3).
 - [x] `Cargo.toml` pin comment and `CHANGELOG.md` say what the bump
       bought; bug and feature trackers updated.
+- [x] `target/doc-md` regenerated for 0.0.44 (§5).
 - [x] `local-ci.sh` clean.
+
+## 5. Crate docs
+
+`target/doc-md/` was absent and `cargo-doc-md` was not installed, so both
+were set up and the tree regenerated against this pin.
+`target/doc-md/noyalib/cst/document.md` carries `comment_anchor_span`,
+which exists only in 0.0.44, so the tree matches the release rather than a
+stale build. The directory is under `/target` and git-ignored; nothing of
+it is committed.
+
+24 crates generate, six do not, and the six do not matter: `criterion`, a
+dev-dependency, and the five proc-macro crates behind `clap_derive`. The
+tool shells out to `cargo build -p <name>@<version>`, cargo resolves those
+under the `NormalOrDev` feature kind, which is not how they are activated,
+and its resolver panics — *did not find features for (syn 3.0.3,
+NormalOrDev) within activated_features*. It reproduces on nightly 1.100.0
+(2026-09-16) as well as on the April nightly this machine had, so it is the
+tool's limitation, not this repository's.
+
+`CLAUDE.md`'s key-crates table is corrected in the same change. It still
+named `rust-yaml`, dropped by `yqr-m005`, and promised a
+`target/doc-md/criterion/` path that cannot be produced.
