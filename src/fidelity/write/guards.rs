@@ -326,6 +326,11 @@ impl NoyalibWriter {
         // Only a document that is wholly CRLF is held to it. One already
         // mixing the two is not made worse by this rule, and an all-LF
         // document gains a bare line feed per added line, legitimately.
+        //
+        // Since noyalib 0.0.44 every mutator derives its terminator from the
+        // document, so no path yqr has reaches this branch. It is stated over
+        // the result rather than over the mutator that produced it, and is
+        // kept as the backstop for the day one regresses.
         if before.crlf > 0 && before.bare_lf == 0 && after.bare_lf > 0 {
             return Err(YqrError::eval(format!(
                 "cannot assign at {path_str:?}: this file's lines end with CRLF, and the \
@@ -602,16 +607,20 @@ mod tests {
     // -- Bug b030: a write must not give a CRLF file mixed line endings -----
 
     #[test]
-    fn a_multi_line_write_into_a_crlf_document_is_refused() {
-        // The engine joins the replacement's own lines with LF while the
-        // file's are CRLF. Shipped since the multi-line string write existed;
-        // the collection arm would have inherited it.
-        let err = apply(
-            &assign(".a", Rhs::Literal(Value::String("one\ntwo".into()))),
-            "a: 1\r\nb: 2\r\n",
-        )
-        .unwrap_err();
-        assert!(format!("{err}").contains("mixed line endings"), "{err}");
+    fn a_multi_line_write_into_a_crlf_document_keeps_crlf() {
+        // A replacement derives its terminator from the document, as an
+        // insertion already did, so the block scalar this write emits ends
+        // every line the file's way and the guard below never fires. Until
+        // noyalib 0.0.44 the replacement joined its own lines with LF into a
+        // CRLF file, and the guard refused the write rather than mix them.
+        assert_eq!(
+            apply(
+                &assign(".a", Rhs::Literal(Value::String("one\ntwo".into()))),
+                "a: 1\r\nb: 2\r\n",
+            )
+            .unwrap(),
+            "a: |-\r\n  one\r\n  two\r\nb: 2\r\n"
+        );
     }
 
     #[test]

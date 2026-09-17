@@ -1920,25 +1920,25 @@ fn commenting_an_entry_left_empty_is_refused_with_a_remedy() {
     );
 }
 
-// Bug b032, pinned as it behaves. Adding a key to a mapping whose last entry
-// is a nested block writes it *below* the comment that follows, so a comment
-// documenting the next key ends up documenting the new one. Every original
-// byte survives in order, which is why nothing refuses: the guards ask about
-// values, and a comment is not a value. Fixed upstream as noyalib#418;
-// adopting that release flips both assertions below, which is the point of
-// having them.
+// Bug b032, fixed in noyalib 0.0.44 (noyalib#427). Adding a key to a mapping
+// whose last entry is a nested block used to write it *below* the comment that
+// follows, so a comment documenting the next key ended up documenting the new
+// one. Every original byte survived in order, which is why nothing refused:
+// the guards ask about values, and a comment is not a value. The comment
+// reader below is the only check that could see it, so it is the one that
+// pins the fix.
 #[test]
-fn a_new_key_lands_below_a_comment_it_does_not_own() {
+fn a_new_key_lands_above_a_comment_it_does_not_own() {
     let doc = "a:\n  b:\n    n: 1\n# why z matters\nz: 9\n";
     let out = run(&[".a.c = \"2\""], doc);
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
     assert_eq!(
         out.stdout,
-        "a:\n  b:\n    n: 1\n# why z matters\n  c: \"2\"\nz: 9\n"
+        "a:\n  b:\n    n: 1\n  c: \"2\"\n# why z matters\nz: 9\n"
     );
 
-    // The cost, read back through yqr's own comment reader: the write named
-    // `.a.c` and `z` lost its documentation.
+    // Read back through yqr's own comment reader: the write named `.a.c` and
+    // `z` keeps its documentation.
     let before = run(&["-r", "head_comment(.z)"], doc);
     assert_eq!(
         before.stdout, "why z matters\n",
@@ -1946,7 +1946,7 @@ fn a_new_key_lands_below_a_comment_it_does_not_own() {
         before.stderr
     );
     let after = run(&["-r", "head_comment(.z)"], &out.stdout);
-    assert_eq!(after.stdout, "null\n", "stderr: {}", after.stderr);
+    assert_eq!(after.stdout, "why z matters\n", "stderr: {}", after.stderr);
 }
 
 // Bug b034's working half, pinned because it is one line of engine code away
@@ -1991,16 +1991,30 @@ fn the_other_chomping_modes_take_the_new_key_directly() {
     }
 }
 
-// The refusal b034 is about: the kept scalar is *under* the anchor rather than
-// being it, so the engine trims its blank lines as the anchor's trivia, the
-// value changes, and its own oracle rolls the write back. Nothing is corrupted
-// and the file is untouched -- the message is the part that is wrong, and
-// fixing it waits on noyalib#429.
+// Bug b034, fixed in noyalib 0.0.44 (noyalib#429). The kept scalar is *under*
+// the anchor rather than being it, and the engine used to trim its blank lines
+// as the anchor's trivia; the value changed, its own oracle rolled the write
+// back, and the refusal named a `<<` merge the file does not have. The blank
+// lines are the scalar's content now, so the insert lands after them and the
+// value is untouched.
+//
+// The value assertion is the one that matters, as in the sibling case above: a
+// byte comparison cannot tell a kept blank line from trivia.
 #[test]
-fn a_key_beside_a_nested_kept_block_scalar_is_refused() {
-    let out = run(&[".c = \"2\""], "a:\n  b: |+\n    x\n\n");
-    assert_eq!(out.status, 5, "stdout: {}", out.stdout);
-    assert!(out.stdout.is_empty(), "the document must not be written");
+fn a_key_beside_a_nested_kept_block_scalar_is_written() {
+    let doc = "a:\n  b: |+\n    x\n\n";
+    let out = run(&[".c = \"2\""], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a:\n  b: |+\n    x\n\nc: \"2\"\n");
+
+    // `-r` adds one newline of its own, so the two kept blanks show as the
+    // second and third.
+    assert_eq!(run(&["-r", ".a.b"], &out.stdout).stdout, "x\n\n\n");
+    assert_eq!(
+        run(&["-r", ".a.b"], doc).stdout,
+        "x\n\n\n",
+        "unchanged by the write"
+    );
 }
 
 // The sequence half. A `-` with nothing after it is the same shape reached by

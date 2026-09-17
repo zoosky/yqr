@@ -823,6 +823,7 @@ mod tests {
     // segment, so the write lands on it like on any other key.
 
     // -- Bug b032: where a new key lands beside a comment ----------------------
+    // Fixed upstream in noyalib 0.0.44 (noyalib#427); these pin the fix.
 
     /// Run `<path> = "<value>"` over `input`.
     fn insert(path: &str, value: &str, input: &str) -> String {
@@ -834,35 +835,34 @@ mod tests {
     }
 
     #[test]
-    fn a_new_key_lands_below_a_comment_it_does_not_own() {
-        // Pinned as it behaves, not as it should. The anchor an insert
-        // splices after comes from the loader's span tree, which runs past a
-        // nested block collection and takes the comment below it with the
-        // entry. So the new key is written under a comment that documents
-        // the key after it. Fixed upstream as noyalib#418; adopting that
-        // release flips this to `n: 1` / `  c: "2"` / `# trailing`, and this
-        // test is the flag that says so.
+    fn a_new_key_stops_at_the_last_line_its_anchor_owns() {
+        // The insert splices after the last line the anchor entry owns, so a
+        // comment that follows a nested block collection stays below the new
+        // key and keeps documenting the key after it. Until noyalib 0.0.44 the
+        // anchor came from the loader's span tree, which ran past the block
+        // and swept the comment up with the entry, putting the new key under
+        // a comment it did not own.
         assert_eq!(
             insert(".a.c", "2", "a:\n  b:\n    n: 1\n# trailing\n"),
-            "a:\n  b:\n    n: 1\n# trailing\n  c: \"2\"\n"
+            "a:\n  b:\n    n: 1\n  c: \"2\"\n# trailing\n"
         );
     }
 
     #[test]
-    fn a_new_root_key_lands_below_it_too() {
-        // Same anchor, reached from the root mapping. Both flip together.
+    fn a_new_root_key_stops_there_too() {
+        // Same anchor, reached from the root mapping. Both moved together.
         assert_eq!(
             insert(".c", "2", "a:\n  b:\n    n: 1\n# trailing\n"),
-            "a:\n  b:\n    n: 1\n# trailing\nc: \"2\"\n"
+            "a:\n  b:\n    n: 1\nc: \"2\"\n# trailing\n"
         );
     }
 
     #[test]
-    fn the_comment_changes_hands_and_yqr_can_see_it() {
+    fn the_comment_keeps_its_key_and_yqr_can_see_it() {
         // The byte assertions above say where the comment sits. This says
-        // what it costs: a write naming `.a.c` detaches a head comment from
-        // `z`, which named no part of the filter. That is the damage, and it
-        // is the only part of it yqr has a reader for.
+        // what that is worth: a write naming `.a.c` leaves the head comment
+        // on `z`, which named no part of the filter. It is the only part of
+        // the damage yqr has a reader for, so it is the part that pins it.
         use crate::fidelity::noyalib::NoyalibEngine;
         use crate::fidelity::{FidelityEngine, Path, PathSeg};
 
@@ -880,9 +880,12 @@ mod tests {
 
         let after = NoyalibEngine::open(&insert(".a.c", "2", src)).expect("valid YAML");
         assert_eq!(
-            after.comment_body(0, &z, true).expect("in range"),
-            None,
-            "after it, `z` has none"
+            after
+                .comment_body(0, &z, true)
+                .expect("in range")
+                .as_deref(),
+            Some("why z matters"),
+            "after it, it still does"
         );
     }
 
