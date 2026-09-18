@@ -6,17 +6,23 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
-### Known issues
-
-- **A comment above a key whose value is a block reads as nothing.**
-  `head_comment(.spec)` returns `null` for a comment plainly sitting above
-  `spec:`, while the same comment above `spec: 1` reads fine. The comment
-  is still in the file and every write leaves it alone; it is the read
-  that cannot see it, and the shape it cannot see is the common one in a
-  Kubernetes or Helm file. Fixing it needs the YAML engine to anchor a
-  comment on the entry rather than on its value.
-
 ### Fixed
+
+- **A comment above a key whose value is a block reads.**
+  `head_comment(.spec)` returned `null` for a comment directly above
+  `spec:`, while the same comment above `spec: 1` read fine. It now reads
+  whatever the value's shape, and the same holds for a key whose value is
+  an alias. Writing and deleting it work too: `head_comment(.spec) =
+  "..."` puts the block above `spec:` at its indent. Before, adding one
+  was refused when the block ran over several lines, and replacing or
+  deleting an existing one was always refused. A comment above the
+  block's first child stays that child's, and deleting the parent's
+  comment when it has none now says so instead of blaming a blank line.
+- **A comment block separated from a block-valued entry by a blank line is
+  now protected like any other.** `head_comment(.spec) = "..."` over
+  `# section`, a blank line, then `spec:` wrote a second comment below the
+  blank line. It is now refused, as it always was for a scalar-valued key:
+  the separated block documents what precedes the entry.
 
 - **Adding a key beneath a nested block no longer steals the next key's
   comment.** When the mapping's last entry was a nested block collection
@@ -93,10 +99,10 @@ All notable changes to `yqr` are documented here. The format is based on
   complains about, which is why both defects above reached a released
   version. The insertion, delete, rename, comment and reorder paths keep
   the guards they already had.
-- **noyalib 0.0.41 → 0.0.43.** No change in behavior. Both releases
-  ship the engine's editor extension; every source file of the published
-  crate is byte-identical to 0.0.41's. Neither carries the engine fix
-  for the known issue above.
+- **noyalib 0.0.41 → 0.0.45.** 0.0.42 and 0.0.43 change no behavior:
+  every source file of the published crate is byte-identical to 0.0.41's.
+  0.0.44 and 0.0.45 carry the engine fixes behind the comment and
+  key-insertion entries under Fixed.
 
 ## [0.8.0] - 2026-09-07
 

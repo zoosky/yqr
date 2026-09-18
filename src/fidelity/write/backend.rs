@@ -96,9 +96,9 @@ impl NoyalibWriter {
                 if owned != upstream {
                     // Deliberately generic. A blank line is the common cause
                     // and the one §4.1.1 describes, but not the only one — a
-                    // differently-indented comment and an alias-valued entry
-                    // both land here too, and naming a cause the check has not
-                    // established would be a confident wrong answer.
+                    // differently-indented comment lands here too, and naming
+                    // a cause the check has not established would be a
+                    // confident wrong answer.
                     return Err(YqrError::eval(format!(
                         "cannot address head_comment({path_str}): the comment block the YAML \
                          engine would rewrite is larger than the run directly above this \

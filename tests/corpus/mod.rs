@@ -928,14 +928,16 @@ pub fn write_cases() -> Vec<WriteCase> {
                 "  # cluster-internal only\n  port: 8080\n",
             )]),
         },
-        // The limit a user meets first: heading a *section* is the natural
-        // thing to want, and it is exactly what the engine's leading-comment
-        // mutator does not do — it is restricted to single-line entries.
+        // Heading a *section* is the natural thing to want. It was refused
+        // until noyalib 0.0.45, whose leading-comment mutator took single-line
+        // entries only; it now anchors on the key line, so the block goes
+        // above `service:` at the key's indent, not inside the mapping.
+        // Bug b033.
         WriteCase {
-            id: "write/comment/refuses-a-head-comment-on-a-multi-line-entry",
+            id: "write/comment/head-lands-above-a-block-valued-entry",
             doc: HELM_VALUES,
             filter: "head_comment(.service) = \"cluster-internal only\"",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[("service:\n", "# cluster-internal only\nservice:\n")]),
         },
         WriteCase {
             id: "write/comment/removed-with-its-separator",

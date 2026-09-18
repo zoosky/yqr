@@ -870,6 +870,40 @@ fn a_refused_comment_edit_leaves_the_file_unchanged() {
     let _ = std::fs::remove_file(&file);
 }
 
+// Bug b033.
+#[test]
+fn deleting_a_parents_head_comment_leaves_its_first_childs_alone() {
+    // Anchored on the value, the engine's upward walk for `k` started inside
+    // the block, so `# about n` counted as `k`'s leading comment too. The
+    // delete names `k`, which has no comment of its own; it must refuse,
+    // and must say so rather than blame a blank line there is none of.
+    let doc = "k:\n  # about n\n  n: 1\n";
+    let out = run(&["del(head_comment(.k))"], doc);
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("has no comment block above it"),
+        "{}",
+        out.stderr
+    );
+
+    let out = run(&["-r", "head_comment(.k.n)"], doc);
+    assert_eq!(out.stdout, "about n\n");
+}
+
+#[test]
+fn head_comment_edits_a_block_valued_entry() {
+    let out = run(
+        &["head_comment(.spec) = \"new\""],
+        "# old\nspec:\n  replicas: 2\n  image: web\n",
+    );
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "# new\nspec:\n  replicas: 2\n  image: web\n");
+
+    let out = run(&["del(head_comment(.spec))"], "# old\nspec:\n  - 1\n");
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "spec:\n  - 1\n");
+}
+
 #[test]
 fn foot_comment_refuses_with_its_own_reason() {
     let out = run(&["foot_comment(.a)"], "a: 1\n");

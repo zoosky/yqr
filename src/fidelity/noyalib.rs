@@ -146,11 +146,12 @@ impl FidelityEngine for NoyalibEngine {
             // blank lines, so its tail is the attached part and anything
             // earlier documents what came before the entry.
             // `owned` counts source lines and `before` comes from the CST, so
-            // the two can disagree — an alias-valued entry reports fewer
-            // comments than the lines above it. Taking a tail longer than the
-            // list would panic, and a read must never do that (§4.4), so a
-            // disagreement means yqr cannot establish ownership and reports
-            // nothing.
+            // the two can disagree. An alias-valued entry once reported fewer
+            // comments than the lines above it; since noyalib 0.0.45 both
+            // anchor on the key and no input is known to do that. Taking a
+            // tail longer than the list would panic, and a read must never do
+            // that (§4.4), so a disagreement means yqr cannot establish
+            // ownership and reports nothing.
             let owned = attached_head_len(d, &path_str);
             if owned == 0 || owned > bundle.before.len() {
                 return Ok(None);
@@ -814,12 +815,56 @@ mod tests {
     #[test]
     fn a_head_comment_read_is_total_even_when_the_two_counts_disagree() {
         // `attached_head_len` scans source lines; `comments_at().before` comes
-        // from the CST. An alias-valued entry makes them disagree, and taking
-        // a tail longer than the list panicked — on a read documented as
-        // total, which is worse than any error it could have returned.
+        // from the CST. Taking a tail longer than the list panicked — on a
+        // read documented as total, which is worse than any error it could
+        // have returned.
+        //
+        // An alias-valued entry was the measured route into that branch:
+        // upstream anchored on the value's span, which for an alias is the
+        // anchor's. Since noyalib 0.0.45 both readers anchor on the key, so
+        // the counts agree and the comment reads. No input is known to
+        // reach `owned > before.len()` now; the branch stays as the backstop.
         let e = engine("a: &b 1\n# c\nc: *b\n");
         let path = Path::root().child(PathSeg::Key("c".into()));
+        assert_eq!(
+            e.comment_body(0, &path, true).unwrap().as_deref(),
+            Some("c")
+        );
+
+        // The counts still disagree the other way when a comment is indented
+        // deeper than its entry: upstream reports it, yqr owns nothing.
+        let e = engine("a:\n    # c\n  b: 1\n");
+        let path = Path::root()
+            .child(PathSeg::Key("a".into()))
+            .child(PathSeg::Key("b".into()));
         assert_eq!(e.comment_body(0, &path, true).unwrap(), None);
+    }
+
+    // Bug b033.
+    #[test]
+    fn a_head_comment_above_a_block_valued_key_is_the_keys() {
+        // The value of `k` starts a line below the key, so anchoring on the
+        // value measured from the wrong line and read nothing.
+        let k = Path::root().child(PathSeg::Key("k".into()));
+        for value in ["k:\n  n: 1\n", "k:\n  - 1\n", "k:\n  n: 1\n  m: 2\n"] {
+            let e = engine(&format!("# doc for k\n{value}"));
+            assert_eq!(
+                e.comment_body(0, &k, true).unwrap().as_deref(),
+                Some("doc for k"),
+                "{value:?}"
+            );
+        }
+
+        // The same wrong line lay *inside* the block, so a comment on the
+        // first child could be reported as the parent's too. It is the
+        // child's alone.
+        let e = engine("k:\n  # about n\n  n: 1\n");
+        assert_eq!(e.comment_body(0, &k, true).unwrap(), None);
+        let n = k.child(PathSeg::Key("n".into()));
+        assert_eq!(
+            e.comment_body(0, &n, true).unwrap().as_deref(),
+            Some("about n")
+        );
     }
 
     #[test]
