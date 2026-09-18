@@ -1,8 +1,11 @@
 # Bug b032 — Adding a key beneath a nested block steals the next key's comment
 
-**Status:** Open — filed 2026-09-10. yqr ships the defect on the pinned
-noyalib 0.0.41. **Fixed upstream** the same day in
-noyalib#427; yqr closes this when the release carrying it is adopted
+**Status:** Resolved — 2026-09-17 by adopting noyalib 0.0.44 (`yqr-f035`),
+which carries noyalib#427: an insert stops at the last line its anchor
+entry owns, so the comment stays with the key it documents. Filed
+2026-09-10 and fixed upstream the same day; #427 merged 2026-09-16.
+Nothing was patched in yqr — §6 explains why, and §7 says which
+assertions flipped
 **Severity:** Medium — a write that names one path silently detaches a
 comment from a different key. Nothing refuses, nothing warns, and the
 file still parses. It is not a byte-fidelity break: every original byte
@@ -201,18 +204,24 @@ column-counting scan from the parent, which is the indentation heuristic
 `yqr-b006` removed. The same argument `yqr-b031` §5.2 makes for the empty
 sequence item applies here.
 
-Instead the behaviour is **pinned as it currently is**, per `yqr-m003`:
-a corpus write case and unit tests assert today's wrong placement, with
-the expected placement written beside it in a comment. Adopting the fixed
-release flips those assertions, which is the signal that the adoption
-actually delivered something.
+Instead the behaviour was **pinned as it then was**, per `yqr-m003`: a
+corpus write case and unit tests asserted the wrong placement, with the
+expected placement written beside it in a comment. Adopting 0.0.44
+flipped those assertions, which is what says the adoption delivered
+something rather than merely compiling.
 
 ## 7. Tests
 
-- A corpus `WriteCase` on a document whose last entry is a nested block
-  followed by a commented sibling, pinning the current placement.
-- Unit tests in `src/fidelity/write/backend.rs` for the reported shape,
-  the root-level shape, the scalar-anchor control and the
-  comment-inside-the-block control.
-- A CLI test running the §1 reproduction end to end, including the
-  `head_comment(.z)` reading that shows the comment changed hands.
+The same tests, now asserting the fixed placement. Each was written to
+flip, and each did:
+
+| test | was | is |
+|---|---|---|
+| corpus `WriteCase` (renamed `write/insert/lands-above-a-comment-it-does-not-own`) | the key rewrites the comment line | the key rewrites `    image: web:1.4.2` |
+| `backend.rs::a_new_key_stops_at_the_last_line_its_anchor_owns` | `# trailing` then `  c: "2"` | `  c: "2"` then `# trailing` |
+| `backend.rs::a_new_root_key_stops_there_too` | same, from the root mapping | same |
+| `backend.rs::the_comment_keeps_its_key_and_yqr_can_see_it` | `comment_body` on `z` returns `None` after the write | it returns the comment |
+| CLI `a_new_key_lands_above_a_comment_it_does_not_own` | `head_comment(.z)` prints `null` | it prints `why z matters` |
+
+The two controls — a scalar anchor, and a comment indented inside the
+block — were written to survive the fix unchanged, and did.

@@ -8,17 +8,35 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Known issues
 
-- **Adding a key beneath a nested block can steal the next key's
-  comment.** When the mapping's last entry is a nested block collection
-  followed by a comment, a new key is written below that comment instead
-  of above it, so a comment documenting the key after it ends up
-  documenting the new one. The value written is correct and no other byte
-  moves, which is why nothing refuses. It is fixed in the YAML engine and
-  will land here with the next engine release. Until then, put the new
-  key in yourself if the file has a comment in that position, or add it
-  beside an entry that is not a nested block.
+- **A comment above a key whose value is a block reads as nothing.**
+  `head_comment(.spec)` returns `null` for a comment plainly sitting above
+  `spec:`, while the same comment above `spec: 1` reads fine. The comment
+  is still in the file and every write leaves it alone; it is the read
+  that cannot see it, and the shape it cannot see is the common one in a
+  Kubernetes or Helm file. Fixing it needs the YAML engine to anchor a
+  comment on the entry rather than on its value.
 
 ### Fixed
+
+- **Adding a key beneath a nested block no longer steals the next key's
+  comment.** When the mapping's last entry was a nested block collection
+  followed by a comment, the new key was written below that comment, so a
+  comment documenting the key after it ended up documenting the new one.
+  The new key now stops at the last line the entry above it actually
+  owns. Nothing was corrupted before — the value was right and no other
+  byte moved, which is why nothing refused — but a `head_comment` read
+  could tell the comment had changed hands, and now it does not.
+- **A multi-line value can be written into a CRLF file.** yqr refused
+  `.a = "one\ntwo"` on a file whose lines end `\r\n`, because the block
+  scalar it emits would have ended its own lines with a bare `\n` and
+  left the file mixed. The emitted lines now end the file's way, so the
+  write goes through and every line ending in the file still matches.
+- **A key can be added beside a `|+` block scalar.** Adding a key to a
+  mapping that *contains* an entry ending in a keep-chomped block scalar
+  was refused, and the refusal named a `<<` merge the file did not have.
+  The blank lines such a scalar keeps are part of its value, and they were
+  being trimmed as layout; the write now succeeds and the scalar reads
+  back unchanged.
 
 - **An entry left empty can be deleted.** `del(.k)` over `k:` with
   nothing after the colon answered "cannot locate its bytes", while the

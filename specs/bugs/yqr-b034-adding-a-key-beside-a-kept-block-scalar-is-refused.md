@@ -1,7 +1,11 @@
 # Bug b034 — Adding a key beside a kept block scalar is refused, and the refusal blames a merge
 
-**Status:** Open — filed 2026-09-10. The cause is upstream, **filed as
-noyalib#429**; the refusal's wording is yqr's and can be fixed here
+**Status:** Resolved — 2026-09-17 by adopting noyalib 0.0.44 (`yqr-f035`),
+which carries noyalib#437: a kept block scalar's blank lines are content,
+not the anchor's trivia, so the span is no longer trimmed through them and
+the write succeeds. Filed 2026-09-10 as noyalib#429. The message fix §5
+proposed is **moot** — #429 removed the refusal entirely, which is the
+outcome that filing said to wait for
 **Severity:** Low — the write is refused and the file is left unchanged,
 so nothing is corrupted. The cost is a capability that ought to work and
 a message that names two causes, neither of them the real one
@@ -115,6 +119,11 @@ Deliberately **not done in this filing**. It is a message change with a
 test that runs the remedy, worth its own round, and it wants the upstream
 answer first in case #429 removes the refusal entirely.
 
+**That is what happened.** noyalib 0.0.44 makes the write succeed, so
+there is no refusal left to word. The §2 table's one refused row now
+reads *works, blank kept*, matching every other row, and nothing in yqr
+changed to get there.
+
 ## 6. Tests
 
 Three CLI tests, added with this filing rather than deferred, because the
@@ -130,5 +139,11 @@ else in yqr pins them. yqr covers a keep-chomped scalar in `del` already
 - Clip and strip as controls, which own no trailing blank and must not
   move when this bug is fixed.
 - The refusal itself, asserting exit 5 and that nothing was written. It
-  deliberately does **not** assert the message, since the message is the
+  deliberately did **not** assert the message, since the message was the
   part expected to change.
+
+On 0.0.44 the third test asserts the write instead
+(`a_key_beside_a_nested_kept_block_scalar_is_written`): exit 0, the
+expected bytes, and `.a.b` read back as `x\n\n` before and after, which
+is the assertion that distinguishes a kept blank line from trivia. The
+two controls did not move.

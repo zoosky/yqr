@@ -102,6 +102,8 @@ dependency/release timing.
 | [f033](yqr-f033-split-the-write-module.md) | Split `src/fidelity/write.rs` into its directory module | Done (2026-09-09: four files by what each decides, none over 419 production lines; three visibility keywords were the only non-move edit, and the test-name list is identical to before) |
 | [f032](yqr-f032-collection-right-hand-sides.md) | Collection right-hand sides for `=`, `+=` and a new key | Done (2026-09-08: the last open `f007` §6 scope item; a mapping or sequence can be assigned, appended and written over an existing collection, and the measurement found `b029` and `b030`, two silent-corruption defects on shipped paths) |
 | [f034](yqr-f034-noyalib-0-0-43-adoption.md) | Adopt noyalib 0.0.43: two lockstep releases, no source change | Done (0.0.43, 2026-09-11: every source file of the published crate byte-identical to 0.0.41's; full suite green with no expectation moved; carries none of yqr's four open upstream PRs, so `b032` and `b034` stay open) |
+| [f035](yqr-f035-noyalib-0-0-44-adoption.md) | Adopt noyalib 0.0.44: four upstream fixes land, two yqr bugs close | Done (0.0.44, 2026-09-17: noyalib#427 and #437 close `b032` and `b034` with no yqr code change; #422 turns the CRLF multi-line refusal into a write; #426 lands and leaves `b033` unmoved, as its filing predicted; eight pinned expectations flipped) |
+| [f036](yqr-f036-relax-the-scalar-over-a-block-collection-refusal.md) | Reconsider the scalar-over-a-block-collection refusal | Draft (filed 2026-09-17 from `f035` §2.4: noyalib#424 makes the layout valid rather than broken, so the guard now refuses a correct result — three options priced, none chosen) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -297,6 +299,29 @@ passes with no expectation moved. The bump buys currency, not behaviour:
 none of yqr's four open upstream PRs is in a release, so `b032` and `b034`
 stay open, and the bug specs' measurements on 0.0.41 hold for 0.0.43.
 
+f035 **done** (2026-09-17): noyalib 0.0.44, the release `f034` was staged
+for — the first carrying all four of yqr's open upstream PRs. `b032`
+closes (noyalib#427: an insert stops at the last line its anchor entry
+owns, so a comment keeps the key it documents) and `b034` closes
+(noyalib#437 for yqr's #429: a kept block scalar's blank lines are content,
+not the anchor's trivia). Both were pinned as they behaved, and adopting
+the release flipped all eight assertions with **no production code
+change**. noyalib#422 also lands, so a multi-line write into a CRLF file is
+written rather than refused by yqr's `b030` guard, which is kept as a
+result-stated backstop. noyalib#426 lands and changes nothing: `b033` is
+unmoved, exactly as its §3 argued, and is now yqr's only open bug.
+noyalib#424 lands too, and yqr's `b029` refusal stays — it now guards a
+layout that is valid rather than broken, which is a behaviour question
+filed as `f036` rather than settled in an adoption. Benchmarks: no
+difference the suite can resolve, and the run that shows why is in §3 —
+`parse/nested_path` contains no noyalib code and "regressed" 4.9%, then
+regressed again by the same margin when the two releases swapped places.
+
+f036 **draft** (2026-09-17): whether the scalar-over-a-block-collection
+refusal should stay now that noyalib#424 makes the result valid. Three
+options priced; the interesting one is writing the scalar on the key's own
+line, which needs an entry-span write path yqr does not have.
+
 ## Epic: Editing-loop tooling (f012)
 
 | Feature | Title | Status |
@@ -338,12 +363,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 34
-- Draft: 2 (f025, f027)
+- Total features: 36
+- Draft: 3 (f025, f027, f036)
 - In Progress: 0
-- Done: 28 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 29 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031, f032, f033, f034)
+  f030, f031, f032, f033, f034, f035)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

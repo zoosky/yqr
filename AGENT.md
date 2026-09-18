@@ -363,9 +363,23 @@ cargo +nightly install cargo-doc-md
 
 | Crate | Purpose | Doc Path |
 |-------|---------|----------|
+| noyalib | YAML parsing, emission and the lossless CST | `target/doc-md/noyalib/` |
 | clap | CLI argument parser (derive feature) | `target/doc-md/clap/` |
-| rust-yaml | YAML parsing and emission (`Value` model) | `target/doc-md/rust_yaml/` |
-| criterion | Benchmark harness (dev-dependency) | `target/doc-md/criterion/` |
+| indexmap | Backs `value::Mapping` | `target/doc-md/indexmap/` |
+| yqr | This crate, with private items | `target/doc-md/yqr/` |
+
+`rust-yaml` was the engine until `yqr-m005` consolidated on noyalib; it is
+no longer a dependency and has no docs to read.
+
+**What cargo-doc-md cannot generate here.** Six crates fail, and none is
+worth chasing: `criterion` (a dev-dependency) and the five proc-macro
+crates behind `clap_derive` (`heck`, `proc-macro2`, `quote`, `syn`,
+`unicode-ident`). The tool shells out to `cargo build -p <name>@<version>`,
+and cargo looks those up under the `NormalOrDev` feature kind, which is not
+how they are activated, so its resolver panics: *did not find features for
+(syn 3.0.3, NormalOrDev) within activated_features*. It is a tool
+limitation, not a repository problem, and it reproduces on a current
+nightly (1.100.0, 2026-09-16). Read criterion's API on docs.rs instead.
 
 ## Dependencies Policy
 

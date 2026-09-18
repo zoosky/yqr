@@ -1,6 +1,12 @@
 # Bug b033 — A head comment above a key whose value is a block collection reads as null
 
-**Status:** Open — filed 2026-09-10, found while measuring `yqr-b032`
+**Status:** Open — filed 2026-09-10, found while measuring `yqr-b032`.
+Re-measured on noyalib 0.0.44 (`yqr-f035`), the release that carries
+noyalib#426: **unchanged**, exactly as §3 predicted. #426 routes the six
+`annotated.rs` call sites through `comment_anchor_span`, which returns a
+block collection's value span unchanged, so the anchor still sits a line
+below the key and `before` still comes back empty. This is the one open
+bug the adoption did not close, and the remaining upstream ask
 **Severity:** Low — a read reports nothing where a comment plainly sits.
 It is a total read returning the safe answer, so nothing is corrupted and
 no write is misled. The cost is that the comment is invisible to
@@ -41,7 +47,7 @@ disagree.
   above it is `k:` — content, not a comment — and the run ends before it
   starts. `before` comes back empty.
 
-Measured on the pinned 0.0.41:
+Measured on the pinned 0.0.41, and again on 0.0.44 with the same result:
 
 | document | `span_at("k")` | `key_span("k")` | `comments_at("k").before` |
 |---|---|---|---|
@@ -69,6 +75,12 @@ line, whatever its value looks like. Whether that belongs in
 `comment_anchor_span` or beside it is the maintainer's call, and worth
 raising once #426 has an answer rather than opening a second thread on the
 same design question.
+
+#426 merged 2026-09-16 and shipped in 0.0.44. The §2 table re-measured on
+that release is identical: `head_comment(.k)` reads the comment above
+`k: 1` and `null` above the same comment on `k:` / `  n: 1`. So the
+answer is in, the helper exists, and raising the block-collection case
+against it is now the next step rather than a second thread.
 
 ## 4. What it cost
 

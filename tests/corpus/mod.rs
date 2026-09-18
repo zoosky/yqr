@@ -686,22 +686,20 @@ pub fn write_cases() -> Vec<WriteCase> {
                 "    app.kubernetes.io/component: frontend\n  annotations: |-\n    owner: platform\n    rotate: yearly\n",
             )]),
         },
-        // Bug b032, pinned **as it behaves**, not as it should. The mapping's
-        // last entry is a nested block, so the insert anchor comes from the
-        // span tree, which runs past the entry and sweeps up the comment
-        // below it. The new key therefore lands under a comment that
-        // documents `revision`, and `head_comment(.revision)` goes from the
-        // comment's text to null. Fixed upstream as noyalib#418; adopting
-        // that release flips this pair to
-        // `("    image: web:1.4.2\n", "    image: web:1.4.2\n  strategy: Recreate\n")`,
-        // which is the signal the adoption delivered something.
+        // Bug b032, fixed in noyalib 0.0.44 (noyalib#427). The mapping's last
+        // entry is a nested block, and the insert anchor used to come from the
+        // span tree, which ran past the entry and swept up the comment below
+        // it; the new key landed under a comment documenting `revision`, and
+        // `head_comment(.revision)` went from the comment's text to null. The
+        // insert now stops at the last line the anchor entry owns, so the
+        // comment stays with the key it documents.
         WriteCase {
-            id: "write/insert/lands-below-a-comment-it-does-not-own",
+            id: "write/insert/lands-above-a-comment-it-does-not-own",
             doc: COMMENTED_TAIL,
             filter: ".spec.strategy = \"Recreate\"",
             expect: WriteExpect::Rewrites(&[(
-                "# set by the release pipeline, do not edit\n",
-                "# set by the release pipeline, do not edit\n  strategy: Recreate\n",
+                "    image: web:1.4.2\n",
+                "    image: web:1.4.2\n  strategy: Recreate\n",
             )]),
         },
         WriteCase {
@@ -801,13 +799,20 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: ".metadata.labels = .spec.replicas",
             expect: WriteExpect::Err(5),
         },
-        // Bug b030: the engine joins a multi-line replacement's own lines with
-        // LF, so this would leave the CRLF document with mixed endings.
+        // Bug b030, fixed in noyalib 0.0.44 (noyalib#422): a replacement now
+        // takes its line break from the document, as an insertion already did,
+        // so the block scalar this write emits ends every line the file's way.
+        // The engine used to join the replacement's own lines with LF, which
+        // left the CRLF document with mixed endings, and yqr refused the write
+        // rather than change bytes the edit did not name.
         WriteCase {
-            id: "write/collection-rhs/refuses-a-multi-line-write-into-crlf",
+            id: "write/collection-rhs/multi-line-write-into-crlf-keeps-crlf",
             doc: CRLF_APP_CONFIG,
             filter: ".logging.level = \"warn\nverbose\"",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "  level: warn\r\n",
+                "  level: |-\r\n    warn\r\n    verbose\r\n",
+            )]),
         },
         // -- append -----------------------------------------------------------
         WriteCase {

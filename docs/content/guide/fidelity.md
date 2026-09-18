@@ -3,7 +3,9 @@
 # floor. Bug b011 (wrapped flow collections) fixed in noyalib 0.0.25.
 # The no-op write rule and the borrowed-entry refusal are bugs b018 and
 # b019; the merged-key message is b020. Filling in a blank value is b021,
-# fixed in noyalib 0.0.28.
+# fixed in noyalib 0.0.28. The insert anchor, the kept block scalar and the
+# CRLF multi-line write are bugs b032, b034 and b030, all closed by the
+# noyalib 0.0.44 adoption (f035).
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -157,6 +159,52 @@ digest: sha256:9f0a          # filled by the release job
 
 The value goes *before* the comment, and the gutter the author wrote is
 still there. The same holds for an empty `-` item in a sequence.
+
+## A new key stops where its neighbour ends
+
+Adding a key means finding where the entry above it ends, and that is not
+always the line you would guess. Take this `deploy.yaml`:
+
+```yaml
+spec:
+  replicas: 2
+  template:
+    image: web:1.4.2
+# set by the release pipeline, do not edit
+revision: 42
+```
+
+The last entry under `spec` is a nested block, and the comment below it
+documents `revision`, not `template`. Add a key to `spec` and the comment
+stays where the author put it:
+
+```console
+$ yqr '.spec.strategy = "Recreate"' deploy.yaml
+spec:
+  replicas: 2
+  template:
+    image: web:1.4.2
+  strategy: Recreate
+# set by the release pipeline, do not edit
+revision: 42
+```
+
+`head_comment(.revision)` reads the same before and after, which is the
+check worth making: a comment that changes hands is not something a diff
+of the values can show you.
+
+The same rule covers a block scalar written `|+` or `>+`, which keeps the
+blank lines at its end as part of its value. A new key goes below them, so
+the scalar reads back byte for byte after the write.
+
+Line endings follow the file, not the platform. Write a multi-line value
+into a file whose lines end `\r\n` and every line yqr emits ends `\r\n`
+too:
+
+```console
+$ yqr '.logging.level = "warn\nverbose"' config.yaml | file -
+/dev/stdin: ASCII text, with CRLF line terminators
+```
 
 If an edit *cannot* be made without restructuring the document, yqr refuses
 it and exits 5 rather than emitting something surprising. With `-i` the

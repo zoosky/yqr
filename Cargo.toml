@@ -46,7 +46,16 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.43 release. 0.0.42 and 0.0.43 are lockstep releases for the
+# crates.io 0.0.44 release, the first carrying yqr's four open upstream PRs:
+# noyalib#427 stops an insert at the last line its anchor entry owns (b032),
+# noyalib#437 makes a kept block scalar's blank lines content rather than the
+# anchor's trivia (b034) and treats a tab-indented comment alike after a plain
+# and a quoted scalar, noyalib#422 has a replacement adopt the document's line
+# break (b030, so a multi-line write into a CRLF file is written instead of
+# refused), and noyalib#424 keeps a scalar's indent when it is written over a
+# block collection (b029 -- yqr's refusal stays, see f036). noyalib#426 also
+# lands and changes nothing here: b033 is unmoved, as its filing predicted.
+# 0.0.42 and 0.0.43 are lockstep releases for the
 # language server's editor extension: every source file of the published crate
 # is byte-identical to 0.0.41's (f034). 0.0.40 fixes the serializer's spelling
 # of a tag a `%TAG` directive resolves and the CST formatter's handling of a
@@ -72,9 +81,10 @@ clap = { version = "4.6.1", features = ["derive"] }
 # refuses multi-document streams (#351), absorbed via `load_all_with_config`.
 # Every bug yqr has filed against this engine is fixed in a published release:
 # b011-b014 in 0.0.25, b015 in 0.0.26, b016 in 0.0.27, b021-b022 in 0.0.28,
-# b025 in 0.0.31, b028 in 0.0.36. Each pin and what it bought is in features
-# f013-f029 and f031; see research r002 and the bug specs.
-noyalib = "0.0.43"
+# b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44. Each pin and what
+# it bought is in features f013-f029, f031 and f034-f035; see research r002
+# and the bug specs.
+noyalib = "0.0.44"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
