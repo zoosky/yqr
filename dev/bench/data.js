@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789736331370,
+  "lastUpdate": 1789764793573,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2687,6 +2687,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 279904,
             "range": "± 10154",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b32681d6e40483012609a724bcf88300cc11d40",
+          "message": "Adopt noyalib 0.0.45: close b033, no production code change (#131)\n\n* Adopt noyalib 0.0.45: close b033, no production code change\n\nThe release carries yqr's noyalib#442, taken verbatim into release PR\n#443. A leading comment is now measured from the entry's key line\nrather than from its value, which for a block collection starts a line\nlower. yqr's reader and upstream's comments_at now agree, so a head\ncomment above spec: or resources: reads, where it read null. b033 was\nyqr's last open bug.\n\nThe fix reaches the write side too. head_comment(.k) = \"...\" and\ndel(head_comment(.k)) on a block-valued key go through; upstream's\nleading-comment mutator refused multi-line entries before. On 0.0.44\nupstream also reported a first child's comment as the parent's, and its\nremover would delete it when asked about the parent. yqr's count guard\nstopped that with a message about blank lines that did not fit; the\nrefusal now says the parent has no comment.\n\nOne case moves toward refusing: a blank-separated comment above a\nblock-valued key is now protected, as it always was for a scalar-valued\nkey.\n\nFour pinned expectations flip. The two t8 corpus cases also carried a\nwrong explanation: the blank line sits above the comment, not between\nit and the key. Three tests are added, and the Kubernetes guide no\nlonger lists a block-valued head_comment as refused.\n\nThe release's other fixes (the fragment set duplicate-key guard, the\nborrowed reader's !!str, Spanned's parser toggles) are on paths yqr\ndoes not call. Benchmarks show only the run-order drift f035 recorded.\nf037 has the measurements.\n\n* Correct the resolved-bug count and the head-comment write history\n\nThe bug tracker summary said 33 resolved and listed 31. It is 34, the\nlist now names b025, b026 and b027, which it had been missing since\nbefore this branch.\n\nThe changelog said a head comment above a block-valued key was refused\nbefore. Adding one above a one-line block already worked on 0.0.44;\nadding above a longer block, and replacing or deleting an existing\ncomment, were the refused cases. f037 section 2.2 records the one-line\ncase as its own row, and the tracker entry says the same.",
+          "timestamp": "2026-09-18T22:51:51+02:00",
+          "tree_id": "02c313b1d3ece3b91f7e660fcca9edca570fe4ae",
+          "url": "https://github.com/zoosky/yqr/commit/2b32681d6e40483012609a724bcf88300cc11d40"
+        },
+        "date": 1789764792431,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 588,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5713,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 271323,
+            "range": "± 1782",
             "unit": "ns/iter"
           }
         ]
