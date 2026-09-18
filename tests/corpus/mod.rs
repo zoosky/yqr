@@ -791,13 +791,17 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: ".spec.replicas = .metadata.labels",
             expect: WriteExpect::Err(5),
         },
-        // Bug b029: the reverse direction wrote a value at its key's own
-        // column, which noyalib reads back and PyYAML and Psych reject.
+        // The reverse direction: a scalar over a block collection goes on the
+        // key's own line, and the block's lines go with the old value. Bug
+        // b029 wrote it at the key's column; it was refused until f036.
         WriteCase {
-            id: "write/collection-rhs/refuses-a-scalar-over-a-block-collection",
+            id: "write/collection-rhs/a-scalar-replaces-a-block-collection",
             doc: K8S_DEPLOYMENT,
             filter: ".metadata.labels = .spec.replicas",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "  labels:\n    app.kubernetes.io/name: web\n    app.kubernetes.io/component: frontend\n",
+                "  labels: 3\n",
+            )]),
         },
         // Bug b030, fixed in noyalib 0.0.44 (noyalib#422): a replacement now
         // takes its line break from the document, as an insertion already did,

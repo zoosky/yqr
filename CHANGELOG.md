@@ -8,6 +8,10 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Fixed
 
+- **Assigning over an alias to a block gives the right reason.**
+  `.k = 5` over `k: *x` was refused as if `k` held a block that the write
+  would under-indent. The refusal now says `k` is an alias, and to edit the
+  anchor or replace the alias.
 - **A comment above a key whose value is a block reads.**
   `head_comment(.spec)` returned `null` for a comment directly above
   `spec:`, while the same comment above `spec: 1` read fine. It now reads
@@ -92,6 +96,13 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- **A scalar can replace a block collection.** `.metadata.labels = null`
+  over a `labels:` block was refused, with a remedy that moved the key to
+  the end of its mapping. It now writes `labels: null` on the key's own
+  line, where you would have typed it, and the block's lines go with the
+  old value. A comment on the key's line stays. A block that carries an
+  anchor or a tag is still refused, now naming it, because the scalar
+  would drop it.
 - **Value assignment is checked against the document it started from.**
   An `=` or `|=` write that would leave a block mapping's value at its
   key's own column, or add a bare line feed to a wholly CRLF file, is

@@ -103,7 +103,7 @@ dependency/release timing.
 | [f032](yqr-f032-collection-right-hand-sides.md) | Collection right-hand sides for `=`, `+=` and a new key | Done (2026-09-08: the last open `f007` §6 scope item; a mapping or sequence can be assigned, appended and written over an existing collection, and the measurement found `b029` and `b030`, two silent-corruption defects on shipped paths) |
 | [f034](yqr-f034-noyalib-0-0-43-adoption.md) | Adopt noyalib 0.0.43: two lockstep releases, no source change | Done (0.0.43, 2026-09-11: every source file of the published crate byte-identical to 0.0.41's; full suite green with no expectation moved; carries none of yqr's four open upstream PRs, so `b032` and `b034` stay open) |
 | [f035](yqr-f035-noyalib-0-0-44-adoption.md) | Adopt noyalib 0.0.44: four upstream fixes land, two yqr bugs close | Done (0.0.44, 2026-09-17: noyalib#427 and #437 close `b032` and `b034` with no yqr code change; #422 turns the CRLF multi-line refusal into a write; #426 lands and leaves `b033` unmoved, as its filing predicted; eight pinned expectations flipped) |
-| [f036](yqr-f036-relax-the-scalar-over-a-block-collection-refusal.md) | Reconsider the scalar-over-a-block-collection refusal | Draft (filed 2026-09-17 from `f035` §2.4: noyalib#424 makes the layout valid rather than broken, so the guard now refuses a correct result — three options priced, none chosen) |
+| [f036](yqr-f036-relax-the-scalar-over-a-block-collection-refusal.md) | Reconsider the scalar-over-a-block-collection refusal | Done (2026-09-18: option 3 — `.k = 5` over a block collection writes `k: 5` on the key's own line, as a sequence item already did; the block collapses to a placeholder that the engine's scalar `set_value` then spells, so yqr owns no rendering; an anchored or tagged block is refused by name, and an alias falls through to the engine's accurate refusal) |
 | [f037](yqr-f037-noyalib-0-0-45-adoption.md) | Adopt noyalib 0.0.45: the leading comment anchors on the key, b033 closes | Done (0.0.45, 2026-09-18: yqr's noyalib#442 closes `b033`, the last open bug, with no yqr code change; a head comment above a block-valued key reads, writes and deletes; the release's four other fixes are on paths yqr does not call; four pinned expectations flipped) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
@@ -318,10 +318,18 @@ difference the suite can resolve, and the run that shows why is in §3 —
 `parse/nested_path` contains no noyalib code and "regressed" 4.9%, then
 regressed again by the same margin when the two releases swapped places.
 
-f036 **draft** (2026-09-17): whether the scalar-over-a-block-collection
-refusal should stay now that noyalib#424 makes the result valid. Three
-options priced; the interesting one is writing the scalar on the key's own
-line, which needs an entry-span write path yqr does not have.
+f036 **done** (2026-09-18): a scalar written over a block collection at a
+mapping key goes on the key's own line, `k: 5`, where yqr had refused since
+`b029` and the engine alone would write `k:` / `  5`. Option 3 of the three
+priced, because it is what the edit says and what sequence items already
+did. `write::collapse` splices a `null` placeholder from the key's `:` to
+the end of the value, keeping a key-line comment, then lets the engine's
+scalar-over-scalar `set_value` spell the value, so plain, quoted, block
+scalar and CRLF output are the engine's. The copy commits only when it
+loads as the original with the assignment and every byte outside the entry
+is unchanged. A block with an `&anchor` or `!tag` is refused by name. The
+old guard also misread an alias to a block as a block and refused it with
+the wrong reason; it now reaches the engine's own, accurate refusal.
 
 f037 **done** (2026-09-18): noyalib 0.0.45, carrying yqr's noyalib#442. A
 leading comment is now measured from the entry's key line rather than its
@@ -378,11 +386,11 @@ dashboard.
 ## Summary
 
 - Total features: 37
-- Draft: 3 (f025, f027, f036)
+- Draft: 2 (f025, f027)
 - In Progress: 0
-- Done: 30 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 31 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031, f032, f033, f034, f035, f037)
+  f030, f031, f032, f033, f034, f035, f036, f037)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

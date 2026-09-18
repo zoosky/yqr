@@ -204,7 +204,7 @@ fn render_matching_quote_style(old: &str, value: &::noyalib::Value) -> ::noyalib
 
 /// `root` with `new` assigned at the path given by `segs`, or `None` when the
 /// path does not resolve.
-fn assign_at(root: &Value, segs: &[PathSeg], new: &Value) -> Option<Value> {
+pub(super) fn assign_at(root: &Value, segs: &[PathSeg], new: &Value) -> Option<Value> {
     let Some((first, rest)) = segs.split_first() else {
         return Some(new.clone());
     };

@@ -235,7 +235,7 @@ pub(super) struct Integrity {
 /// stopped short of. Splitting on whitespace alone left `1}` behind, which
 /// kept the answer on the refusing side and was still the wrong answer.
 // Bug b029, found in code review; the no-space spelling in the round after.
-fn after_properties(bytes: &str) -> &str {
+pub(super) fn after_properties(bytes: &str) -> &str {
     let mut rest = bytes.trim_start();
     while rest.starts_with(['&', '!']) {
         let end = rest
@@ -263,41 +263,6 @@ fn bare_line_feeds(source: &str) -> usize {
 }
 
 impl NoyalibWriter {
-    pub(super) fn refuse_block_collection_to_scalar(
-        &self,
-        doc: usize,
-        path: &Path,
-        path_str: &str,
-        new: &Value,
-    ) -> Result<()> {
-        if matches!(new, Value::Sequence(_) | Value::Mapping(_)) {
-            return Ok(());
-        }
-        if !matches!(path.segments().last(), Some(PathSeg::Key(_))) {
-            return Ok(());
-        }
-        let current = self.value(doc)?;
-        if !matches!(
-            crate::fidelity::noyalib::walk_value(&current, path.segments()),
-            Some(Value::Sequence(_) | Value::Mapping(_))
-        ) {
-            return Ok(());
-        }
-        let d = self.doc_ref(doc)?;
-        if d.get(path_str)
-            .is_some_and(|bytes| after_properties(bytes).starts_with(['[', '{']))
-        {
-            return Ok(());
-        }
-        Err(YqrError::eval(format!(
-            "cannot assign at {path_str:?}: the value there is a block collection, and writing a \
-             scalar over one would leave it at its key's own column, which this engine reads \
-             back but other YAML parsers reject. Remove the entry and write it again, as in \
-             `del(.{path_str})` then `.{path_str} = <value>`, which places it at the end of its \
-             mapping"
-        )))
-    }
-
     pub(super) fn integrity(&self, doc: usize) -> Result<Integrity> {
         let d = self.doc_ref(doc)?;
         Ok(Integrity {
@@ -314,13 +279,16 @@ impl NoyalibWriter {
         path_str: &str,
     ) -> Result<()> {
         let after = self.integrity(doc)?;
+        // noyalib 0.0.44 indents a scalar written over a block collection,
+        // and since f036 yqr writes that scalar on the key's line anyway, so
+        // no path yqr has reaches this branch. Like the CRLF one below, it is
+        // stated over the result and kept as the backstop.
         if after.under_indented > before.under_indented {
             return Err(YqrError::eval(format!(
                 "cannot assign at {path_str:?}: the result would leave a block mapping's value at \
                  its key's own column, which this engine reads back but other YAML parsers \
-                 reject. Replacing a block collection with a scalar is what does this; remove the \
-                 entry and write it again, as in `del(.{path_str})` then `.{path_str} = <value>`, \
-                 which places it at the end of its mapping"
+                 reject. Remove the entry and write it again, as in `del(.{path_str})` then \
+                 `.{path_str} = <value>`, which places it at the end of its mapping"
             )));
         }
         // Only a document that is wholly CRLF is held to it. One already
@@ -432,31 +400,16 @@ mod tests {
         );
     }
 
-    // -- Bug b029: a scalar must not be written over a block collection -----
-
-    #[test]
-    fn a_scalar_over_a_block_collection_is_refused() {
-        // Upstream writes the scalar at column 0 (`k:` then `5`), which its
-        // own parser reads back and PyYAML and Psych reject, so neither the
-        // re-parse guard nor upstream's own guard sees it.
-        for (path, input) in [
-            (".k", "k:\n  a: 1\nafter: 1\n"),
-            (".k", "k:\n  - 1\n  - 2\nafter: 1\n"),
-            (".top.k", "top:\n  k:\n    a: 1\n  after: 2\n"),
-        ] {
-            let err = apply(&assign(path, Rhs::Literal(Value::Int(5))), input).unwrap_err();
-            assert!(
-                format!("{err}").contains("at its key's own column"),
-                "{input:?} was not refused in yqr's words: {err}"
-            );
-        }
-    }
+    // -- Bug b029: a scalar over a block collection -----------------------
+    //
+    // Refused here until f036; it is written on the key's own line now, and
+    // `write::collapse` holds those tests. What stays here is the shapes that
+    // never needed it.
 
     #[test]
     fn a_scalar_over_a_flow_collection_or_a_sequence_item_still_writes() {
-        // The guard is the Y103 property, not a ban on the type change: a
-        // flow value has no line of its own to under-indent, and a sequence
-        // item is not a mapping entry.
+        // Neither goes through `write::collapse`: a flow value already shares
+        // its key's line, and a sequence item's value starts on its dash's.
         assert_eq!(
             apply(
                 &assign(".k", Rhs::Literal(Value::Int(5))),
@@ -473,14 +426,6 @@ mod tests {
             .unwrap(),
             "xs:\n  - 5\n  - b: 2\n"
         );
-    }
-
-    #[test]
-    fn an_absent_right_hand_path_does_not_flatten_a_block() {
-        // `.k = .missing` resolves to null, a scalar, so this is the b029
-        // shape reached without naming a scalar at all.
-        let err = assign_path(".k", ".missing", "k:\n  a: 1\n").unwrap_err();
-        assert!(format!("{err}").contains("block collection"), "{err}");
     }
 
     // Found in code review of f032: a flow collection carrying a property
@@ -545,7 +490,8 @@ mod tests {
 
     #[test]
     fn an_anchored_block_collection_is_still_refused() {
-        // The property skip must not turn the guard off for a block value.
+        // The property skip must not read an anchored block as a flow value,
+        // which would send it to the engine's own two-line write.
         let err = apply(
             &assign(".k", Rhs::Literal(Value::Int(5))),
             "k: &an\n  a: 1\nafter: 1\n",

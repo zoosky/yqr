@@ -1,6 +1,7 @@
 # Feature f036 — Reconsider the scalar-over-a-block-collection refusal
 
-**Status:** Draft — filed 2026-09-17 from `yqr-f035` §2.4
+**Status:** Done — option 3 shipped 2026-09-18; filed 2026-09-17 from
+`yqr-f035` §2.4
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-b029` (the defect the refusal was built for, resolved by
@@ -47,20 +48,102 @@ the edit do what it says. The `yqr-b006` argument applies to how the span
 is derived: from the engine's key and value spans, not from a
 column-counting scan.
 
-## 3. Not decided here
+## 3. Decision: option 3
 
-`yqr-f035` is an adoption, and this is a behaviour change with its own
-remedy text, its own tests and a possible new write path. The guard stays
-as it is until this is picked up, which is why `b029` stays Resolved: the
-defect it names is fixed twice over, once by the guard and now upstream.
+A scalar written over a block collection at a mapping key goes on the key's
+own line. `.k = 5` over `k:` / `  a: 1` writes `k: 5`.
 
-## 4. Acceptance criteria
+Three reasons, each measured:
 
-- [ ] One of the three options in §2 chosen, with the reason recorded.
-- [ ] If the refusal goes: the corpus case
-      `write/collection-rhs/refuses-a-scalar-over-a-block-collection` and
-      the `guards.rs` tests updated, and the byte result pinned.
-- [ ] If option 3: the entry-span write path covered for a nested key, a
-      root key, a key with a trailing comment, and a key whose value block
-      carries comments of its own.
-- [ ] `local-ci.sh` clean.
+- **It is what the edit says.** The filter names a value, and the author of
+  the file would have typed `k: 5`. Option 2's `k:` / `  5` is valid but
+  reads in a diff as a value that moved for no reason.
+- **Sequence items already work this way.** `.l[0] = 5` over a block item
+  writes `- 5` on the dash's line, because an item's value starts there.
+  The refusal only ever covered mapping keys, so option 1 kept an
+  inconsistency, and option 3 removes it.
+- **It costs yqr no rendering.** The implementation (§4) leaves every byte
+  of the new value to the engine, which is the `yqr-b006` rule applied:
+  spans from the engine, not a column-counting scan, and no second emitter.
+
+Option 2's output is worse than its layout suggests. On 0.0.45, with the
+guard bypassed, upstream also leaves the first child's head comment and a
+comment below the last child in place around the new scalar:
+`k:` / `  # about a` / `  5` / `  # trailing`.
+
+## 4. How it works
+
+`src/fidelity/write/collapse.rs`, called from `NoyalibWriter::set_value`
+where the refusal used to be. On a copy of the document:
+
+1. `replace_span` puts a `null` placeholder over everything from just after
+   the key's `:` to the end of the value's span. A comment on the key's own
+   line is kept, after the placeholder.
+2. `set_value` writes the real value over the placeholder. That is a scalar
+   over a scalar, so the engine chooses the spelling: plain, quoted
+   (`"yes"`), a block scalar for multi-line text, and the document's line
+   break.
+
+The copy replaces the document only when it loads as the original with the
+assignment applied, and when every byte before the `:` and after the value
+is unchanged. `check_integrity` still runs after it.
+
+What goes with the old value follows `del`: the children, and the head
+comments above them. A comment below the last child is not the value's for
+`del` and stays here too, as does a blank line a `|+` scalar kept.
+
+Three shapes do not take this path:
+
+| shape | result | why |
+|---|---|---|
+| `k: &an` / `  a: 1`, or `k: !t` / ... | refused, naming `&an` or `!t` | the scalar would drop the property, and an anchor may be what other entries refer to |
+| `k: *x`, where `x` is a block | the engine's refusal: "edit the anchor definition or replace the alias explicitly" | an alias is not a block in the source. The old guard fired first here with the wrong reason ("at its key's own column"), because `span_at` on an alias returns the anchor's bytes |
+| `k: {a: 1}` | the engine's `set_value`, unchanged | a flow value already shares its key's line |
+
+One byte is the engine's choice, not yqr's: when the new value becomes a
+block scalar, a comment on the key's line is written `k: |- # c`, with one
+space before the `#` however many there were.
+
+## 5. Measured
+
+Every result below re-parses and passes `yqr validate --strict`.
+
+| input | filter | 0.0.45 before | now |
+|---|---|---|---|
+| `k:` / `  a: 1` | `.k = 5` | refused | `k: 5` |
+| `k:` / `- 1` / `- 2` (sequence at the key's column) | `.k = 5` | refused | `k: 5` |
+| `top:` / `  k:` / `    a: 1` | `.top.k = 5` | refused | `  k: 5` |
+| `- k:` / `    a: 1` | `.[0].k = 5` | refused | `- k: 5` |
+| `k:  # tuned` / `  a: 1` | `.k = 5` | refused | `k: 5  # tuned` |
+| `k:` / `  # about a` / `  a: 1` / `  # trailing` | `.k = 5` | refused | `k: 5` / `  # trailing` |
+| `k:` / `  a: 1` | `.k = "a\nb"` | refused | `k: \|-` / `  a` / `  b` |
+| the same, CRLF | `.k = "a\nb"` | refused | the same, every line `\r\n` |
+| `"k":` / `  a: 1` | `.k = 5` | refused | `"k": 5` |
+| `? k` / `:` / `  a: 1` | `.k = 5` | refused | `? k` / `: 5` |
+| `k:` / `  a: 1` | `.k \|= "x"` | refused | `k: x` |
+| `k:` / `  a: 1` | `.k = .missing` | refused | `k: null` |
+
+## 6. Tests
+
+- `src/fidelity/write/collapse.rs`: ten unit tests covering nested, root,
+  inside-a-sequence-item and key-column-sequence keys; a key-line comment;
+  comments inside the block; the engine's spelling of plain, quoted,
+  multi-line and null values; CRLF; path right-hand sides; the property
+  refusal; and the alias falling through to the engine.
+- `src/fidelity/write/guards.rs`: the two refusal tests are removed. The
+  flow, sequence-item and property tests stay, since those shapes never
+  went through the refusal.
+- `tests/corpus/mod.rs`: `write/collection-rhs/refuses-a-scalar-over-a-block-collection`
+  becomes `write/collection-rhs/a-scalar-replaces-a-block-collection`, and
+  it pins the bytes: `labels:` and its two lines become `labels: 3`.
+
+## 7. Acceptance criteria
+
+- [x] One of the three options in §2 chosen, with the reason recorded (§3).
+- [x] The corpus case and the `guards.rs` tests updated, and the byte
+      result pinned (§6).
+- [x] The entry-span write path covered for a nested key, a root key, a key
+      with a trailing comment, and a key whose value block carries comments
+      of its own (§5, §6).
+- [x] The Kubernetes guide and the README no longer list the refusal.
+- [x] `local-ci.sh` clean.

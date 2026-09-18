@@ -4,7 +4,9 @@
 write before the document is touched, and a post-write integrity check
 catches the class generally. **Filed upstream 2026-09-09 as noyalib#423,
 with a fix in PR #424**; adopting a release that carries it turns yqr's
-refusal into an ordinary write
+refusal into an ordinary write. **The refusal is gone since 2026-09-18
+(`yqr-f036`):** the fix shipped in noyalib 0.0.44, and yqr now writes the
+scalar on the key's own line rather than taking the engine's `k:` / `  5`
 **Severity:** High — silent corruption at exit 0, on the default write
 path, in a tool whose contract is that it never damages a file it edits
 **Component:** write tier (`src/fidelity/write.rs`), scalar assignment
