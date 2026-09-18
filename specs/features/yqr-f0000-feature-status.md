@@ -326,7 +326,8 @@ line, which needs an entry-span write path yqr does not have.
 f037 **done** (2026-09-18): noyalib 0.0.45, carrying yqr's noyalib#442. A
 leading comment is now measured from the entry's key line rather than its
 value, so `b033` closes: `head_comment(.spec)` reads the comment above
-`spec:`, and writes and deletes it, where 0.0.44 read `null` and refused.
+`spec:`, and writes and deletes it, where 0.0.44 read `null` and refused
+every write but adding a comment above a one-line block.
 The same fix stops upstream reporting a first child's comment as the
 parent's, a case yqr's count guard had caught with a misleading message.
 No production code changed; four expectations flipped, and three tests

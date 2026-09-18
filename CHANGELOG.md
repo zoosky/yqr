@@ -12,11 +12,12 @@ All notable changes to `yqr` are documented here. The format is based on
   `head_comment(.spec)` returned `null` for a comment directly above
   `spec:`, while the same comment above `spec: 1` read fine. It now reads
   whatever the value's shape, and the same holds for a key whose value is
-  an alias. Writing and deleting it work too:
-  `head_comment(.spec) = "..."` puts the block above `spec:` at its
-  indent, where it was refused before. A comment above the block's first
-  child stays that child's, and deleting the parent's comment when it has
-  none now says so instead of blaming a blank line.
+  an alias. Writing and deleting it work too: `head_comment(.spec) =
+  "..."` puts the block above `spec:` at its indent. Before, adding one
+  was refused when the block ran over several lines, and replacing or
+  deleting an existing one was always refused. A comment above the
+  block's first child stays that child's, and deleting the parent's
+  comment when it has none now says so instead of blaming a blank line.
 - **A comment block separated from a block-valued entry by a blank line is
   now protected like any other.** `head_comment(.spec) = "..."` over
   `# section`, a blank line, then `spec:` wrote a second comment below the

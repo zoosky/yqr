@@ -58,13 +58,14 @@ belongs to the child alone.
 
 | document | filter | 0.0.44 | 0.0.45 |
 |---|---|---|---|
+| `a: 1` / `k:` / `  n: 1` | `head_comment(.k) = "new"` | written: a one-line block passed upstream's single-line check | written, unchanged |
 | HELM values, `service:` with two children | `head_comment(.service) = "..."` | refused: upstream's leading-comment mutator took single-line entries only | written above `service:` at the key's indent |
 | `# old` / `k:` / `  n: 1` | `head_comment(.k) = "new"` | refused by yqr's count guard | `# new` replaces `# old` |
 | `# old` / `k:` / `  - 1` | `del(head_comment(.k))` | refused by yqr's count guard | the comment is removed |
 | `k:` / `  # about n` / `  n: 1` | `del(head_comment(.k))` | refused, blaming a blank line there is none of | refused: "the entry has no comment block above it" |
 | `# section` / blank / `k:` / `  n: 1` | `head_comment(.k) = "x"` | written, below the blank line | refused, as a scalar-valued `k` always was |
 
-The fourth row is the face the #443 description calls the one that
+The fifth row is the face the #443 description calls the one that
 matters. On 0.0.44 upstream reported `# about n` as the leading comment of
 both `k` and `k.n`, and `remove_comment("k", Before)` deleted it. yqr never
 reached that delete: its `check_comment_site` count guard found no
@@ -125,7 +126,7 @@ Three tests are added for `b033`: a unit test reading a head comment above
 a mapping, a sequence and a multi-entry mapping and checking a first
 child's comment stays the child's, and two CLI tests, one editing and
 deleting a block-valued entry's comment and one pinning the accurate
-refusal of §2.2's fourth row.
+refusal of §2.2's fifth row.
 
 No production code changed. Two comments in `src/` that named the alias
 route as current are corrected.

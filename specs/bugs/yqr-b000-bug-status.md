@@ -119,7 +119,8 @@ status tracker convention).
   yqr's noyalib#296, released hours after it merged. Verified against the
   published crate on its own reproduction with all four controls
   (`yqr-f020` §3).
-- Resolved: 33 (b033, b032 and b034, b031, b029, b030, b028 and b024 — see above;
+- Resolved: 34 (b033, b032 and b034, b031, b029, b030, b028, b027, b026,
+  b025 and b024 — see above;
   b022 and b021 — closed by noyalib 0.0.28, see above;
   b023, b020, b019, b018, b017, b016, b015 — see above; b014, b013, b012, b011 —
   closed by noyalib 0.0.25, `yqr-f019`;
