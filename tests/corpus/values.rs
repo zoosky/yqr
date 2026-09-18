@@ -387,15 +387,16 @@ pub fn engine_cases() -> Vec<EngineCase> {
             raw: false,
             expect: "first tenant of default block o1\n",
         },
-        // `# default block o1: ...` stands above `t8:` after a blank line;
-        // the engine treats a run above a block-valued entry as belonging to
-        // the section, not the entry, so no path addresses it.
+        // `# default block o1: ...` sits directly above `t8:`, whose value is
+        // a block mapping. It read as `null` until noyalib 0.0.45 anchored the
+        // comment on the key line rather than on the value a line below.
+        // Bug b033.
         EngineCase {
-            id: "values/engine/head-comment-above-a-block-valued-entry-is-null",
+            id: "values/engine/head-comment-above-a-block-valued-entry",
             doc: &TENANTS_40,
             filter: "head_comment(.argo.tenants.t8)",
             raw: false,
-            expect: "null\n",
+            expect: "\"default block o1: tenants t8 to t15\"\n",
         },
         EngineCase {
             id: "values/engine/missing-field-is-null",
@@ -550,11 +551,15 @@ pub fn write_cases() -> Vec<WriteCase> {
                 "# block two\n",
             )]),
         },
+        // Bug b033.
         WriteCase {
-            id: "values/write/head-comment-above-a-block-valued-entry-is-refused",
+            id: "values/write/replace-a-head-comment-above-a-block-valued-entry",
             doc: &TENANTS_40,
             filter: "head_comment(.argo.tenants.t8) = \"second block\"",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "    # default block o1: tenants t8 to t15\n",
+                "    # second block\n",
+            )]),
         },
         WriteCase {
             id: "values/write/swap-sequence-items",

@@ -104,6 +104,7 @@ dependency/release timing.
 | [f034](yqr-f034-noyalib-0-0-43-adoption.md) | Adopt noyalib 0.0.43: two lockstep releases, no source change | Done (0.0.43, 2026-09-11: every source file of the published crate byte-identical to 0.0.41's; full suite green with no expectation moved; carries none of yqr's four open upstream PRs, so `b032` and `b034` stay open) |
 | [f035](yqr-f035-noyalib-0-0-44-adoption.md) | Adopt noyalib 0.0.44: four upstream fixes land, two yqr bugs close | Done (0.0.44, 2026-09-17: noyalib#427 and #437 close `b032` and `b034` with no yqr code change; #422 turns the CRLF multi-line refusal into a write; #426 lands and leaves `b033` unmoved, as its filing predicted; eight pinned expectations flipped) |
 | [f036](yqr-f036-relax-the-scalar-over-a-block-collection-refusal.md) | Reconsider the scalar-over-a-block-collection refusal | Draft (filed 2026-09-17 from `f035` §2.4: noyalib#424 makes the layout valid rather than broken, so the guard now refuses a correct result — three options priced, none chosen) |
+| [f037](yqr-f037-noyalib-0-0-45-adoption.md) | Adopt noyalib 0.0.45: the leading comment anchors on the key, b033 closes | Done (0.0.45, 2026-09-18: yqr's noyalib#442 closes `b033`, the last open bug, with no yqr code change; a head comment above a block-valued key reads, writes and deletes; the release's four other fixes are on paths yqr does not call; four pinned expectations flipped) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -322,6 +323,18 @@ refusal should stay now that noyalib#424 makes the result valid. Three
 options priced; the interesting one is writing the scalar on the key's own
 line, which needs an entry-span write path yqr does not have.
 
+f037 **done** (2026-09-18): noyalib 0.0.45, carrying yqr's noyalib#442. A
+leading comment is now measured from the entry's key line rather than its
+value, so `b033` closes: `head_comment(.spec)` reads the comment above
+`spec:`, and writes and deletes it, where 0.0.44 read `null` and refused.
+The same fix stops upstream reporting a first child's comment as the
+parent's, a case yqr's count guard had caught with a misleading message.
+No production code changed; four expectations flipped, and three tests
+were added. yqr has no open bugs. The release's other fixes (the fragment
+`set` duplicate-key guard, the borrowed reader's `!!str`, `Spanned`'s
+parser toggles) are on paths yqr does not call. Benchmarks show only the
+run-order drift `f035` §3 characterised.
+
 ## Epic: Editing-loop tooling (f012)
 
 | Feature | Title | Status |
@@ -363,12 +376,12 @@ dashboard.
 
 ## Summary
 
-- Total features: 36
+- Total features: 37
 - Draft: 3 (f025, f027, f036)
 - In Progress: 0
-- Done: 29 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 30 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031, f032, f033, f034, f035)
+  f030, f031, f032, f033, f034, f035, f037)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

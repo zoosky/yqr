@@ -1,12 +1,10 @@
 # Bug b033 — A head comment above a key whose value is a block collection reads as null
 
-**Status:** Open — filed 2026-09-10, found while measuring `yqr-b032`.
-Re-measured on noyalib 0.0.44 (`yqr-f035`), the release that carries
-noyalib#426: **unchanged**, exactly as §3 predicted. #426 routes the six
-`annotated.rs` call sites through `comment_anchor_span`, which returns a
-block collection's value span unchanged, so the anchor still sits a line
-below the key and `before` still comes back empty. This is the one open
-bug the adoption did not close, and the remaining upstream ask
+**Status:** Resolved **2026-09-18** by `yqr-f037` (noyalib 0.0.45,
+carrying yqr's noyalib#442). Filed 2026-09-10, found while measuring
+`yqr-b032`. Re-measured unchanged on 0.0.44 (`yqr-f035`), as §3 predicted.
+0.0.45 measures a leading comment from the entry's key line, so the §1
+reproduction reads the comment for all three value shapes (§7)
 **Severity:** Low — a read reports nothing where a comment plainly sits.
 It is a total read returning the safe answer, so nothing is corrupted and
 no write is misled. The cost is that the comment is invisible to
@@ -14,8 +12,8 @@ no write is misled. The cost is that the comment is invisible to
 **Component:** read tier — `src/fidelity/noyalib.rs` `comment_body`, and
 upstream `Document::comments_at`
 **Related:** `yqr-b032` (found here; the same reader is what could have
-caught it), `yqr-f007` §4.4 (a read must be total), noyalib#426 (the open
-proposal that fixes the sibling shape, and does not fix this one)
+caught it), `yqr-f007` §4.4 (a read must be total), noyalib#426 (fixed the
+sibling shape, not this one), noyalib#442 (the fix), `yqr-f037`
 
 ## 1. Summary
 
@@ -104,8 +102,42 @@ The refusal branch is the right behaviour until the anchors agree.
 
 ## 6. Tests
 
-None added yet. The behaviour is pinned by
-`a_head_comment_read_is_total_even_when_the_two_counts_disagree` in
-`src/fidelity/noyalib.rs`, which covers the alias-valued route into the
-same branch. A case for the block-collection route belongs beside it when
-this is picked up.
+`a_head_comment_above_a_block_valued_key_is_the_keys` in
+`src/fidelity/noyalib.rs` reads the comment above a mapping, a sequence
+and a multi-entry mapping, and checks that a comment on the block's first
+child is reported for the child only.
+`a_head_comment_read_is_total_even_when_the_two_counts_disagree` beside it
+now asserts the alias-valued entry reads its comment, and covers the one
+disagreement left. In `tests/cli.rs`,
+`head_comment_edits_a_block_valued_entry` and
+`deleting_a_parents_head_comment_leaves_its_first_childs_alone` pin the
+write side. Three corpus cases flipped (`yqr-f037` §2.5).
+
+## 7. Resolution
+
+noyalib#442 adds `leading_comment_anchor`: the key token when the path
+names one, and `comment_anchor_span` otherwise. `comments_at` and both
+leading-comment mutators measure from it. This is §3's "carried one step
+further", placed beside `comment_anchor_span` rather than inside it, so the
+inline comment still anchors on the value's line. The maintainer carried
+the commit verbatim into release PR #443.
+
+On 0.0.45 the §2 table's last column reads `[" doc for k"]` for both
+documents, yqr's `attached_head_len` and upstream's `before` agree, and
+`comment_body` returns the comment without a code change on yqr's side.
+§5 held: yqr kept one implementation of comment attachment, and the
+disagreement it refused to hide is gone at the source.
+
+Two effects beyond §1, both measured in `yqr-f037` §2.2:
+
+- `head_comment(.k) = ...` and `del(head_comment(.k))` on a block-valued
+  key go through. Upstream's leading-comment mutator refused multi-line
+  entries until this change.
+- On 0.0.44 upstream reported a comment on the block's first child as the
+  parent's too, and its remover deleted it when asked about the parent.
+  yqr's count guard stopped that, with a misleading message. The guard now
+  never sees it.
+
+§4's cost is paid back: `yqr-b032`'s corpus case could now use a
+block-valued key. It stays on a scalar, which still demonstrates the
+damage, and its comment in `tests/corpus/docs.rs` records why.

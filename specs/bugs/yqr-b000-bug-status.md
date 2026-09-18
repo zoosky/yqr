@@ -10,12 +10,13 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b033](yqr-b033-no-head-comment-is-read-on-a-block-valued-key.md) | A head comment above a key whose value is a block collection reads as null | Low | Open **2026-09-10**, found while measuring `b032`. `head_comment(.k)` reports the comment above `k: 1` and `null` above the identical comment on `k:` / `  n: 1`. Two readers anchor differently: yqr's `attached_head_len` measures from `key_span` and counts one, upstream's `comments_at` anchors on `span_at`, the **value's** span, which for a block collection starts a line lower, so its run ends before it starts and `before` comes back empty. yqr then takes the deliberate `owned > before.len()` branch and returns `None`, which is correct — `f007` §4.4 says a read must be total, and taking a longer tail once panicked. The same diagnosis as noyalib#426, one step further: the comment API asks for the value's span where it should ask for the entry's, and #426's `comment_anchor_span` does not reach this shape because a block collection *has* a value span. **Not fixed locally**: making yqr's reader the authority would hide the disagreement and hand yqr a second implementation of comment attachment, which `f016` §5 exists to prevent. The cost is measurable — `b032`'s corpus case had to be built on a scalar-valued key to demonstrate the damage at all | `yqr-b032`, `yqr-f007`, `yqr-f016` |
+| — | No open bugs | — | — | — |
 
 ## Resolved
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b033](yqr-b033-no-head-comment-is-read-on-a-block-valued-key.md) | A head comment above a key whose value is a block collection reads as null | Low | Resolved **2026-09-18** by `yqr-f037` (noyalib 0.0.45, carrying yqr's noyalib#442). Filed 2026-09-10, found while measuring `b032`, and re-measured unchanged on 0.0.44. `head_comment(.k)` read the comment above `k: 1` and `null` above the identical comment on `k:` / `  n: 1`: yqr's `attached_head_len` measured from `key_span`, upstream's `comments_at` from the **value's** span, a line lower for a block collection. noyalib#442 adds `leading_comment_anchor`, the key token when the path names one, and routes `comments_at` and both leading-comment mutators through it. The two readers now agree with **no yqr code change**; three corpus expectations flipped. Two effects beyond the read: a head-comment write or delete on a block-valued key goes through, and upstream no longer reports a first child's comment as the parent's, which its remover had deleted when asked about the parent (yqr's count guard had stopped that, with a misleading message). **Not fixed locally** held: yqr kept one implementation of comment attachment | `yqr-b032`, `yqr-f007`, `yqr-f016`, `yqr-f037` |
 | [b032](yqr-b032-a-new-key-lands-below-a-comment-it-does-not-own.md) | Adding a key beneath a nested block steals the next key's comment | Medium | Resolved **2026-09-17** by `yqr-f035` (noyalib 0.0.44, carrying noyalib#427). Filed 2026-09-10 and fixed upstream the same day. `.spec.strategy = "Recreate"` on a manifest whose last entry under `spec` was a nested block wrote the new key *below* the comment that followed it, so a comment documenting the next top-level key ended up documenting the new one: `head_comment(.revision)` went from the comment's text to `null` on a write that named neither. Every original byte survived in its original order, so it was never an `a001` break and **no guard could see it** — the typed oracle, the re-parse guard, the `b029` integrity check and `validate --strict` all ask about values, and a comment is not a value. Nothing was patched in yqr: the defect was pinned as it behaved across five assertions with the flip written beside each, and adopting 0.0.44 flipped all five | `yqr-f035`, `yqr-b012`, `yqr-b033`, `yqr-b034`, `yqr-a001` |
 | [b034](yqr-b034-adding-a-key-beside-a-kept-block-scalar-is-refused.md) | Adding a key beside a kept block scalar is refused, and the refusal blames a merge | Low | Resolved **2026-09-17** by `yqr-f035` (noyalib 0.0.44, carrying noyalib#437 for yqr's noyalib#429). Filed 2026-09-10 while reviewing yqr's own noyalib#427. `.c = "2"` on a file whose last entry held a `|+` scalar was refused at exit 5, and the message named a `<<` merge the file did not have and an emitter layout that reproduced fine. Upstream's `trim_value_span` asked whether the **anchor's own value** was keep-chomped; there it was a mapping, so the trailing blanks were trimmed as trivia when they belonged to a scalar one level down. Those blanks are content now, the write succeeds, and `.a.b` reads back byte-identical. The message fix the filing proposed is moot — the refusal is gone | `yqr-f035`, `yqr-b032`, `yqr-f025` |
 | [b031](yqr-b031-cannot-delete-an-entry-whose-value-is-absent.md) | An entry left empty cannot be deleted or commented, though it can be read, written and renamed | Low | Resolved **2026-09-09**, filed the day before from `yqr-f032`'s code review. `del(.k)` over `k:` with nothing after the colon answered "cannot delete k: cannot locate its bytes", while `k: null` deleted fine — the two-spellings-of-one-value shape `b021` and `b022` both had. One cause behind both faces: each derived what it needed from `span_at`, the **value's** span, which an implicit null does not have, though `key_span` resolves. The delete face is fixed in yqr: the range comes from the key token, through an infallible sibling of `owned_line_span` that needs no marker scan, because the key *is* the entry's first content byte. Delegating the mapping shapes instead was measured and rejected on a fact the filing did not have — upstream takes an **unguarded** fast path for a single-line entry, so delegation would have moved five of six shapes out from under yqr's re-parse and typed oracle; a duplicate-key test pins that. The one shape with neither span, an empty sequence item, **is** delegated for the flow reason, and the sole such item is refused in yqr's words rather than forwarded as upstream's parse error. The `b014` risk did not materialise: upstream refuses `on:` / `-` before the splice. The comment face **stays refused** and is upstream's: `comments_at` reports an empty bundle for the shape, both setters refuse, and both removers return `Ok` having done nothing, so relaxing yqr's check would trade a clear refusal for a worse one. What changed is that it says which case it is and names `.k = ""` — not `.k = null`, which the `b018` equal-value guard skips. The read side is pinned unmoved, with the coupling named, so the read/write pair invariant holds. **Upstream half filed 2026-09-09 as noyalib#425**; that filing's second finding, that both comment removers report `Ok` for an unresolvable path, was **withdrawn as wrong** — it is a documented, tested contract, caught by going to write the patch | `yqr-b021`, `yqr-b022`, `yqr-b014`, `yqr-b018`, `yqr-f007`, `yqr-f016`, `yqr-f025`, `yqr-f032` |
@@ -53,16 +54,13 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 34
-- Open: **1** — `b033`, filed 2026-09-10: a head comment above a key whose
-  value is a block collection reads as `null`, because yqr's reader anchors
-  on the key line and upstream's anchors on the value's span, which for a
-  block collection starts a line lower. The read is total and returns the
-  safe answer, so nothing is corrupted; the cost is that the comment is
-  invisible on the commonest shape in a Kubernetes or Helm file. Upstream's
-  noyalib#426 introduced `comment_anchor_span` and shipped in 0.0.44, and
-  re-measuring there confirms what `b033` §3 predicted: a block collection
-  has a value span, so the helper returns it unchanged and the anchor is
-  still a line too low. The ask is that helper carried one step further.
+- Open: **0**. `b033`, the last, closed 2026-09-18 by `yqr-f037`, the
+  noyalib 0.0.45 adoption, with no yqr code change: the release carries
+  yqr's noyalib#442, which measures a leading comment from the entry's key
+  line rather than its value, so a head comment above `spec:` or
+  `resources:` reads, writes and deletes. The ask was `b033` §3's, and
+  §5's refusal to anchor yqr's reader locally held: the disagreement was
+  fixed at the source, not hidden.
   Previously: `b032` and `b034` closed 2026-09-17 by `yqr-f035`, the
   noyalib 0.0.44 adoption, with no yqr code change: the release carries
   noyalib#427 and noyalib#437, both filed from here, and eight pinned
@@ -121,7 +119,7 @@ status tracker convention).
   yqr's noyalib#296, released hours after it merged. Verified against the
   published crate on its own reproduction with all four controls
   (`yqr-f020` §3).
-- Resolved: 28 (b031, b029, b030, b028 and b024 — see above;
+- Resolved: 33 (b033, b032 and b034, b031, b029, b030, b028 and b024 — see above;
   b022 and b021 — closed by noyalib 0.0.28, see above;
   b023, b020, b019, b018, b017, b016, b015 — see above; b014, b013, b012, b011 —
   closed by noyalib 0.0.25, `yqr-f019`;

@@ -287,9 +287,9 @@ next: 1
 /// new key is not a matter of taste: it detaches a comment from the key it
 /// describes, and `head_comment(.revision)` reports the change.
 ///
-/// `revision` holds a scalar deliberately. yqr reads no head comment on a
-/// key whose value is a block collection (`yqr-b033`), so a mapping there
-/// would leave the case with only its byte assertion.
+/// `revision` holds a scalar because, when this case was written, yqr read
+/// no head comment on a key whose value is a block collection (`yqr-b033`,
+/// resolved in noyalib 0.0.45).
 // Bug b032.
 pub const COMMENTED_TAIL: &str = "\
 spec:
