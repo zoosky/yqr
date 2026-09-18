@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-09-10",
+  "dateModified": "2026-09-18",
   "description": "What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.",
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 1065
+  "wordCount": 1291
 }
 </script>
 <script type="application/ld+json">
@@ -227,7 +227,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">6 min read</span>
+                    <span class="reading-time">7 min read</span>
                 </div>
                 
 
@@ -259,6 +259,10 @@
     
         <li class="toc-level-2">
             <a href="#editing-works-the-same-way">Editing works the same way</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#a-new-key-stops-where-its-neighbour-ends">A new key stops where its neighbour ends</a>
         </li>
     
         <li class="toc-level-2">
@@ -387,6 +391,41 @@ digest: sha256:9f0a          # filled by the release job
 </code></pre>
 <p>The value goes <em>before</em> the comment, and the gutter the author wrote is
 still there. The same holds for an empty <code>-</code> item in a sequence.</p>
+<h2 id="a-new-key-stops-where-its-neighbour-ends">A new key stops where its neighbour ends<a class="heading-anchor" href="#a-new-key-stops-where-its-neighbour-ends" aria-label="Link to this section"></a></h2>
+<p>Adding a key means finding where the entry above it ends, and that is not
+always the line you would guess. Take this <code>deploy.yaml</code>:</p>
+<pre style="background-color:#2b303b;">
+<span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">2
+</span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">template</span><span style="color:#c0c5ce;">:
+</span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web:1.4.2
+</span><span style="color:#65737e;"># set by the release pipeline, do not edit
+</span><span style="color:#bf616a;">revision</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">42
+</span></pre>
+<p>The last entry under <code>spec</code> is a nested block, and the comment below it
+documents <code>revision</code>, not <code>template</code>. Add a key to <code>spec</code> and the comment
+stays where the author put it:</p>
+<pre><code class="language-console">$ yqr '.spec.strategy = "Recreate"' deploy.yaml
+spec:
+  replicas: 2
+  template:
+    image: web:1.4.2
+  strategy: Recreate
+# set by the release pipeline, do not edit
+revision: 42
+</code></pre>
+<p><code>head_comment(.revision)</code> reads the same before and after, which is the
+check worth making: a comment that changes hands is not something a diff
+of the values can show you.</p>
+<p>The same rule covers a block scalar written <code>|+</code> or <code>&gt;+</code>, which keeps the
+blank lines at its end as part of its value. A new key goes below them, so
+the scalar reads back byte for byte after the write.</p>
+<p>Line endings follow the file, not the platform. Write a multi-line value
+into a file whose lines end <code>\r\n</code> and every line yqr emits ends <code>\r\n</code>
+too:</p>
+<pre><code class="language-console">$ yqr '.logging.level = "warn\nverbose"' config.yaml | file -
+/dev/stdin: ASCII text, with CRLF line terminators
+</code></pre>
 <p>If an edit <em>cannot</em> be made without restructuring the document, yqr refuses
 it and exits 5 rather than emitting something surprising. With <code>-i</code> the
 file is left untouched on refusal, so a failed edit never leaves you with a
@@ -483,7 +522,7 @@ afterwards.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-09-10</span>
+        <span>Site last updated: 2026-09-18</span>
         
     </footer>
 
