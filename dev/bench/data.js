@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789103746519,
+  "lastUpdate": 1789736331370,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2645,6 +2645,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 269088,
             "range": "± 1547",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "867e6a436e0b39fc8cd5be52e66eac766a7386fc",
+          "message": "Adopt noyalib 0.0.44: close b032 and b034, no production code change (#130)",
+          "timestamp": "2026-09-18T14:57:21+02:00",
+          "tree_id": "c7d1c590fd47b94abbe568b257b66239c5a7eeac",
+          "url": "https://github.com/zoosky/yqr/commit/867e6a436e0b39fc8cd5be52e66eac766a7386fc"
+        },
+        "date": 1789736329145,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 562,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6179,
+            "range": "± 157",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 279904,
+            "range": "± 10154",
             "unit": "ns/iter"
           }
         ]
