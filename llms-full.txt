@@ -702,10 +702,13 @@ thing to do would be wrong:
 - **A comment block above a sequence item** can be read but not edited --
   the YAML engine attaches leading comments to mapping keys only.
 
-- **An entry whose value is a block**, like `spec:` with the manifest under
-  it, takes no `head_comment` write either, for the same reason: the write
-  addresses a single-line mapping key. `head_comment(.spec.replicas)` works;
-  `head_comment(.spec)` is refused.
+A `head_comment` on an entry whose value is a block, like `spec:` with the
+manifest under it, is the key's: it reads, writes and deletes like any
+other. A comment above the block's first child stays with that child.
+
+```console
+$ yqr -i 'head_comment(.spec) = "scaled by the HPA, do not edit replicas"' deploy.yaml
+```
 
 And `foot_comment(...)` is refused with an explanation rather than a syntax
 error: a comment *below* an entry belongs to whatever follows it about as

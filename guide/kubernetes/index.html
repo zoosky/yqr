@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
   "url": "https://zoosky.github.io/yqr/guide/kubernetes",
-  "wordCount": 2340
+  "wordCount": 2359
 }
 </script>
 <script type="application/ld+json">
@@ -487,27 +487,20 @@ its own spelling, <code>del(...)</code>, so both are reachable.</p>
 <p>Three cases are refused rather than guessed at, each because the obvious
 thing to do would be wrong:</p>
 <ul>
-<li>
-<p><strong>An entry whose value starts on the next line</strong> has no line of its own,
+<li><strong>An entry whose value starts on the next line</strong> has no line of its own,
 so there is nowhere to put an inline comment. Writing one would land it
-on the first <em>child</em> instead, where it would look like it documents that.</p>
-</li>
-<li>
-<p><strong>A comment block separated from the entry by a blank line</strong> documents
+on the first <em>child</em> instead, where it would look like it documents that.</li>
+<li><strong>A comment block separated from the entry by a blank line</strong> documents
 whatever came before it, not the entry below. yqr will not rewrite or
-delete it.</p>
-</li>
-<li>
-<p><strong>A comment block above a sequence item</strong> can be read but not edited –
-the YAML engine attaches leading comments to mapping keys only.</p>
-</li>
-<li>
-<p><strong>An entry whose value is a block</strong>, like <code>spec:</code> with the manifest under
-it, takes no <code>head_comment</code> write either, for the same reason: the write
-addresses a single-line mapping key. <code>head_comment(.spec.replicas)</code> works;
-<code>head_comment(.spec)</code> is refused.</p>
-</li>
+delete it.</li>
+<li><strong>A comment block above a sequence item</strong> can be read but not edited –
+the YAML engine attaches leading comments to mapping keys only.</li>
 </ul>
+<p>A <code>head_comment</code> on an entry whose value is a block, like <code>spec:</code> with the
+manifest under it, is the key’s: it reads, writes and deletes like any
+other. A comment above the block’s first child stays with that child.</p>
+<pre><code class="language-console">$ yqr -i 'head_comment(.spec) = "scaled by the HPA, do not edit replicas"' deploy.yaml
+</code></pre>
 <p>And <code>foot_comment(...)</code> is refused with an explanation rather than a syntax
 error: a comment <em>below</em> an entry belongs to whatever follows it about as
 often as to the entry itself, so there is no unambiguous block to address.</p>
