@@ -4,8 +4,9 @@
 # of the limitation section; fixed in noyalib 0.0.25.
 # "Computing a new value from the old one" is Feature f008.
 # "Keys with dots in them" is Feature f030.
-# "Copying a whole block" is Feature f032; the two refusals are b029 and
-# the scalar-to-collection limit. The last bullet of "What is not here
+# "Copying a whole block" is Feature f032; the refusal is the
+# scalar-to-collection limit, and the scalar over a block is Feature f036
+# (it was the b029 refusal until then). The last bullet of "What is not here
 # yet" is Bug b032, fixed upstream as noyalib#418 and not yet released.
 # Every console block re-run against v0.8.0 on 2026-09-07; the manifest and
 # ci.yaml hold what the examples address (two containers, dotted labels,
@@ -197,8 +198,8 @@ new home's indentation and quoting, and comments inside the block you
 copied from do not come with it. Everything outside the edit is untouched,
 as always.
 
-Two shapes are refused rather than guessed at, both because the entry
-would have to change shape in place:
+One shape is refused rather than guessed at, because the entry would have
+to change shape in place:
 
 ```console
 $ yqr '.spec.replicas = .metadata.labels' deploy.yaml
@@ -208,9 +209,21 @@ entry and write it again, as in `del(.spec.replicas)` then
 `.spec.replicas = <path>`, which places it at the end of its mapping
 ```
 
-The reverse -- a scalar written over a block -- is refused for the same
-reason. Both messages name the remedy, and the remedy is a delete followed
-by an assignment, which moves the key to the end of its mapping.
+The message names the remedy: a delete followed by an assignment, which
+moves the key to the end of its mapping.
+
+The reverse works in place. A scalar written over a block replaces the
+whole block and goes on the key's own line, where you would have typed it:
+
+```console
+$ yqr '.metadata.labels = null' deploy.yaml
+```
+
+Here `labels:` and the two lines under it become `labels: null`, and
+nothing else moves. The block's lines go with the old value, including a
+comment above one of its entries. A comment on the key's own line stays.
+A block that carries an anchor or a tag (`labels: &common`) is refused,
+because the scalar would drop it.
 
 ## Computing a new value from the old one
 

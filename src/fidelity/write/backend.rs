@@ -215,8 +215,14 @@ impl FidelityWriter for NoyalibWriter {
         // to rewrite: its span starts at the property, so the edit would
         // delete the definition. Bug b026; handled by the guarded span
         // surgery in `write::anchor`, which also decides the tagged case.
-        self.refuse_block_collection_to_scalar(doc, path, &path_str, value)?;
         let before = self.integrity(doc)?;
+        // A block collection's value starts on the line after its key, so the
+        // engine would write the scalar there. `write::collapse` puts it on
+        // the key's line instead. Feature f036.
+        if self.is_scalar_over_block(doc, path, &path_str, value)? {
+            self.assign_over_block(doc, path, &path_str, value, &ny)?;
+            return self.check_integrity(doc, before, &path_str);
+        }
         if self.value_has_leading_property(doc, &path_str)? {
             self.assign_at_definition(doc, path, &path_str, value, &ny)?;
             return self.check_integrity(doc, before, &path_str);
@@ -230,7 +236,7 @@ impl FidelityWriter for NoyalibWriter {
             // variant of its own, so it is recognized by the API it points
             // at; a test pins the marker. The definition write goes through
             // the guarded span surgery instead.
-            Err(e) if e.to_string().contains("materialise_aliases_of") => {
+            Err(e) if super::anchor::is_shared_value_refusal(&e) => {
                 self.assign_at_definition(doc, path, &path_str, value, &ny)?;
                 self.check_integrity(doc, before, &path_str)
             }

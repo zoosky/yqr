@@ -86,74 +86,221 @@ impl NoyalibWriter {
             ))
         })?;
 
-        let (start, end, rendered, new_source) = {
-            let d = self.doc_ref(doc)?;
-            let src = d.source();
-            let (value_start, value_end) = d.span_at(path_str).ok_or_else(|| {
-                YqrError::eval(format!(
-                    "cannot assign at {path_str:?}: cannot locate its bytes"
-                ))
-            })?;
-
-            let start = value_start + skip_anchor_property(&src[value_start..value_end]);
-            let rest = &src[start..value_end];
-            if let Some(tag) = leading_tag(rest) {
-                return Err(YqrError::eval(format!(
-                    "cannot assign at {path_str:?}: the value carries the tag `{tag}`, and \
-                     rewriting the scalar under it could change what the tag makes of it; \
-                     remove the tag first"
-                )));
-            }
-            if rest.is_empty() || rest.starts_with('\n') || rest.starts_with('\r') {
-                return Err(YqrError::eval(format!(
-                    "cannot assign at {path_str:?}: its source layout is not supported"
-                )));
-            }
-
-            let rendered = render_matching_quote_style(rest, rendered_value)
-                .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))?;
-            if rendered.contains('\n') {
-                return Err(YqrError::eval(format!(
-                    "cannot assign at {path_str:?}: the value does not fit on a single line here"
-                )));
-            }
-
-            let mut out = String::with_capacity(src.len() - (value_end - start) + rendered.len());
-            out.push_str(&src[..start]);
-            out.push_str(&rendered);
-            out.push_str(&src[value_end..]);
-            (start, value_end, rendered, out)
-        };
-
-        // `replace_span` guarantees only *valid YAML*, not structure
-        // preservation, so yqr owns the guard: re-parse the edited source and
-        // require it to lower to the original value with the assignment
-        // applied — reflected at alias sites, and nowhere else.
-        let candidate = ::noyalib::cst::parse_document_with_config(&new_source, &cst_config())
-            .map_err(|e| {
-                YqrError::eval(format!(
-                    "cannot assign at {path_str:?}: the edit does not re-parse ({e})"
-                ))
-            })?;
         let expected = assign_at(&root, path.segments(), value).ok_or_else(|| {
             YqrError::eval(format!(
                 "cannot assign at {path_str:?}: cannot locate its value"
             ))
         })?;
-        let got = Value::from(&*candidate.as_value());
-        if !changes_are_the_assignment(&expected, &got, &old, value) {
+        splice_scalar_at_definition(
+            self.doc_mut(doc)?,
+            path_str,
+            &expected,
+            &old,
+            value,
+            rendered_value,
+        )
+    }
+}
+
+/// Splice `rendered_value` over the scalar at `path_str` in `d`, keeping a
+/// leading `&name` property, and commit only when the result lowers to
+/// `expected` apart from alias sites showing the same `old`-to-`new` change.
+///
+/// The caller states `expected` and `old` rather than this reading them from
+/// `d`, so a caller that has already edited `d` on the way to this write
+/// (`write::collapse` puts a placeholder here first) still measures the
+/// result against the document the user gave.
+///
+/// # Errors
+///
+/// Errors when the path cannot be located, the value carries a tag, the
+/// rendered scalar does not fit on one line, or the edit would change the
+/// document beyond the assignment and its alias reflections. `d` is then
+/// unchanged.
+pub(super) fn splice_scalar_at_definition(
+    d: &mut ::noyalib::cst::Document,
+    path_str: &str,
+    expected: &Value,
+    old: &Value,
+    value: &Value,
+    rendered_value: &::noyalib::Value,
+) -> Result<()> {
+    let (start, end, rendered, new_source) = {
+        let src = d.source();
+        let (value_start, value_end) = d.span_at(path_str).ok_or_else(|| {
+            YqrError::eval(format!(
+                "cannot assign at {path_str:?}: cannot locate its bytes"
+            ))
+        })?;
+
+        let start = value_start + skip_anchor_property(&src[value_start..value_end]);
+        let rest = &src[start..value_end];
+        if let Some(tag) = leading_tag(rest) {
             return Err(YqrError::eval(format!(
-                "cannot assign at {path_str:?}: the edit would change the document structure \
-                 and was refused"
+                "cannot assign at {path_str:?}: the value carries the tag `{tag}`, and \
+                 rewriting the scalar under it could change what the tag makes of it; \
+                 remove the tag first"
+            )));
+        }
+        if rest.is_empty() || rest.starts_with('\n') || rest.starts_with('\r') {
+            return Err(YqrError::eval(format!(
+                "cannot assign at {path_str:?}: its source layout is not supported"
             )));
         }
 
-        // Commit via the byte-preserving in-place splice; the guard above
-        // already proved this exact source re-parses as required.
-        self.doc_mut(doc)?
-            .replace_span(start, end, &rendered)
-            .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))
+        let rendered = render_matching_quote_style(rest, rendered_value)
+            .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))?;
+        if rendered.contains('\n') {
+            return Err(YqrError::eval(format!(
+                "cannot assign at {path_str:?}: the value does not fit on a single line here"
+            )));
+        }
+
+        let mut out = String::with_capacity(src.len() - (value_end - start) + rendered.len());
+        out.push_str(&src[..start]);
+        out.push_str(&rendered);
+        out.push_str(&src[value_end..]);
+        (start, value_end, rendered, out)
+    };
+
+    // `replace_span` guarantees only *valid YAML*, not structure
+    // preservation, so yqr owns the guard: re-parse the edited source and
+    // require it to lower to the original value with the assignment
+    // applied — reflected at alias sites, and nowhere else.
+    let candidate = ::noyalib::cst::parse_document_with_config(&new_source, &cst_config())
+        .map_err(|e| {
+            YqrError::eval(format!(
+                "cannot assign at {path_str:?}: the edit does not re-parse ({e})"
+            ))
+        })?;
+    let got = Value::from(&*candidate.as_value());
+    if !changes_are_the_assignment(expected, &got, old, value) {
+        return Err(YqrError::eval(format!(
+            "cannot assign at {path_str:?}: the edit would change the document structure \
+             and was refused"
+        )));
     }
+
+    // Commit via the byte-preserving in-place splice; the guard above
+    // already proved this exact source re-parses as required.
+    d.replace_span(start, end, &rendered)
+        .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))
+}
+
+impl NoyalibWriter {
+    /// The refusal for an edit whose removed bytes hold `referenced`.
+    ///
+    /// The remedy is an edit to the file, not a yqr command: `del` cannot
+    /// yet remove a mapping entry whose value is an alias (bug b035), and
+    /// yqr names no remedy that does not run.
+    ///
+    /// `refusal` opens the message (`cannot delete k`), and `holder` names
+    /// what the edit removes (`the entry`, `the value there`). Lines count
+    /// from the start of the input, across every document before `doc`.
+    pub(super) fn removed_anchor_refusal(
+        &self,
+        doc: usize,
+        refusal: &str,
+        holder: &str,
+        referenced: &ReferencedAnchor,
+    ) -> YqrError {
+        let newlines = |i: usize, upto: Option<usize>| {
+            self.doc_ref(i).map_or(0, |d| {
+                let src = d.source();
+                src[..upto.unwrap_or(src.len()).min(src.len())]
+                    .matches('\n')
+                    .count()
+            })
+        };
+        let line = |pos: usize| {
+            (0..doc).map(|i| newlines(i, None)).sum::<usize>() + newlines(doc, Some(pos)) + 1
+        };
+        let ReferencedAnchor {
+            name,
+            alias_at,
+            earlier_at,
+        } = referenced;
+        let consequence = match earlier_at {
+            None => "the edit would leave that reference pointing at nothing".to_string(),
+            Some(earlier) => format!(
+                "without it that reference would take the earlier `&{name}` on line {} instead, \
+                 and its value would change",
+                line(*earlier)
+            ),
+        };
+        YqrError::eval(format!(
+            "{refusal}: {holder} defines the anchor `&{name}`, which `*{name}` on line {} still \
+             refers to, so {consequence}. Change or remove that reference in the file first",
+            line(*alias_at)
+        ))
+    }
+}
+
+/// Whether `e` is the engine refusing a write into a value that `*name`
+/// sites share, which it words by pointing at `materialise_aliases_of`.
+///
+/// The refusal is `Error::Parse` with no variant of its own, so it is
+/// recognised by the API it names; a test in `backend` pins the marker.
+// noyalib#338.
+pub(super) fn is_shared_value_refusal(e: &::noyalib::Error) -> bool {
+    e.to_string().contains("materialise_aliases_of")
+}
+
+/// An `&name` definition inside a range an edit removes, which an alias
+/// outside that range still binds to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) struct ReferencedAnchor {
+    /// The anchor name, without the `&`.
+    pub(super) name: String,
+    /// Byte offset of the first `*name` outside the range that binds to it.
+    pub(super) alias_at: usize,
+    /// Byte offset of an earlier `&name` the alias would bind to instead,
+    /// when there is one. `None` means the alias would point at nothing.
+    pub(super) earlier_at: Option<usize>,
+}
+
+/// The first anchor defined in `[start, end)` of `d` that an alias outside
+/// the range still refers to.
+///
+/// An alias binds to the closest `&name` before it, so a definition matters
+/// to an alias that follows it with no later definition of the same name in
+/// between. Removing that definition either leaves the alias pointing at
+/// nothing, which does not parse, or quietly binds it to an earlier
+/// definition of the same name, which does parse and changes the alias's
+/// value. Both are an edit reaching bytes the path does not name, so both
+/// are refused, and this is what lets the refusal say which anchor and where.
+///
+/// Read from the engine's own anchor and alias lists, not from the bytes.
+// Feature f036.
+pub(super) fn anchor_still_referenced(
+    d: &::noyalib::cst::Document,
+    start: usize,
+    end: usize,
+) -> Option<ReferencedAnchor> {
+    let anchors = d.anchors();
+    let inside = |pos: usize| (start..end).contains(&pos);
+    for alias in d.aliases() {
+        let at = alias.mark_span.0;
+        if inside(at) {
+            continue;
+        }
+        let mut defs = anchors
+            .iter()
+            .filter(|a| a.name == alias.name && a.mark_span.0 < at)
+            .map(|a| a.mark_span.0);
+        let Some(bound) = defs.next_back() else {
+            continue;
+        };
+        if inside(bound) {
+            let earlier_at = defs.rev().find(|&p| !inside(p));
+            return Some(ReferencedAnchor {
+                name: alias.name.clone(),
+                alias_at: at,
+                earlier_at,
+            });
+        }
+    }
+    None
 }
 
 /// Byte length of a leading `&name` anchor property in `bytes`, including the
@@ -204,7 +351,7 @@ fn render_matching_quote_style(old: &str, value: &::noyalib::Value) -> ::noyalib
 
 /// `root` with `new` assigned at the path given by `segs`, or `None` when the
 /// path does not resolve.
-fn assign_at(root: &Value, segs: &[PathSeg], new: &Value) -> Option<Value> {
+pub(super) fn assign_at(root: &Value, segs: &[PathSeg], new: &Value) -> Option<Value> {
     let Some((first, rest)) = segs.split_first() else {
         return Some(new.clone());
     };
@@ -237,7 +384,12 @@ fn assign_at(root: &Value, segs: &[PathSeg], new: &Value) -> Option<Value> {
 /// `expected` and `new` in `got`, which is the write's documented meaning.
 /// Any other divergence — a different value, a changed shape, a reordered
 /// key — is a corrupted edit and must refuse.
-fn changes_are_the_assignment(expected: &Value, got: &Value, old: &Value, new: &Value) -> bool {
+pub(super) fn changes_are_the_assignment(
+    expected: &Value,
+    got: &Value,
+    old: &Value,
+    new: &Value,
+) -> bool {
     if expected == got {
         return true;
     }
@@ -276,6 +428,30 @@ mod tests {
     fn reads_a_leading_tag_token() {
         assert_eq!(leading_tag("!!str 1"), Some("!!str"));
         assert_eq!(leading_tag("1"), None);
+    }
+
+    #[test]
+    fn an_alias_binds_to_the_closest_definition_before_it() {
+        let d = |src: &str| ::noyalib::cst::parse_document(src).unwrap();
+        // `&x` at 8 is inside [3, 12); `*x` at 16 binds to it, with no
+        // earlier definition to fall back on.
+        let doc = d("k:\n  a: &x 1\nj: *x\n");
+        let found = anchor_still_referenced(&doc, 3, 12).unwrap();
+        assert_eq!(found.name, "x");
+        assert_eq!(found.earlier_at, None);
+        // Outside the range, nothing is removed.
+        assert_eq!(anchor_still_referenced(&doc, 13, 18), None);
+
+        // A later definition shadows the one in the range, so the alias
+        // after it does not depend on the removed bytes.
+        let doc = d("k:\n  a: &x 1\nm: &x 2\nj: *x\n");
+        assert_eq!(anchor_still_referenced(&doc, 3, 12), None);
+
+        // A redefinition in the range, with an earlier one outside: the alias
+        // would rebind to the earlier one.
+        let doc = d("x0: &x 1\nk:\n  a: &x 2\nj: *x\n");
+        let found = anchor_still_referenced(&doc, 12, 21).unwrap();
+        assert_eq!(found.earlier_at, Some(4));
     }
 
     #[test]

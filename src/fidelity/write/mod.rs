@@ -61,6 +61,7 @@ use crate::fidelity::{Path, PathSeg};
 // `delete_entry`, addressing the same private state through Rust's
 // ancestor-module privacy.
 mod anchor;
+mod collapse;
 mod delete;
 
 // Sequence reorder is one engine call per verb plus the index arithmetic and

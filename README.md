@@ -198,8 +198,8 @@ Guarantees and limits:
   path, and that path may name a mapping or a sequence: `.m.new = .defaults`
   writes the block, `.xs += .item` appends one. The value is copied, so the
   block is spelled at its destination and comments inside it do not travel.
-  Replacing a *scalar* with a collection is refused, as is writing a scalar
-  over a block collection; both name a remedy.
+  Replacing a *scalar* with a collection is refused and names a remedy. A
+  scalar written over a block collection replaces it on the key's own line.
 - **Structural delete.** `del` removes multi-line and nested block entries too,
   not just single-line ones; it closes up the entry's lines and leaves every
   surviving byte identical. Deleting the *only* entry of a block (which would
