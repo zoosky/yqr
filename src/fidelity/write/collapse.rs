@@ -31,7 +31,10 @@
 
 // Feature f036; bug b029.
 
-use super::anchor::assign_at;
+use super::anchor::{
+    anchor_still_referenced, assign_at, changes_are_the_assignment, is_shared_value_refusal,
+    splice_scalar_at_definition,
+};
 use super::guards::after_properties;
 use super::{FidelityWriter, NoyalibWriter};
 use crate::Value;
@@ -140,15 +143,48 @@ impl NoyalibWriter {
             return Err(layout());
         };
 
+        // The removed bytes may hold an `&name` another entry still refers to.
+        // The splice would leave that alias with nothing to point at, or bind
+        // it to an earlier `&name`; say which, rather than let the re-parse
+        // report an unknown anchor the user's file does not have.
+        if let Some(referenced) = anchor_still_referenced(d, after_colon, value_end) {
+            return Err(self.removed_anchor_refusal(
+                doc,
+                &format!("cannot assign at {path_str:?}"),
+                "the value there",
+                &referenced,
+            ));
+        }
+
+        let old = walk_value(&root, path.segments())
+            .cloned()
+            .ok_or_else(layout)?;
+        let expected = assign_at(&root, path.segments(), value).ok_or_else(layout)?;
+        let fail =
+            |e: ::noyalib::Error| YqrError::eval(format!("cannot assign at {path_str:?}: {e}"));
         let mut candidate = d.clone();
         candidate
             .replace_span(after_colon, value_end, &format!(" null{kept}"))
-            .and_then(|()| candidate.set_value(path_str, rendered_value))
-            .map_err(|e| YqrError::eval(format!("cannot assign at {path_str:?}: {e}")))?;
+            .map_err(fail)?;
+        // Inside a value that `*name` sites share, the engine refuses to write
+        // and every alias would see the change. That change is what an anchor
+        // means, and it is how a scalar written inside one already behaves:
+        // the write goes to the definition, and the alias sites follow.
+        match candidate.set_value(path_str, rendered_value) {
+            Ok(()) => {}
+            Err(e) if is_shared_value_refusal(&e) => splice_scalar_at_definition(
+                &mut candidate,
+                path_str,
+                &expected,
+                &old,
+                value,
+                rendered_value,
+            )?,
+            Err(e) => return Err(fail(e)),
+        }
 
-        let expected = assign_at(&root, path.segments(), value).ok_or_else(layout)?;
         let out = candidate.source();
-        if Value::from(&*candidate.as_value()) != expected
+        if !changes_are_the_assignment(&expected, &Value::from(&*candidate.as_value()), &old, value)
             || !out.starts_with(&src[..after_colon])
             || !out.ends_with(&src[value_end..])
         {
@@ -307,6 +343,60 @@ mod tests {
             .to_string();
         assert!(err.contains("alias"), "{err}");
         assert!(!err.contains("block collection"), "wrong diagnosis: {err}");
+    }
+
+    // Found in code review of f036: the engine refuses a write inside a value
+    // `*name` sites share, and the refusal named its own API.
+    #[test]
+    fn inside_a_shared_anchor_the_write_goes_to_the_definition() {
+        let input = "a: &x\n  k:\n    n: 1\n  z: 2\nb: *x\n";
+        let out = set(".a.k", Value::Int(5), input).unwrap();
+        assert_eq!(out, "a: &x\n  k: 5\n  z: 2\nb: *x\n");
+        // The alias follows the definition, as it does for `.a.k.n = 5`.
+        assert_eq!(crate::eval_str(".b.k", &out).unwrap(), vec![Value::Int(5)]);
+    }
+
+    #[test]
+    fn inside_a_shared_anchor_a_multi_line_value_is_refused_as_a_scalar_is() {
+        let err = set(
+            ".a.k",
+            Value::String("p\nq".into()),
+            "a: &x\n  k:\n    n: 1\nb: *x\n",
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(err.contains("does not fit on a single line"), "{err}");
+        assert!(!err.contains("materialise"), "{err}");
+    }
+
+    // Found in code review of f036: the re-parse reported "unknown anchor",
+    // which the user's file does not have.
+    #[test]
+    fn a_block_defining_an_anchor_still_referenced_is_refused_by_name() {
+        let err = set(".k", Value::Int(5), "k:\n  a: &x 1\nj: *x\n")
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("defines the anchor `&x`"), "{err}");
+        assert!(err.contains("`*x` on line 3"), "{err}");
+        assert!(err.contains("pointing at nothing"), "{err}");
+        assert!(!err.contains("unknown anchor"), "{err}");
+    }
+
+    #[test]
+    fn removing_a_redefinition_is_refused_because_the_alias_would_rebind() {
+        let err = set(".k", Value::Int(5), "x0: &x 1\nk:\n  a: &x 2\nj: *x\n")
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("`*x` on line 4"), "{err}");
+        assert!(err.contains("earlier `&x` on line 1"), "{err}");
+    }
+
+    #[test]
+    fn an_anchor_used_only_inside_the_block_goes_with_it() {
+        assert_eq!(
+            set(".k", Value::Int(5), "k:\n  a: &x 1\n  b: *x\nj: 2\n").unwrap(),
+            "k: 5\nj: 2\n"
+        );
     }
 
     #[test]

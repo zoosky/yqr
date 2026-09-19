@@ -105,6 +105,7 @@ dependency/release timing.
 | [f035](yqr-f035-noyalib-0-0-44-adoption.md) | Adopt noyalib 0.0.44: four upstream fixes land, two yqr bugs close | Done (0.0.44, 2026-09-17: noyalib#427 and #437 close `b032` and `b034` with no yqr code change; #422 turns the CRLF multi-line refusal into a write; #426 lands and leaves `b033` unmoved, as its filing predicted; eight pinned expectations flipped) |
 | [f036](yqr-f036-relax-the-scalar-over-a-block-collection-refusal.md) | Reconsider the scalar-over-a-block-collection refusal | Done (2026-09-18: option 3 — `.k = 5` over a block collection writes `k: 5` on the key's own line, as a sequence item already did; the block collapses to a placeholder that the engine's scalar `set_value` then spells, so yqr owns no rendering; an anchored or tagged block is refused by name, and an alias falls through to the engine's accurate refusal) |
 | [f037](yqr-f037-noyalib-0-0-45-adoption.md) | Adopt noyalib 0.0.45: the leading comment anchors on the key, b033 closes | Done (0.0.45, 2026-09-18: yqr's noyalib#442 closes `b033`, the last open bug, with no yqr code change; a head comment above a block-valued key reads, writes and deletes; the release's four other fixes are on paths yqr does not call; four pinned expectations flipped) |
+| [f038](yqr-f038-delete-inside-a-shared-anchor.md) | Delete inside a shared anchor | Draft (filed 2026-09-19 from `f036`'s code review: `del(.a.k)` inside `a: &x` with `b: *x` is refused because `b` loses `k` too, the reflection assignment already accepts; decide whether `del` follows the anchor rule) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
 (`set_value`/`insert_entry`/`push_back`/`remove`) — `=`, `+=`, new-key assign,
@@ -330,6 +331,14 @@ loads as the original with the assignment and every byte outside the entry
 is unchanged. A block with an `&anchor` or `!tag` is refused by name. The
 old guard also misread an alias to a block as a block and refused it with
 the wrong reason; it now reaches the engine's own, accurate refusal.
+Code review added two cases: a block inside a value aliases share is
+written at the anchor's definition, as a scalar there already was, and an
+edit that would remove an `&name` an alias outside it still uses is refused
+naming both, for `del` too. `del` inside a shared anchor is filed as
+`f038`, and the alias-valued entries yqr cannot change as `b035`.
+
+f038 **draft** (2026-09-19): whether `del` inside a shared anchor should
+follow the rule assignment does, with alias sites showing the removal.
 
 f037 **done** (2026-09-18): noyalib 0.0.45, carrying yqr's noyalib#442. A
 leading comment is now measured from the entry's key line rather than its
@@ -385,8 +394,8 @@ dashboard.
 
 ## Summary
 
-- Total features: 37
-- Draft: 2 (f025, f027)
+- Total features: 38
+- Draft: 3 (f025, f027, f038)
 - In Progress: 0
 - Done: 31 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,

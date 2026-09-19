@@ -10,7 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| — | No open bugs | — | — | — |
+| [b035](yqr-b035-an-alias-valued-entry-cannot-be-deleted-or-overwritten.md) | An entry whose value is an alias cannot be deleted or overwritten | Medium | Open **2026-09-19**, found while writing `f036`'s removed-anchor refusal. `del(.j)` and `.j = 5` over `j: *x` are refused on every layout measured: the block delete says "its source layout is not supported", the flow delete and assignment give the engine's refusal. Likely cause: `span_at` on an alias returns the anchor's bytes, not the `*x` token's. The cost is that the refusal for removing a still-used anchor can only tell the user to edit the file by hand. `Document::aliases()` gives the token's span, which is what a fix would use | `yqr-f036`, `yqr-b026`, `yqr-f025` |
 
 ## Resolved
 
@@ -53,14 +53,15 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 34
-- Open: **0**. `b033`, the last, closed 2026-09-18 by `yqr-f037`, the
+- Total bugs: 35
+- Open: **1** — `b035`, filed 2026-09-19: an entry whose value is an alias
+  (`j: *x`) cannot be deleted or overwritten on any layout measured, so
+  `f036`'s refusal for removing a still-used anchor can only point at a
+  hand edit. Previously: `b033` closed 2026-09-18 by `yqr-f037`, the
   noyalib 0.0.45 adoption, with no yqr code change: the release carries
   yqr's noyalib#442, which measures a leading comment from the entry's key
   line rather than its value, so a head comment above `spec:` or
-  `resources:` reads, writes and deletes. The ask was `b033` §3's, and
-  §5's refusal to anchor yqr's reader locally held: the disagreement was
-  fixed at the source, not hidden.
+  `resources:` reads, writes and deletes.
   Previously: `b032` and `b034` closed 2026-09-17 by `yqr-f035`, the
   noyalib 0.0.44 adoption, with no yqr code change: the release carries
   noyalib#427 and noyalib#437, both filed from here, and eight pinned

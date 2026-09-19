@@ -6,7 +6,8 @@
 **Owner:** yqr maintainers
 **Related:** `yqr-b029` (the defect the refusal was built for, resolved by
 it), `yqr-f032` (which added it), `yqr-f025` (a refusal names a remedy
-that runs), noyalib#424
+that runs), noyalib#424, `yqr-b026` (the anchor-definition write),
+`yqr-b035` and `yqr-f038` (follow-ups from its code review)
 
 ## 1. Why this is open
 
@@ -92,6 +93,30 @@ What goes with the old value follows `del`: the children, and the head
 comments above them. A comment below the last child is not the value's for
 `del` and stays here too, as does a blank line a `|+` scalar kept.
 
+Two cases change the second step or stop before the first:
+
+- **The block sits inside a value `*name` sites share** (`a: &x` /
+  `  k:` / `    n: 1` / `b: *x`, then `.a.k = 5`). The engine refuses
+  `set_value` there. The write goes to the definition instead, through the
+  same splice `write::anchor` uses for a scalar inside an anchor, and `b.k`
+  reads `5`. That is the `yqr-b026` rule, and `.a.k.n = 5` already worked
+  this way. Like that path, it takes a value that fits on one line; a
+  multi-line one is refused with "does not fit on a single line here".
+- **The block defines an anchor an alias outside it still uses**
+  (`k:` / `  a: &x 1` / `j: *x`). Replacing it would leave `*x` pointing
+  at nothing, or, when an earlier `&x` exists, bind `*x` to that one and
+  change its value. Both are refused, naming the anchor and the alias's
+  line. The check reads the engine's `anchors()` and `aliases()` lists and
+  applies YAML's binding rule: an alias refers to the closest `&name`
+  before it. `del` shares the check, since it had the same gap. An alias
+  inside the block goes with it and is not a reason to refuse.
+
+Both were found in code review. Before, the first refused with a message
+pointing at the engine's `materialise_aliases_of`, which a yqr user cannot
+call. The second said "unknown anchor: x", which the user's file does not
+have. The remedy the new refusal names is an edit to the file, because
+yqr cannot yet remove or change an alias-valued entry (`yqr-b035`).
+
 Three shapes do not take this path:
 
 | shape | result | why |
@@ -130,6 +155,14 @@ Every result below re-parses and passes `yqr validate --strict`.
   comments inside the block; the engine's spelling of plain, quoted,
   multi-line and null values; CRLF; path right-hand sides; the property
   refusal; and the alias falling through to the engine.
+- `src/fidelity/write/collapse.rs`, from code review: the write inside a
+  shared anchor, with the alias reading the new value; the multi-line
+  refusal there; the removed-anchor refusal with no earlier definition and
+  with one; and an anchor used only inside the block.
+- `src/fidelity/write/delete.rs`: the removed-anchor refusal for `del`,
+  and its line number counted from the start of a multi-document input.
+- `src/fidelity/write/anchor.rs`: the binding rule, including a later
+  definition that shadows the removed one.
 - `src/fidelity/write/guards.rs`: the two refusal tests are removed. The
   flow, sequence-item and property tests stay, since those shapes never
   went through the refusal.
@@ -146,4 +179,8 @@ Every result below re-parses and passes `yqr validate --strict`.
       with a trailing comment, and a key whose value block carries comments
       of its own (§5, §6).
 - [x] The Kubernetes guide and the README no longer list the refusal.
+- [x] Code review: a block inside a shared anchor is written at the
+      definition, and removing an anchor still in use is refused by name,
+      for `del` too (§4). `del` inside a shared anchor is filed as
+      `yqr-f038`, and the missing alias-entry edits as `yqr-b035`.
 - [x] `local-ci.sh` clean.

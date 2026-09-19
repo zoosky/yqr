@@ -275,6 +275,23 @@ impl NoyalibWriter {
             (start, end, replacement, out)
         };
 
+        // An `&name` in the removed range that an alias outside it still
+        // refers to would leave the alias pointing at nothing, or at an
+        // earlier `&name`. The re-parse below catches the first as an
+        // "unknown anchor" the user's file does not have and the second only
+        // as a changed structure; this names the anchor and the alias.
+        // Feature f036.
+        if let Some(referenced) =
+            super::anchor::anchor_still_referenced(self.doc_ref(doc)?, start, end)
+        {
+            return Err(self.removed_anchor_refusal(
+                doc,
+                &format!("cannot delete {path_str}"),
+                "the entry",
+                &referenced,
+            ));
+        }
+
         // `replace_span` guarantees only *valid YAML*, not structure
         // preservation (b004 2.5), so yqr owns the guard: re-parse the edited
         // source and require it to lower to the expected value. A dangling
@@ -494,6 +511,29 @@ mod tests {
             },
             input,
         )
+    }
+
+    // Feature f036: the removed range defined an anchor an alias outside it
+    // still used, and the refusal said "unknown anchor".
+    #[test]
+    fn deleting_an_anchor_still_referenced_names_it() {
+        let err = del(".k", "k:\n  a: &x 1\nj: *x\n").unwrap_err().to_string();
+        assert!(err.contains("the entry defines the anchor `&x`"), "{err}");
+        assert!(err.contains("`*x` on line 3"), "{err}");
+        assert!(!err.contains("unknown anchor"), "{err}");
+
+        let err = del(".k", "x0: &x 1\nk:\n  a: &x 2\nj: *x\n")
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("earlier `&x` on line 1"), "{err}");
+    }
+
+    #[test]
+    fn a_referenced_anchors_line_counts_from_the_start_of_the_input() {
+        let err = del(".k", "a: 1\n---\nk:\n  a: &x 1\nj: *x\n")
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("`*x` on line 5"), "{err}");
     }
 
     // -- Bug b031: an entry whose value occupies no bytes ------------------

@@ -236,7 +236,7 @@ impl FidelityWriter for NoyalibWriter {
             // variant of its own, so it is recognized by the API it points
             // at; a test pins the marker. The definition write goes through
             // the guarded span surgery instead.
-            Err(e) if e.to_string().contains("materialise_aliases_of") => {
+            Err(e) if super::anchor::is_shared_value_refusal(&e) => {
                 self.assign_at_definition(doc, path, &path_str, value, &ny)?;
                 self.check_integrity(doc, before, &path_str)
             }
