@@ -6,8 +6,70 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-19
+
+Two new kinds of write, and fixes for two writes in 0.8.0 that damaged
+the file they edited.
+
+The damage is the reason to upgrade. In 0.8.0, `.k = 5` over an indented
+block wrote YAML that PyYAML and Psych reject, yet yqr exited 0 and
+`yqr validate` rejected yqr's own output. A multi-line write into a CRLF
+file mixed its line endings. Neither is something a YAML parser complains
+about, which is how both reached a release. Both writes now produce what
+you would have typed, and every value assignment is checked against the
+document it started from.
+
+The new writes: a mapping or a sequence copied from the document can be
+the right-hand side of `=`, `|=` and `+=`, and a scalar can replace a
+block collection. The rest are refusals that now name the real reason,
+and writes that were refused and now go through. The library API is
+unchanged.
+
+### Added
+
+- **A mapping or a sequence can be the right-hand side of a write.**
+  `.m.new = .defaults` adds a nested block, `.xs += .item` appends one as
+  a sequence item, and `.k = .other` or `.k |= to_entries` replaces a
+  collection that is already there. The value is copied from the
+  document, since the filter grammar has no collection literal. Every
+  byte outside the edit is unchanged, and the block is spelled at the
+  destination: quoting follows the site and comments inside the copied
+  value do not travel, the same rule `to_entries` output follows.
+
+### Changed
+
+- **A scalar can replace a block collection.** `.metadata.labels = null`
+  over a `labels:` block was refused, with a remedy that moved the key to
+  the end of its mapping. It now writes `labels: null` on the key's own
+  line, where you would have typed it, and the block's lines go with the
+  old value. A comment on the key's line stays. Inside a value that
+  aliases share, the write goes to the anchor's definition and every alias
+  sees it, as a scalar written there already did. A block that carries an
+  anchor or a tag is still refused, now naming it, because the scalar
+  would drop it.
+- **Value assignment is checked against the document it started from.**
+  An `=` or `|=` write that would leave a block mapping's value at its
+  key's own column, or add a bare line feed to a wholly CRLF file, is
+  refused rather than emitted. The insertion, delete, rename, comment and
+  reorder paths keep the guards they already had.
+- **noyalib 0.0.41 → 0.0.45.** 0.0.42 and 0.0.43 change no behavior:
+  every source file of the published crate is byte-identical to 0.0.41's.
+  0.0.44 and 0.0.45 carry the engine fixes behind the comment and
+  key-insertion entries under Fixed.
+
 ### Fixed
 
+- **Writing a scalar over a block collection no longer damages the
+  file.** `.k = 5` where `k:` held an indented block emitted the value at
+  the key's own column, which this engine reads back but PyYAML and
+  Psych reject. It now writes `k: 5`, as described under Changed. A flow
+  collection (`k: {a: 1}`) and a sequence item were never affected.
+- **A multi-line write no longer gives a CRLF file mixed line endings.**
+  Assigning a multi-line string, or a collection that spans more lines
+  than the one it replaces, to a document whose lines end `\r\n` wrote
+  the replacement's own lines with a bare `\n`. The emitted lines now end
+  the file's way. Inserting a key and appending an item were never
+  affected.
 - **Removing an anchor that an alias still uses is refused by name.**
   `del(.k)`, or a scalar written over `k`, where `k`'s value defines `&x`
   and `*x` appears later, was refused as an "unknown anchor" the file did
@@ -34,7 +96,6 @@ All notable changes to `yqr` are documented here. The format is based on
   `# section`, a blank line, then `spec:` wrote a second comment below the
   blank line. It is now refused, as it always was for a scalar-valued key:
   the separated block documents what precedes the entry.
-
 - **Adding a key beneath a nested block no longer steals the next key's
   comment.** When the mapping's last entry was a nested block collection
   followed by a comment, the new key was written below that comment, so a
@@ -43,18 +104,12 @@ All notable changes to `yqr` are documented here. The format is based on
   owns. Nothing was corrupted before — the value was right and no other
   byte moved, which is why nothing refused — but a `head_comment` read
   could tell the comment had changed hands, and now it does not.
-- **A multi-line value can be written into a CRLF file.** yqr refused
-  `.a = "one\ntwo"` on a file whose lines end `\r\n`, because the block
-  scalar it emits would have ended its own lines with a bare `\n` and
-  left the file mixed. The emitted lines now end the file's way, so the
-  write goes through and every line ending in the file still matches.
 - **A key can be added beside a `|+` block scalar.** Adding a key to a
   mapping that *contains* an entry ending in a keep-chomped block scalar
   was refused, and the refusal named a `<<` merge the file did not have.
   The blank lines such a scalar keeps are part of its value, and they were
   being trimmed as layout; the write now succeeds and the scalar reads
   back unchanged.
-
 - **An entry left empty can be deleted.** `del(.k)` over `k:` with
   nothing after the colon answered "cannot locate its bytes", while the
   same value written `k: null` deleted fine. The entry owns no value
@@ -73,56 +128,11 @@ All notable changes to `yqr` are documented here. The format is based on
   the engine reports no comment at such a site and its removers would
   silently do nothing.
 
-### Added
+### Known issue
 
-- **A mapping or a sequence can be the right-hand side of a write.**
-  `.m.new = .defaults` adds a nested block, `.xs += .item` appends one as
-  a sequence item, and `.k = .other` or `.k |= to_entries` replaces a
-  collection that is already there. The value is copied from the
-  document, since the filter grammar has no collection literal. Every
-  byte outside the edit is unchanged, and the block is spelled at the
-  destination: quoting follows the site and comments inside the copied
-  value do not travel, the same rule `to_entries` output follows.
-
-### Fixed
-
-- **Writing a scalar over a block collection no longer damages the
-  file.** `.k = 5` where `k:` held an indented block emitted the value at
-  the key's own column, which this engine reads back but PyYAML and
-  Psych reject, at exit 0 — `yqr validate` rejected yqr's own output.
-  The write is refused now, with a remedy that works. A flow collection
-  (`k: {a: 1}`) and a sequence item were never affected and still write.
-- **A multi-line write no longer gives a CRLF file mixed line endings.**
-  Assigning a multi-line string, or a collection that spans more lines
-  than the one it replaces, to a document whose lines end with CRLF wrote
-  the replacement's own lines with LF. Both are refused until the engine
-  derives the terminator from the document, as it already does when
-  inserting a key or appending an item. Inserting and appending were
-  never affected, and neither was a replacement that keeps the line
-  count.
-
-### Changed
-
-- **A scalar can replace a block collection.** `.metadata.labels = null`
-  over a `labels:` block was refused, with a remedy that moved the key to
-  the end of its mapping. It now writes `labels: null` on the key's own
-  line, where you would have typed it, and the block's lines go with the
-  old value. A comment on the key's line stays. Inside a value that
-  aliases share, the write goes to the anchor's definition and every alias
-  sees it, as a scalar written there already did. A block that carries an
-  anchor or a tag is still refused, now naming it, because the scalar
-  would drop it.
-- **Value assignment is checked against the document it started from.**
-  An `=` or `|=` write that would leave a block mapping's value at its
-  key's own column, or add a bare line feed to a wholly CRLF file, is
-  refused rather than emitted. Neither is something a YAML parser
-  complains about, which is why both defects above reached a released
-  version. The insertion, delete, rename, comment and reorder paths keep
-  the guards they already had.
-- **noyalib 0.0.41 → 0.0.45.** 0.0.42 and 0.0.43 change no behavior:
-  every source file of the published crate is byte-identical to 0.0.41's.
-  0.0.44 and 0.0.45 carry the engine fixes behind the comment and
-  key-insertion entries under Fixed.
+- An entry whose value is an alias (`j: *x`) cannot be deleted or
+  overwritten; every such write is refused. Nothing is corrupted. 0.8.0
+  behaves the same.
 
 ## [0.8.0] - 2026-09-07
 
