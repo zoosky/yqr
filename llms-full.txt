@@ -620,8 +620,8 @@ new home's indentation and quoting, and comments inside the block you
 copied from do not come with it. Everything outside the edit is untouched,
 as always.
 
-Two shapes are refused rather than guessed at, both because the entry
-would have to change shape in place:
+One shape is refused rather than guessed at, because the entry would have
+to change shape in place:
 
 ```console
 $ yqr '.spec.replicas = .metadata.labels' deploy.yaml
@@ -631,9 +631,21 @@ entry and write it again, as in `del(.spec.replicas)` then
 `.spec.replicas = <path>`, which places it at the end of its mapping
 ```
 
-The reverse -- a scalar written over a block -- is refused for the same
-reason. Both messages name the remedy, and the remedy is a delete followed
-by an assignment, which moves the key to the end of its mapping.
+The message names the remedy: a delete followed by an assignment, which
+moves the key to the end of its mapping.
+
+The reverse works in place. A scalar written over a block replaces the
+whole block and goes on the key's own line, where you would have typed it:
+
+```console
+$ yqr '.metadata.labels = null' deploy.yaml
+```
+
+Here `labels:` and the two lines under it become `labels: null`, and
+nothing else moves. The block's lines go with the old value, including a
+comment above one of its entries. A comment on the key's own line stays.
+A block that carries an anchor or a tag (`labels: &common`) is refused,
+because the scalar would drop it.
 
 ## Computing a new value from the old one
 
