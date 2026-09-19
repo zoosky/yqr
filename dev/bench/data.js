@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789764793573,
+  "lastUpdate": 1789803273422,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2729,6 +2729,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 271323,
             "range": "± 1782",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2c932b75ae6bd9895c135fe5969e59dd20edb7a4",
+          "message": "Merge pull request #132 from zoosky/feature/f036-scalar-over-block\n\nWrite a scalar over a block collection on the key's own line (f036)",
+          "timestamp": "2026-09-19T09:33:14+02:00",
+          "tree_id": "b207fae443be51c7d8235ac96da724027f9b2291",
+          "url": "https://github.com/zoosky/yqr/commit/2c932b75ae6bd9895c135fe5969e59dd20edb7a4"
+        },
+        "date": 1789803272400,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 570,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5821,
+            "range": "± 144",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 279296,
+            "range": "± 1499",
             "unit": "ns/iter"
           }
         ]
