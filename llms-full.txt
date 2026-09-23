@@ -1636,3 +1636,994 @@ works from any working directory and reads the sample files in place.
 6. Fidelity by default -- `yqr '.'` reproduces the input byte-for-byte, comments and all, with no flag. `--normalize` opts into the classic re-serializing pipeline.
 7. jq-style exit codes -- `3` for parse errors, `5` for runtime errors, for scriptable error handling.
 8. Validate after editing -- `yqr validate` edits a copy in place, then confirms the file is still correct YAML (silent, exit 0). Break it and the verdict is a compiler-style diagnostic with a stable code, the offending line, and a caret; `--strict` additionally catches a duplicate key, which ordinary reads accept silently.
+
+---
+
+# Changelog
+
+URL: /yqr/changelog
+
+# Changelog
+
+All notable changes to `yqr` are documented here. The format is based on
+[Keep a Changelog](https://keepachangelog.com/), and the project adheres to
+[Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+## [0.8.1] - 2026-09-23
+
+Two new kinds of write, and fixes for two writes in 0.8.0 that damaged
+the file they edited.
+
+The damage is the reason to upgrade. In 0.8.0, `.k = 5` over an indented
+block wrote YAML that PyYAML and Psych reject, yet yqr exited 0 and
+`yqr validate` rejected yqr's own output. A multi-line write into a CRLF
+file mixed its line endings. Neither is something a YAML parser complains
+about, which is how both reached a release. Both writes now produce what
+you would have typed, and every value assignment is checked against the
+document it started from.
+
+The new writes: a mapping or a sequence copied from the document can be
+the right-hand side of `=`, `|=` and `+=`, and a scalar can replace a
+block collection. The rest are refusals that now name the real reason,
+and writes that were refused and now go through. The library API is
+unchanged.
+
+### Added
+
+- **A mapping or a sequence can be the right-hand side of a write.**
+  `.m.new = .defaults` adds a nested block, `.xs += .item` appends one as
+  a sequence item, and `.k = .other` or `.k |= to_entries` replaces a
+  collection that is already there. The value is copied from the
+  document, since the filter grammar has no collection literal. Every
+  byte outside the edit is unchanged, and the block is spelled at the
+  destination: quoting follows the site and comments inside the copied
+  value do not travel, the same rule `to_entries` output follows.
+
+### Changed
+
+- **A scalar can replace a block collection.** `.metadata.labels = null`
+  over a `labels:` block was refused, with a remedy that moved the key to
+  the end of its mapping. It now writes `labels: null` on the key's own
+  line, where you would have typed it, and the block's lines go with the
+  old value. A comment on the key's line stays. Inside a value that
+  aliases share, the write goes to the anchor's definition and every alias
+  sees it, as a scalar written there already did. A block that carries an
+  anchor or a tag is still refused, now naming it, because the scalar
+  would drop it.
+- **Value assignment is checked against the document it started from.**
+  An `=` or `|=` write that would leave a block mapping's value at its
+  key's own column, or add a bare line feed to a wholly CRLF file, is
+  refused rather than emitted. The insertion, delete, rename, comment and
+  reorder paths keep the guards they already had.
+- **noyalib 0.0.41 → 0.0.51.** 0.0.42 and 0.0.43 change no behavior:
+  every source file of the published crate is byte-identical to 0.0.41's.
+  0.0.44 and 0.0.45 carry the engine fixes behind the comment and
+  key-insertion entries under Fixed. 0.0.46 through 0.0.51 change nothing
+  yqr reads or writes -- every corpus, CLI and fidelity case is
+  byte-identical -- and their new features are additive and unused here.
+  From 0.0.46 the engine's single-document entry point refuses a file
+  holding more than one document; yqr reads every document through the
+  stream entry point, so multi-document files are unaffected.
+
+### Fixed
+
+- **Writing a scalar over a block collection no longer damages the
+  file.** `.k = 5` where `k:` held an indented block emitted the value at
+  the key's own column, which this engine reads back but PyYAML and
+  Psych reject. It now writes `k: 5`, as described under Changed. A flow
+  collection (`k: {a: 1}`) and a sequence item were never affected.
+- **A multi-line write no longer gives a CRLF file mixed line endings.**
+  Assigning a multi-line string, or a collection that spans more lines
+  than the one it replaces, to a document whose lines end `\r\n` wrote
+  the replacement's own lines with a bare `\n`. The emitted lines now end
+  the file's way. Inserting a key and appending an item were never
+  affected.
+- **Removing an anchor that an alias still uses is refused by name.**
+  `del(.k)`, or a scalar written over `k`, where `k`'s value defines `&x`
+  and `*x` appears later, was refused as an "unknown anchor" the file did
+  not have. The message now names `&x` and the line of the `*x` that
+  needs it. When an earlier `&x` exists, the alias would silently switch
+  to it; that is refused the same way, where before it read as a generic
+  structure change.
+- **Assigning over an alias to a block gives the right reason.**
+  `.k = 5` over `k: *x` was refused as if `k` held a block that the write
+  would under-indent. The refusal now says `k` is an alias, and to edit the
+  anchor or replace the alias.
+- **A comment above a key whose value is a block reads.**
+  `head_comment(.spec)` returned `null` for a comment directly above
+  `spec:`, while the same comment above `spec: 1` read fine. It now reads
+  whatever the value's shape, and the same holds for a key whose value is
+  an alias. Writing and deleting it work too: `head_comment(.spec) =
+  "..."` puts the block above `spec:` at its indent. Before, adding one
+  was refused when the block ran over several lines, and replacing or
+  deleting an existing one was always refused. A comment above the
+  block's first child stays that child's, and deleting the parent's
+  comment when it has none now says so instead of blaming a blank line.
+- **A comment block separated from a block-valued entry by a blank line is
+  now protected like any other.** `head_comment(.spec) = "..."` over
+  `# section`, a blank line, then `spec:` wrote a second comment below the
+  blank line. It is now refused, as it always was for a scalar-valued key:
+  the separated block documents what precedes the entry.
+- **Adding a key beneath a nested block no longer steals the next key's
+  comment.** When the mapping's last entry was a nested block collection
+  followed by a comment, the new key was written below that comment, so a
+  comment documenting the key after it ended up documenting the new one.
+  The new key now stops at the last line the entry above it actually
+  owns. Nothing was corrupted before — the value was right and no other
+  byte moved, which is why nothing refused — but a `head_comment` read
+  could tell the comment had changed hands, and now it does not.
+- **A key can be added beside a `|+` block scalar.** Adding a key to a
+  mapping that *contains* an entry ending in a keep-chomped block scalar
+  was refused, and the refusal named a `<<` merge the file did not have.
+  The blank lines such a scalar keeps are part of its value, and they were
+  being trimmed as layout; the write now succeeds and the scalar reads
+  back unchanged.
+- **An entry left empty can be deleted.** `del(.k)` over `k:` with
+  nothing after the colon answered "cannot locate its bytes", while the
+  same value written `k: null` deleted fine. The entry owns no value
+  bytes, and the range every delete is derived from came from the value;
+  it comes from the key token when there is no value, which is where the
+  entry starts anyway. Every layout works: a trailing comment goes with
+  the entry, an attached head comment goes with it, a blank-detached
+  block and the next sibling's comment stay, CRLF is preserved, and the
+  sole entry of a block still leaves the collection written out. An
+  empty sequence item works too. The one shape still refused, the sole
+  empty item, says so in yqr's words and names the edit that does work.
+- **Commenting an entry left empty says why it cannot.** The refusal was
+  "the path does not resolve to a node", which is the message for an
+  entry that is not there at all. It now says nothing is written after
+  the colon and names a value to write first. The refusal itself stands:
+  the engine reports no comment at such a site and its removers would
+  silently do nothing.
+
+### Known issue
+
+- An entry whose value is an alias (`j: *x`) cannot be deleted or
+  overwritten; every such write is refused. Nothing is corrupted. 0.8.0
+  behaves the same.
+
+## [0.8.0] - 2026-09-07
+
+### Added
+
+- **Any mapping key is addressable, dotted ones included.** A key holding
+  `.`, `[`, `]` or `*` -- the Kubernetes `app.kubernetes.io/name` style --
+  could be read through `.["a.b"]` only, and every write to it was refused
+  with "cannot address key". Every operation now reaches it: assignment,
+  inserting a new dotted key, `del`, `key(...)` in both directions,
+  `line_comment` and `head_comment`, `swap` and `move` below it, and `-i`.
+  The read emits the node's own bytes, quotes included, where it used to
+  fall back to the typed value. noyalib 0.0.33's bracket-quoted path
+  segments supply the engine side; yqr lowers every key through them.
+- **`."a.b"`, jq's quoted field.** The same step as `.["a.b"]`, at the
+  head of a path and after any later dot:
+  `.metadata.labels."app.kubernetes.io/name"`.
+
+### Fixed
+
+- **`validate` explains an alias that reaches into an earlier document.**
+  `b: *x` after a `---`, with `&x` defined in the document before, was an
+  "unknown anchor" with a hint about a similar anchor; the hint now says
+  where that `&x` appears in an earlier document and that anchors do not
+  cross `---`. The position is right too: with noyalib 0.0.36 the parser
+  counts every stream error from the start of the stream, so yqr's
+  re-parse that mapped document-relative positions back is gone.
+- **Every finding in a stream names its document.** The "in document N
+  (starting at line L)" note used to be attached to a key collision only;
+  a syntax error in the twelfth document of a manifest now says so too.
+  The document count follows the parser's rules for a `...` and for a
+  directive or comment prologue, which the earlier note got wrong.
+- **`validate` points at the right line in a multi-document stream.** A
+  parse error in any document after the first was placed as if that
+  document started the file: an unknown anchor on line 5 was reported at
+  line 2, with the caret on the `---` marker. The parser locates an error
+  relative to the document it was parsing; `validate` now maps that back
+  onto the stream, and renders no position at all rather than a wrong one
+  in the rare case where the two disagree on where a document starts. The
+  "a similar anchor is declared at line N" hint is corrected the same
+  way. Found by the fix below, which gave the one finding without a
+  position one.
+- **A key collision names its line.** `error[Y102]` — `1:` and `"1":` in
+  one mapping — used to carry no position, only a note naming the
+  document in a stream. noyalib 0.0.33 locates the colliding key, so the
+  finding points at it like every other syntax error; the note stays.
+- **`validate` no longer slows to a crawl on large files.** Three of its
+  checks visited every line or every mapping entry and recomputed
+  something that cost the whole file each time, so the command was
+  quadratic in document size: three seconds on a 530 KB values file in a
+  release build, sixty times the read of the same file, and over two
+  minutes in a debug build. Every check now stays local to what it
+  inspects. Found by the new values corpus, the first validate input the
+  test suite ever had above a kilobyte.
+- **Merge-heavy values files parse everywhere.** A file that reuses each
+  anchor more than ten times — a Helm tenants file merging 22 anchored
+  defaults into 221 entries, say — used to be refused outright by the
+  parser's alias-to-anchor ratio heuristic. Every path — the default
+  byte-preserving read, `validate`, writes, and `--normalize` — now parses
+  without that heuristic; the absolute limits that actually bound
+  billion-laughs amplification (total alias expansions, events, nodes,
+  scalar bytes) all remain. Landed in two steps: the classic pipeline
+  first, then the rest on noyalib 0.0.31, whose configurable CST entry
+  points yqr contributed for exactly this.
+- **Assigning to an anchored scalar keeps the anchor.** `.a = 2` over
+  `a: &x 1` used to delete the `&x` definition — silently when nothing
+  referenced it, and with an "unknown anchor" refusal about the alias the
+  edit itself orphaned otherwise. The write now rewrites only the scalar,
+  keeps the slot's quote style, and every `*x` site reflects the new
+  value. The same mechanism restores writes at an anchor definition
+  (`.base.k = 9` under `base: &m`), which noyalib 0.0.29 started refusing;
+  that is the one remedy yqr's own merged-key refusal names, so it has to
+  work. Assigning to a tagged scalar is refused with the tag's name.
+
+### Changed
+
+- **A rename to the empty key is no longer refused.** It was refused
+  because no filter could name the result; `.[""]` names it, so the
+  addressable set stays closed under rename without the check.
+- **Library API:** `fidelity::Resolved::Unaddressable`, the
+  `fidelity::Unaddressable` enum, `PathSeg::is_plain` and
+  `PathSeg::key_is_plain` are gone. No path is unaddressable any more, so
+  the arm had nothing left to report; `Resolved` has three arms.
+- **noyalib 0.0.39 → 0.0.41.** No observable change, measured: 0.0.40
+  fixes the serializer's spelling of a tag a `%TAG` directive resolves,
+  and the CST formatter's handling of a mapping used as an explicit key
+  and of keep-chomped scalars. yqr lowers tags away at its value boundary
+  and does not use the formatter, so every read, write, `validate`
+  verdict and `--normalize` output compared against the 0.0.39 build is
+  byte-identical, exit codes included. 0.0.41 has no core change.
+- **noyalib 0.0.34 → 0.0.39.** Diagnostics the parser now makes, passed
+  through: `!!!int` (one bang too many) is refused with "did you mean
+  `!!int`?" where it used to be accepted; a self-referential anchor
+  (`a: &x [*x]`) says an alias points at an anchor still being defined
+  instead of calling it unknown; `!!int 0b101010` and `!!int 100_000_000`
+  name the YAML 1.1 spelling and the 1.2 value to write. One parse
+  change: a tab before `- ` or `? ` on the first line of a file is refused
+  like it already was after a `---`, so `validate` reports it and a read
+  fails; a tab before a flow node still parses. A keep-chomped block
+  scalar of blank lines followed by `---` parses now. Re-serialized
+  output and every write are unchanged.
+- **noyalib 0.0.31 → 0.0.34.** Re-serialized output (`--normalize`)
+  changes for block scalars, values unchanged throughout: no blank line
+  after a clip-chomped block scalar (`|`); a keep-chomped one (`|+`) no
+  longer gains a newline per round trip; a block scalar as a sequence item
+  indents its body one step past the dash instead of two; a string that
+  is a single newline emits as `|+` with one empty line instead of a `|`
+  that read back empty. Byte-preserving reads and writes never re-emit,
+  so they are unaffected. The parser makes fewer allocations per mapping
+  key. An unterminated verbatim tag (`!<` with no `>`) is refused instead
+  of being read as a tag name.
+- **noyalib 0.0.28 → 0.0.31.** Beyond the fixes above: the emitter drops
+  quotes a plain scalar does not need (re-serialized output such as
+  `--normalize` spells `"6.7.0-RC.5-2eb4505e"` unquoted; values are
+  unchanged), a scalar now writes over a flow collection value such as
+  `{}` (block collections already accepted it), and `--normalize` over a
+  multi-document stream keeps evaluating the first document — an empty
+  stream is now refused with "the stream is empty" instead of reading as
+  `null`.
+
+## [0.7.2] - 2026-08-26
+
+One fix in the tool, one in its packaging, and a documentation pass that
+should have happened four releases ago.
+
+The fix is `+=` explaining itself when it declines instead of blaming the
+file. The packaging one is why the crates.io page finally has links to the
+guide: `homepage` and `documentation` were never set, so the only route off
+that page was the repository.
+
+The documentation pass is the one worth reading about, because it says
+something about the rest. Every console block on every page was re-run
+against the binary. Four pages promised something yqr does not do -- among
+them a `validate` snippet that exits 2, and a front page still telling
+visitors arithmetic was unavailable nine days after it shipped.
+
+### Fixed
+
+- **`+=` explains itself when it declines.** Pointed at anything that is not a
+  sequence, it used to report a *"YAML parse error"* over a file that parsed
+  perfectly and name `swap_items`, an internal belonging to the reorder path,
+  to someone who had asked to append. Now it says what `+=` does, what the
+  path actually holds, and what to use instead -- `|=` to compute a new value
+  in place of a scalar, `=` to fill in a blank, assignment to grow a mapping.
+  The suggestion is only ever one that works: only a number is offered
+  `(. + 1)`, because that is a type error on a string.
+
+  Appending to an *empty* sequence used to advise `set` with a fragment, which
+  is not something the yqr CLI has. It now explains the real limit: a new item
+  follows the indentation of the one above it, so there has to be one.
+
+- **Four documentation pages promised something yqr does not do.** All found
+  by running the pages rather than reading them. `validate` was documented as
+  falling back to stdin when you omit the file -- it exits 2, deliberately, so
+  a validation gate cannot report "all valid" over an empty file list. The
+  home page listed arithmetic as unavailable and called a seven-row table "the
+  whole grammar" while its own recipes used bracket access and its own
+  examples used `=`, `+=` and `del`. The Kubernetes guide showed a
+  `head_comment` write that is refused. The fidelity guide read two fields
+  that were not in the file it had just shown.
+
+### Changed
+
+- **crates.io links the guide.** `homepage` and `documentation` are set, so
+  the crate page points at the documentation site and the API docs rather than
+  only at the repository. Aggregators read the same fields.
+
+### Added
+
+- **A page for people arriving from jq** (`/guide/from-jq`). Which idioms
+  transfer unchanged, the one operator that means something different (`+=`
+  appends to a sequence here; it is addition in jq), and what each tool can do
+  that the other cannot.
+
+## [0.7.1] - 2026-08-24
+
+Three fixes and no new surface. Two arrive with the YAML engine moving to
+noyalib 0.0.28 -- both of them defects yqr reported, one fixed by yqr's own
+commit upstream -- and between them they close the last two bugs yqr had open
+against that engine. The one worth upgrading for is `validate`, which reported
+an error on valid YAML whenever a file ended without a trailing newline: a
+command whose whole job is to answer "is this file correct" was answering no
+about files two reference implementations accept.
+
+The third fix is cosmetic but had been wrong in every published binary:
+`yqr --version` printed an empty commit hash when installed from crates.io.
+
+### Fixed
+
+- **You can fill in a blank value.** A key written with nothing after it --
+  `digest:` -- is an implicit null. It has always read as `null`, but writing
+  one refused with *"path not found"*, naming a path the same command could
+  print. Now it writes:
+
+  ```console
+  $ yqr '.digest = "sha256:9f0a"' image.yaml
+  ```
+
+  The same holds for an empty `-` item in a sequence. If the line carries a
+  trailing comment, the value lands **before** it -- `a:   # todo` becomes
+  `a: 1   # todo` -- so a fill-in never comments the value out.
+
+- **A file that ends without a newline is read correctly.** A `:` at the very
+  end of the input was not treated as a mapping indicator, so `a:` loaded as
+  the string `"a:"` and `a: 1\nb:` failed to parse at all -- the same document
+  one byte apart, read two different ways. Worst of the three faces was
+  `validate`, which reported `error[Y001]` on valid YAML. All three are fixed:
+  the blank value reads as `null`, its siblings read normally, and `validate`
+  accepts the file. Byte-for-byte output was never affected, and a file with no
+  trailing newline still comes back without one.
+
+  Both fixes arrive with the YAML engine moving to noyalib 0.0.28. yqr reported
+  both and wrote the first fix upstream.
+
+- **`yqr --version` names the commit it was built from, even when you
+  installed it from crates.io.** It used to print an empty pair of
+  parentheses -- `yqr 0.7.0 (, built ...)` -- because the build script asked
+  `git` for the commit and never checked whether `git` had succeeded. Outside
+  a checkout it exits 128 with an empty stdout, so the "unknown" fallback
+  never fired. It reads the commit Cargo records in the packaged crate
+  instead, so an installed binary and a local build now report the same hash.
+
+## [0.7.0] - 2026-08-23
+
+Editing computes. Until now a filter could say what a value should *become*,
+but not what it should become *relative to what it was* -- the Kubernetes
+guide named the gap outright: "you cannot say 'increment the replica count';
+you say what it should become". `|=` and arithmetic close it.
+
+The other half of the release is the write tier keeping its own promise. Four
+fixes come from one thread pulled through `yqr '.n = .n'`: an assignment whose
+value is already in the file was re-spelling the scalar, turning `0640` into
+`640` on the very example the fidelity guide leads with. Guarding that turned
+up a second defect, guarding *that* turned up a third, and each was found by
+the work that closed the one before.
+
+Five more arrive through the YAML engine, every one of them a defect yqr filed
+upstream and most of them fixed by yqr's own commits there.
+
+### Added
+
+- **Compute a new value from the old one: `|=`.** `=` writes what you tell it;
+  `|=` runs a filter on the value already there and writes the result. The
+  limitation the Kubernetes guide named -- *"you cannot say 'increment the
+  replica count'; you say what it should become"* -- is gone:
+
+  ```console
+  $ yqr -i '.spec.replicas |= (. + 1)' deploy.yaml
+  ```
+
+  Inside the filter, `.` is the value at the path, not the document.
+
+- **Arithmetic: `+ - * / %`,** with the usual precedence and parentheses,
+  usable in any filter rather than only on the right of `|=`.
+
+  **Numbers keep their type.** `replicas: 3` doubled is `6`, never `6.0`, and
+  a division becomes a fraction only when it genuinely is one -- `4 / 2` is
+  `2`, `3 / 2` is `1.5`. That is the same rule that keeps `0640` from becoming
+  `640` on a read. An integer result too large for 64 bits is an error rather
+  than a silent widening to a float, because widening is exactly the precision
+  loss the rule prevents.
+
+  `+` also concatenates strings. Mixing a string and a number is refused,
+  naming both types, rather than coerced.
+
+- **`to_entries`: enumerate a mapping without losing the keys.** Iterating a
+  mapping gives you its *values*, so on the most ordinary YAML layout there is
+  -- a mapping of named things -- yqr could produce the data and not say what
+  it was about. `to_entries` turns the mapping into a list of `{key, value}`
+  pairs, so one filter carries both halves:
+
+  ```console
+  $ yqr -r '.services | to_entries[] | .key' compose.yaml
+  web
+  db
+  ```
+
+  It takes its input from the pipe rather than wrapping a path, so it is
+  `<path> | to_entries`; `to_entries[]` streams the pairs. `key` and `value`
+  are jq's field names, kept so the shape transfers. Pairs come out in **your
+  file's order**, never sorted -- jq sorts object keys, and here that
+  difference is load-bearing rather than cosmetic.
+
+  The word costs no reserved identifier: every yqr path starts with `.`, so
+  `.to_entries` still reads a field called `to_entries`.
+
+  Because the pairs are computed, they exist in no file: the output is
+  normalized rather than byte-preserved, and every write form (`=`, `+=`,
+  `del`) is refused at parse with the reason. `from_entries` is deliberately
+  absent until a filter can *build* pairs, which needs object construction.
+
+  There are now two ways to reach a key, and they differ exactly where fidelity
+  does: `key(...)` gives you the token from your file, quotes included, while
+  `to_entries` gives the decoded string. `-r` collapses the difference, since
+  asking for raw output is asking for the value rather than the spelling.
+
+### Breaking
+
+- **Assigning to an alias or a merged-in entry now exits 5, where a matching
+  value used to exit 0.** This is a bug fix with a script-visible edge: the
+  guard that skips a write when the value already matches ran *ahead* of the
+  checks that do not depend on the value at all, so `.b = 1` on `b: *x` exited
+  0 with the alias untouched and nothing said, while `.b = 2` on the same file
+  was refused. The edit yqr declined to make looked like one it had made, and
+  a later change to the anchor would have moved `b` with it.
+
+  Entries reached through an alias or a `<<` merge are now refused whatever
+  value is assigned, including an alias-valued item of a sequence. A pipeline
+  that relied on the old silence will start failing -- correctly, since the
+  edit was never performed. A no-op on an *ordinary* entry is still a no-op,
+  including on one that carries an anchor.
+
+### Fixed
+
+- **An assignment that changes nothing no longer re-spells the value.**
+  `.n = .n` on `n: 0640` wrote `n: 640`, and a `1.10` version pin came back
+  `1.1`. yqr writes a scalar from its parsed value, and that value cannot
+  carry the spelling -- so an edit that changed nothing still rewrote the
+  line, which is the one thing yqr promises never to do. A write whose new
+  value is already the value in the file is now skipped, for both `=` and
+  `|=`. Quoted strings were never affected.
+
+- **Writing a comment's own text back no longer re-spells the line.** The same
+  rule, on comments. `a: 1 #tight` and `a: 1 # tight` carry the same comment,
+  and the text is all a comment edit is given, so writing `tight` back
+  respaced a line that had not changed. Reading a comment and feeding it
+  straight back is now a no-op, as it reads.
+
+- **A write to a merged-in key says what is actually wrong.** `yqr '.c.k'`
+  printed a value and `yqr '.c.k = 9'` on the same file answered *"path not
+  found: c.k"* -- one tool contradicting itself. A key that a `<<` merge or an
+  alias brings into view is still refused, because the mapping has no entry
+  there to write, but the message now says so and names the two ways out:
+  assign where the key is defined, or add an explicit entry to override it.
+
+- **Deleting from a wrapped flow collection no longer leaves a blank line.**
+  `del(.ports[0])` on a `ports:` list broken across lines removed the member
+  and its separator but left the line's indentation behind, so a line that had
+  no trailing whitespace ended up with two spaces of it. The result always
+  loaded correctly -- what it broke was the diff, which `git diff --check` and
+  `yamllint` reject. The member now takes its whole line when nothing else is
+  on it; a line still holding an opening or closing bracket, a sibling member,
+  or a comment keeps standing. Arrives with the YAML engine moving to noyalib
+  0.0.26, and is yqr's own contribution upstream.
+- **A flow collection wrapped over several lines can be read at all.** A
+  `ports:` or `args:` list broken across lines for width -- ordinary YAML that
+  PyYAML, Psych and libyaml all accept -- was refused outright, so no filter
+  ran and `validate` called the file unreadable. The engine's rule that flow
+  content must be indented past the surrounding block was reaching the closing
+  `]` or `}`, which is an indicator rather than content and cannot be
+  ambiguous with anything. Under-indented flow *content* is still refused,
+  which is what the rule is for.
+- **A key can be added next to a Kubernetes-style dotted one.**
+  `.metadata.labels.tier = "web"` was refused on any mapping whose keys all
+  contain a `.` -- the standard `app.kubernetes.io/` label block -- and the
+  message blamed a `<<` merge the file did not contain. The engine picked the
+  indentation anchor by composing a candidate key back into a path string and
+  re-parsing it, which no dotted key survives; it now reads the anchor from the
+  span tree, so a key's spelling no longer decides whether one can be inserted
+  beside it. Changing or deleting a dotted key is still refused, and now says
+  why.
+- **An inserted value is spelled like its neighbours, not like the file.** A
+  new key or an appended item took the document's *dominant* quote style, and
+  the vote counted only quoted scalars against each other -- so one
+  `value: "30"` in an env block made every later insertion quoted, however
+  plain the lines around it. The vote is now scored at the edit site. A quoted
+  neighbour still carries, which is what the behaviour is for.
+- **An empty collection left by a delete is indented past its key.** Removing
+  the sole item of a block sequence written at its key's own column -- the
+  GitHub Actions `on:` / `- push` idiom -- produced `on:` / `[]` on the engine's
+  own delete path, which both PyYAML and Psych reject. yqr's delete already
+  wrote the indented form; the engine now agrees, and `validate` continues to
+  report the shape as `Y103` wherever it comes from.
+
+  All four fixes arrive with the YAML engine moving to noyalib 0.0.25. Three
+  of them are yqr's own contributions upstream.
+
+- **The published crate no longer carries the website.** `cargo install yqr` and
+  `cargo add yqr` downloaded yqr's rendered documentation site along with the
+  source -- 84 files and 340 KB, 40% of the 0.6.0 package, the largest single
+  file being a social-card PNG. The `exclude` list in `Cargo.toml` predates the
+  site and never gained `docs/`; the agent guide shipped too, because the list
+  names `AGENT.md` and not the `CLAUDE.md` symlink pointing at it. Nothing was
+  broken by it -- the crate builds either way -- but every download paid for it.
+  0.6.0 itself cannot be corrected, since a published version is immutable. The
+  release gate now fails when `cargo package --list` names a dev-only path, so
+  this cannot come back quietly: the change that causes it is a docs-only one,
+  which CI is configured to skip.
+
+## [0.6.0] - 2026-08-20
+
+Editing reaches the parts of a file a path cannot name. A path names a *value*,
+so a key, the comment documenting an entry, and the order of a list were all out
+of reach -- renaming a key meant deleting the entry and writing it back, which
+loses its position and its comments. This release adds `key(...)`,
+`line_comment(...)` / `head_comment(...)`, and `swap(...)` / `move(...)`; each
+rewrites exactly what it names and leaves the rest of the document
+byte-identical. `del` loses its last two refusals, `validate` gains a check for
+a value that is not indented past its key, and the YAML engine moves to noyalib
+0.0.24.
+
+### Added
+
+- **Rename a key: `key(.a.b) = "new"`.** A path names a *value*, so until now
+  there was no way to say "the key of this entry" -- renaming meant deleting
+  the entry and writing it back, which loses its position and its comments.
+  `key(...)` wraps a path and names the key instead. The rename rewrites the
+  key token and nothing else: the value keeps its spelling, the entry keeps
+  its place in the mapping, and the comments above and beside it are
+  untouched.
+
+  `key(.a.b)` also *reads* a key, and reads what the file says -- a key
+  written `"a"` comes back `"a"`, quotes included, because the read slices the
+  document rather than echoing back the path you typed. `-r` unquotes it, as
+  it does for a string value.
+
+  Reads never fail a batch: a sequence item has no key, and neither does one
+  that arrived through a `<<` merge, so both read `null`. Writing to those is
+  refused with the reason, as is a rename that would collide with an existing
+  sibling, or one to a name the path syntax could not address afterwards.
+
+  `key` is only a keyword directly before `(`, so `.key` still reads a field
+  named `key` -- along with `.swap`, `.move`, `.del` and the comment words
+  reserved for later.
+
+- **Edit a comment: `line_comment(...)` and `head_comment(...)`.** The `#`
+  after a value on its own line, and the block of comment lines above an
+  entry. Both read, set, and delete:
+
+  ```console
+  $ yqr -i 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
+  $ yqr -r 'line_comment(.spec.replicas)' deploy.yaml
+  tuned for peak
+  ```
+
+  What you write is what you read back, leading spaces included. An
+  authored `#note` reads as `note` and writes back as `# note`, so the
+  spacing is normalised the first time you touch it and stable after that.
+  An empty body writes a bare `#`
+  rather than removing -- `del(...)` is how you remove, so both are
+  reachable.
+
+  Three cases are refused rather than guessed at, each because the obvious
+  thing would be wrong: an entry whose value starts on the next line has no
+  line of its own to comment (writing one would land it on the first child);
+  a comment block separated by a blank line documents what came before it,
+  not the entry below; and a comment block above a list item can be read but
+  not edited. `foot_comment(...)` is refused with an explanation rather than
+  a syntax error.
+
+- **Reorder a list: `swap(...)` and `move(...)`.** An ordering is the one thing
+  a path cannot name -- there is no path that means "third" -- so it is a verb
+  with arguments rather than a selector, and the arguments are separated by
+  `;`:
+
+  ```console
+  $ yqr -i 'swap(.jobs.build.steps; 0; 2)' ci.yaml
+  $ yqr -i 'move(.jobs.build.steps; 0; -1)' ci.yaml
+  ```
+
+  `swap` exchanges two items and leaves everything between them alone; `move`
+  takes one out and puts it back at the destination, shifting the rest.
+  Negative indices count from the end, exactly as `.[-1]` does.
+
+  Whole entries move, not just values: a step's comment above it and its
+  comment beside it both travel with the step, so reordering a workflow does
+  not re-document it. Everything outside the two items is byte-identical --
+  including spacing a re-emitting tool would tidy up.
+
+  Inline lists (`ports: [80, 443]`) reorder too. An index outside the sequence
+  and a path that names something other than a sequence are both refused with
+  the reason, and under `-i` the file is left untouched.
+
+  `swap` and `move` are only keywords directly before `(`, so `.swap` and
+  `.move` still read fields of those names.
+
+- **`del` now handles the last entry of a block, and items of inline
+  collections.** Both used to be refused with a message explaining why.
+
+  Removing the last entry writes the collection out as empty rather than
+  leaving the key with nothing under it -- `spec:` on its own reads back as
+  *null*, which is a type change rather than a removal, so `spec:` / `  {}`
+  is what you get. A comment that documented the removed entry goes with it
+  instead of being left behind describing an empty collection.
+
+  For an inline collection like `ports: [80, 443]`, removing an item takes
+  exactly one separator with it, so the result is never `[, 443]` or
+  `[80, ]`.
+
+### Breaking
+
+- **Library API: `ast::Mutation` changed shape** for the new addressing forms.
+  `Assign` and `Delete` now carry a `target: ast::Target` where they carried a
+  path, since a mutation can address a key or a comment as well as a value;
+  `Reorder` is a new variant, alongside the new `ast::ReorderOp` enum. Code
+  that constructs or exhaustively matches `Mutation` needs updating; a value
+  path is now `Target::Value(ast)`. The CLI is unaffected.
+
+- **`validate` catches a value that is not indented past its key (`Y103`).**
+
+  ```console
+  $ yqr validate workflow.yaml
+  error[Y103]: block mapping value is not indented past its key
+    --> workflow.yaml:2:1
+  ```
+
+  yqr's YAML engine reads such a file; PyYAML and Ruby's Psych both refuse
+  it. A validator that passes it is telling you something it cannot back up,
+  so this is on by default rather than under `--strict` -- the document is
+  invalid, not merely unusual.
+
+  The two layouts that look like this and are fine are never flagged: a block
+  sequence at its key's own column (the GitHub Actions style, `on:` then
+  `- push`), and a block scalar, whose own content sets its indentation.
+
+### Changed
+
+- **Two limitations of editing documented, having been measured rather than
+  assumed.** Adding a key to a mapping whose other keys contain a `.` -- the
+  Kubernetes `app.kubernetes.io/name` convention -- is refused, and the message
+  it gives blames a merge key the file does not have. Separately, a value
+  inserted into a document that quotes a string anywhere gets quoted itself,
+  even where every neighbouring value is plain. Neither damages a file: the
+  first refuses outright, and the second writes the value you asked for, spelled
+  differently than its neighbours. Both are now written down in the Kubernetes
+  guide's "What is not here yet" and pinned by the test suite, so they cannot
+  change without someone noticing.
+
+- **YAML engine upgraded to noyalib 0.0.24.** One functional change, and it is
+  a fix yqr reported: deleting the last entry of a block now takes the comment
+  above it along, instead of leaving that comment describing an empty `{}`. yqr
+  already did this itself, so nothing changes in what yqr writes -- what changes
+  is that the engine and yqr now agree, and the dependency graph loses a crate.
+
+- **YAML engine upgraded to noyalib 0.0.23.** Reordering a list now moves each
+  item's comments with it. Before, a swap exchanged the values and left every
+  comment where it was, so a comment ended up describing whichever item landed
+  beneath it -- silently, and reported as success. The fix is yqr's own,
+  contributed upstream, and it is what `swap` / `move` above are built on.
+
+- **YAML engine upgraded from noyalib 0.0.22.** The one functional change in
+  that release is yqr's own contribution: an edit that adds a line now takes
+  the file's own line ending instead of always writing a Unix one. 0.5.1 fixed
+  that from yqr's side, by repairing the line endings after the fact; the
+  engine now gets them right when it writes the line, so the repair pass is
+  gone. Files are unchanged either way -- this removes a second mechanism doing
+  the same job, not a behaviour. No new dependencies.
+
+## [0.5.1] - 2026-08-14
+
+A correctness release for the editing path. Adding a value that spanned more
+than one line could damage the file while reporting success -- appending to a
+list produced YAML that no longer parsed, and creating a key produced a value
+that read back wrong. Adding any line to a Windows-style file left it with
+mixed line endings. All three exited 0, so `--in-place` wrote the damage to
+disk and said nothing. yqr now hands values to the YAML engine as values rather
+than as pre-rendered text, so the engine places and spells them and rejects an
+edit that would not read back as what was given. Reading files, replacing
+existing values, and `del` were never affected.
+
+### Fixed
+
+- **Adding a multi-line string could corrupt the file.** Creating a new key or
+  appending a list item whose value contained a newline -- `yqr '.s += "line
+  one\nline two"'` -- wrote the value at the wrong indentation. Appending to a
+  list produced a file that could no longer be parsed; creating a key produced
+  a value that read back with a stray `|-` in it. Both reported success and
+  exited 0, so `-i` wrote the damage to disk. Values are now handed to the
+  engine as values rather than as pre-rendered text, so the engine places and
+  spells them, and rejects the edit if the result would not read back as the
+  value given. Replacing an *existing* key was never affected.
+- **`.k = "a:"` failed, and `.k = "\n"` wrote the wrong value.** Two spelling
+  defects in the engine's value emitter: a string ending in a colon was
+  rejected as invalid, and a string that is a single newline was written as an
+  empty block scalar and read back as `"|"`. Both fixed by the engine upgrade
+  below.
+- **Adding a line to a CRLF file no longer mixes line endings.** Creating a key
+  or appending a list item wrote the new line with a Unix ending regardless of
+  the file's own convention, so a Windows-style file silently ended up with
+  both -- again at exit 0, so `-i` saved it that way. Files that consistently
+  use one convention keep it; a file that already mixes endings is left as it
+  is rather than being rewritten to a guess. Reading, replacing an existing
+  value, and `del` were never affected.
+
+### Changed
+
+- **YAML engine upgraded from noyalib 0.0.17 to 0.0.21.** 0.0.18 brought the
+  CST mutation API yqr had been missing -- comment setters, `rename_key` /
+  `key_span`, `swap_items` / `move_item`, a `remove` that accepts multi-line
+  and nested values, and a typed insertion tier that quotes and escapes on the
+  caller's behalf; two of those are yqr's own upstream contributions, and the
+  typed tier is what fixes the corruption above. The releases after it fix
+  defects rather than add surface: 0.0.19 carries yqr's own upstream fix for
+  how `remove()` treats the trivia around an entry, plus a scalar-resolution
+  bug where bare `nan` / `inf` spellings destroyed a key's original text;
+  0.0.21 fixes three cases where an edit could damage a document while
+  reporting success, and the two emitter defects noted above. The remaining new
+  operations still need filter grammar, so they are groundwork rather than
+  user-facing features. Two transitive dependencies are added (`hashbrown`,
+  `libm`), both from the engine's bare-metal support work. Byte fidelity is
+  unaffected -- the round-trip and corpus harnesses pass untouched.
+- **`del(...)` no longer delegates to the engine's `remove`.** 0.0.18's
+  `remove` accepts the shapes it used to refuse, but it scopes a deletion to
+  the entry's own key and value lines, where yqr treats an entry as owning the
+  trivia around it. Left to the engine, deleting an entry would strand the
+  comment documenting it (silently re-attaching it to the next entry), leave
+  behind the blank lines a `|+` block scalar deliberately keeps, and swallow a
+  trailing comment that belongs to the *following* entry. yqr keeps its own
+  deletion path so `del` continues to remove exactly what a reader would say
+  the entry is. Behaviour is unchanged from 0.5.0.
+
+## [0.5.0] - 2026-07-29
+
+Verification joins the editing loop: `yqr validate` answers whether a file is
+still correct YAML after an edit -- surgical, hand-made, or agent-made -- with
+compiler-style diagnostics a human or an agent can act on. In the same release
+yqr settles on noyalib as its one and only YAML engine, so the `--engine` flag
+and the runtime backend seam behind it are gone.
+
+### Added
+
+- **`yqr validate [--strict] FILES...` -- YAML correctness checking with
+  compiler-style diagnostics.** yqr's first subcommand closes the editing
+  loop: after a surgical, hand-made, or agent-made edit, one command answers
+  whether a file is still correct YAML. A pass certifies that every document
+  parses *and* that the parsed documents reproduce the input byte-for-byte
+  (the fidelity invariant). Failures are rustc-style diagnostics on stderr
+  with stable codes (`Y001` syntax, `Y002` stream integrity, `Y003`
+  non-UTF-8 input, `Y101` duplicate key under `--strict`, `Y102`
+  stringified-key collision), a `file:line:column` location whenever a
+  position is known, the offending source line with a caret, and a
+  suggested fix. `--strict` reports every duplicate mapping key in one run
+  -- nested, flow, quoted respellings, and duplicate `<<` merge keys
+  included -- with the positions of both occurrences (found by walking the
+  lossless CST). A file containing unresolved merge-conflict markers gets a
+  dedicated hint anchored at the first marker, end-of-input errors clamp
+  their source window to the last line, and CR-only line endings render
+  correctly. Exit codes: 0 all inputs valid, 1 validation findings, 5 an
+  input could not be read (highest wins; every input is checked in one
+  run). Stdin is explicit (`-`, at most once); an empty file list is a
+  usage error rather than a silent stdin fallback, so a CI gate whose glob
+  expands to nothing fails loudly. clap's auto-generated `help` subcommand
+  is disabled: `yqr help` keeps failing as an invalid filter instead of
+  becoming a success, and `validate` stays the only word the subcommand
+  namespace claims. The library gains the `validate` module (`check_str` /
+  `encoding_diagnostic` / `render`).
+
+### Removed
+
+- **The `--engine` flag is gone.** yqr has settled on noyalib as its one and
+  only YAML engine, so there is no backend to select: byte-preserving reads
+  and surgical edits always run on noyalib's lossless CST. `--engine noyalib`
+  now fails argument parsing instead of being accepted as a no-op; drop the
+  flag from any invocation that used it (the behavior is unchanged without
+  it). The experimental `skald` backend is retired with the seam: its name is
+  no longer recognized anywhere.
+- The library API lost `fidelity::BackendId`; `fidelity::open`,
+  `fidelity::run`, `fidelity::run_ast`, and `fidelity::write::apply` no
+  longer take a backend argument.
+
+### Changed
+
+- The YAML engine was upgraded from noyalib 0.0.14 to **0.0.17** (loader-parity
+  fixes and a key-collision guard in 0.0.15, a build fix and MSRV 1.86 in
+  0.0.16, a lockstep republish in 0.0.17). The CST edit API is unchanged, so
+  the mutation-surface gaps yqr tracks upstream still stand.
+- `clap` was upgraded from 4.6.1 to 4.6.4, and the remaining 29 transitive
+  dependencies were refreshed (serde 1.0.229, serde_json 1.0.151, regex
+  1.13.1, libc 0.2.189, zerocopy 0.8.55, and friends). `cargo audit` reports
+  no advisories across the resulting 94-crate graph.
+- The pinned Rust toolchain was updated from 1.97 to 1.97.1 (point release;
+  no MSRV change -- `rust-version` stays 1.97).
+
+## [0.4.0] - 2026-07-11
+
+The fidelity write tier arrives: surgical, byte-preserving edits that change only
+the bytes a filter targets and leave every other byte -- comments, indentation,
+quoting, key order -- untouched, or refuse. In the same release, byte-preserving
+reads become the default and the classic re-serializing pipeline moves behind
+`--normalize`.
+
+### Added
+
+- **Write tier: surgical value edits.** yqr can now mutate a document through the
+  fidelity engine, changing only the targeted bytes: assignment `.a.b = <rhs>`
+  (scalar literal or a `.`-rooted path), append `.xs += <item>`, new-key assign
+  `.a.new = <rhs>`, and `del(.a.b)`. Each edit passes through the engine's
+  re-parse guard -- an edit that would restructure the document is refused
+  (exit 5) rather than emitted, and scalar writes are quoted to match the
+  neighbouring style. A filter is either a read-only query or a single mutation;
+  mixing them is a parse error.
+- **`-i` / `--in-place` flag** writes the mutated document back to the input file
+  atomically (temp file + rename, `fsync` before rename, symlinks followed,
+  owner-only temp permissions). Using `-i` with stdin or with a read-only filter
+  is an error, diagnosed before any input is read. Without `-i`, the mutated
+  document is printed to stdout (byte-exact except the edit).
+- **Structural delete** of multi-line and nested block entries (e.g.
+  `del(.spec.template)`), which the single-line delete path rejects. Flow-style
+  and sole-entry deletes remain refused with a clear message.
+- **`--normalize` / `-N` flag** for the classic re-serializing pipeline: it
+  drops comments and canonicalizes scalars (e.g. `007` becomes `7`) -- the
+  previous default behaviour.
+
+### Changed
+
+- **Byte-preserving reads are now the default.** `yqr '.' file.yaml` reproduces
+  the input byte-for-byte -- comments, quoting, indentation, scalar spellings,
+  and line endings survive -- with no flag. Untouched nodes are emitted as their
+  original source bytes; computed, absent, and unaddressable nodes fall back to
+  typed rendering per node.
+- **`--engine` now selects the backend for the default (byte-preserving) read.**
+  Under `--normalize` the classic pipeline runs and the engine choice has no
+  observable effect beyond the up-front name validation.
+
+### Breaking
+
+- **`--preserve` / `-p` removed.** Byte preservation is now the default, so the
+  flag is gone. Replace `yqr -p '.' f` with `yqr '.' f`; use
+  `yqr --normalize '.' f` for the old re-serializing behaviour.
+
+### Security
+
+- Bumped the transitive `crossbeam-epoch` pin `0.9.18 -> 0.9.20` to clear
+  RUSTSEC-2026-0204. It reaches the build only through the `criterion`
+  dev-dependency (benchmarks), so released binaries were never affected; the
+  change is lockfile-only.
+
+## [0.3.0] - 2026-07-10
+
+Byte/comment preservation becomes its own flag, decoupled from backend
+selection.
+
+### Added
+
+- **`--preserve` / `-p` flag** for byte/comment-preserving reads. It turns on
+  fidelity mode with the default backend, so `yqr -p '.' file.yaml` reproduces
+  the input byte-for-byte — comments, quoting, indentation, and line endings
+  survive.
+- A runnable demo showcase under `docs/content/demo/` (`yqr-demo.sh` plus sample
+  `deploy.yaml` / `config.yaml` inputs) walking through navigation, iteration,
+  pipes, raw output, and preserve mode.
+
+### Changed
+
+- **`--engine` now selects the backend parser only** and no longer implies
+  preservation. It picks *which* library performs a `--preserve` read (default
+  `noyalib`); *whether* to preserve is `--preserve`'s job. Without `--preserve`,
+  `--engine` has no observable effect.
+
+### Breaking
+
+- `--engine noyalib '.'` no longer preserves bytes on its own — use
+  `--preserve` (optionally with `--engine noyalib` to name the backend
+  explicitly). This decouples backend choice from fidelity mode.
+
+## [0.2.1] - 2026-07-10
+
+The first crates.io release. yqr consolidates on a single YAML engine, which
+removes every git dependency and makes the crate publishable.
+
+### Changed
+
+- **One YAML engine.** yqr now uses noyalib for both the standard pipeline and
+  byte-preserving reads. `--engine noyalib` (the fidelity engine) still emits
+  untouched nodes as their original source bytes — comments, quoting,
+  indentation, and line endings survive, and the identity filter reproduces the
+  input byte-for-byte. It is always built in, so there are no backend build
+  features to toggle.
+- yqr now has its own value type instead of re-exporting the YAML library's, so
+  the parser is a swappable internal detail. Library users of `yqr::Value` get a
+  stable type that does not change when the engine does.
+- Minimum supported Rust version is now 1.97 (the pinned toolchain was updated
+  from 1.96).
+- **Non-string mapping keys.** Integer, boolean, and composite keys (`1:`,
+  `? [a, b]:`) are preserved byte-for-byte via `--engine noyalib`, but the
+  standard re-serializing pipeline now renders them as strings, and a document
+  that mixes keys colliding as strings (`1` and `"1"`) is rejected rather than
+  kept distinct. This is rare in typical Kubernetes/CI/config documents — and
+  GitHub Actions' `on:` is unaffected (it stays the string `on`).
+
+### Removed
+
+- The `rust-yaml` fidelity backend and the `--engine rust-yaml` option, along
+  with the `backend-noyalib` / `backend-rust-yaml` build features and the
+  `--no-default-features` minimal build. The fidelity engine is now always
+  compiled in.
+
+### Notes
+
+- First release published to crates.io — install with `cargo install yqr`. (The
+  0.2.0 tag below was a GitHub-only release that predates this consolidation.)
+- `--engine` remains pluggable; an experimental `skald` engine is recognized for
+  future comparison but is not built into the released binary.
+
+## [0.2.0] - 2026-07-08
+
+### Added
+
+- Fidelity engines for byte-preserving reads, selectable at runtime with the
+  new `--engine` flag. With `--engine noyalib` or `--engine rust-yaml`,
+  untouched nodes are emitted as their original source bytes — comments,
+  quoting, indentation, and line endings survive, and the identity filter
+  reproduces the input byte-for-byte.
+- Both fidelity backends now ship in the default build, so `--engine noyalib`
+  and `--engine rust-yaml` are switchable in one binary without recompiling.
+  Build with `--no-default-features` for a minimal binary that carries neither
+  backend (the standard re-serializing pipeline still works; `--engine` then
+  reports the backend as unavailable).
+- A backend-agnostic fidelity round-trip harness (`tests/fidelity.rs`) that
+  checks the `parse -> emit == input` property across backends, one case per
+  formatting dimension (comments, blank lines, indent, quote/block/flow style,
+  CRLF, BOM, multi-doc, anchors, numbers, key order).
+- A shared real-world corpus (`tests/corpus/`) driving both the validation
+  suite and the Criterion benchmarks from one case table (Kubernetes, GitHub
+  Actions, Docker Compose, Helm, application config).
+- Kubernetes usage guide in the documentation.
+
+### Changed
+
+- An unknown `--engine` value is now diagnosed before any input is read, so a
+  typo is reported immediately instead of after consuming stdin or the file.
+
+## [0.1.1] - 2026-06-21
+
+### Changed
+
+- Packaging only: dev-only files (`.agent/`, `.github/`, `specs/`, `AGENT.md`)
+  are now excluded from the published crate. No functional or API changes —
+  the compiled code is identical to 0.1.0; the source tarball is just slimmer
+  (21 files vs 36).
+
+This release supersedes 0.1.0, which has been yanked from crates.io.
+
+## [0.1.0] - 2026-06-21
+
+### Added
+
+- Initial release (M0 foundation): a jq-style processor for YAML, operating
+  natively on YAML via `rust-yaml` (no JSON round-trip).
+- Filters: identity `.`, field access (`.foo`, `.a.b`, `.["k"]`), array
+  indexing (`.[n]`, negative from end), iteration (`.[]`), pipe (`a | b`),
+  and optional error suppression (`f?`).
+- CLI with `--raw-output`, file/stdin input, and jq-style exit codes.
+- `--version` reports the git commit, build timestamp, and target triple.

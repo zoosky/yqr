@@ -36,6 +36,10 @@ Package:   https://crates.io/crates/yqr
 
 - [yqr demo](/yqr/demo): A runnable script that walks yqr's query and edit surface against sample files you can inspect afterwards.
 
+## Changelog
+
+- [Changelog](/yqr/changelog): All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to…
+
 ## Optional
 
 - [RSS Feed](/yqr/feed.xml): Subscribe to content updates

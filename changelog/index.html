@@ -1,0 +1,1518 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.">
+
+
+<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;changelog">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Changelog">
+<meta property="og:description" content="All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;changelog">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Changelog">
+<meta name="twitter:description" content="All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="8aaddd1516">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-09-23",
+  "description": "All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.",
+  "inLanguage": "en",
+  "name": "Changelog",
+  "url": "https://zoosky.github.io/yqr/changelog",
+  "wordCount": 8841
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/changelog",
+      "name": "Changelog",
+      "position": 2
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            
+            <button id="nav-menu-toggle" class="nav-menu-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path class="nav-menu-bars" d="M4 7h16M4 12h16M4 17h16" />
+                    <path class="nav-menu-close" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <ul id="nav-menu">
+                
+                
+                
+                
+                
+                 <li><a href="/yqr/changelog"  class="active" >Changelog</a></li>
+                    
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Changelog</span>
+</nav>
+
+
+    <h1>Changelog</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">45 min read</span>
+                </div>
+                
+
+                
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-2">
+            <a href="#unreleased">[Unreleased]</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-8-1-2026-09-23">[0.8.1] - 2026-09-23</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed">Changed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#fixed">Fixed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#known-issue">Known issue</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-8-0-2026-09-07">[0.8.0] - 2026-09-07</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-1">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#fixed-1">Fixed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-1">Changed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-7-2-2026-08-26">[0.7.2] - 2026-08-26</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#fixed-2">Fixed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-2">Changed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-2">Added</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-7-1-2026-08-24">[0.7.1] - 2026-08-24</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#fixed-3">Fixed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-7-0-2026-08-23">[0.7.0] - 2026-08-23</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-3">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#breaking">Breaking</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#fixed-4">Fixed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-6-0-2026-08-20">[0.6.0] - 2026-08-20</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-4">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#breaking-1">Breaking</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-3">Changed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-5-1-2026-08-14">[0.5.1] - 2026-08-14</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#fixed-5">Fixed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-4">Changed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-5-0-2026-07-29">[0.5.0] - 2026-07-29</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-5">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#removed">Removed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-5">Changed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-4-0-2026-07-11">[0.4.0] - 2026-07-11</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-6">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-6">Changed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#breaking-2">Breaking</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#security">Security</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-3-0-2026-07-10">[0.3.0] - 2026-07-10</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-7">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-7">Changed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#breaking-3">Breaking</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-2-1-2026-07-10">[0.2.1] - 2026-07-10</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-8">Changed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#removed-1">Removed</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#notes">Notes</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-2-0-2026-07-08">[0.2.0] - 2026-07-08</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-8">Added</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-9">Changed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-1-1-2026-06-21">[0.1.1] - 2026-06-21</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#changed-10">Changed</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-1-0-2026-06-21">[0.1.0] - 2026-06-21</a>
+        </li>
+    
+        <li class="toc-level-3">
+            <a href="#added-9">Added</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <p>All notable changes to <code>yqr</code> are documented here. The format is based on
+<a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
+<a href="https://semver.org/">Semantic Versioning</a>.</p>
+<h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<h2 id="0-8-1-2026-09-23">[0.8.1] - 2026-09-23<a class="heading-anchor" href="#0-8-1-2026-09-23" aria-label="Link to this section"></a></h2>
+<p>Two new kinds of write, and fixes for two writes in 0.8.0 that damaged
+the file they edited.</p>
+<p>The damage is the reason to upgrade. In 0.8.0, <code>.k = 5</code> over an indented
+block wrote YAML that PyYAML and Psych reject, yet yqr exited 0 and
+<code>yqr validate</code> rejected yqr’s own output. A multi-line write into a CRLF
+file mixed its line endings. Neither is something a YAML parser complains
+about, which is how both reached a release. Both writes now produce what
+you would have typed, and every value assignment is checked against the
+document it started from.</p>
+<p>The new writes: a mapping or a sequence copied from the document can be
+the right-hand side of <code>=</code>, <code>|=</code> and <code>+=</code>, and a scalar can replace a
+block collection. The rest are refusals that now name the real reason,
+and writes that were refused and now go through. The library API is
+unchanged.</p>
+<h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>A mapping or a sequence can be the right-hand side of a write.</strong>
+<code>.m.new = .defaults</code> adds a nested block, <code>.xs += .item</code> appends one as
+a sequence item, and <code>.k = .other</code> or <code>.k |= to_entries</code> replaces a
+collection that is already there. The value is copied from the
+document, since the filter grammar has no collection literal. Every
+byte outside the edit is unchanged, and the block is spelled at the
+destination: quoting follows the site and comments inside the copied
+value do not travel, the same rule <code>to_entries</code> output follows.</li>
+</ul>
+<h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>A scalar can replace a block collection.</strong> <code>.metadata.labels = null</code>
+over a <code>labels:</code> block was refused, with a remedy that moved the key to
+the end of its mapping. It now writes <code>labels: null</code> on the key’s own
+line, where you would have typed it, and the block’s lines go with the
+old value. A comment on the key’s line stays. Inside a value that
+aliases share, the write goes to the anchor’s definition and every alias
+sees it, as a scalar written there already did. A block that carries an
+anchor or a tag is still refused, now naming it, because the scalar
+would drop it.</li>
+<li><strong>Value assignment is checked against the document it started from.</strong>
+An <code>=</code> or <code>|=</code> write that would leave a block mapping’s value at its
+key’s own column, or add a bare line feed to a wholly CRLF file, is
+refused rather than emitted. The insertion, delete, rename, comment and
+reorder paths keep the guards they already had.</li>
+<li><strong>noyalib 0.0.41 → 0.0.51.</strong> 0.0.42 and 0.0.43 change no behavior:
+every source file of the published crate is byte-identical to 0.0.41’s.
+0.0.44 and 0.0.45 carry the engine fixes behind the comment and
+key-insertion entries under Fixed. 0.0.46 through 0.0.51 change nothing
+yqr reads or writes – every corpus, CLI and fidelity case is
+byte-identical – and their new features are additive and unused here.
+From 0.0.46 the engine’s single-document entry point refuses a file
+holding more than one document; yqr reads every document through the
+stream entry point, so multi-document files are unaffected.</li>
+</ul>
+<h3 id="fixed">Fixed<a class="heading-anchor" href="#fixed" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>Writing a scalar over a block collection no longer damages the
+file.</strong> <code>.k = 5</code> where <code>k:</code> held an indented block emitted the value at
+the key’s own column, which this engine reads back but PyYAML and
+Psych reject. It now writes <code>k: 5</code>, as described under Changed. A flow
+collection (<code>k: {a: 1}</code>) and a sequence item were never affected.</li>
+<li><strong>A multi-line write no longer gives a CRLF file mixed line endings.</strong>
+Assigning a multi-line string, or a collection that spans more lines
+than the one it replaces, to a document whose lines end <code>\r\n</code> wrote
+the replacement’s own lines with a bare <code>\n</code>. The emitted lines now end
+the file’s way. Inserting a key and appending an item were never
+affected.</li>
+<li><strong>Removing an anchor that an alias still uses is refused by name.</strong>
+<code>del(.k)</code>, or a scalar written over <code>k</code>, where <code>k</code>’s value defines <code>&amp;x</code>
+and <code>*x</code> appears later, was refused as an “unknown anchor” the file did
+not have. The message now names <code>&amp;x</code> and the line of the <code>*x</code> that
+needs it. When an earlier <code>&amp;x</code> exists, the alias would silently switch
+to it; that is refused the same way, where before it read as a generic
+structure change.</li>
+<li><strong>Assigning over an alias to a block gives the right reason.</strong>
+<code>.k = 5</code> over <code>k: *x</code> was refused as if <code>k</code> held a block that the write
+would under-indent. The refusal now says <code>k</code> is an alias, and to edit the
+anchor or replace the alias.</li>
+<li><strong>A comment above a key whose value is a block reads.</strong>
+<code>head_comment(.spec)</code> returned <code>null</code> for a comment directly above
+<code>spec:</code>, while the same comment above <code>spec: 1</code> read fine. It now reads
+whatever the value’s shape, and the same holds for a key whose value is
+an alias. Writing and deleting it work too: <code>head_comment(.spec) = "..."</code> puts the block above <code>spec:</code> at its indent. Before, adding one
+was refused when the block ran over several lines, and replacing or
+deleting an existing one was always refused. A comment above the
+block’s first child stays that child’s, and deleting the parent’s
+comment when it has none now says so instead of blaming a blank line.</li>
+<li><strong>A comment block separated from a block-valued entry by a blank line is
+now protected like any other.</strong> <code>head_comment(.spec) = "..."</code> over
+<code># section</code>, a blank line, then <code>spec:</code> wrote a second comment below the
+blank line. It is now refused, as it always was for a scalar-valued key:
+the separated block documents what precedes the entry.</li>
+<li><strong>Adding a key beneath a nested block no longer steals the next key’s
+comment.</strong> When the mapping’s last entry was a nested block collection
+followed by a comment, the new key was written below that comment, so a
+comment documenting the key after it ended up documenting the new one.
+The new key now stops at the last line the entry above it actually
+owns. Nothing was corrupted before — the value was right and no other
+byte moved, which is why nothing refused — but a <code>head_comment</code> read
+could tell the comment had changed hands, and now it does not.</li>
+<li><strong>A key can be added beside a <code>|+</code> block scalar.</strong> Adding a key to a
+mapping that <em>contains</em> an entry ending in a keep-chomped block scalar
+was refused, and the refusal named a <code>&lt;&lt;</code> merge the file did not have.
+The blank lines such a scalar keeps are part of its value, and they were
+being trimmed as layout; the write now succeeds and the scalar reads
+back unchanged.</li>
+<li><strong>An entry left empty can be deleted.</strong> <code>del(.k)</code> over <code>k:</code> with
+nothing after the colon answered “cannot locate its bytes”, while the
+same value written <code>k: null</code> deleted fine. The entry owns no value
+bytes, and the range every delete is derived from came from the value;
+it comes from the key token when there is no value, which is where the
+entry starts anyway. Every layout works: a trailing comment goes with
+the entry, an attached head comment goes with it, a blank-detached
+block and the next sibling’s comment stay, CRLF is preserved, and the
+sole entry of a block still leaves the collection written out. An
+empty sequence item works too. The one shape still refused, the sole
+empty item, says so in yqr’s words and names the edit that does work.</li>
+<li><strong>Commenting an entry left empty says why it cannot.</strong> The refusal was
+“the path does not resolve to a node”, which is the message for an
+entry that is not there at all. It now says nothing is written after
+the colon and names a value to write first. The refusal itself stands:
+the engine reports no comment at such a site and its removers would
+silently do nothing.</li>
+</ul>
+<h3 id="known-issue">Known issue<a class="heading-anchor" href="#known-issue" aria-label="Link to this section"></a></h3>
+<ul>
+<li>An entry whose value is an alias (<code>j: *x</code>) cannot be deleted or
+overwritten; every such write is refused. Nothing is corrupted. 0.8.0
+behaves the same.</li>
+</ul>
+<h2 id="0-8-0-2026-09-07">[0.8.0] - 2026-09-07<a class="heading-anchor" href="#0-8-0-2026-09-07" aria-label="Link to this section"></a></h2>
+<h3 id="added-1">Added<a class="heading-anchor" href="#added-1" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>Any mapping key is addressable, dotted ones included.</strong> A key holding
+<code>.</code>, <code>[</code>, <code>]</code> or <code>*</code> – the Kubernetes <code>app.kubernetes.io/name</code> style –
+could be read through <code>.["a.b"]</code> only, and every write to it was refused
+with “cannot address key”. Every operation now reaches it: assignment,
+inserting a new dotted key, <code>del</code>, <code>key(...)</code> in both directions,
+<code>line_comment</code> and <code>head_comment</code>, <code>swap</code> and <code>move</code> below it, and <code>-i</code>.
+The read emits the node’s own bytes, quotes included, where it used to
+fall back to the typed value. noyalib 0.0.33’s bracket-quoted path
+segments supply the engine side; yqr lowers every key through them.</li>
+<li><strong><code>."a.b"</code>, jq’s quoted field.</strong> The same step as <code>.["a.b"]</code>, at the
+head of a path and after any later dot:
+<code>.metadata.labels."app.kubernetes.io/name"</code>.</li>
+</ul>
+<h3 id="fixed-1">Fixed<a class="heading-anchor" href="#fixed-1" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong><code>validate</code> explains an alias that reaches into an earlier document.</strong>
+<code>b: *x</code> after a <code>---</code>, with <code>&amp;x</code> defined in the document before, was an
+“unknown anchor” with a hint about a similar anchor; the hint now says
+where that <code>&amp;x</code> appears in an earlier document and that anchors do not
+cross <code>---</code>. The position is right too: with noyalib 0.0.36 the parser
+counts every stream error from the start of the stream, so yqr’s
+re-parse that mapped document-relative positions back is gone.</li>
+<li><strong>Every finding in a stream names its document.</strong> The “in document N
+(starting at line L)” note used to be attached to a key collision only;
+a syntax error in the twelfth document of a manifest now says so too.
+The document count follows the parser’s rules for a <code>...</code> and for a
+directive or comment prologue, which the earlier note got wrong.</li>
+<li><strong><code>validate</code> points at the right line in a multi-document stream.</strong> A
+parse error in any document after the first was placed as if that
+document started the file: an unknown anchor on line 5 was reported at
+line 2, with the caret on the <code>---</code> marker. The parser locates an error
+relative to the document it was parsing; <code>validate</code> now maps that back
+onto the stream, and renders no position at all rather than a wrong one
+in the rare case where the two disagree on where a document starts. The
+“a similar anchor is declared at line N” hint is corrected the same
+way. Found by the fix below, which gave the one finding without a
+position one.</li>
+<li><strong>A key collision names its line.</strong> <code>error[Y102]</code> — <code>1:</code> and <code>"1":</code> in
+one mapping — used to carry no position, only a note naming the
+document in a stream. noyalib 0.0.33 locates the colliding key, so the
+finding points at it like every other syntax error; the note stays.</li>
+<li><strong><code>validate</code> no longer slows to a crawl on large files.</strong> Three of its
+checks visited every line or every mapping entry and recomputed
+something that cost the whole file each time, so the command was
+quadratic in document size: three seconds on a 530 KB values file in a
+release build, sixty times the read of the same file, and over two
+minutes in a debug build. Every check now stays local to what it
+inspects. Found by the new values corpus, the first validate input the
+test suite ever had above a kilobyte.</li>
+<li><strong>Merge-heavy values files parse everywhere.</strong> A file that reuses each
+anchor more than ten times — a Helm tenants file merging 22 anchored
+defaults into 221 entries, say — used to be refused outright by the
+parser’s alias-to-anchor ratio heuristic. Every path — the default
+byte-preserving read, <code>validate</code>, writes, and <code>--normalize</code> — now parses
+without that heuristic; the absolute limits that actually bound
+billion-laughs amplification (total alias expansions, events, nodes,
+scalar bytes) all remain. Landed in two steps: the classic pipeline
+first, then the rest on noyalib 0.0.31, whose configurable CST entry
+points yqr contributed for exactly this.</li>
+<li><strong>Assigning to an anchored scalar keeps the anchor.</strong> <code>.a = 2</code> over
+<code>a: &amp;x 1</code> used to delete the <code>&amp;x</code> definition — silently when nothing
+referenced it, and with an “unknown anchor” refusal about the alias the
+edit itself orphaned otherwise. The write now rewrites only the scalar,
+keeps the slot’s quote style, and every <code>*x</code> site reflects the new
+value. The same mechanism restores writes at an anchor definition
+(<code>.base.k = 9</code> under <code>base: &amp;m</code>), which noyalib 0.0.29 started refusing;
+that is the one remedy yqr’s own merged-key refusal names, so it has to
+work. Assigning to a tagged scalar is refused with the tag’s name.</li>
+</ul>
+<h3 id="changed-1">Changed<a class="heading-anchor" href="#changed-1" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>A rename to the empty key is no longer refused.</strong> It was refused
+because no filter could name the result; <code>.[""]</code> names it, so the
+addressable set stays closed under rename without the check.</li>
+<li><strong>Library API:</strong> <code>fidelity::Resolved::Unaddressable</code>, the
+<code>fidelity::Unaddressable</code> enum, <code>PathSeg::is_plain</code> and
+<code>PathSeg::key_is_plain</code> are gone. No path is unaddressable any more, so
+the arm had nothing left to report; <code>Resolved</code> has three arms.</li>
+<li><strong>noyalib 0.0.39 → 0.0.41.</strong> No observable change, measured: 0.0.40
+fixes the serializer’s spelling of a tag a <code>%TAG</code> directive resolves,
+and the CST formatter’s handling of a mapping used as an explicit key
+and of keep-chomped scalars. yqr lowers tags away at its value boundary
+and does not use the formatter, so every read, write, <code>validate</code>
+verdict and <code>--normalize</code> output compared against the 0.0.39 build is
+byte-identical, exit codes included. 0.0.41 has no core change.</li>
+<li><strong>noyalib 0.0.34 → 0.0.39.</strong> Diagnostics the parser now makes, passed
+through: <code>!!!int</code> (one bang too many) is refused with “did you mean
+<code>!!int</code>?” where it used to be accepted; a self-referential anchor
+(<code>a: &amp;x [*x]</code>) says an alias points at an anchor still being defined
+instead of calling it unknown; <code>!!int 0b101010</code> and <code>!!int 100_000_000</code>
+name the YAML 1.1 spelling and the 1.2 value to write. One parse
+change: a tab before <code>- </code> or <code>? </code> on the first line of a file is refused
+like it already was after a <code>---</code>, so <code>validate</code> reports it and a read
+fails; a tab before a flow node still parses. A keep-chomped block
+scalar of blank lines followed by <code>---</code> parses now. Re-serialized
+output and every write are unchanged.</li>
+<li><strong>noyalib 0.0.31 → 0.0.34.</strong> Re-serialized output (<code>--normalize</code>)
+changes for block scalars, values unchanged throughout: no blank line
+after a clip-chomped block scalar (<code>|</code>); a keep-chomped one (<code>|+</code>) no
+longer gains a newline per round trip; a block scalar as a sequence item
+indents its body one step past the dash instead of two; a string that
+is a single newline emits as <code>|+</code> with one empty line instead of a <code>|</code>
+that read back empty. Byte-preserving reads and writes never re-emit,
+so they are unaffected. The parser makes fewer allocations per mapping
+key. An unterminated verbatim tag (<code>!&lt;</code> with no <code>&gt;</code>) is refused instead
+of being read as a tag name.</li>
+<li><strong>noyalib 0.0.28 → 0.0.31.</strong> Beyond the fixes above: the emitter drops
+quotes a plain scalar does not need (re-serialized output such as
+<code>--normalize</code> spells <code>"6.7.0-RC.5-2eb4505e"</code> unquoted; values are
+unchanged), a scalar now writes over a flow collection value such as
+<code>{}</code> (block collections already accepted it), and <code>--normalize</code> over a
+multi-document stream keeps evaluating the first document — an empty
+stream is now refused with “the stream is empty” instead of reading as
+<code>null</code>.</li>
+</ul>
+<h2 id="0-7-2-2026-08-26">[0.7.2] - 2026-08-26<a class="heading-anchor" href="#0-7-2-2026-08-26" aria-label="Link to this section"></a></h2>
+<p>One fix in the tool, one in its packaging, and a documentation pass that
+should have happened four releases ago.</p>
+<p>The fix is <code>+=</code> explaining itself when it declines instead of blaming the
+file. The packaging one is why the crates.io page finally has links to the
+guide: <code>homepage</code> and <code>documentation</code> were never set, so the only route off
+that page was the repository.</p>
+<p>The documentation pass is the one worth reading about, because it says
+something about the rest. Every console block on every page was re-run
+against the binary. Four pages promised something yqr does not do – among
+them a <code>validate</code> snippet that exits 2, and a front page still telling
+visitors arithmetic was unavailable nine days after it shipped.</p>
+<h3 id="fixed-2">Fixed<a class="heading-anchor" href="#fixed-2" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong><code>+=</code> explains itself when it declines.</strong> Pointed at anything that is not a
+sequence, it used to report a <em>“YAML parse error”</em> over a file that parsed
+perfectly and name <code>swap_items</code>, an internal belonging to the reorder path,
+to someone who had asked to append. Now it says what <code>+=</code> does, what the
+path actually holds, and what to use instead – <code>|=</code> to compute a new value
+in place of a scalar, <code>=</code> to fill in a blank, assignment to grow a mapping.
+The suggestion is only ever one that works: only a number is offered
+<code>(. + 1)</code>, because that is a type error on a string.</p>
+<p>Appending to an <em>empty</em> sequence used to advise <code>set</code> with a fragment, which
+is not something the yqr CLI has. It now explains the real limit: a new item
+follows the indentation of the one above it, so there has to be one.</p>
+</li>
+<li>
+<p><strong>Four documentation pages promised something yqr does not do.</strong> All found
+by running the pages rather than reading them. <code>validate</code> was documented as
+falling back to stdin when you omit the file – it exits 2, deliberately, so
+a validation gate cannot report “all valid” over an empty file list. The
+home page listed arithmetic as unavailable and called a seven-row table “the
+whole grammar” while its own recipes used bracket access and its own
+examples used <code>=</code>, <code>+=</code> and <code>del</code>. The Kubernetes guide showed a
+<code>head_comment</code> write that is refused. The fidelity guide read two fields
+that were not in the file it had just shown.</p>
+</li>
+</ul>
+<h3 id="changed-2">Changed<a class="heading-anchor" href="#changed-2" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>crates.io links the guide.</strong> <code>homepage</code> and <code>documentation</code> are set, so
+the crate page points at the documentation site and the API docs rather than
+only at the repository. Aggregators read the same fields.</li>
+</ul>
+<h3 id="added-2">Added<a class="heading-anchor" href="#added-2" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>A page for people arriving from jq</strong> (<code>/guide/from-jq</code>). Which idioms
+transfer unchanged, the one operator that means something different (<code>+=</code>
+appends to a sequence here; it is addition in jq), and what each tool can do
+that the other cannot.</li>
+</ul>
+<h2 id="0-7-1-2026-08-24">[0.7.1] - 2026-08-24<a class="heading-anchor" href="#0-7-1-2026-08-24" aria-label="Link to this section"></a></h2>
+<p>Three fixes and no new surface. Two arrive with the YAML engine moving to
+noyalib 0.0.28 – both of them defects yqr reported, one fixed by yqr’s own
+commit upstream – and between them they close the last two bugs yqr had open
+against that engine. The one worth upgrading for is <code>validate</code>, which reported
+an error on valid YAML whenever a file ended without a trailing newline: a
+command whose whole job is to answer “is this file correct” was answering no
+about files two reference implementations accept.</p>
+<p>The third fix is cosmetic but had been wrong in every published binary:
+<code>yqr --version</code> printed an empty commit hash when installed from crates.io.</p>
+<h3 id="fixed-3">Fixed<a class="heading-anchor" href="#fixed-3" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>You can fill in a blank value.</strong> A key written with nothing after it –
+<code>digest:</code> – is an implicit null. It has always read as <code>null</code>, but writing
+one refused with <em>“path not found”</em>, naming a path the same command could
+print. Now it writes:</p>
+<pre><code class="language-console">$ yqr '.digest = "sha256:9f0a"' image.yaml
+</code></pre>
+<p>The same holds for an empty <code>-</code> item in a sequence. If the line carries a
+trailing comment, the value lands <strong>before</strong> it – <code>a:   # todo</code> becomes
+<code>a: 1   # todo</code> – so a fill-in never comments the value out.</p>
+</li>
+<li>
+<p><strong>A file that ends without a newline is read correctly.</strong> A <code>:</code> at the very
+end of the input was not treated as a mapping indicator, so <code>a:</code> loaded as
+the string <code>"a:"</code> and <code>a: 1\nb:</code> failed to parse at all – the same document
+one byte apart, read two different ways. Worst of the three faces was
+<code>validate</code>, which reported <code>error[Y001]</code> on valid YAML. All three are fixed:
+the blank value reads as <code>null</code>, its siblings read normally, and <code>validate</code>
+accepts the file. Byte-for-byte output was never affected, and a file with no
+trailing newline still comes back without one.</p>
+<p>Both fixes arrive with the YAML engine moving to noyalib 0.0.28. yqr reported
+both and wrote the first fix upstream.</p>
+</li>
+<li>
+<p><strong><code>yqr --version</code> names the commit it was built from, even when you
+installed it from crates.io.</strong> It used to print an empty pair of
+parentheses – <code>yqr 0.7.0 (, built ...)</code> – because the build script asked
+<code>git</code> for the commit and never checked whether <code>git</code> had succeeded. Outside
+a checkout it exits 128 with an empty stdout, so the “unknown” fallback
+never fired. It reads the commit Cargo records in the packaged crate
+instead, so an installed binary and a local build now report the same hash.</p>
+</li>
+</ul>
+<h2 id="0-7-0-2026-08-23">[0.7.0] - 2026-08-23<a class="heading-anchor" href="#0-7-0-2026-08-23" aria-label="Link to this section"></a></h2>
+<p>Editing computes. Until now a filter could say what a value should <em>become</em>,
+but not what it should become <em>relative to what it was</em> – the Kubernetes
+guide named the gap outright: “you cannot say ‘increment the replica count’;
+you say what it should become”. <code>|=</code> and arithmetic close it.</p>
+<p>The other half of the release is the write tier keeping its own promise. Four
+fixes come from one thread pulled through <code>yqr '.n = .n'</code>: an assignment whose
+value is already in the file was re-spelling the scalar, turning <code>0640</code> into
+<code>640</code> on the very example the fidelity guide leads with. Guarding that turned
+up a second defect, guarding <em>that</em> turned up a third, and each was found by
+the work that closed the one before.</p>
+<p>Five more arrive through the YAML engine, every one of them a defect yqr filed
+upstream and most of them fixed by yqr’s own commits there.</p>
+<h3 id="added-3">Added<a class="heading-anchor" href="#added-3" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>Compute a new value from the old one: <code>|=</code>.</strong> <code>=</code> writes what you tell it;
+<code>|=</code> runs a filter on the value already there and writes the result. The
+limitation the Kubernetes guide named – <em>“you cannot say ‘increment the
+replica count’; you say what it should become”</em> – is gone:</p>
+<pre><code class="language-console">$ yqr -i '.spec.replicas |= (. + 1)' deploy.yaml
+</code></pre>
+<p>Inside the filter, <code>.</code> is the value at the path, not the document.</p>
+</li>
+<li>
+<p><strong>Arithmetic: <code>+ - * / %</code>,</strong> with the usual precedence and parentheses,
+usable in any filter rather than only on the right of <code>|=</code>.</p>
+<p><strong>Numbers keep their type.</strong> <code>replicas: 3</code> doubled is <code>6</code>, never <code>6.0</code>, and
+a division becomes a fraction only when it genuinely is one – <code>4 / 2</code> is
+<code>2</code>, <code>3 / 2</code> is <code>1.5</code>. That is the same rule that keeps <code>0640</code> from becoming
+<code>640</code> on a read. An integer result too large for 64 bits is an error rather
+than a silent widening to a float, because widening is exactly the precision
+loss the rule prevents.</p>
+<p><code>+</code> also concatenates strings. Mixing a string and a number is refused,
+naming both types, rather than coerced.</p>
+</li>
+<li>
+<p><strong><code>to_entries</code>: enumerate a mapping without losing the keys.</strong> Iterating a
+mapping gives you its <em>values</em>, so on the most ordinary YAML layout there is
+– a mapping of named things – yqr could produce the data and not say what
+it was about. <code>to_entries</code> turns the mapping into a list of <code>{key, value}</code>
+pairs, so one filter carries both halves:</p>
+<pre><code class="language-console">$ yqr -r '.services | to_entries[] | .key' compose.yaml
+web
+db
+</code></pre>
+<p>It takes its input from the pipe rather than wrapping a path, so it is
+<code>&lt;path&gt; | to_entries</code>; <code>to_entries[]</code> streams the pairs. <code>key</code> and <code>value</code>
+are jq’s field names, kept so the shape transfers. Pairs come out in <strong>your
+file’s order</strong>, never sorted – jq sorts object keys, and here that
+difference is load-bearing rather than cosmetic.</p>
+<p>The word costs no reserved identifier: every yqr path starts with <code>.</code>, so
+<code>.to_entries</code> still reads a field called <code>to_entries</code>.</p>
+<p>Because the pairs are computed, they exist in no file: the output is
+normalized rather than byte-preserved, and every write form (<code>=</code>, <code>+=</code>,
+<code>del</code>) is refused at parse with the reason. <code>from_entries</code> is deliberately
+absent until a filter can <em>build</em> pairs, which needs object construction.</p>
+<p>There are now two ways to reach a key, and they differ exactly where fidelity
+does: <code>key(...)</code> gives you the token from your file, quotes included, while
+<code>to_entries</code> gives the decoded string. <code>-r</code> collapses the difference, since
+asking for raw output is asking for the value rather than the spelling.</p>
+</li>
+</ul>
+<h3 id="breaking">Breaking<a class="heading-anchor" href="#breaking" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>Assigning to an alias or a merged-in entry now exits 5, where a matching
+value used to exit 0.</strong> This is a bug fix with a script-visible edge: the
+guard that skips a write when the value already matches ran <em>ahead</em> of the
+checks that do not depend on the value at all, so <code>.b = 1</code> on <code>b: *x</code> exited
+0 with the alias untouched and nothing said, while <code>.b = 2</code> on the same file
+was refused. The edit yqr declined to make looked like one it had made, and
+a later change to the anchor would have moved <code>b</code> with it.</p>
+<p>Entries reached through an alias or a <code>&lt;&lt;</code> merge are now refused whatever
+value is assigned, including an alias-valued item of a sequence. A pipeline
+that relied on the old silence will start failing – correctly, since the
+edit was never performed. A no-op on an <em>ordinary</em> entry is still a no-op,
+including on one that carries an anchor.</p>
+</li>
+</ul>
+<h3 id="fixed-4">Fixed<a class="heading-anchor" href="#fixed-4" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>An assignment that changes nothing no longer re-spells the value.</strong>
+<code>.n = .n</code> on <code>n: 0640</code> wrote <code>n: 640</code>, and a <code>1.10</code> version pin came back
+<code>1.1</code>. yqr writes a scalar from its parsed value, and that value cannot
+carry the spelling – so an edit that changed nothing still rewrote the
+line, which is the one thing yqr promises never to do. A write whose new
+value is already the value in the file is now skipped, for both <code>=</code> and
+<code>|=</code>. Quoted strings were never affected.</p>
+</li>
+<li>
+<p><strong>Writing a comment’s own text back no longer re-spells the line.</strong> The same
+rule, on comments. <code>a: 1 #tight</code> and <code>a: 1 # tight</code> carry the same comment,
+and the text is all a comment edit is given, so writing <code>tight</code> back
+respaced a line that had not changed. Reading a comment and feeding it
+straight back is now a no-op, as it reads.</p>
+</li>
+<li>
+<p><strong>A write to a merged-in key says what is actually wrong.</strong> <code>yqr '.c.k'</code>
+printed a value and <code>yqr '.c.k = 9'</code> on the same file answered <em>“path not
+found: c.k”</em> – one tool contradicting itself. A key that a <code>&lt;&lt;</code> merge or an
+alias brings into view is still refused, because the mapping has no entry
+there to write, but the message now says so and names the two ways out:
+assign where the key is defined, or add an explicit entry to override it.</p>
+</li>
+<li>
+<p><strong>Deleting from a wrapped flow collection no longer leaves a blank line.</strong>
+<code>del(.ports[0])</code> on a <code>ports:</code> list broken across lines removed the member
+and its separator but left the line’s indentation behind, so a line that had
+no trailing whitespace ended up with two spaces of it. The result always
+loaded correctly – what it broke was the diff, which <code>git diff --check</code> and
+<code>yamllint</code> reject. The member now takes its whole line when nothing else is
+on it; a line still holding an opening or closing bracket, a sibling member,
+or a comment keeps standing. Arrives with the YAML engine moving to noyalib
+0.0.26, and is yqr’s own contribution upstream.</p>
+</li>
+<li>
+<p><strong>A flow collection wrapped over several lines can be read at all.</strong> A
+<code>ports:</code> or <code>args:</code> list broken across lines for width – ordinary YAML that
+PyYAML, Psych and libyaml all accept – was refused outright, so no filter
+ran and <code>validate</code> called the file unreadable. The engine’s rule that flow
+content must be indented past the surrounding block was reaching the closing
+<code>]</code> or <code>}</code>, which is an indicator rather than content and cannot be
+ambiguous with anything. Under-indented flow <em>content</em> is still refused,
+which is what the rule is for.</p>
+</li>
+<li>
+<p><strong>A key can be added next to a Kubernetes-style dotted one.</strong>
+<code>.metadata.labels.tier = "web"</code> was refused on any mapping whose keys all
+contain a <code>.</code> – the standard <code>app.kubernetes.io/</code> label block – and the
+message blamed a <code>&lt;&lt;</code> merge the file did not contain. The engine picked the
+indentation anchor by composing a candidate key back into a path string and
+re-parsing it, which no dotted key survives; it now reads the anchor from the
+span tree, so a key’s spelling no longer decides whether one can be inserted
+beside it. Changing or deleting a dotted key is still refused, and now says
+why.</p>
+</li>
+<li>
+<p><strong>An inserted value is spelled like its neighbours, not like the file.</strong> A
+new key or an appended item took the document’s <em>dominant</em> quote style, and
+the vote counted only quoted scalars against each other – so one
+<code>value: "30"</code> in an env block made every later insertion quoted, however
+plain the lines around it. The vote is now scored at the edit site. A quoted
+neighbour still carries, which is what the behaviour is for.</p>
+</li>
+<li>
+<p><strong>An empty collection left by a delete is indented past its key.</strong> Removing
+the sole item of a block sequence written at its key’s own column – the
+GitHub Actions <code>on:</code> / <code>- push</code> idiom – produced <code>on:</code> / <code>[]</code> on the engine’s
+own delete path, which both PyYAML and Psych reject. yqr’s delete already
+wrote the indented form; the engine now agrees, and <code>validate</code> continues to
+report the shape as <code>Y103</code> wherever it comes from.</p>
+<p>All four fixes arrive with the YAML engine moving to noyalib 0.0.25. Three
+of them are yqr’s own contributions upstream.</p>
+</li>
+<li>
+<p><strong>The published crate no longer carries the website.</strong> <code>cargo install yqr</code> and
+<code>cargo add yqr</code> downloaded yqr’s rendered documentation site along with the
+source – 84 files and 340 KB, 40% of the 0.6.0 package, the largest single
+file being a social-card PNG. The <code>exclude</code> list in <code>Cargo.toml</code> predates the
+site and never gained <code>docs/</code>; the agent guide shipped too, because the list
+names <code>AGENT.md</code> and not the <code>CLAUDE.md</code> symlink pointing at it. Nothing was
+broken by it – the crate builds either way – but every download paid for it.
+0.6.0 itself cannot be corrected, since a published version is immutable. The
+release gate now fails when <code>cargo package --list</code> names a dev-only path, so
+this cannot come back quietly: the change that causes it is a docs-only one,
+which CI is configured to skip.</p>
+</li>
+</ul>
+<h2 id="0-6-0-2026-08-20">[0.6.0] - 2026-08-20<a class="heading-anchor" href="#0-6-0-2026-08-20" aria-label="Link to this section"></a></h2>
+<p>Editing reaches the parts of a file a path cannot name. A path names a <em>value</em>,
+so a key, the comment documenting an entry, and the order of a list were all out
+of reach – renaming a key meant deleting the entry and writing it back, which
+loses its position and its comments. This release adds <code>key(...)</code>,
+<code>line_comment(...)</code> / <code>head_comment(...)</code>, and <code>swap(...)</code> / <code>move(...)</code>; each
+rewrites exactly what it names and leaves the rest of the document
+byte-identical. <code>del</code> loses its last two refusals, <code>validate</code> gains a check for
+a value that is not indented past its key, and the YAML engine moves to noyalib
+0.0.24.</p>
+<h3 id="added-4">Added<a class="heading-anchor" href="#added-4" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>Rename a key: <code>key(.a.b) = "new"</code>.</strong> A path names a <em>value</em>, so until now
+there was no way to say “the key of this entry” – renaming meant deleting
+the entry and writing it back, which loses its position and its comments.
+<code>key(...)</code> wraps a path and names the key instead. The rename rewrites the
+key token and nothing else: the value keeps its spelling, the entry keeps
+its place in the mapping, and the comments above and beside it are
+untouched.</p>
+<p><code>key(.a.b)</code> also <em>reads</em> a key, and reads what the file says – a key
+written <code>"a"</code> comes back <code>"a"</code>, quotes included, because the read slices the
+document rather than echoing back the path you typed. <code>-r</code> unquotes it, as
+it does for a string value.</p>
+<p>Reads never fail a batch: a sequence item has no key, and neither does one
+that arrived through a <code>&lt;&lt;</code> merge, so both read <code>null</code>. Writing to those is
+refused with the reason, as is a rename that would collide with an existing
+sibling, or one to a name the path syntax could not address afterwards.</p>
+<p><code>key</code> is only a keyword directly before <code>(</code>, so <code>.key</code> still reads a field
+named <code>key</code> – along with <code>.swap</code>, <code>.move</code>, <code>.del</code> and the comment words
+reserved for later.</p>
+</li>
+<li>
+<p><strong>Edit a comment: <code>line_comment(...)</code> and <code>head_comment(...)</code>.</strong> The <code>#</code>
+after a value on its own line, and the block of comment lines above an
+entry. Both read, set, and delete:</p>
+<pre><code class="language-console">$ yqr -i 'line_comment(.spec.replicas) = "tuned for peak"' deploy.yaml
+$ yqr -r 'line_comment(.spec.replicas)' deploy.yaml
+tuned for peak
+</code></pre>
+<p>What you write is what you read back, leading spaces included. An
+authored <code>#note</code> reads as <code>note</code> and writes back as <code># note</code>, so the
+spacing is normalised the first time you touch it and stable after that.
+An empty body writes a bare <code>#</code>
+rather than removing – <code>del(...)</code> is how you remove, so both are
+reachable.</p>
+<p>Three cases are refused rather than guessed at, each because the obvious
+thing would be wrong: an entry whose value starts on the next line has no
+line of its own to comment (writing one would land it on the first child);
+a comment block separated by a blank line documents what came before it,
+not the entry below; and a comment block above a list item can be read but
+not edited. <code>foot_comment(...)</code> is refused with an explanation rather than
+a syntax error.</p>
+</li>
+<li>
+<p><strong>Reorder a list: <code>swap(...)</code> and <code>move(...)</code>.</strong> An ordering is the one thing
+a path cannot name – there is no path that means “third” – so it is a verb
+with arguments rather than a selector, and the arguments are separated by
+<code>;</code>:</p>
+<pre><code class="language-console">$ yqr -i 'swap(.jobs.build.steps; 0; 2)' ci.yaml
+$ yqr -i 'move(.jobs.build.steps; 0; -1)' ci.yaml
+</code></pre>
+<p><code>swap</code> exchanges two items and leaves everything between them alone; <code>move</code>
+takes one out and puts it back at the destination, shifting the rest.
+Negative indices count from the end, exactly as <code>.[-1]</code> does.</p>
+<p>Whole entries move, not just values: a step’s comment above it and its
+comment beside it both travel with the step, so reordering a workflow does
+not re-document it. Everything outside the two items is byte-identical –
+including spacing a re-emitting tool would tidy up.</p>
+<p>Inline lists (<code>ports: [80, 443]</code>) reorder too. An index outside the sequence
+and a path that names something other than a sequence are both refused with
+the reason, and under <code>-i</code> the file is left untouched.</p>
+<p><code>swap</code> and <code>move</code> are only keywords directly before <code>(</code>, so <code>.swap</code> and
+<code>.move</code> still read fields of those names.</p>
+</li>
+<li>
+<p><strong><code>del</code> now handles the last entry of a block, and items of inline
+collections.</strong> Both used to be refused with a message explaining why.</p>
+<p>Removing the last entry writes the collection out as empty rather than
+leaving the key with nothing under it – <code>spec:</code> on its own reads back as
+<em>null</em>, which is a type change rather than a removal, so <code>spec:</code> / <code>  {}</code>
+is what you get. A comment that documented the removed entry goes with it
+instead of being left behind describing an empty collection.</p>
+<p>For an inline collection like <code>ports: [80, 443]</code>, removing an item takes
+exactly one separator with it, so the result is never <code>[, 443]</code> or
+<code>[80, ]</code>.</p>
+</li>
+</ul>
+<h3 id="breaking-1">Breaking<a class="heading-anchor" href="#breaking-1" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>Library API: <code>ast::Mutation</code> changed shape</strong> for the new addressing forms.
+<code>Assign</code> and <code>Delete</code> now carry a <code>target: ast::Target</code> where they carried a
+path, since a mutation can address a key or a comment as well as a value;
+<code>Reorder</code> is a new variant, alongside the new <code>ast::ReorderOp</code> enum. Code
+that constructs or exhaustively matches <code>Mutation</code> needs updating; a value
+path is now <code>Target::Value(ast)</code>. The CLI is unaffected.</p>
+</li>
+<li>
+<p><strong><code>validate</code> catches a value that is not indented past its key (<code>Y103</code>).</strong></p>
+<pre><code class="language-console">$ yqr validate workflow.yaml
+error[Y103]: block mapping value is not indented past its key
+  --&gt; workflow.yaml:2:1
+</code></pre>
+<p>yqr’s YAML engine reads such a file; PyYAML and Ruby’s Psych both refuse
+it. A validator that passes it is telling you something it cannot back up,
+so this is on by default rather than under <code>--strict</code> – the document is
+invalid, not merely unusual.</p>
+<p>The two layouts that look like this and are fine are never flagged: a block
+sequence at its key’s own column (the GitHub Actions style, <code>on:</code> then
+<code>- push</code>), and a block scalar, whose own content sets its indentation.</p>
+</li>
+</ul>
+<h3 id="changed-3">Changed<a class="heading-anchor" href="#changed-3" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>Two limitations of editing documented, having been measured rather than
+assumed.</strong> Adding a key to a mapping whose other keys contain a <code>.</code> – the
+Kubernetes <code>app.kubernetes.io/name</code> convention – is refused, and the message
+it gives blames a merge key the file does not have. Separately, a value
+inserted into a document that quotes a string anywhere gets quoted itself,
+even where every neighbouring value is plain. Neither damages a file: the
+first refuses outright, and the second writes the value you asked for, spelled
+differently than its neighbours. Both are now written down in the Kubernetes
+guide’s “What is not here yet” and pinned by the test suite, so they cannot
+change without someone noticing.</p>
+</li>
+<li>
+<p><strong>YAML engine upgraded to noyalib 0.0.24.</strong> One functional change, and it is
+a fix yqr reported: deleting the last entry of a block now takes the comment
+above it along, instead of leaving that comment describing an empty <code>{}</code>. yqr
+already did this itself, so nothing changes in what yqr writes – what changes
+is that the engine and yqr now agree, and the dependency graph loses a crate.</p>
+</li>
+<li>
+<p><strong>YAML engine upgraded to noyalib 0.0.23.</strong> Reordering a list now moves each
+item’s comments with it. Before, a swap exchanged the values and left every
+comment where it was, so a comment ended up describing whichever item landed
+beneath it – silently, and reported as success. The fix is yqr’s own,
+contributed upstream, and it is what <code>swap</code> / <code>move</code> above are built on.</p>
+</li>
+<li>
+<p><strong>YAML engine upgraded from noyalib 0.0.22.</strong> The one functional change in
+that release is yqr’s own contribution: an edit that adds a line now takes
+the file’s own line ending instead of always writing a Unix one. 0.5.1 fixed
+that from yqr’s side, by repairing the line endings after the fact; the
+engine now gets them right when it writes the line, so the repair pass is
+gone. Files are unchanged either way – this removes a second mechanism doing
+the same job, not a behaviour. No new dependencies.</p>
+</li>
+</ul>
+<h2 id="0-5-1-2026-08-14">[0.5.1] - 2026-08-14<a class="heading-anchor" href="#0-5-1-2026-08-14" aria-label="Link to this section"></a></h2>
+<p>A correctness release for the editing path. Adding a value that spanned more
+than one line could damage the file while reporting success – appending to a
+list produced YAML that no longer parsed, and creating a key produced a value
+that read back wrong. Adding any line to a Windows-style file left it with
+mixed line endings. All three exited 0, so <code>--in-place</code> wrote the damage to
+disk and said nothing. yqr now hands values to the YAML engine as values rather
+than as pre-rendered text, so the engine places and spells them and rejects an
+edit that would not read back as what was given. Reading files, replacing
+existing values, and <code>del</code> were never affected.</p>
+<h3 id="fixed-5">Fixed<a class="heading-anchor" href="#fixed-5" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>Adding a multi-line string could corrupt the file.</strong> Creating a new key or
+appending a list item whose value contained a newline – <code>yqr '.s += "line one\nline two"'</code> – wrote the value at the wrong indentation. Appending to a
+list produced a file that could no longer be parsed; creating a key produced
+a value that read back with a stray <code>|-</code> in it. Both reported success and
+exited 0, so <code>-i</code> wrote the damage to disk. Values are now handed to the
+engine as values rather than as pre-rendered text, so the engine places and
+spells them, and rejects the edit if the result would not read back as the
+value given. Replacing an <em>existing</em> key was never affected.</li>
+<li><strong><code>.k = "a:"</code> failed, and <code>.k = "\n"</code> wrote the wrong value.</strong> Two spelling
+defects in the engine’s value emitter: a string ending in a colon was
+rejected as invalid, and a string that is a single newline was written as an
+empty block scalar and read back as <code>"|"</code>. Both fixed by the engine upgrade
+below.</li>
+<li><strong>Adding a line to a CRLF file no longer mixes line endings.</strong> Creating a key
+or appending a list item wrote the new line with a Unix ending regardless of
+the file’s own convention, so a Windows-style file silently ended up with
+both – again at exit 0, so <code>-i</code> saved it that way. Files that consistently
+use one convention keep it; a file that already mixes endings is left as it
+is rather than being rewritten to a guess. Reading, replacing an existing
+value, and <code>del</code> were never affected.</li>
+</ul>
+<h3 id="changed-4">Changed<a class="heading-anchor" href="#changed-4" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>YAML engine upgraded from noyalib 0.0.17 to 0.0.21.</strong> 0.0.18 brought the
+CST mutation API yqr had been missing – comment setters, <code>rename_key</code> /
+<code>key_span</code>, <code>swap_items</code> / <code>move_item</code>, a <code>remove</code> that accepts multi-line
+and nested values, and a typed insertion tier that quotes and escapes on the
+caller’s behalf; two of those are yqr’s own upstream contributions, and the
+typed tier is what fixes the corruption above. The releases after it fix
+defects rather than add surface: 0.0.19 carries yqr’s own upstream fix for
+how <code>remove()</code> treats the trivia around an entry, plus a scalar-resolution
+bug where bare <code>nan</code> / <code>inf</code> spellings destroyed a key’s original text;
+0.0.21 fixes three cases where an edit could damage a document while
+reporting success, and the two emitter defects noted above. The remaining new
+operations still need filter grammar, so they are groundwork rather than
+user-facing features. Two transitive dependencies are added (<code>hashbrown</code>,
+<code>libm</code>), both from the engine’s bare-metal support work. Byte fidelity is
+unaffected – the round-trip and corpus harnesses pass untouched.</li>
+<li><strong><code>del(...)</code> no longer delegates to the engine’s <code>remove</code>.</strong> 0.0.18’s
+<code>remove</code> accepts the shapes it used to refuse, but it scopes a deletion to
+the entry’s own key and value lines, where yqr treats an entry as owning the
+trivia around it. Left to the engine, deleting an entry would strand the
+comment documenting it (silently re-attaching it to the next entry), leave
+behind the blank lines a <code>|+</code> block scalar deliberately keeps, and swallow a
+trailing comment that belongs to the <em>following</em> entry. yqr keeps its own
+deletion path so <code>del</code> continues to remove exactly what a reader would say
+the entry is. Behaviour is unchanged from 0.5.0.</li>
+</ul>
+<h2 id="0-5-0-2026-07-29">[0.5.0] - 2026-07-29<a class="heading-anchor" href="#0-5-0-2026-07-29" aria-label="Link to this section"></a></h2>
+<p>Verification joins the editing loop: <code>yqr validate</code> answers whether a file is
+still correct YAML after an edit – surgical, hand-made, or agent-made – with
+compiler-style diagnostics a human or an agent can act on. In the same release
+yqr settles on noyalib as its one and only YAML engine, so the <code>--engine</code> flag
+and the runtime backend seam behind it are gone.</p>
+<h3 id="added-5">Added<a class="heading-anchor" href="#added-5" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong><code>yqr validate [--strict] FILES...</code> – YAML correctness checking with
+compiler-style diagnostics.</strong> yqr’s first subcommand closes the editing
+loop: after a surgical, hand-made, or agent-made edit, one command answers
+whether a file is still correct YAML. A pass certifies that every document
+parses <em>and</em> that the parsed documents reproduce the input byte-for-byte
+(the fidelity invariant). Failures are rustc-style diagnostics on stderr
+with stable codes (<code>Y001</code> syntax, <code>Y002</code> stream integrity, <code>Y003</code>
+non-UTF-8 input, <code>Y101</code> duplicate key under <code>--strict</code>, <code>Y102</code>
+stringified-key collision), a <code>file:line:column</code> location whenever a
+position is known, the offending source line with a caret, and a
+suggested fix. <code>--strict</code> reports every duplicate mapping key in one run
+– nested, flow, quoted respellings, and duplicate <code>&lt;&lt;</code> merge keys
+included – with the positions of both occurrences (found by walking the
+lossless CST). A file containing unresolved merge-conflict markers gets a
+dedicated hint anchored at the first marker, end-of-input errors clamp
+their source window to the last line, and CR-only line endings render
+correctly. Exit codes: 0 all inputs valid, 1 validation findings, 5 an
+input could not be read (highest wins; every input is checked in one
+run). Stdin is explicit (<code>-</code>, at most once); an empty file list is a
+usage error rather than a silent stdin fallback, so a CI gate whose glob
+expands to nothing fails loudly. clap’s auto-generated <code>help</code> subcommand
+is disabled: <code>yqr help</code> keeps failing as an invalid filter instead of
+becoming a success, and <code>validate</code> stays the only word the subcommand
+namespace claims. The library gains the <code>validate</code> module (<code>check_str</code> /
+<code>encoding_diagnostic</code> / <code>render</code>).</li>
+</ul>
+<h3 id="removed">Removed<a class="heading-anchor" href="#removed" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>The <code>--engine</code> flag is gone.</strong> yqr has settled on noyalib as its one and
+only YAML engine, so there is no backend to select: byte-preserving reads
+and surgical edits always run on noyalib’s lossless CST. <code>--engine noyalib</code>
+now fails argument parsing instead of being accepted as a no-op; drop the
+flag from any invocation that used it (the behavior is unchanged without
+it). The experimental <code>skald</code> backend is retired with the seam: its name is
+no longer recognized anywhere.</li>
+<li>The library API lost <code>fidelity::BackendId</code>; <code>fidelity::open</code>,
+<code>fidelity::run</code>, <code>fidelity::run_ast</code>, and <code>fidelity::write::apply</code> no
+longer take a backend argument.</li>
+</ul>
+<h3 id="changed-5">Changed<a class="heading-anchor" href="#changed-5" aria-label="Link to this section"></a></h3>
+<ul>
+<li>The YAML engine was upgraded from noyalib 0.0.14 to <strong>0.0.17</strong> (loader-parity
+fixes and a key-collision guard in 0.0.15, a build fix and MSRV 1.86 in
+0.0.16, a lockstep republish in 0.0.17). The CST edit API is unchanged, so
+the mutation-surface gaps yqr tracks upstream still stand.</li>
+<li><code>clap</code> was upgraded from 4.6.1 to 4.6.4, and the remaining 29 transitive
+dependencies were refreshed (serde 1.0.229, serde_json 1.0.151, regex
+1.13.1, libc 0.2.189, zerocopy 0.8.55, and friends). <code>cargo audit</code> reports
+no advisories across the resulting 94-crate graph.</li>
+<li>The pinned Rust toolchain was updated from 1.97 to 1.97.1 (point release;
+no MSRV change – <code>rust-version</code> stays 1.97).</li>
+</ul>
+<h2 id="0-4-0-2026-07-11">[0.4.0] - 2026-07-11<a class="heading-anchor" href="#0-4-0-2026-07-11" aria-label="Link to this section"></a></h2>
+<p>The fidelity write tier arrives: surgical, byte-preserving edits that change only
+the bytes a filter targets and leave every other byte – comments, indentation,
+quoting, key order – untouched, or refuse. In the same release, byte-preserving
+reads become the default and the classic re-serializing pipeline moves behind
+<code>--normalize</code>.</p>
+<h3 id="added-6">Added<a class="heading-anchor" href="#added-6" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>Write tier: surgical value edits.</strong> yqr can now mutate a document through the
+fidelity engine, changing only the targeted bytes: assignment <code>.a.b = &lt;rhs&gt;</code>
+(scalar literal or a <code>.</code>-rooted path), append <code>.xs += &lt;item&gt;</code>, new-key assign
+<code>.a.new = &lt;rhs&gt;</code>, and <code>del(.a.b)</code>. Each edit passes through the engine’s
+re-parse guard – an edit that would restructure the document is refused
+(exit 5) rather than emitted, and scalar writes are quoted to match the
+neighbouring style. A filter is either a read-only query or a single mutation;
+mixing them is a parse error.</li>
+<li><strong><code>-i</code> / <code>--in-place</code> flag</strong> writes the mutated document back to the input file
+atomically (temp file + rename, <code>fsync</code> before rename, symlinks followed,
+owner-only temp permissions). Using <code>-i</code> with stdin or with a read-only filter
+is an error, diagnosed before any input is read. Without <code>-i</code>, the mutated
+document is printed to stdout (byte-exact except the edit).</li>
+<li><strong>Structural delete</strong> of multi-line and nested block entries (e.g.
+<code>del(.spec.template)</code>), which the single-line delete path rejects. Flow-style
+and sole-entry deletes remain refused with a clear message.</li>
+<li><strong><code>--normalize</code> / <code>-N</code> flag</strong> for the classic re-serializing pipeline: it
+drops comments and canonicalizes scalars (e.g. <code>007</code> becomes <code>7</code>) – the
+previous default behaviour.</li>
+</ul>
+<h3 id="changed-6">Changed<a class="heading-anchor" href="#changed-6" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>Byte-preserving reads are now the default.</strong> <code>yqr '.' file.yaml</code> reproduces
+the input byte-for-byte – comments, quoting, indentation, scalar spellings,
+and line endings survive – with no flag. Untouched nodes are emitted as their
+original source bytes; computed, absent, and unaddressable nodes fall back to
+typed rendering per node.</li>
+<li><strong><code>--engine</code> now selects the backend for the default (byte-preserving) read.</strong>
+Under <code>--normalize</code> the classic pipeline runs and the engine choice has no
+observable effect beyond the up-front name validation.</li>
+</ul>
+<h3 id="breaking-2">Breaking<a class="heading-anchor" href="#breaking-2" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong><code>--preserve</code> / <code>-p</code> removed.</strong> Byte preservation is now the default, so the
+flag is gone. Replace <code>yqr -p '.' f</code> with <code>yqr '.' f</code>; use
+<code>yqr --normalize '.' f</code> for the old re-serializing behaviour.</li>
+</ul>
+<h3 id="security">Security<a class="heading-anchor" href="#security" aria-label="Link to this section"></a></h3>
+<ul>
+<li>Bumped the transitive <code>crossbeam-epoch</code> pin <code>0.9.18 -&gt; 0.9.20</code> to clear
+RUSTSEC-2026-0204. It reaches the build only through the <code>criterion</code>
+dev-dependency (benchmarks), so released binaries were never affected; the
+change is lockfile-only.</li>
+</ul>
+<h2 id="0-3-0-2026-07-10">[0.3.0] - 2026-07-10<a class="heading-anchor" href="#0-3-0-2026-07-10" aria-label="Link to this section"></a></h2>
+<p>Byte/comment preservation becomes its own flag, decoupled from backend
+selection.</p>
+<h3 id="added-7">Added<a class="heading-anchor" href="#added-7" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong><code>--preserve</code> / <code>-p</code> flag</strong> for byte/comment-preserving reads. It turns on
+fidelity mode with the default backend, so <code>yqr -p '.' file.yaml</code> reproduces
+the input byte-for-byte — comments, quoting, indentation, and line endings
+survive.</li>
+<li>A runnable demo showcase under <code>docs/content/demo/</code> (<code>yqr-demo.sh</code> plus sample
+<code>deploy.yaml</code> / <code>config.yaml</code> inputs) walking through navigation, iteration,
+pipes, raw output, and preserve mode.</li>
+</ul>
+<h3 id="changed-7">Changed<a class="heading-anchor" href="#changed-7" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong><code>--engine</code> now selects the backend parser only</strong> and no longer implies
+preservation. It picks <em>which</em> library performs a <code>--preserve</code> read (default
+<code>noyalib</code>); <em>whether</em> to preserve is <code>--preserve</code>’s job. Without <code>--preserve</code>,
+<code>--engine</code> has no observable effect.</li>
+</ul>
+<h3 id="breaking-3">Breaking<a class="heading-anchor" href="#breaking-3" aria-label="Link to this section"></a></h3>
+<ul>
+<li><code>--engine noyalib '.'</code> no longer preserves bytes on its own — use
+<code>--preserve</code> (optionally with <code>--engine noyalib</code> to name the backend
+explicitly). This decouples backend choice from fidelity mode.</li>
+</ul>
+<h2 id="0-2-1-2026-07-10">[0.2.1] - 2026-07-10<a class="heading-anchor" href="#0-2-1-2026-07-10" aria-label="Link to this section"></a></h2>
+<p>The first crates.io release. yqr consolidates on a single YAML engine, which
+removes every git dependency and makes the crate publishable.</p>
+<h3 id="changed-8">Changed<a class="heading-anchor" href="#changed-8" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>One YAML engine.</strong> yqr now uses noyalib for both the standard pipeline and
+byte-preserving reads. <code>--engine noyalib</code> (the fidelity engine) still emits
+untouched nodes as their original source bytes — comments, quoting,
+indentation, and line endings survive, and the identity filter reproduces the
+input byte-for-byte. It is always built in, so there are no backend build
+features to toggle.</li>
+<li>yqr now has its own value type instead of re-exporting the YAML library’s, so
+the parser is a swappable internal detail. Library users of <code>yqr::Value</code> get a
+stable type that does not change when the engine does.</li>
+<li>Minimum supported Rust version is now 1.97 (the pinned toolchain was updated
+from 1.96).</li>
+<li><strong>Non-string mapping keys.</strong> Integer, boolean, and composite keys (<code>1:</code>,
+<code>? [a, b]:</code>) are preserved byte-for-byte via <code>--engine noyalib</code>, but the
+standard re-serializing pipeline now renders them as strings, and a document
+that mixes keys colliding as strings (<code>1</code> and <code>"1"</code>) is rejected rather than
+kept distinct. This is rare in typical Kubernetes/CI/config documents — and
+GitHub Actions’ <code>on:</code> is unaffected (it stays the string <code>on</code>).</li>
+</ul>
+<h3 id="removed-1">Removed<a class="heading-anchor" href="#removed-1" aria-label="Link to this section"></a></h3>
+<ul>
+<li>The <code>rust-yaml</code> fidelity backend and the <code>--engine rust-yaml</code> option, along
+with the <code>backend-noyalib</code> / <code>backend-rust-yaml</code> build features and the
+<code>--no-default-features</code> minimal build. The fidelity engine is now always
+compiled in.</li>
+</ul>
+<h3 id="notes">Notes<a class="heading-anchor" href="#notes" aria-label="Link to this section"></a></h3>
+<ul>
+<li>First release published to crates.io — install with <code>cargo install yqr</code>. (The
+0.2.0 tag below was a GitHub-only release that predates this consolidation.)</li>
+<li><code>--engine</code> remains pluggable; an experimental <code>skald</code> engine is recognized for
+future comparison but is not built into the released binary.</li>
+</ul>
+<h2 id="0-2-0-2026-07-08">[0.2.0] - 2026-07-08<a class="heading-anchor" href="#0-2-0-2026-07-08" aria-label="Link to this section"></a></h2>
+<h3 id="added-8">Added<a class="heading-anchor" href="#added-8" aria-label="Link to this section"></a></h3>
+<ul>
+<li>Fidelity engines for byte-preserving reads, selectable at runtime with the
+new <code>--engine</code> flag. With <code>--engine noyalib</code> or <code>--engine rust-yaml</code>,
+untouched nodes are emitted as their original source bytes — comments,
+quoting, indentation, and line endings survive, and the identity filter
+reproduces the input byte-for-byte.</li>
+<li>Both fidelity backends now ship in the default build, so <code>--engine noyalib</code>
+and <code>--engine rust-yaml</code> are switchable in one binary without recompiling.
+Build with <code>--no-default-features</code> for a minimal binary that carries neither
+backend (the standard re-serializing pipeline still works; <code>--engine</code> then
+reports the backend as unavailable).</li>
+<li>A backend-agnostic fidelity round-trip harness (<code>tests/fidelity.rs</code>) that
+checks the <code>parse -&gt; emit == input</code> property across backends, one case per
+formatting dimension (comments, blank lines, indent, quote/block/flow style,
+CRLF, BOM, multi-doc, anchors, numbers, key order).</li>
+<li>A shared real-world corpus (<code>tests/corpus/</code>) driving both the validation
+suite and the Criterion benchmarks from one case table (Kubernetes, GitHub
+Actions, Docker Compose, Helm, application config).</li>
+<li>Kubernetes usage guide in the documentation.</li>
+</ul>
+<h3 id="changed-9">Changed<a class="heading-anchor" href="#changed-9" aria-label="Link to this section"></a></h3>
+<ul>
+<li>An unknown <code>--engine</code> value is now diagnosed before any input is read, so a
+typo is reported immediately instead of after consuming stdin or the file.</li>
+</ul>
+<h2 id="0-1-1-2026-06-21">[0.1.1] - 2026-06-21<a class="heading-anchor" href="#0-1-1-2026-06-21" aria-label="Link to this section"></a></h2>
+<h3 id="changed-10">Changed<a class="heading-anchor" href="#changed-10" aria-label="Link to this section"></a></h3>
+<ul>
+<li>Packaging only: dev-only files (<code>.agent/</code>, <code>.github/</code>, <code>specs/</code>, <code>AGENT.md</code>)
+are now excluded from the published crate. No functional or API changes —
+the compiled code is identical to 0.1.0; the source tarball is just slimmer
+(21 files vs 36).</li>
+</ul>
+<p>This release supersedes 0.1.0, which has been yanked from crates.io.</p>
+<h2 id="0-1-0-2026-06-21">[0.1.0] - 2026-06-21<a class="heading-anchor" href="#0-1-0-2026-06-21" aria-label="Link to this section"></a></h2>
+<h3 id="added-9">Added<a class="heading-anchor" href="#added-9" aria-label="Link to this section"></a></h3>
+<ul>
+<li>Initial release (M0 foundation): a jq-style processor for YAML, operating
+natively on YAML via <code>rust-yaml</code> (no JSON round-trip).</li>
+<li>Filters: identity <code>.</code>, field access (<code>.foo</code>, <code>.a.b</code>, <code>.["k"]</code>), array
+indexing (<code>.[n]</code>, negative from end), iteration (<code>.[]</code>), pipe (<code>a | b</code>),
+and optional error suppression (<code>f?</code>).</li>
+<li>CLI with <code>--raw-output</code>, file/stdin input, and jq-style exit codes.</li>
+<li><code>--version</code> reports the git commit, build timestamp, and target triple.</li>
+</ul>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    
+    <a href="&#x2f;yqr&#x2f;guide" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Guide</span>
+    </a>
+    
+</nav>
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-09-23</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    <script src="/yqr/theme/assets/js/nav-menu.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>
