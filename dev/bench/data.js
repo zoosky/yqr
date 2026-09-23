@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790066862270,
+  "lastUpdate": 1790183227017,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2813,6 +2813,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 280322,
             "range": "± 3849",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e5e887e9530bdafb443e1f759dd82197e91c1843",
+          "message": "Merge pull request #134 from zoosky/chore/noyalib-0.0.51\n\nchore(deps): adopt noyalib 0.0.51 before the v0.8.1 release",
+          "timestamp": "2026-09-23T19:05:44+02:00",
+          "tree_id": "0bda09cc0e704462fff6b863645ce34c2406a79a",
+          "url": "https://github.com/zoosky/yqr/commit/e5e887e9530bdafb443e1f759dd82197e91c1843"
+        },
+        "date": 1790183224256,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 465,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4778,
+            "range": "± 36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 221800,
+            "range": "± 2109",
             "unit": "ns/iter"
           }
         ]
