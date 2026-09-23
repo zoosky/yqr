@@ -58,10 +58,17 @@ trait Backend {
     }
 }
 
-/// `noyalib`'s lossless CST tooling API: `cst::parse_document -> Display`.
+/// `noyalib`'s lossless CST tooling API: `cst::parse_stream -> source bytes`.
 ///
 /// yqr's sole YAML engine (research r002); this harness pins its byte-for-byte
 /// round-trip property across every formatting dimension.
+///
+/// The stream entry point is the one yqr itself reads through
+/// (`parse_stream_with_config`), and it is the only one that accepts every
+/// corpus dimension: since noyalib 0.0.46, the single-document
+/// `cst::parse_document` refuses input holding more than one document rather
+/// than parsing the first and carrying the rest along. Concatenating each
+/// document's source reconstructs the input, separators and all.
 struct NoyalibCst;
 
 impl Backend for NoyalibCst {
@@ -70,8 +77,8 @@ impl Backend for NoyalibCst {
     }
 
     fn round_trip(&self, input: &str) -> Result<String, String> {
-        noyalib::cst::parse_document(input)
-            .map(|doc| doc.to_string())
+        noyalib::cst::parse_stream(input)
+            .map(|docs| docs.iter().map(|doc| doc.source()).collect())
             .map_err(|e| e.to_string())
     }
 }
