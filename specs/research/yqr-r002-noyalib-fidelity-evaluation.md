@@ -2,7 +2,7 @@
 
 **Status:** Draft
 **Owner:** yqr maintainers
-**Last updated:** 2026-07-03
+**Last updated:** 2026-09-23
 **Subject:** Does `noyalib` solve the round-trip fidelity problem (`yqr-b001`) better than `rust-yaml` 1.1.0? (evaluated on 0.0.8; BOM fix re-verified on 0.0.12)
 **Related:** `yqr-b001` (the fidelity bug), `yqr-a001` (Fidelity-First architecture), `yqr-r001` §5/§9 (YAML-native gaps)
 **Evaluated:** `noyalib` 0.0.8 (workspace at `../yqr-deps/noyalib`, crate `crates/noyalib`); crates.io max version 0.0.8 (2026-06-17, independently verified)
@@ -167,6 +167,32 @@ The maintainer reviewed and accepted it, rebased it (authorship preserved) as
 via `tests/fidelity.rs`: all BOM forms (multi-key, sequence, nested, BOM+CRLF,
 BOM+comment, single) now round-trip byte-identically. **Blocker cleared** — this
 dimension is fixed in a released version yqr can pin.
+
+### 5.4 `parse_document` refuses a stream from 0.0.46 (harness moved to `parse_stream`)
+
+The §5.1 matrix was measured through `cst::parse_document`, which on 0.0.8
+parsed the first document of a multi-document input and carried the rest
+along, so row 13 round-tripped. Since **noyalib 0.0.46** that entry point
+refuses such input: `deserializing from YAML containing more than one
+document is not supported`. Bisected across 0.0.46 through 0.0.51; 0.0.45
+still accepted it.
+
+Nothing in yqr read through that path. Every document yqr parses goes
+through `cst::parse_stream_with_config` (`src/validate/mod.rs`,
+`src/fidelity/noyalib.rs`); the single-document call sites parse one key
+token or one candidate fragment. Only `tests/fidelity.rs` used it, which is
+why the harness was the sole failure on adoption.
+
+The harness now round-trips through `parse_stream` and concatenates each
+document's `source()`. That is the entry point yqr itself reads through, so
+the property being pinned is now the one that ships. All 15 dimensions,
+multi-document and BOM-plus-multi-node included, are byte-identical on
+0.0.51.
+
+The stricter contract is the better one: a single-document entry point that
+silently accepts a stream is how `b001`'s dropped second document went
+unnoticed. Recorded rather than reported upstream — it is a deliberate
+narrowing, and it costs yqr nothing.
 
 ## 6. How the fidelity works (mechanism, verified in source)
 

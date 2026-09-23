@@ -6,7 +6,7 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
-## [0.8.1] - 2026-09-19
+## [0.8.1] - 2026-09-23
 
 Two new kinds of write, and fixes for two writes in 0.8.0 that damaged
 the file they edited.
@@ -52,10 +52,15 @@ unchanged.
   key's own column, or add a bare line feed to a wholly CRLF file, is
   refused rather than emitted. The insertion, delete, rename, comment and
   reorder paths keep the guards they already had.
-- **noyalib 0.0.41 → 0.0.45.** 0.0.42 and 0.0.43 change no behavior:
+- **noyalib 0.0.41 → 0.0.51.** 0.0.42 and 0.0.43 change no behavior:
   every source file of the published crate is byte-identical to 0.0.41's.
   0.0.44 and 0.0.45 carry the engine fixes behind the comment and
-  key-insertion entries under Fixed.
+  key-insertion entries under Fixed. 0.0.46 through 0.0.51 change nothing
+  yqr reads or writes -- every corpus, CLI and fidelity case is
+  byte-identical -- and their new features are additive and unused here.
+  From 0.0.46 the engine's single-document entry point refuses a file
+  holding more than one document; yqr reads every document through the
+  stream entry point, so multi-document files are unaffected.
 
 ### Fixed
 

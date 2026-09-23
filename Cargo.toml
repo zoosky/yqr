@@ -46,12 +46,21 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.45 release, which carries noyalib#442: a leading comment is
-# anchored on the entry's key line rather than on its value, so a head comment
-# above a block-valued key reads and writes (b033, f037). 0.0.44 was the first
-# release carrying yqr's four earlier upstream PRs: noyalib#427 stops an
-# insert at the last line its anchor entry owns (b032),
-# noyalib#437 makes a kept block scalar's blank lines content rather than the
+# crates.io 0.0.51 release. 0.0.46 through 0.0.51 change nothing yqr reads or
+# writes: every corpus, CLI and fidelity case is byte-identical, and b035 (an
+# alias-valued entry) is unmoved. Their features are all additive and unused
+# here (strict query paths, caller-owned rayon pools, backpressured async
+# streams, named parser profiles); yqr stays synchronous per its module rules.
+# One contract did narrow: from 0.0.46 the single-document `cst::parse_document`
+# refuses input holding more than one document instead of parsing the first and
+# carrying the rest. Nothing in src/ read through that path -- documents are
+# parsed with `parse_stream_with_config` -- so only tests/fidelity.rs had to
+# move to the stream entry point (r002 §5.4). 0.0.45 carried noyalib#442: a
+# leading comment is anchored on the entry's key line rather than on its
+# value, so a head comment above a block-valued key reads and writes (b033,
+# f037). 0.0.44 was the first release carrying yqr's four earlier upstream
+# PRs: noyalib#427 stops an insert at the last line its anchor entry owns
+# (b032), noyalib#437 makes a kept block scalar's blank lines content rather than the
 # anchor's trivia (b034) and treats a tab-indented comment alike after a plain
 # and a quoted scalar, noyalib#422 has a replacement adopt the document's line
 # break (b030, so a multi-line write into a CRLF file is written instead of
@@ -87,7 +96,7 @@ clap = { version = "4.6.1", features = ["derive"] }
 # b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44, b033 in 0.0.45.
 # Each pin and what it bought is in features f013-f029, f031, f034-f035 and
 # f037; see research r002 and the bug specs.
-noyalib = "0.0.45"
+noyalib = "0.0.51"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
