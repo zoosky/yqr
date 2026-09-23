@@ -55,6 +55,24 @@ server:
 
 content:
   directory: "./content"
+  # The changelog is published from the repository's own CHANGELOG.md through
+  # a single-file mount (accent f197c, released in 0.20.0), rather than copied
+  # into content/. A copy is a second source of truth that goes stale the
+  # moment a release lands and nobody notices, which is the failure yqr-k001
+  # §8 already recorded for the comparison pages. Mounting means the page a
+  # visitor reads and the file the release process edits are the same bytes.
+  #
+  # The file has no frontmatter, so its title comes from the leading `#
+  # Changelog` heading and it carries no `menu.order`; it sorts after the
+  # ordered sections in the header nav, which is where a changelog belongs.
+  #
+  # `source` is relative to this config file, so it climbs out of docs/. The
+  # mount is what makes that legal -- content.directory itself may not be
+  # escaped -- and accent fails the build if the file is missing, so a
+  # renamed or deleted changelog cannot deploy a 404 in silence.
+  mounts:
+    - source: "../CHANGELOG.md"
+      mount: "/changelog"
 
 theme:
   name: "default"

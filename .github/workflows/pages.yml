@@ -31,10 +31,16 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      # The changelog page is a single-file content mount of this file
+      # (docs/config.yaml, yqr-f039), so a release that edits it has to
+      # rebuild the site. Without this the page would silently serve the
+      # previous release's notes until the next unrelated docs change.
+      - "CHANGELOG.md"
       - ".github/workflows/pages.yml"
   pull_request:
     paths:
       - "docs/**"
+      - "CHANGELOG.md"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
