@@ -380,6 +380,7 @@ sized schema follow-up (`--schema`) stays open in the spec's §5.1.
 | [f021](yqr-f021-split-public-and-internal-sites.md) | Split the public site from the spec site | Done |
 | [f022](yqr-f022-traceability-out-of-published-pages.md) | Move docs traceability out of the published page body | Done |
 | [f024](yqr-f024-accent-0-25-0-adoption.md) | Adopt accent 0.25.0: the five `llms.txt` findings, fixed | Done |
+| [f039](yqr-f039-the-changelog-on-the-website.md) | The changelog on the website, as a single-file mount of `CHANGELOG.md` | Done |
 
 Progress: the site builds from `docs/` (the home page is a real CMS page:
 original hand-authored markup in `content/index.md` with the design as a
@@ -390,16 +391,20 @@ fetches the pinned accent binary (v0.24.0; floor is >= v0.24.0 for the
 search-index fixes, sub-path support since v0.23.0) from
 the upstream GitHub release, builds with the `/yqr` prefix derived from the
 base URL, and deploys to `gh-pages` while preserving the benchmark
-dashboard.
+dashboard. The repository's `CHANGELOG.md` is published at `/changelog`
+as a single-file content mount rather than a copy, so the release notes
+on the site are the same bytes the release process edits (`f039`); the
+deploy triggers include that file, or a release would not rebuild the
+page.
 
 ## Summary
 
-- Total features: 38
+- Total features: 39
 - Draft: 3 (f025, f027, f038)
 - In Progress: 0
-- Done: 31 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 32 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031, f032, f033, f034, f035, f036, f037)
+  f030, f031, f032, f033, f034, f035, f036, f037, f039)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
