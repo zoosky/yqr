@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "yqr and yq -- which tool for which job",
   "url": "https://zoosky.github.io/yqr/compare/yq",
-  "wordCount": 1287
+  "wordCount": 1295
 }
 </script>
 <script type="application/ld+json">
@@ -321,7 +321,7 @@ two are not really substitutes: yq is a YAML <em>processor</em>, and yqr is a YA
 <tr><td>Answer a question across a document – filter, count, select</td><td><strong>yq</strong></td><td>yqr has no <code>select</code>, <code>map</code>, or <code>length</code></td></tr>
 <tr><td>Build a document that does not exist yet</td><td><strong>yq</strong></td><td>yqr only edits documents that already do</td></tr>
 <tr><td>Convert to JSON, XML, TOML</td><td><strong>yq</strong></td><td>yqr is YAML in, YAML out</td></tr>
-<tr><td>Verify a file is correct before it ships</td><td><strong>yqr</strong></td><td><code>validate --strict</code> catches what a parser accepts</td></tr>
+<tr><td>Verify a file is correct before it ships</td><td><strong>yqr</strong></td><td><code>validate --strict</code> catches what a parser accepts; <code>--schema</code> adds JSON Schema verdicts with source positions</td></tr>
 <tr><td>Rename a key, edit a comment, reorder a list, in place</td><td><strong>yqr</strong></td><td>the rest of the file is not re-emitted</td></tr>
 <tr><td>Do several things in one expression</td><td><strong>yq</strong></td><td>yqr applies one edit per run</td></tr>
 </tbody></table>

@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 9249
+  "wordCount": 9392
 }
 </script>
 <script type="application/ld+json">
@@ -234,6 +234,10 @@
     
         <li class="toc-level-2">
             <a href="#unreleased">[Unreleased]</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#0-9-0-2026-10-08">[0.9.0] - 2026-10-08</a>
         </li>
     
         <li class="toc-level-3">
@@ -459,6 +463,21 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<h2 id="0-9-0-2026-10-08">[0.9.0] - 2026-10-08<a class="heading-anchor" href="#0-9-0-2026-10-08" aria-label="Link to this section"></a></h2>
+<p>Schema validation with source positions, and the write tier’s two
+merge-and-anchor gaps closed.</p>
+<p><code>yqr validate --schema</code> checks every document against a JSON Schema
+(draft 2020-12) and reports each violation the way every other finding
+is reported: file, line, column, source window and caret, with the
+exact JSON pointer kept on a note line for scripts. Pointer-only
+schema validators leave the hunt for the offending line to you.</p>
+<p>The two new writes were both refusals whose own messages named the
+remedy: overriding a merged-in key, and deleting inside a shared
+anchor. Each now runs, and what remains refused says why in terms of
+the file, not the engine.</p>
+<p>This is a minor bump, not a patch: the library’s <code>validate::Code</code> enum
+gained three variants, and two write refusals became writes, so a
+script matching on those exit codes sees new behavior.</p>
 <h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
