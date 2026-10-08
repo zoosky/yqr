@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-09-23T19:01:42Z",
+  "timestamp": "2026-10-08T15:22:24Z",
   "pages": {
     "/": {
       "content_hash": "e398e8629920fc98",
@@ -8,7 +8,7 @@
       "template_hash": "4eebd4d63165e5ff"
     },
     "/changelog": {
-      "content_hash": "1c37254668bfdd59",
+      "content_hash": "c7753a3ccce8f5bd",
       "template": "default.html.jinja",
       "template_hash": "eb1d6e9a0337d72d"
     },

@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-09-23",
+  "dateModified": "2026-10-08",
   "description": "All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.",
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 8841
+  "wordCount": 8932
 }
 </script>
 <script type="application/ld+json">
@@ -236,6 +236,10 @@
             <a href="#unreleased">[Unreleased]</a>
         </li>
     
+        <li class="toc-level-3">
+            <a href="#changed">Changed</a>
+        </li>
+    
         <li class="toc-level-2">
             <a href="#0-8-1-2026-09-23">[0.8.1] - 2026-09-23</a>
         </li>
@@ -245,7 +249,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed">Changed</a>
+            <a href="#changed-1">Changed</a>
         </li>
     
         <li class="toc-level-3">
@@ -269,7 +273,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-1">Changed</a>
+            <a href="#changed-2">Changed</a>
         </li>
     
         <li class="toc-level-2">
@@ -281,7 +285,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-2">Changed</a>
+            <a href="#changed-3">Changed</a>
         </li>
     
         <li class="toc-level-3">
@@ -325,7 +329,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-3">Changed</a>
+            <a href="#changed-4">Changed</a>
         </li>
     
         <li class="toc-level-2">
@@ -337,7 +341,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-4">Changed</a>
+            <a href="#changed-5">Changed</a>
         </li>
     
         <li class="toc-level-2">
@@ -353,7 +357,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-5">Changed</a>
+            <a href="#changed-6">Changed</a>
         </li>
     
         <li class="toc-level-2">
@@ -365,7 +369,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-6">Changed</a>
+            <a href="#changed-7">Changed</a>
         </li>
     
         <li class="toc-level-3">
@@ -385,7 +389,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-7">Changed</a>
+            <a href="#changed-8">Changed</a>
         </li>
     
         <li class="toc-level-3">
@@ -397,7 +401,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-8">Changed</a>
+            <a href="#changed-9">Changed</a>
         </li>
     
         <li class="toc-level-3">
@@ -417,7 +421,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-9">Changed</a>
+            <a href="#changed-10">Changed</a>
         </li>
     
         <li class="toc-level-2">
@@ -425,7 +429,7 @@
         </li>
     
         <li class="toc-level-3">
-            <a href="#changed-10">Changed</a>
+            <a href="#changed-11">Changed</a>
         </li>
     
         <li class="toc-level-2">
@@ -451,6 +455,18 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
+<ul>
+<li><strong>noyalib 0.0.51 → 0.0.56.</strong> No yqr behavior changes: every corpus, CLI
+and fidelity case is byte-identical. The releases’ three advertised
+parse-behavior changes are out of yqr’s reach, measured against a
+0.0.51 control build – the engine’s new 256-level nesting cap sits
+behind yqr’s own 128-level parse limit, and a verbatim tag and a long
+implicit flow key read, validate and normalize identically. The
+additions (structured diagnostics, bounded reader entry points,
+parser-budget parity for the typed deserializer, limits enforced on
+every loader) are on paths yqr does not call.</li>
+</ul>
 <h2 id="0-8-1-2026-09-23">[0.8.1] - 2026-09-23<a class="heading-anchor" href="#0-8-1-2026-09-23" aria-label="Link to this section"></a></h2>
 <p>Two new kinds of write, and fixes for two writes in 0.8.0 that damaged
 the file they edited.</p>
@@ -477,7 +493,7 @@ byte outside the edit is unchanged, and the block is spelled at the
 destination: quoting follows the site and comments inside the copied
 value do not travel, the same rule <code>to_entries</code> output follows.</li>
 </ul>
-<h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
+<h3 id="changed-1">Changed<a class="heading-anchor" href="#changed-1" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>A scalar can replace a block collection.</strong> <code>.metadata.labels = null</code>
 over a <code>labels:</code> block was refused, with a remedy that moved the key to
@@ -651,7 +667,7 @@ value. The same mechanism restores writes at an anchor definition
 that is the one remedy yqr’s own merged-key refusal names, so it has to
 work. Assigning to a tagged scalar is refused with the tag’s name.</li>
 </ul>
-<h3 id="changed-1">Changed<a class="heading-anchor" href="#changed-1" aria-label="Link to this section"></a></h3>
+<h3 id="changed-2">Changed<a class="heading-anchor" href="#changed-2" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>A rename to the empty key is no longer refused.</strong> It was refused
 because no filter could name the result; <code>.[""]</code> names it, so the
@@ -736,7 +752,7 @@ examples used <code>=</code>, <code>+=</code> and <code>del</code>. The Kubernet
 that were not in the file it had just shown.</p>
 </li>
 </ul>
-<h3 id="changed-2">Changed<a class="heading-anchor" href="#changed-2" aria-label="Link to this section"></a></h3>
+<h3 id="changed-3">Changed<a class="heading-anchor" href="#changed-3" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>crates.io links the guide.</strong> <code>homepage</code> and <code>documentation</code> are set, so
 the crate page points at the documentation site and the API docs rather than
@@ -1077,7 +1093,7 @@ sequence at its key’s own column (the GitHub Actions style, <code>on:</code> t
 <code>- push</code>), and a block scalar, whose own content sets its indentation.</p>
 </li>
 </ul>
-<h3 id="changed-3">Changed<a class="heading-anchor" href="#changed-3" aria-label="Link to this section"></a></h3>
+<h3 id="changed-4">Changed<a class="heading-anchor" href="#changed-4" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
 <p><strong>Two limitations of editing documented, having been measured rather than
@@ -1148,7 +1164,7 @@ use one convention keep it; a file that already mixes endings is left as it
 is rather than being rewritten to a guess. Reading, replacing an existing
 value, and <code>del</code> were never affected.</li>
 </ul>
-<h3 id="changed-4">Changed<a class="heading-anchor" href="#changed-4" aria-label="Link to this section"></a></h3>
+<h3 id="changed-5">Changed<a class="heading-anchor" href="#changed-5" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>YAML engine upgraded from noyalib 0.0.17 to 0.0.21.</strong> 0.0.18 brought the
 CST mutation API yqr had been missing – comment setters, <code>rename_key</code> /
@@ -1222,7 +1238,7 @@ no longer recognized anywhere.</li>
 <code>fidelity::run</code>, <code>fidelity::run_ast</code>, and <code>fidelity::write::apply</code> no
 longer take a backend argument.</li>
 </ul>
-<h3 id="changed-5">Changed<a class="heading-anchor" href="#changed-5" aria-label="Link to this section"></a></h3>
+<h3 id="changed-6">Changed<a class="heading-anchor" href="#changed-6" aria-label="Link to this section"></a></h3>
 <ul>
 <li>The YAML engine was upgraded from noyalib 0.0.14 to <strong>0.0.17</strong> (loader-parity
 fixes and a key-collision guard in 0.0.15, a build fix and MSRV 1.86 in
@@ -1263,7 +1279,7 @@ and sole-entry deletes remain refused with a clear message.</li>
 drops comments and canonicalizes scalars (e.g. <code>007</code> becomes <code>7</code>) – the
 previous default behaviour.</li>
 </ul>
-<h3 id="changed-6">Changed<a class="heading-anchor" href="#changed-6" aria-label="Link to this section"></a></h3>
+<h3 id="changed-7">Changed<a class="heading-anchor" href="#changed-7" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>Byte-preserving reads are now the default.</strong> <code>yqr '.' file.yaml</code> reproduces
 the input byte-for-byte – comments, quoting, indentation, scalar spellings,
@@ -1300,7 +1316,7 @@ survive.</li>
 <code>deploy.yaml</code> / <code>config.yaml</code> inputs) walking through navigation, iteration,
 pipes, raw output, and preserve mode.</li>
 </ul>
-<h3 id="changed-7">Changed<a class="heading-anchor" href="#changed-7" aria-label="Link to this section"></a></h3>
+<h3 id="changed-8">Changed<a class="heading-anchor" href="#changed-8" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong><code>--engine</code> now selects the backend parser only</strong> and no longer implies
 preservation. It picks <em>which</em> library performs a <code>--preserve</code> read (default
@@ -1316,7 +1332,7 @@ explicitly). This decouples backend choice from fidelity mode.</li>
 <h2 id="0-2-1-2026-07-10">[0.2.1] - 2026-07-10<a class="heading-anchor" href="#0-2-1-2026-07-10" aria-label="Link to this section"></a></h2>
 <p>The first crates.io release. yqr consolidates on a single YAML engine, which
 removes every git dependency and makes the crate publishable.</p>
-<h3 id="changed-8">Changed<a class="heading-anchor" href="#changed-8" aria-label="Link to this section"></a></h3>
+<h3 id="changed-9">Changed<a class="heading-anchor" href="#changed-9" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>One YAML engine.</strong> yqr now uses noyalib for both the standard pipeline and
 byte-preserving reads. <code>--engine noyalib</code> (the fidelity engine) still emits
@@ -1372,13 +1388,13 @@ suite and the Criterion benchmarks from one case table (Kubernetes, GitHub
 Actions, Docker Compose, Helm, application config).</li>
 <li>Kubernetes usage guide in the documentation.</li>
 </ul>
-<h3 id="changed-9">Changed<a class="heading-anchor" href="#changed-9" aria-label="Link to this section"></a></h3>
+<h3 id="changed-10">Changed<a class="heading-anchor" href="#changed-10" aria-label="Link to this section"></a></h3>
 <ul>
 <li>An unknown <code>--engine</code> value is now diagnosed before any input is read, so a
 typo is reported immediately instead of after consuming stdin or the file.</li>
 </ul>
 <h2 id="0-1-1-2026-06-21">[0.1.1] - 2026-06-21<a class="heading-anchor" href="#0-1-1-2026-06-21" aria-label="Link to this section"></a></h2>
-<h3 id="changed-10">Changed<a class="heading-anchor" href="#changed-10" aria-label="Link to this section"></a></h3>
+<h3 id="changed-11">Changed<a class="heading-anchor" href="#changed-11" aria-label="Link to this section"></a></h3>
 <ul>
 <li>Packaging only: dev-only files (<code>.agent/</code>, <code>.github/</code>, <code>specs/</code>, <code>AGENT.md</code>)
 are now excluded from the published crate. No functional or API changes —
@@ -1454,7 +1470,7 @@ and optional error suppression (<code>f?</code>).</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-09-23</span>
+        <span>Site last updated: 2026-10-08</span>
         
     </footer>
 
