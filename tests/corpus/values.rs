@@ -527,6 +527,16 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: "del(.argo.tenants.t3.nope)",
             expect: WriteExpect::Unchanged,
         },
+        // Feature f038: `del` inside a shared anchor follows the anchor
+        // rule assignment set — the entry is removed at the definition,
+        // and every tenant merging `*o1` loses the key. Only the
+        // definition's bytes change.
+        WriteCase {
+            id: "values/write/delete-at-the-anchor-definition",
+            doc: &TENANTS_40,
+            filter: "del(.argo.global.opsDefaults.o1.DEFAULT_LANGUAGE)",
+            expect: WriteExpect::Rewrites(&[("        DEFAULT_LANGUAGE: \"fr\"\n", "")]),
+        },
         WriteCase {
             id: "values/write/rename-a-tenant-key",
             doc: &TENANTS_40,

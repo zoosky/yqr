@@ -5,7 +5,8 @@
 # b019; the merged-key message is b020. Filling in a blank value is b021,
 # fixed in noyalib 0.0.28. The insert anchor, the kept block scalar and the
 # CRLF multi-line write are bugs b032, b034 and b030, all closed by the
-# noyalib 0.0.44 adoption (f035).
+# noyalib 0.0.44 adoption (f035). Deleting inside a shared anchor is
+# Feature f038.
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -222,9 +223,11 @@ yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode" entry
 ```
 
 So `.defaults.mode = 416` is the edit, and it changes the value for
-everything that inherits the anchor. Writing an entry under `web` that
-overrides the merge for `web` alone is a different edit, and one yqr cannot
-make yet.
+everything that inherits the anchor. `del(.defaults.mode)` follows the
+same rule: the entry is removed at the definition, and everything that
+inherits the anchor loses it. Writing an entry under `web` that
+overrides the merge for `web` alone is a different edit, and one yqr
+cannot make yet.
 
 ## A write that changes nothing changes nothing
 

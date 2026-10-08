@@ -1,11 +1,12 @@
 # Feature f038 — Delete inside a shared anchor
 
-**Status:** Draft — filed 2026-09-19 from `yqr-f036`'s code review
+**Status:** Done — shipped 2026-10-08; filed 2026-09-19 from
+`yqr-f036`'s code review
 **Epic:** Fidelity write tier (`f006`–`f008`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f036` (which gave assignment this behaviour), `yqr-b026`
 and `yqr-f026` (the anchor-definition write), `yqr-f016` (structural
-delete)
+delete), `yqr-b036` (the span defect this feature's measurement found)
 
 ## 1. The question
 
@@ -44,12 +45,68 @@ Two things to settle first:
   structure" should name the anchor and the alias sites, as the
   removed-anchor refusal in `f036` does.
 
-## 3. Acceptance criteria
+## 3. Decision (2026-10-08)
 
-- [ ] Decide: follow the anchor rule, or keep the refusal with an accurate
-      message. Record why.
-- [ ] If it follows the rule: `del` inside a shared block mapping and
+**Follow the anchor rule.** The deciding argument is §1's own: the
+splice was already right, and the refusal guarded a reflection that is
+what an anchor means. yqr cannot hold that `.a.k = 5` changes `b`
+through `*x` by design while `del(.a.k)` changing `b` is corruption —
+one semantics per mechanism. The "more surprising edit" worry from §2
+is answered the same way assignment answered it: the surprise is the
+anchor's, not the verb's, and a user who shares a value has asked for
+shared edits. The refusal that remains for removing the `&name` itself
+while an alias still uses it (`yqr-f036`) is untouched and still names
+the anchor and the alias.
+
+### 3.1 What the check accepts
+
+Not the assignment rule verbatim. `changes_are_the_assignment` sees a
+reflection as a subtree swapping the parent's before-value for its
+after-value, which holds at a plain `*x` alias site — but a `<<` merge
+site is a **larger mapping losing one key** (the tenants shape:
+`ops: {<<: *o1, own: ...}`), which that rule cannot express; measured
+directly when the corpus case on the production shape refused. `del`
+gets its own `changes_are_the_deletion`: a divergent collection is
+accepted only when it is the expected one with exactly the deleted
+segment removed, the value that site loses **equal to the value the
+delete removed** (a reflection is a copy, so the name alone excuses
+nothing — without this, an over-broad splice of the `b036` class that
+swallowed a same-named key elsewhere would pass), and surviving entries
+matching in order, recursively. The relaxed rule applies only to a
+document that contains an alias at all; an anchor-free document keeps
+strict equality, where no reflection is possible and the old backstop
+is fully intact. Any other divergence still refuses.
+
+One shape stays refused by design: a merge site layering several
+anchors (`<<: [*x, *y]`) where the deleted key is inherited from more
+than one source. Removing it at `x`'s definition does not remove it
+from the site — the next source's value surfaces, a value change
+rather than a removal — so the rule refuses, the document is left
+untouched, and the case is pinned as it behaves. The residual the rule
+does accept — a coincidental site that lost the same key holding the
+same value — is the class the assignment rule already accepts.
+
+### 3.2 What the measurement found
+
+The sequence case on an **anchored key with indented items**
+(`a: &x` / `  - 1`) is refused with "its source layout is not
+supported": upstream's `span_at` reports the items' spans shifted by
+the anchor property's width. Filed as `yqr-b036` and pinned as it
+behaves; the same delete works when the items sit at the key's own
+column, and reads of the shape are correct (the wrong-node guard
+degrades to a typed render).
+
+## 4. Acceptance criteria
+
+- [x] Decide: follow the anchor rule, or keep the refusal with an accurate
+      message. Record why. (§3: follow the rule.)
+- [x] If it follows the rule: `del` inside a shared block mapping and
       sequence works, the alias sites show the removal, and nothing else
-      changes.
-- [ ] Either way, the refusal that remains names the anchor.
-- [ ] `local-ci.sh` clean.
+      changes. (Unit tests cover the alias, merge-site, nested and
+      sequence cases plus a coincidentally-equal sibling; the corpus
+      write case runs it on the production tenants shape.)
+- [x] Either way, the refusal that remains names the anchor. (The
+      `f036` removed-anchor refusal is unchanged; the structure refusal
+      no longer fires for the reflection, and what it still catches has
+      no anchor to name.)
+- [x] `local-ci.sh` clean.

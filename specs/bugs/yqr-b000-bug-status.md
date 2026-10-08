@@ -10,6 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b036](yqr-b036-item-spans-shift-under-an-anchored-indented-sequence.md) | Item spans shift under an anchored, indented block sequence | Low | Open **2026-10-08**, found while measuring `f038`'s sequence case on noyalib 0.0.56. With an anchor on the key and the items indented past it, `span_at` reports the items' spans shifted by the anchor property's width (one lands on the line break, the next is empty); without the anchor, or with the items at the key's own column, the spans are exact. Nothing silent reaches a user: the read path's wrong-node guard degrades to a typed render and prints the right value, and `del` refuses the layout. Pinned as it behaves in the `f038` test block, so the fixing bump flips a test. Upstream owns the fix; both yqr consumers already degrade safely | `yqr-f038`, `yqr-b028`, `yqr-b035` |
 | [b035](yqr-b035-an-alias-valued-entry-cannot-be-deleted-or-overwritten.md) | An entry whose value is an alias cannot be deleted or overwritten | Medium | Open **2026-09-19**, found while writing `f036`'s removed-anchor refusal. `del(.j)` and `.j = 5` over `j: *x` are refused on every layout measured: the block delete says "its source layout is not supported", the flow delete and assignment give the engine's refusal. Likely cause: `span_at` on an alias returns the anchor's bytes, not the `*x` token's. The cost is that the refusal for removing a still-used anchor can only tell the user to edit the file by hand. `Document::aliases()` gives the token's span, which is what a fix would use | `yqr-f036`, `yqr-b026`, `yqr-f025` |
 
 ## Resolved
@@ -54,7 +55,9 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 35
-- Open: **1** — `b035`, filed 2026-09-19: an entry whose value is an alias
+- Open: **2** — `b036`, filed 2026-10-08: item spans shift under an anchored,
+  indented block sequence (reads degrade safely, one delete layout refused);
+  `b035`, filed 2026-09-19: an entry whose value is an alias
   (`j: *x`) cannot be deleted or overwritten on any layout measured, so
   `f036`'s refusal for removing a still-used anchor can only point at a
   hand edit. Previously: `b033` closed 2026-09-18 by `yqr-f037`, the

@@ -44,6 +44,10 @@
 
 // Feature f007 (see specs/features/): write tier — structural edits.
 
+mod expected;
+
+use expected::{changes_are_the_deletion, parent_len, remove_at_path};
+
 use super::{FidelityWriter, NoyalibWriter};
 use crate::Value;
 use crate::error::{Result, YqrError};
@@ -181,6 +185,12 @@ impl NoyalibWriter {
         // spliced result must re-parse to. Computed in yqr's model so key order
         // (mapping) and index shifting (sequence) match block-delete semantics;
         // consumes `doc_value` rather than cloning the whole document.
+        // The value the target holds, kept for the integrity check: a true
+        // reflection of the deletion at an alias or merge site lost exactly
+        // this value, and nothing else is excused.
+        // Feature f038.
+        let deleted = walk_value(&doc_value, path.segments()).cloned();
+
         let expected = remove_at_path(doc_value, path.segments()).ok_or_else(|| {
             YqrError::eval(format!(
                 "cannot delete {path_str}: it does not address a removable entry"
@@ -295,8 +305,12 @@ impl NoyalibWriter {
         // `replace_span` guarantees only *valid YAML*, not structure
         // preservation (b004 2.5), so yqr owns the guard: re-parse the edited
         // source and require it to lower to the expected value. A dangling
-        // alias, an over-broad span, or a flow mis-edit all diverge here and
-        // are refused with the document untouched.
+        // alias, an over-broad span, or a flow mis-edit diverge here and are
+        // refused with the document untouched. In a document that shares the
+        // value through an anchor, the comparison is the relaxed rule below
+        // rather than strict equality, so what the guard proves there is
+        // "the deletion, reflected" rather than "no other change" — the same
+        // residual the assignment guard carries.
         let candidate =
             ::noyalib::cst::parse_document_with_config(&new_source, &crate::fidelity::cst_config())
                 .map_err(|e| {
@@ -304,7 +318,19 @@ impl NoyalibWriter {
                         "cannot delete {path_str}: the edit does not re-parse ({e})"
                     ))
                 })?;
-        if Value::from(&*candidate.as_value()) != expected {
+        // The entry may sit inside a value an anchor shares, in which case
+        // every alias and `<<` merge site reflects the removal — the anchor
+        // rule `yqr-b026` set for assignment, followed here since
+        // `yqr-f038`. The relaxed rule applies only when the document has an
+        // alias at all; an anchor-free document keeps strict equality, where
+        // the old backstop against an over-broad splice is fully intact.
+        let got = Value::from(&*candidate.as_value());
+        let shared = !self.doc_ref(doc)?.aliases().is_empty();
+        let is_the_deletion = match (&deleted, shared) {
+            (Some(deleted), true) => changes_are_the_deletion(&expected, &got, last, deleted),
+            _ => got == expected,
+        };
+        if !is_the_deletion {
             return Err(YqrError::eval(format!(
                 "cannot delete {path_str}: the edit would change the document structure and was refused"
             )));
@@ -443,50 +469,6 @@ fn line_end(src: &str, pos: usize) -> usize {
     src[pos..].find('\n').map_or(src.len(), |n| pos + n + 1)
 }
 
-/// `root` (consumed) with the node at `segs` removed, or `None` when the path
-/// does not address a removable mapping key / sequence index. Order is
-/// preserved for mappings and indices shift for sequences, matching
-/// block-delete semantics. Takes ownership so building the yardstick value does
-/// not clone the whole document.
-fn remove_at_path(root: Value, segs: &[PathSeg]) -> Option<Value> {
-    let (last, parents) = segs.split_last()?;
-    let mut new = root;
-    match (navigate_mut(&mut new, parents)?, last) {
-        (Value::Mapping(map), PathSeg::Key(k)) => {
-            map.shift_remove(&Value::String(k.clone()))?;
-        }
-        (Value::Sequence(items), PathSeg::Index(i)) => {
-            if *i >= items.len() {
-                return None;
-            }
-            items.remove(*i);
-        }
-        _ => return None,
-    }
-    Some(new)
-}
-
-/// Length of the collection at `segs`, or `None` when it is not a collection.
-fn parent_len(root: &Value, segs: &[PathSeg]) -> Option<usize> {
-    match walk_value(root, segs)? {
-        Value::Mapping(map) => Some(map.len()),
-        Value::Sequence(items) => Some(items.len()),
-        _ => None,
-    }
-}
-
-/// Walk `segs` into `value` for a mutable borrow of the addressed node.
-fn navigate_mut<'a>(mut value: &'a mut Value, segs: &[PathSeg]) -> Option<&'a mut Value> {
-    for seg in segs {
-        value = match (seg, value) {
-            (PathSeg::Key(k), Value::Mapping(map)) => map.get_mut(&Value::String(k.clone()))?,
-            (PathSeg::Index(i), Value::Sequence(items)) => items.get_mut(*i)?,
-            _ => return None,
-        };
-    }
-    Some(value)
-}
-
 /// Lower a segment slice to noyalib's string-path grammar (used to fetch the
 /// parent's bytes for the flow-collection check).
 fn segs_to_noyalib_path(segs: &[PathSeg]) -> String {
@@ -511,6 +493,107 @@ mod tests {
             },
             input,
         )
+    }
+
+    // Feature f038: `del` inside a shared anchor follows the anchor rule
+    // assignment set: the edit lands at the definition, and every alias
+    // site shows the removal.
+
+    #[test]
+    fn deletes_inside_a_shared_anchor_and_the_alias_sees_it() {
+        let out = del(".a.k", "a: &x\n  k:\n    n: 1\n  z: 2\nb: *x\n").unwrap();
+        assert_eq!(out, "a: &x\n  z: 2\nb: *x\n");
+        assert_eq!(
+            crate::eval_str(".b.k", &out).unwrap(),
+            vec![crate::Value::Null],
+            "the alias site shows the removal"
+        );
+        assert_eq!(
+            crate::eval_str(".b.z", &out).unwrap(),
+            vec![crate::Value::Int(2)]
+        );
+    }
+
+    #[test]
+    fn deletes_below_the_shared_anchors_top_level() {
+        let out = del(".a.k.n", "a: &x\n  k:\n    n: 1\n    m: 2\nb: *x\n").unwrap();
+        assert_eq!(out, "a: &x\n  k:\n    m: 2\nb: *x\n");
+        assert_eq!(
+            crate::eval_str(".b.k.n", &out).unwrap(),
+            vec![crate::Value::Null]
+        );
+    }
+
+    #[test]
+    fn deletes_a_sequence_item_inside_a_shared_anchor() {
+        let out = del(".a[0]", "a: &x\n- 1\n- 2\nb: *x\n").unwrap();
+        assert_eq!(out, "a: &x\n- 2\nb: *x\n");
+        assert_eq!(
+            crate::eval_str(".b[0]", &out).unwrap(),
+            vec![crate::Value::Int(2)]
+        );
+    }
+
+    // Bug b036, pinned as it behaves: under an anchored key, the items of
+    // an *indented* block sequence get shifted spans from the engine, so
+    // their owned range cannot be mapped and the delete refuses. The
+    // same-column layout above works; the noyalib bump that fixes the
+    // spans flips this assertion.
+    #[test]
+    fn an_indented_item_under_an_anchored_key_is_refused() {
+        let err = del(".a[0]", "a: &x\n  - 1\n  - 2\nb: *x\n")
+            .unwrap_err()
+            .to_string();
+        assert!(
+            err.contains("source layout is not supported"),
+            "error: {err}"
+        );
+    }
+
+    #[test]
+    fn deletes_a_key_every_merge_site_inherits() {
+        // The tenants shape: `m` merges the shared block with `<<` and has
+        // keys of its own. The reflection there is a larger mapping losing
+        // one key, which the assignment rule cannot express.
+        let out = del(".d.k", "d: &x\n  k: 1\n  z: 2\nm:\n  <<: *x\n  own: 3\n").unwrap();
+        assert_eq!(out, "d: &x\n  z: 2\nm:\n  <<: *x\n  own: 3\n");
+        assert_eq!(
+            crate::eval_str(".m.k", &out).unwrap(),
+            vec![crate::Value::Null],
+            "the merge site shows the removal"
+        );
+        assert_eq!(
+            crate::eval_str(".m.own", &out).unwrap(),
+            vec![crate::Value::Int(3)]
+        );
+    }
+
+    #[test]
+    fn a_layered_merge_site_keeps_the_refusal() {
+        // `m` merges two anchors and inherits `k` from both. Deleting `k`
+        // at `x`'s definition would not remove it from `m` — the next
+        // source's value surfaces (1 becomes 9), which is a value change,
+        // not a removal, and outside what f038 supports (`f038` §3.1).
+        // Pinned: the edit refuses and the document is untouched.
+        let err = del(
+            ".a.k",
+            "a: &x\n  k: 1\n  z: 2\ny: &y\n  k: 9\nm:\n  <<: [*x, *y]\n",
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(
+            err.contains("would change the document structure"),
+            "error: {err}"
+        );
+    }
+
+    #[test]
+    fn a_coincidentally_equal_sibling_outside_the_anchor_is_untouched() {
+        // `c` holds the same value as the anchored `a` without sharing it;
+        // the relaxed guard must not excuse a change there, and the splice
+        // never touches it.
+        let out = del(".a.k", "a: &x\n  k: 1\n  z: 2\nb: *x\nc:\n  k: 1\n  z: 2\n").unwrap();
+        assert_eq!(out, "a: &x\n  z: 2\nb: *x\nc:\n  k: 1\n  z: 2\n");
     }
 
     // Feature f036: the removed range defined an anchor an alias outside it
