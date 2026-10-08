@@ -103,6 +103,18 @@ pub const INVALID_YAML: &str = "key: [unclosed\n";
 /// a finding under `--strict`.
 pub const DUPLICATE_KEYS: &str = "a: 1\na: 2\n";
 
+// Feature f040: the three schema fixtures for `validate --schema`.
+
+/// A JSON Schema the tenants shape conforms to, for `@schema`.
+pub const SCHEMA_OK: &str = "type: object\nrequired: [argo]\n";
+
+/// A JSON Schema the tenants shape violates at its root, for
+/// `@schema-array`.
+pub const SCHEMA_ARRAY: &str = "type: array\n";
+
+/// Not a valid JSON Schema 2020-12 document, for `@schema-bad`.
+pub const SCHEMA_BAD: &str = "type: 5\n";
+
 /// The short version line, exactly as `-V` prints it.
 pub const SHORT_VERSION_LINE: &str = concat!("yqr ", env!("CARGO_PKG_VERSION"), "\n");
 
@@ -964,6 +976,57 @@ pub fn cli_cases() -> Vec<CliCase> {
             status: 1,
             stdout: Out::Empty,
             stderr: Out::Contains(&["error[Y101]", "duplicate mapping key"]),
+            after: None,
+        },
+        // -- validate --schema (f040) ---------------------------------------
+        CliCase {
+            id: "cli/validate/schema-conforming",
+            doc: SHAPE,
+            feed: Feed::File,
+            args: &["validate", "--schema", "@schema", "@doc"],
+            status: 0,
+            stdout: Out::Empty,
+            stderr: Out::Empty,
+            after: Some(Out::Input),
+        },
+        CliCase {
+            id: "cli/validate/schema-violation-is-a-located-y201",
+            doc: SHAPE,
+            feed: Feed::File,
+            args: &["validate", "--schema", "@schema-array", "@doc"],
+            status: 1,
+            stdout: Out::Empty,
+            stderr: Out::Contains(&["error[Y201]", "at the document root", "doc.yaml:1:1"]),
+            after: None,
+        },
+        CliCase {
+            id: "cli/validate/schema-unusable-is-a-y202",
+            doc: SHAPE,
+            feed: Feed::File,
+            args: &["validate", "--schema", "@schema-bad", "@doc"],
+            status: 1,
+            stdout: Out::Empty,
+            stderr: Out::Contains(&["error[Y202]", "JSON Schema 2020-12", "schema-bad.yaml"]),
+            after: None,
+        },
+        CliCase {
+            id: "cli/validate/schema-missing-exits-five",
+            doc: SHAPE,
+            feed: Feed::File,
+            args: &["validate", "--schema", "@missing", "@doc"],
+            status: 5,
+            stdout: Out::Empty,
+            stderr: Out::Contains(&["failed to read", "missing.yaml"]),
+            after: None,
+        },
+        CliCase {
+            id: "cli/usage/schema-from-stdin-is-rejected",
+            doc: Doc::None,
+            feed: Feed::Stdin,
+            args: &["validate", "--schema", "-", "a.yaml"],
+            status: 2,
+            stdout: Out::Empty,
+            stderr: Out::Contains(&["--schema requires a file path"]),
             after: None,
         },
         // -- scale: the shape at a thousand tenants, and past the budget ----

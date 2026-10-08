@@ -25,11 +25,17 @@
 //! resolved last-wins by virtually every parser, so a bad edit silently
 //! drops data. Duplicates are found by walking the lossless green tree, so
 //! every occurrence is reported with a real source position.
+//!
+//! The [`schema`] module adds the optional fourth check: each document
+//! validated against a JSON Schema 2020-12 document the caller provides,
+//! with every violation mapped back to a byte span in the original
+//! source.
 
 // Feature f012: the validate subcommand (spec: editing-loop verification).
 
 mod render;
 pub(crate) mod scan;
+pub mod schema;
 
 pub use render::render;
 
@@ -52,6 +58,15 @@ pub enum Code {
     KeyCollision,
     /// `Y103` — a block mapping's value is not indented past its key.
     BlockValueIndent,
+    /// `Y201` — a document violates the provided JSON Schema.
+    SchemaViolation,
+    /// `Y202` — the provided schema itself is unusable (not valid YAML,
+    /// not a single document, or not a valid JSON Schema 2020-12
+    /// document).
+    SchemaUnusable,
+    /// `Y203` — the document holds a value the JSON data model cannot
+    /// represent, so it cannot be validated against a JSON Schema.
+    OutsideJsonModel,
 }
 
 impl Code {
@@ -65,6 +80,9 @@ impl Code {
             Code::DuplicateKey => "Y101",
             Code::KeyCollision => "Y102",
             Code::BlockValueIndent => "Y103",
+            Code::SchemaViolation => "Y201",
+            Code::SchemaUnusable => "Y202",
+            Code::OutsideJsonModel => "Y203",
         }
     }
 }
@@ -91,14 +109,32 @@ pub struct Diagnostic {
 
 /// Check `source` and return every finding, in reporting order.
 ///
+/// Equivalent to [`check`] without a schema; kept as the plain entry
+/// point for callers that only want the YAML-correctness verdict.
+#[must_use]
+pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
+    check(source, strict, None)
+}
+
+/// Check `source` — and, when a schema is given, validate every document
+/// against it — returning every finding in reporting order.
+///
 /// An empty result means the input is valid. The syntax check runs first
 /// and short-circuits: an unparseable input yields exactly one finding,
 /// because follow-on findings would describe a document that does not
 /// exist. Strict findings are reported in source order and require the
 /// stream-integrity check to hold (their positions are computed from the
 /// document offsets that check certifies).
+///
+/// The schema pass runs on the same parse as the other checks, and only
+/// when that parse is trustworthy: a syntax or stream-integrity finding
+/// means there is no tree whose spans can be believed, so the schema
+/// pass is skipped and the parse finding is the verdict. Lint-class
+/// findings (an under-indented value, a duplicate key) do not suppress
+/// it — the tree is usable and each finding is independently actionable.
+// Feature f040.
 #[must_use]
-pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
+pub fn check(source: &str, strict: bool, schema: Option<&schema::Schema>) -> Vec<Diagnostic> {
     let docs =
         match ::noyalib::cst::parse_stream_with_config(source, &crate::fidelity::cst_config()) {
             Ok(docs) => docs,
@@ -113,6 +149,9 @@ pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
         findings.extend(block_value_indent_findings(source, &docs));
         if strict {
             findings.extend(strict_findings(source, &docs));
+        }
+        if let Some(schema) = schema {
+            findings.extend(schema::check_parsed(source, docs, schema));
         }
     }
     findings

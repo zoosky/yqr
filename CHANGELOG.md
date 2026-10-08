@@ -6,6 +6,21 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **`yqr validate --schema <FILE>`: JSON Schema validation with source
+  positions.** Every document of every input is checked against a JSON
+  Schema (draft 2020-12), written in YAML or JSON. A violation renders
+  like every other finding -- `error[Y201]`, `--> file:line:col`, the
+  offending line and a caret -- by mapping the violation's instance path
+  to a byte span in the original source, which pointer-only schema
+  validators do not offer. The note line carries the exact instance
+  path for scripts. `Y202` reports an unusable schema (the run stops
+  rather than passing against nothing), and `Y203` reports a document
+  holding a value JSON cannot represent, such as `.nan`. The validator
+  never resolves external `$ref`s: no build of yqr touches the network.
+  The default checks and `--strict` are unchanged and run first.
+
 ### Changed
 
 - **noyalib 0.0.51 → 0.0.56.** No yqr behavior changes: every corpus, CLI

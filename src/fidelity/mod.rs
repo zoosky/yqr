@@ -109,6 +109,17 @@ impl Path {
     pub fn segments(&self) -> &[PathSeg] {
         &self.0
     }
+
+    /// The path one segment shorter, or `None` at the root.
+    ///
+    /// The inverse of [`child`](Self::child); callers that need a node's
+    /// enclosing context (such as a diagnostic falling back to the
+    /// nearest ancestor with source bytes) walk up through it.
+    #[must_use]
+    pub fn parent(&self) -> Option<Self> {
+        let (_, init) = self.0.split_last()?;
+        Some(Path(init.to_vec()))
+    }
 }
 
 /// Outcome of resolving a concrete path against one document.
@@ -233,6 +244,25 @@ pub trait FidelityEngine {
 /// Returns an error when the input is not valid YAML.
 pub fn open(input: &str) -> Result<Box<dyn FidelityEngine>> {
     Ok(Box::new(noyalib::NoyalibEngine::open(input)?))
+}
+
+/// Build the engine over `input` from an already-parsed document stream,
+/// skipping the re-parse [`open`] would do.
+///
+/// For a caller that has just parsed `input` itself (the validate
+/// pipeline), this halves the parse cost. `docs` must be the stream of
+/// exactly this `input`; the tiling check still runs, so a mismatched
+/// pair is refused rather than silently mis-mapping spans.
+///
+/// # Errors
+///
+/// Returns an error when the documents do not tile `input`.
+// Feature f040.
+pub(crate) fn open_parsed(
+    input: &str,
+    docs: Vec<::noyalib::cst::Document>,
+) -> Result<Box<dyn FidelityEngine>> {
+    Ok(Box::new(noyalib::NoyalibEngine::open_parsed(input, docs)?))
 }
 
 /// Evaluate `filter` over `input` with the fidelity engine and render the

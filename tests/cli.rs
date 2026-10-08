@@ -2258,3 +2258,123 @@ fn merge_heavy_document_validates_clean() {
     let _ = std::fs::remove_dir_all(&dir);
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
 }
+
+// -- Feature f040: validate --schema. The flag's option-by-option contract
+// lives in the CLI corpus (tests/corpus/cli.rs, authored once); the tests
+// here cover what a corpus case cannot express: stdin as the validated
+// input, interleaving with default findings, the unparseable skip, the
+// multi-file/multi-document sweep, and a schema file with invalid bytes.
+
+#[test]
+fn validate_schema_reads_the_input_from_stdin() {
+    let schema = temp_yaml("type: array\n");
+    let out = run(
+        &["validate", "--schema", schema.to_str().unwrap(), "-"],
+        "a: 1\n",
+    );
+    let _ = std::fs::remove_file(&schema);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("<stdin>:1:1"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_schema_runs_alongside_the_default_checks() {
+    // A Y103 finding does not suppress the schema pass: the tree is
+    // usable and each finding is independently actionable.
+    let schema = temp_yaml("type: object\nproperties:\n  jobs:\n    type: integer\n");
+    let out = run(
+        &["validate", "--schema", schema.to_str().unwrap(), "-"],
+        "on:\n[]\njobs: {}\n",
+    );
+    let _ = std::fs::remove_file(&schema);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y103]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_schema_skips_an_unparseable_input() {
+    // No tree, no schema pass: the Y001 is the whole verdict.
+    let schema = temp_yaml("type: object\n");
+    let out = run(
+        &["validate", "--schema", schema.to_str().unwrap(), "-"],
+        "a: [1,\n",
+    );
+    let _ = std::fs::remove_file(&schema);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
+    assert!(
+        !out.stderr.contains("error[Y201]"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_schema_validates_every_document_and_file() {
+    // Verdicts never fail-fast: both files are checked, and in the
+    // stream both documents are.
+    let schema = temp_yaml("type: object\n");
+    let bad = temp_yaml("- 1\n---\n- 2\n");
+    let good = temp_yaml("a: 1\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            schema.to_str().unwrap(),
+            bad.to_str().unwrap(),
+            good.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&schema);
+    let _ = std::fs::remove_file(&bad);
+    let _ = std::fs::remove_file(&good);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stderr.matches("error[Y201]").count(),
+        2,
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(
+        out.stderr.contains("in document 2"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_schema_non_utf8_schema_is_a_y202_with_the_schema_help() {
+    // The one Y202 shape a corpus case cannot author: invalid bytes.
+    // Every Y202 carries the same help line, whatever made the schema
+    // unusable.
+    let schema = temp_yaml("placeholder");
+    std::fs::write(&schema, b"type: object\n\xff\xfe\n").expect("write bytes");
+    let input = temp_yaml("a: 1\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            schema.to_str().unwrap(),
+            input.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&schema);
+    let _ = std::fs::remove_file(&input);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y202]"), "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("not valid UTF-8"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(
+        out.stderr
+            .contains("the schema is a single JSON Schema 2020-12 document"),
+        "stderr: {}",
+        out.stderr
+    );
+}
