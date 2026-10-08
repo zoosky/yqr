@@ -207,9 +207,11 @@ yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode" entry
 ```
 
 So `.defaults.mode = 416` is the edit, and it changes the value for
-everything that inherits the anchor. Writing an entry under `web` that
-overrides the merge for `web` alone is a different edit, and one yqr cannot
-make yet.
+everything that inherits the anchor. `del(.defaults.mode)` follows the
+same rule: the entry is removed at the definition, and everything that
+inherits the anchor loses it. Writing an entry under `web` that
+overrides the merge for `web` alone is a different edit, and one yqr
+cannot make yet.
 
 ## A write that changes nothing changes nothing
 
@@ -1723,6 +1725,14 @@ All notable changes to `yqr` are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+
+- **`del` inside a shared anchor.** Deleting an entry inside a value an
+  anchor shares (`del(.a.k)` on `a: &x` with `b: *x`) was refused as a
+  structure change; it now follows the rule assignment already had: the
+  edit lands at the anchor's definition, and every alias and `<<` merge
+  site shows the removal. Only the definition's bytes change. Removing
+  the `&name` itself while an alias still uses it is refused as before,
+  naming both.
 
 - **`yqr validate --schema <FILE>`: JSON Schema validation with source
   positions.** Every document of every input is checked against a JSON

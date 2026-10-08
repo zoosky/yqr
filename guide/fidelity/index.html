@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 1291
+  "wordCount": 1311
 }
 </script>
 <script type="application/ld+json">
@@ -442,9 +442,11 @@ than inventing one:</p>
 yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode" entry of its own to write; it is merged in from elsewhere, through a `&lt;&lt;` merge key or an alias. Assign where the key is defined instead
 </code></pre>
 <p>So <code>.defaults.mode = 416</code> is the edit, and it changes the value for
-everything that inherits the anchor. Writing an entry under <code>web</code> that
-overrides the merge for <code>web</code> alone is a different edit, and one yqr cannot
-make yet.</p>
+everything that inherits the anchor. <code>del(.defaults.mode)</code> follows the
+same rule: the entry is removed at the definition, and everything that
+inherits the anchor loses it. Writing an entry under <code>web</code> that
+overrides the merge for <code>web</code> alone is a different edit, and one yqr
+cannot make yet.</p>
 <h2 id="a-write-that-changes-nothing-changes-nothing">A write that changes nothing changes nothing<a class="heading-anchor" href="#a-write-that-changes-nothing-changes-nothing" aria-label="Link to this section"></a></h2>
 <p>Assigning a value that is already there does not rewrite it. yqr writes
 <em>values</em>, and a value does not carry its own spelling – so re-emitting
