@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791482193007,
+  "lastUpdate": 1791484754462,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2981,6 +2981,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 186591,
             "range": "± 3756",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cbfec59d4ce9e5d07bdfa8c8a5aa7d14c3bb8b31",
+          "message": "feat: override a merged-in key by creating an explicit entry (f025) (#139)\n\n* feat: override a merged-in key by creating an explicit entry (f025)\n\n.c.k = 9, where c inherits k through a << merge, was refused with a\nmessage pointing at the definition. It now creates an explicit k: 9\nentry in c that shadows the inherited value — the missing half of\nb020's remedy, measured unreachable when that bug was filed.\n\nThe decisions the spec left open, now recorded in its §4:\n\n- A bare = is the spelling. The path is the choice: .c.k = 9 asks for\n  exactly c.k to become 9, and the shadow is the only edit that does\n  that and nothing else; .defaults.k = 9 stays the spelling for\n  changing every inheritor. |= follows. Assigning the value the key\n  already inherits is deliberately not a no-op: the shadow decouples\n  the key from the anchor, which is b019's rule given the write it\n  was waiting for.\n- The entry goes where every new key goes: the engine's typed\n  insertion places and spells it.\n- The merge-only mapping is yqr's splice. Upstream's insertion still\n  refuses it on 0.0.56 and its fragment set cannot express the edit\n  (three variants measured); yqr splices one placeholder line —\n  null, or {} / [] for a collection value, so the follow-up write\n  replaces like with like — committed only when the re-parse is the\n  original with exactly the shadow added, then the ordinary\n  assignment lets the engine spell the real value, the f036 division\n  of labor. The engine's merge-only refusal wording is pinned.\n\nWhat stays refused: a parent reached through an alias (c: *m), where\nan explicit entry cannot exist without rewriting the alias into a\nblock; the refusal names the definition route. Detection is the\nborrow machinery, not a byte test — get on an alias returns the\nanchor's bytes (the b035 class). The alias-valued entry itself keeps\nb019's refusal.\n\nThe collection-over-scalar guard learns the distinction through a new\nseam method (key_is_inherited): an inherited key is shadowed, not\nreplaced, so comparing the new value against a value the mapping does\nnot own does not apply.\n\nTests: eight unit tests in the new write/shadow.rs including CRLF,\nmissing final newline, quoting via the engine, and the pinned\nrefusal marker; the b019/b020 pins across tests/cli.rs and both\ncorpus tables flipped to the override behaviour; the refusal\natomicity case repointed at the alias-valued global.ops. The\nfidelity guide documents both edits with captured output; b020's\nspec records the follow-through.\n\n* fix: apply the f025 code-review findings\n\nNine findings; the fixes generalize the feature.\n\n- Insertion inside a value an alias shares follows the anchor rule\n  instead of forwarding the engine's API advice: the shared-value\n  refusal routes to the same splice, and the proof accepts the\n  insertion reflected at every alias site -- the mirror of f038's\n  deletion rule. '.orig.c.k = 9' under 'orig: &o ... copy: *o' now\n  writes at the definition and the copy sees it.\n- insert_key routes through the same machinery, so a brand-new key\n  lands in a merge-only mapping too (previously refused with 'use\n  set with a fragment instead'), with yqr's wording and the\n  integrity check it lacked. A flow-shaped merge mapping takes the\n  engine's own insertion, measured working and pinned.\n- The sequence-item shape ('- <<: *m', the docker-compose idiom) is\n  spliceable: the indent derivation consumes item markers and\n  continues at the key column.\n- The proof is rebuilt as path-anchored and order-sensitive: the\n  shadow is accepted only at the parent path (its typed-view\n  position is the engine's merge ordering: own entries first) or as\n  a reflection of a path prefix, and sibling order is compared\n  exactly, which Value's order-insensitive mapping equality would\n  not. A shadow landing one block out changes a sibling's entry\n  count and refuses.\n- The borrowed-parent refusal names both mechanisms (<< merge or\n  alias); the splice route's flow spelling of a collection override\n  is pinned and recorded in the spec as the placeholder's doing; the\n  no-final-newline splice takes the nearest preceding line's\n  terminator so a mixed-ending file is not made worse at the edit\n  site.\n- The inherited-key span walk in the no-op guard runs only when the\n  collection-over-scalar rule would fire.\n\nSix tests added, one flipped to pin the flow insertion; the spec's\nnew §6 records the round.",
+          "timestamp": "2026-10-08T20:37:35+02:00",
+          "tree_id": "8eac6bec9559d7e14104c5d4e7e20a58882db8e8",
+          "url": "https://github.com/zoosky/yqr/commit/cbfec59d4ce9e5d07bdfa8c8a5aa7d14c3bb8b31"
+        },
+        "date": 1791484752924,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 591,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6147,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 293224,
+            "range": "± 2251",
             "unit": "ns/iter"
           }
         ]
