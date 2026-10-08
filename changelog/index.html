@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 9136
+  "wordCount": 9249
 }
 </script>
 <script type="application/ld+json">
@@ -222,7 +222,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">46 min read</span>
+                    <span class="reading-time">47 min read</span>
                 </div>
                 
 
@@ -461,6 +461,18 @@
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
 <h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
 <ul>
+<li>
+<p><strong>A merged-in key can be overridden.</strong> <code>.web.mode = 416</code>, where <code>web</code>
+gets <code>mode</code> through <code>&lt;&lt;: *defaults</code>, was refused; it now creates an
+explicit <code>mode: 416</code> entry in <code>web</code> that shadows the inherited value.
+The path picks the edit: writing at the definition remains how you
+change every inheritor. Works on a merge-only mapping too, and through
+<code>|=</code>. Assigning the value the key already inherits also writes the
+entry – the shadow decouples the key from the anchor, which is the
+work you asked for. A mapping reached through an alias (<code>web: *defaults</code>) still refuses, naming the definition route, because an
+explicit entry cannot exist there without rewriting the alias into a
+block.</p>
+</li>
 <li>
 <p><strong><code>del</code> inside a shared anchor.</strong> Deleting an entry inside a value an
 anchor shares (<code>del(.a.k)</code> on <code>a: &amp;x</code> with <code>b: *x</code>) was refused as a

@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 1311
+  "wordCount": 1360
 }
 </script>
 <script type="application/ld+json">
@@ -434,19 +434,34 @@ too:</p>
 it and exits 5 rather than emitting something surprising. With <code>-i</code> the
 file is left untouched on refusal, so a failed edit never leaves you with a
 half-written file.</p>
-<p>An entry that a <code>&lt;&lt;</code> merge or an alias produced is one of those refusals.
-You can <em>read</em> <code>.web.mode</code> – it resolves to <code>0640</code> through the merge – but
-there is no <code>mode</code> entry under <code>web</code> to write to, so yqr declines rather
-than inventing one:</p>
+<p>A key that reaches a mapping through a <code>&lt;&lt;</code> merge gives you two
+different edits, and the path you write picks between them. <code>.web.mode</code>
+names <code>web</code>’s key, so the edit creates an explicit entry that overrides
+the merge for <code>web</code> alone – the definition and every other inheritor
+keep theirs:</p>
 <pre><code class="language-console">$ yqr '.web.mode = 416' config.yaml
-yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode" entry of its own to write; it is merged in from elsewhere, through a `&lt;&lt;` merge key or an alias. Assign where the key is defined instead
+defaults: &amp;defaults
+  mode: 0640      # octal, on purpose
+  retries: 3
+
+# Services below inherit the defaults.
+web:
+  &lt;&lt;: *defaults
+  name: 'web'
+  mode: 416
+ver: 1.10
 </code></pre>
-<p>So <code>.defaults.mode = 416</code> is the edit, and it changes the value for
-everything that inherits the anchor. <code>del(.defaults.mode)</code> follows the
-same rule: the entry is removed at the definition, and everything that
-inherits the anchor loses it. Writing an entry under <code>web</code> that
-overrides the merge for <code>web</code> alone is a different edit, and one yqr
-cannot make yet.</p>
+<p><code>.defaults.mode = 416</code> is the other edit: it changes the value where it
+is defined, for everything that inherits the anchor. <code>del(.defaults.mode)</code>
+follows the same rule – the entry is removed at the definition, and
+everything that inherits the anchor loses it.</p>
+<p>One shape stays a refusal: when the mapping’s value <em>is</em> an alias
+(<code>web: *defaults</code>), there is nowhere to put an explicit entry without
+rewriting the alias into a block, so yqr declines and points at the
+definition:</p>
+<pre><code class="language-console">$ yqr '.web.mode = 416' aliased.yaml
+yqr: runtime error: cannot assign at "web.mode": the mapping is reached through an alias, so it has no "mode" entry of its own to write. Assign where the key is defined instead
+</code></pre>
 <h2 id="a-write-that-changes-nothing-changes-nothing">A write that changes nothing changes nothing<a class="heading-anchor" href="#a-write-that-changes-nothing-changes-nothing" aria-label="Link to this section"></a></h2>
 <p>Assigning a value that is already there does not rewrite it. yqr writes
 <em>values</em>, and a value does not carry its own spelling – so re-emitting
