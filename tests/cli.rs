@@ -2259,54 +2259,11 @@ fn merge_heavy_document_validates_clean() {
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
 }
 
-// -- Feature f040: validate --schema -------------------------------------------
-
-#[test]
-fn validate_schema_conforming_input_is_silent() {
-    let schema = temp_yaml("type: object\nproperties:\n  replicas:\n    type: integer\n");
-    let input = temp_yaml("replicas: 3\n");
-    let out = run(
-        &[
-            "validate",
-            "--schema",
-            schema.to_str().unwrap(),
-            input.to_str().unwrap(),
-        ],
-        "",
-    );
-    let _ = std::fs::remove_file(&schema);
-    let _ = std::fs::remove_file(&input);
-    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
-    assert!(out.stderr.is_empty(), "stderr: {}", out.stderr);
-}
-
-#[test]
-fn validate_schema_violation_is_a_located_y201() {
-    let schema = temp_yaml(
-        "type: object\nproperties:\n  spec:\n    type: object\n    properties:\n      replicas:\n        type: integer\n",
-    );
-    let input = temp_yaml("name: app\nspec:\n  replicas: \"three\"\n");
-    let out = run(
-        &[
-            "validate",
-            "--schema",
-            schema.to_str().unwrap(),
-            input.to_str().unwrap(),
-        ],
-        "",
-    );
-    let _ = std::fs::remove_file(&schema);
-    let _ = std::fs::remove_file(&input);
-    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
-    assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
-    assert!(out.stderr.contains(":3:13"), "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains("at instance path /spec/replicas"),
-        "stderr: {}",
-        out.stderr
-    );
-    assert!(out.stdout.is_empty(), "findings go to stderr");
-}
+// -- Feature f040: validate --schema. The flag's option-by-option contract
+// lives in the CLI corpus (tests/corpus/cli.rs, authored once); the tests
+// here cover what a corpus case cannot express: stdin as the validated
+// input, interleaving with default findings, the unparseable skip, the
+// multi-file/multi-document sweep, and a schema file with invalid bytes.
 
 #[test]
 fn validate_schema_reads_the_input_from_stdin() {
@@ -2319,64 +2276,6 @@ fn validate_schema_reads_the_input_from_stdin() {
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
     assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
     assert!(out.stderr.contains("<stdin>:1:1"), "stderr: {}", out.stderr);
-}
-
-#[test]
-fn validate_schema_unusable_schema_is_a_y202_against_the_schema_file() {
-    // Not a valid 2020-12 schema; the run stops before any input is
-    // validated, and the diagnostic names the schema file.
-    let schema = temp_yaml("type: 5\n");
-    let input = temp_yaml("a: 1\n");
-    let out = run(
-        &[
-            "validate",
-            "--schema",
-            schema.to_str().unwrap(),
-            input.to_str().unwrap(),
-        ],
-        "",
-    );
-    let _ = std::fs::remove_file(&input);
-    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
-    assert!(out.stderr.contains("error[Y202]"), "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains(schema.to_str().unwrap()),
-        "stderr: {}",
-        out.stderr
-    );
-    let _ = std::fs::remove_file(&schema);
-}
-
-#[test]
-fn validate_schema_unreadable_schema_exits_five() {
-    let input = temp_yaml("a: 1\n");
-    let out = run(
-        &[
-            "validate",
-            "--schema",
-            "no-such-schema.yaml",
-            input.to_str().unwrap(),
-        ],
-        "",
-    );
-    let _ = std::fs::remove_file(&input);
-    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains("failed to read"),
-        "stderr: {}",
-        out.stderr
-    );
-}
-
-#[test]
-fn validate_schema_rejects_stdin_as_the_schema() {
-    let out = run(&["validate", "--schema", "-", "a.yaml"], "");
-    assert_eq!(out.status, 2, "stderr: {}", out.stderr);
-    assert!(
-        out.stderr.contains("--schema requires a file path"),
-        "stderr: {}",
-        out.stderr
-    );
 }
 
 #[test]
@@ -2441,6 +2340,40 @@ fn validate_schema_validates_every_document_and_file() {
     );
     assert!(
         out.stderr.contains("in document 2"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_schema_non_utf8_schema_is_a_y202_with_the_schema_help() {
+    // The one Y202 shape a corpus case cannot author: invalid bytes.
+    // Every Y202 carries the same help line, whatever made the schema
+    // unusable.
+    let schema = temp_yaml("placeholder");
+    std::fs::write(&schema, b"type: object\n\xff\xfe\n").expect("write bytes");
+    let input = temp_yaml("a: 1\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            schema.to_str().unwrap(),
+            input.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&schema);
+    let _ = std::fs::remove_file(&input);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y202]"), "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("not valid UTF-8"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(
+        out.stderr
+            .contains("the schema is a single JSON Schema 2020-12 document"),
         "stderr: {}",
         out.stderr
     );

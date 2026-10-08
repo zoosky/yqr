@@ -37,7 +37,14 @@ impl NoyalibEngine {
     /// byte-for-byte before trusting any span from them.
     pub(crate) fn open(input: &str) -> Result<Self> {
         let docs = parse_lossless_stream(input)?;
+        Self::open_parsed(input, docs)
+    }
 
+    /// Build the engine from a stream the caller already parsed from
+    /// `input`, skipping the re-parse. The tiling check still runs, so a
+    /// mismatched pair is refused.
+    // Feature f040.
+    pub(crate) fn open_parsed(input: &str, docs: Vec<::noyalib::cst::Document>) -> Result<Self> {
         // Every span downstream is rebased on these offsets, so a document whose
         // slice diverged from the input would silently mis-map every projection.
         let offsets = verify_stream_tiles_input(input, &docs)?;
@@ -46,8 +53,8 @@ impl NoyalibEngine {
         // YAML keys that share a spelling (`1` and `"1"`) would collapse into
         // one entry — silent data loss. The fork's loader now raises
         // `Error::KeyCollision` for exactly that case (deficiency 2.5), so the
-        // `parse_stream` call above already refused such an input loudly; no
-        // cross-check against the classic loader is needed here.
+        // `parse_stream` call that produced `docs` already refused such an
+        // input loudly; no cross-check against the classic loader is needed.
         let values: Vec<Value> = docs.iter().map(|d| lower_value(&d.as_value())).collect();
 
         Ok(Self {

@@ -71,10 +71,15 @@ never renumbered, never reused.
   message is the violation's own text (`"three" is not of type
   "integer"`); the note carries the RFC 6901 instance path and, in a
   multi-document stream, the document; the position is the span the
-  pointer resolves to (§2.4).
+  pointer resolves to (§2.4). The validator's message embeds the
+  offending instance as JSON, so past a 256-character budget the masked
+  form is rendered instead (`value is not of type "array"`) — a
+  root-level violation over a whole manifest must not print the
+  document as its own diagnostic header (§6).
 - **`Y202` — the schema itself is unusable.** The schema file is not
-  valid YAML, holds more than one document, or does not compile as a
-  JSON Schema 2020-12 document (including an external `$ref`). Rendered
+  valid YAML or UTF-8, holds no document or more than one, or does not
+  compile as a JSON Schema 2020-12 document (including an external
+  `$ref`). Every `Y202` carries the same help line. Rendered
   once against the schema file, then the run stops at exit 1: validating
   files against no schema and reporting "0 schema findings" would be the
   false green `f012` §3.1 exists to prevent. An unreadable schema file
@@ -111,13 +116,20 @@ the caret lands on an ancestor.
 
 ### 2.5 Interaction with the default checks
 
-The schema pass runs per input, after the default (and strict) checks,
-whenever the source parses — `Y103` or `Y101` findings do not suppress
-it, since the tree is usable and each finding is independently
-actionable. An input that fails to parse reports its `Y001` and skips
-the schema pass: there is no tree to validate. Exit codes are unchanged
-(`f012` §3.5): any finding is exit 1, the worst outcome across inputs
-wins.
+All checks run over **one parse** per input: `validate::check` parses
+the stream once, runs the default (and strict) checks on it, and hands
+the same documents to the schema pass through the engine's
+`open_parsed` constructor. The schema pass runs whenever that parse is
+trustworthy — `Y103` or `Y101` findings do not suppress it, since the
+tree is usable and each finding is independently actionable. An input
+that fails to parse, or fails the tiling check, reports its `Y001` or
+`Y002` and skips the schema pass: the gate is the reported finding
+itself, never a coincidence of two parse paths agreeing. If the engine
+nevertheless refuses the pair the pass reports a backstop finding
+rather than skipping — a schema run that says nothing must mean every
+document conformed, never that none was checked. Exit codes are
+unchanged (`f012` §3.5): any finding is exit 1, the worst outcome
+across inputs wins.
 
 ## 3. Out of scope
 
@@ -169,3 +181,41 @@ Recorded at implementation time:
   of the 44 additions is a network, TLS or async crate (verified by
   tree inspection: no reqwest, hyper, tokio, url, idna or TLS crate in
   `cargo tree -p jsonschema`), and `cargo audit` is clean.
+
+## 6. Code review
+
+A full-branch review (2026-10-08) returned eight findings; all eight
+were applied before merge:
+
+1. **Unbounded `Y201` message.** The validator's message embeds the
+   offending instance; a root-level violation over a large file printed
+   the whole document on one line. Past a 256-character budget the
+   masked message is rendered instead; two tests pin both sides of the
+   budget.
+2. **Latent false green.** The schema pass skipped silently when the
+   fidelity engine refused an input its own parse had accepted — safe
+   only while the two parse paths agreed. §2.5's single-parse design
+   removes the second path, the gate is now the reported parse finding,
+   and the engine arms report a backstop finding instead of skipping.
+3. **Dangling root pointer.** A schema whose root value leaves the JSON
+   model rendered "…cannot represent at " — the root's RFC 6901 pointer
+   is the empty string. The location moved to a note that names the
+   root explicitly.
+4. **Inconsistent `Y202` help.** A non-UTF-8 schema kept the
+   input-oriented re-encode help; every `Y202` now carries the same
+   schema help line, built by one constructor.
+5. **"The file holds 0".** An empty schema file now says "schema file
+   holds no document" instead of wording shaped for the multi-document
+   case.
+6. **Duplicated tests.** Five black-box CLI tests repeated corpus cases
+   one for one, against the corpus's authored-once rule; they are
+   removed, and the remaining CLI tests cover only what a corpus case
+   cannot express (stdin input, interleaving, the unparseable skip, the
+   multi-file sweep, invalid schema bytes).
+7. **Double parsing.** Each input was parsed twice (the checks, then
+   the schema pass's own `open`), and the schema file twice in
+   `compile`. `open_parsed` builds the engine from the already-parsed
+   stream; every input and the schema are now parsed once.
+8. **`parent()` belonged on `Path`.** The pop-to-ancestor helper
+   rebuilt each prefix segment-by-segment; `fidelity::Path::parent` is
+   now the shared, discoverable form.

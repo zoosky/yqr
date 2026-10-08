@@ -109,14 +109,32 @@ pub struct Diagnostic {
 
 /// Check `source` and return every finding, in reporting order.
 ///
+/// Equivalent to [`check`] without a schema; kept as the plain entry
+/// point for callers that only want the YAML-correctness verdict.
+#[must_use]
+pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
+    check(source, strict, None)
+}
+
+/// Check `source` — and, when a schema is given, validate every document
+/// against it — returning every finding in reporting order.
+///
 /// An empty result means the input is valid. The syntax check runs first
 /// and short-circuits: an unparseable input yields exactly one finding,
 /// because follow-on findings would describe a document that does not
 /// exist. Strict findings are reported in source order and require the
 /// stream-integrity check to hold (their positions are computed from the
 /// document offsets that check certifies).
+///
+/// The schema pass runs on the same parse as the other checks, and only
+/// when that parse is trustworthy: a syntax or stream-integrity finding
+/// means there is no tree whose spans can be believed, so the schema
+/// pass is skipped and the parse finding is the verdict. Lint-class
+/// findings (an under-indented value, a duplicate key) do not suppress
+/// it — the tree is usable and each finding is independently actionable.
+// Feature f040.
 #[must_use]
-pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
+pub fn check(source: &str, strict: bool, schema: Option<&schema::Schema>) -> Vec<Diagnostic> {
     let docs =
         match ::noyalib::cst::parse_stream_with_config(source, &crate::fidelity::cst_config()) {
             Ok(docs) => docs,
@@ -131,6 +149,9 @@ pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
         findings.extend(block_value_indent_findings(source, &docs));
         if strict {
             findings.extend(strict_findings(source, &docs));
+        }
+        if let Some(schema) = schema {
+            findings.extend(schema::check_parsed(source, docs, schema));
         }
     }
     findings

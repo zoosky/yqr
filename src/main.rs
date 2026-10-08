@@ -201,15 +201,11 @@ fn run_validate(args: &cli::ValidateArgs) -> ExitCode {
             }
             Ok(bytes) => {
                 let (source, findings) = match String::from_utf8(bytes) {
+                    // Feature f040: one call runs the default, strict and
+                    // schema checks over a single parse; the schema pass
+                    // is gated inside on the parse being trustworthy.
                     Ok(source) => {
-                        let mut findings = yqr::validate::check_str(&source, args.strict);
-                        // Feature f040: the schema pass runs whenever the
-                        // input parses; findings from the default checks
-                        // do not suppress it, since the tree is usable
-                        // and each finding is independently actionable.
-                        if let Some(schema) = &schema {
-                            findings.extend(yqr::validate::schema::check_schema(&source, schema));
-                        }
+                        let findings = yqr::validate::check(&source, args.strict, schema.as_ref());
                         (source, findings)
                     }
                     // Wrong encoding is a content defect (exit 1 with a
@@ -279,9 +275,7 @@ fn load_schema(path: &str) -> Result<yqr::validate::schema::Schema, SchemaLoadEr
             let mut bytes = err.into_bytes();
             bytes.truncate(valid_up_to);
             let prefix = String::from_utf8(bytes).expect("prefix up to valid_up_to is valid UTF-8");
-            let mut diagnostic = yqr::validate::encoding_diagnostic(&prefix);
-            diagnostic.code = yqr::validate::Code::SchemaUnusable;
-            diagnostic.message = "schema is not valid UTF-8".into();
+            let diagnostic = yqr::validate::schema::encoding_unusable(&prefix);
             return Err(SchemaLoadError::Unusable(Box::new((diagnostic, prefix))));
         }
     };
