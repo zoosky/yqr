@@ -207,9 +207,9 @@ impl FidelityWriter for NoyalibWriter {
             // answers it.
             if self.value_is_borrowed(doc, &rebased(path, None))? {
                 return Err(YqrError::eval(format!(
-                    "cannot assign at {path_str:?}: the mapping is reached through an \
-                     alias, so it has no {key:?} entry of its own to write. Assign where \
-                     the key is defined instead"
+                    "cannot assign at {path_str:?}: the mapping is reached through a \
+                     `<<` merge or an alias, so it has no {key:?} entry of its own to \
+                     write. Assign where the key is defined instead"
                 )));
             }
             let key = key.clone();
@@ -277,11 +277,13 @@ impl FidelityWriter for NoyalibWriter {
     }
 
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
-        let parent_str = to_noyalib_path(parent);
-        let ny = insertable(value);
-        self.doc_mut(doc)?
-            .insert_entry_value(&parent_str, key, &ny)
-            .map_err(|e| YqrError::eval(format!("cannot insert key {key:?}: {e}")))
+        // One implementation for every new entry, inherited key or brand
+        // new: the engine's insertion where the mapping owns an entry to
+        // anchor on, the shadow splice where a `<<` merge is all it has,
+        // and yqr's wording for the shared-value refusal. Feature f025.
+        let path = parent.child(PathSeg::Key(key.to_string()));
+        let path_str = to_noyalib_path(&path);
+        self.insert_override(doc, &path, &path_str, key, value)
     }
 
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {

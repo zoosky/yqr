@@ -110,3 +110,35 @@ The alias-*valued* entry itself (`.c = 1` over `c: *m`) keeps
       documents both edits.)
 - [x] Corpus cases on `FIDELITY_RICH`, which already carries a `<<` — the
       two `yqr-b019`/`yqr-b020` pins flipped to the override behaviour.
+
+## 6. Code review
+
+The PR review returned nine findings; the fixes sharpened the feature
+into its general form:
+
+1. **Insertion follows the anchor rule.** A mapping inside a value an
+   alias shares was first refused (leaking the engine's API advice);
+   the engine's shared-value refusal now routes to the same splice, and
+   the proof accepts the insertion reflected at every alias site — the
+   mirror of `yqr-f038`'s deletion rule.
+2. **One route for every new entry.** `insert_key` goes through the
+   same machinery, so a brand-new key lands in a merge-only mapping
+   too, with yqr's wording and the integrity check it previously
+   lacked. A flow-shaped merge mapping takes the engine's own
+   insertion, measured working.
+3. **The sequence-item shape works.** `- <<: *m` (the docker-compose
+   idiom) was refused by the indent check; the splice now consumes
+   `- ` markers and continues at the item's key column.
+4. **The proof is path-anchored and order-sensitive.** The shadow is
+   accepted only at the parent path (its own position in the typed
+   view is the engine's merge ordering) or as a reflection of a path
+   prefix; sibling order is compared exactly, which `Value`'s
+   order-insensitive mapping equality would not.
+5. **Wording.** The borrowed-parent refusal names both mechanisms
+   (`<<` merge or alias); the splice route's flow spelling of a
+   collection override is pinned by test and recorded here as the
+   placeholder's doing (the engine replaces like with like); the
+   no-final-newline splice takes the nearest preceding line's
+   terminator, so a mixed-ending file is not made worse.
+6. **Cost.** The inherited-key check in the no-op guard runs only when
+   the collection-over-scalar rule would fire.
