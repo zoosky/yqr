@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-10-08T15:22:24Z",
+  "timestamp": "2026-10-08T17:10:54Z",
   "pages": {
     "/": {
       "content_hash": "e398e8629920fc98",
@@ -8,7 +8,7 @@
       "template_hash": "4eebd4d63165e5ff"
     },
     "/changelog": {
-      "content_hash": "c7753a3ccce8f5bd",
+      "content_hash": "4b1c59b259eafed8",
       "template": "default.html.jinja",
       "template_hash": "eb1d6e9a0337d72d"
     },
@@ -53,7 +53,7 @@
       "template_hash": "30406ea523c53def"
     },
     "/guide/validate": {
-      "content_hash": "2497e70fe06a43c9",
+      "content_hash": "56ca754ea90cdffd",
       "template": "validate.html.jinja",
       "template_hash": "30406ea523c53def"
     }

@@ -13,7 +13,7 @@
 
 
 
-<meta name="description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+<meta name="description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- use --strict to catch duplicate keys that silently drop data, and --schema to validate against a JSON Schema with source positions.">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;validate">
@@ -29,7 +29,7 @@
 
 
 <meta property="og:title" content="Validating YAML from the command line">
-<meta property="og:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+<meta property="og:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- use --strict to catch duplicate keys that silently drop data, and --schema to validate against a JSON Schema with source positions.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;guide&#x2f;validate">
 <meta property="og:site_name" content="yqr">
@@ -42,7 +42,7 @@
 
 
 <meta name="twitter:title" content="Validating YAML from the command line">
-<meta name="twitter:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.">
+<meta name="twitter:description" content="Check a YAML file is still correct after an edit, with compiler-style diagnostics -- use --strict to catch duplicate keys that silently drop data, and --schema to validate against a JSON Schema with source positions.">
 
 
 
@@ -92,11 +92,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-10-08",
-  "description": "Check a YAML file is still correct after an edit, with compiler-style diagnostics -- and use --strict to catch duplicate keys that silently drop data.",
+  "description": "Check a YAML file is still correct after an edit, with compiler-style diagnostics -- use --strict to catch duplicate keys that silently drop data, and --schema to validate against a JSON Schema with source positions.",
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
   "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 916
+  "wordCount": 1275
 }
 </script>
 <script type="application/ld+json">
@@ -231,7 +231,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">5 min read</span>
+                    <span class="reading-time">7 min read</span>
                 </div>
                 
 
@@ -255,6 +255,10 @@
     
         <li class="toc-level-2">
             <a href="#strict-and-the-bug-it-catches">--strict, and the bug it catches</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#validating-against-a-schema">Validating against a schema</a>
         </li>
     
         <li class="toc-level-2">
@@ -388,6 +392,67 @@ load”, <code>--strict</code> asks “will it load the way you think it will”
 <p><strong>Use <code>--strict</code> in CI.</strong> The cost is one flag; the thing it catches is
 silent data loss, which is the failure mode you find out about in
 production.</p>
+<h2 id="validating-against-a-schema">Validating against a schema<a class="heading-anchor" href="#validating-against-a-schema" aria-label="Link to this section"></a></h2>
+<p>Correct YAML is not yet the YAML your system accepts. <code>--schema</code> checks
+every document against a JSON Schema (draft 2020-12), written in YAML or
+JSON:</p>
+<pre><code class="language-console">$ cat schema.yaml
+type: object
+required: [spec]
+properties:
+  spec:
+    type: object
+    required: [image]
+    properties:
+      replicas:
+        type: integer
+      image:
+        type: string
+$ cat deploy.yaml
+name: web
+spec:
+  replicas: "three"
+$ yqr validate --schema schema.yaml deploy.yaml
+error[Y201]: "image" is a required property
+  --&gt; deploy.yaml:3:1
+  |
+3 |   replicas: "three"
+  | ^
+  = note: at instance path /spec
+error[Y201]: "three" is not of type "integer"
+  --&gt; deploy.yaml:3:13
+  |
+3 |   replicas: "three"
+  |             ^
+  = note: at instance path /spec/replicas
+$ echo $?
+1
+</code></pre>
+<p>The difference from schema validators you may know: the position. A
+violation names the line and column in your file, not just a JSON pointer
+you then go hunting for. The pointer is still there, on the note line,
+because scripts match on it.</p>
+<p>Three codes belong to this check, and like every other code they are
+stable: <code>Y201</code> is a violation in your document, <code>Y202</code> means the schema
+file itself is unusable (not valid YAML, or not a valid 2020-12 schema –
+the run stops rather than reporting a hollow pass), and <code>Y203</code> means the
+document holds a value JSON cannot represent (such as <code>.nan</code>), so it
+cannot be checked against a JSON Schema at all.</p>
+<pre><code class="language-console">$ yqr validate --schema badschema.yaml deploy.yaml
+error[Y202]: schema does not compile as JSON Schema 2020-12: 5 is not valid under any of the schemas listed in the 'anyOf' keyword
+  --&gt; badschema.yaml
+  = help: the schema is a single JSON Schema 2020-12 document, in YAML or JSON
+$ echo $?
+1
+</code></pre>
+<p>Two boundaries worth knowing. The validator never touches the network: a
+schema that <code>$ref</code>s an external resource is refused as <code>Y202</code>, by
+construction. And the dialect is 2020-12, which covers SchemaStore-style
+schemas (GitHub Actions, docker-compose) well; Kubernetes CRD schemas are
+an older OpenAPI dialect and remain a job for kubeconform.</p>
+<p>The default checks still run first – <code>--schema</code> adds to the verdict, it
+never replaces it – and <code>--strict</code> combines with it the way you would
+expect.</p>
 <h2 id="in-a-script">In a script<a class="heading-anchor" href="#in-a-script" aria-label="Link to this section"></a></h2>
 <p>The pattern that works:</p>
 <pre style="background-color:#2b303b;">
