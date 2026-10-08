@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791473018274,
+  "lastUpdate": 1791479549045,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2897,6 +2897,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 178923,
             "range": "± 11127",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ee003bfc1886a9b5d47c9436a51ecc4ccc9b3b6",
+          "message": "feat: validate --schema — JSON Schema validation with source spans (f040) (#137)\n\n* feat: validate --schema, JSON Schema validation with source spans\n\nThe f012 §5.1 follow-up, shipped as f040. Every document of every\ninput is validated against a JSON Schema 2020-12 document (written in\nYAML or JSON), and each violation renders as the same rustc-style\ndiagnostic as every other finding: the violation's typed instance path\nmaps one-to-one onto the fidelity engine's Path, and resolve maps that\nto a byte span in the original source. Pointer-only schema validators\ndo not offer the position; the note line still carries the exact\ninstance path for scripts.\n\nThree new codes in the registry. Y201 is one violation, positioned at\nthe resolved span -- or, for merge- and alias-expanded content with no\nbytes of its own, at the nearest enclosing node that has some (an\nalias anchors at its definition, matching where a write through it\nlands). Y202 is an unusable schema file, rendered once against the\nschema and stopping the run: validating files against no schema and\nreporting zero findings would be the false green f012 §3.1 exists to\nprevent. Y203 is a document the JSON data model cannot represent (a\nnon-finite float); it is reported rather than coerced, because a\nschema validating a silently altered value returns a verdict about a\ndocument that does not exist.\n\nThe schema engine is jsonschema 0.58 with default features off, so the\nresolve-http and resolve-file resolvers are compiled out and no build\nof yqr can resolve an external $ref. Violations come from iter_errors,\nnever from an aggregated error string. The dependency is always-on\nrather than feature-gated -- a flag that exists in some builds would\nneed a gated CLI corpus and qualified docs -- at a measured cost of\n+3.56 MiB release binary and 44 crates, none of them network, TLS or\nasync; cargo audit is clean on the full tree.\n\n17 unit tests pin the pointer-to-span mapping, the fallback rule and\nthe Y202/Y203 taxonomy; 9 black-box CLI tests and 5 corpus CLI cases\ncover the flag end to end, including stdin input, an unusable schema,\nan unreadable schema (exit 5) and --schema - (usage error). The\nvalidate guide documents the flag with captured output.\n\n* fix: apply the eight f040 code-review findings\n\nA full-branch review returned eight findings; all are applied and\nrecorded in the spec's new §6.\n\nCorrectness and wording:\n- A Y201 message past a 256-character budget renders the validator's\n  masked form, so a root-level violation over a large document no\n  longer prints the whole document as its own diagnostic header. Two\n  tests pin both sides of the budget.\n- The schema pass no longer rides on two parse paths agreeing. All\n  checks run over one parse: validate::check hands its documents to\n  the schema pass through the engine's new open_parsed constructor,\n  the gate is the reported Y001/Y002 itself, and the engine arms\n  report a backstop finding instead of silently skipping.\n- A schema whose root value leaves the JSON data model no longer\n  renders a message ending in a dangling 'at '; the location is a\n  note that names the document root.\n- Every Y202 carries the same help line: the non-UTF-8 schema\n  diagnostic is built by schema::encoding_unusable instead of\n  patching the input-oriented encoding finding in main.\n- An empty schema file says 'schema file holds no document' instead\n  of 'the file holds 0'.\n\nStructure and cost:\n- Five black-box CLI tests that repeated corpus cases one for one are\n  removed; the remaining CLI tests cover only what a corpus case\n  cannot express, and a new one covers a schema file with invalid\n  bytes.\n- Every input and the schema file are parsed once instead of twice.\n- The pop-to-ancestor helper is now fidelity::Path::parent, beside\n  root, child and segments.",
+          "timestamp": "2026-10-08T19:10:38+02:00",
+          "tree_id": "f964bebd86d8893b558603c04734eedc7288e280",
+          "url": "https://github.com/zoosky/yqr/commit/9ee003bfc1886a9b5d47c9436a51ecc4ccc9b3b6"
+        },
+        "date": 1791479545550,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 452,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4691,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 219357,
+            "range": "± 596",
             "unit": "ns/iter"
           }
         ]
