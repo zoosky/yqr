@@ -604,25 +604,31 @@ pub fn write_cases() -> Vec<WriteCase> {
             filter: ".logging.file_mode |= .",
             expect: WriteExpect::Unchanged,
         },
-        // Bug b019: the value guard may not skip past a refusal. `retries` is
-        // reached through `<<: *defaults`, so it is not `service`'s own entry
-        // to write — assigning the value it already reports must refuse, not
-        // silently leave the merge in place.
+        // Bug b019: the value guard may not skip past a borrowed site.
+        // `retries` is reached through `<<: *defaults`, so assigning the
+        // value it already reports has real work to do. Since f025 that
+        // work is the explicit shadow entry — the write decouples
+        // `service.retries` from the anchor rather than being swallowed.
         WriteCase {
             id: "write/assign/a-no-op-does-not-swallow-a-borrowed-site",
             doc: FIDELITY_RICH,
             filter: ".service.retries = 3",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "  region: 'us-east-1' #primary\n",
+                "  region: 'us-east-1' #primary\n  retries: 3\n",
+            )]),
         },
-        // Bug b020: `service.retries` reads through `<<: *defaults`, so the
-        // refusal is right -- and its reason must name that, not deny a path
-        // the read tier resolves. Pinned as an exit code here; the wording is
-        // asserted at the CLI level, where a message belongs.
+        // Feature f025 (closing bug b020's missing half): a merged-in key
+        // is overridden by creating an explicit entry, placed where every
+        // new key goes. The definition and the `<<` line keep their bytes.
         WriteCase {
-            id: "write/assign/a-merged-in-key-is-refused",
+            id: "write/assign/a-merged-in-key-is-overridden",
             doc: FIDELITY_RICH,
             filter: ".service.retries = 9",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "  region: 'us-east-1' #primary\n",
+                "  region: 'us-east-1' #primary\n  retries: 9\n",
+            )]),
         },
         // Bug b019: the same rule on a comment. `#primary` and `# primary`
         // carry one body, and the body is all a comment write is given, so

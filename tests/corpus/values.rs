@@ -470,13 +470,18 @@ pub fn write_cases() -> Vec<WriteCase> {
                 "DOCS_ES_REINDEX: \"2\"\n      envVars:\n        DOCS_IMAGE_AWS_S3_BUCKET: \"website-docs-prod-t3-images\"",
             )]),
         },
-        // Bug b020: a merged-in key is not the tenant's own; the write is
-        // refused and the message points at the definition.
+        // Feature f025 (closing bug b020's missing half): a merged-in key
+        // is not the tenant's own, so the write creates the explicit
+        // entry that shadows it — for this tenant alone. The `<<` line,
+        // the default block and every other tenant keep their bytes.
         WriteCase {
-            id: "values/write/merged-key-is-refused",
+            id: "values/write/merged-key-is-overridden",
             doc: &TENANTS_40,
             filter: ".argo.tenants.t3.ops.DEFAULT_LANGUAGE = \"rm\"",
-            expect: WriteExpect::Err(5),
+            expect: WriteExpect::Rewrites(&[(
+                "        DOCS_ES_REINDEX: \"1\"\n      envVars:\n        DOCS_IMAGE_AWS_S3_BUCKET: \"website-docs-prod-t3-images\"",
+                "        DOCS_ES_REINDEX: \"1\"\n        DEFAULT_LANGUAGE: \"rm\"\n      envVars:\n        DOCS_IMAGE_AWS_S3_BUCKET: \"website-docs-prod-t3-images\"",
+            )]),
         },
         // The remedy that message names: assign where the key is defined.
         // noyalib 0.0.29 refuses this write (#338), so since yqr-f026 the

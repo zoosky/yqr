@@ -8,6 +8,18 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Added
 
+- **A merged-in key can be overridden.** `.web.mode = 416`, where `web`
+  gets `mode` through `<<: *defaults`, was refused; it now creates an
+  explicit `mode: 416` entry in `web` that shadows the inherited value.
+  The path picks the edit: writing at the definition remains how you
+  change every inheritor. Works on a merge-only mapping too, and through
+  `|=`. Assigning the value the key already inherits also writes the
+  entry -- the shadow decouples the key from the anchor, which is the
+  work you asked for. A mapping reached through an alias (`web:
+  *defaults`) still refuses, naming the definition route, because an
+  explicit entry cannot exist there without rewriting the alias into a
+  block.
+
 - **`del` inside a shared anchor.** Deleting an entry inside a value an
   anchor shares (`del(.a.k)` on `a: &x` with `b: *x`) was refused as a
   structure change; it now follows the rule assignment already had: the

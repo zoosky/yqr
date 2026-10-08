@@ -853,15 +853,14 @@ pub fn cli_cases() -> Vec<CliCase> {
                 "      - values-sdw03.yaml\n      - values-sdw02.yaml\n",
             )])),
         },
+        // `global.ops` is alias-valued (`ops: *preOps`), the shape f025
+        // keeps refusing; a tenant's merged ops key is an override since
+        // f025 and no longer serves as a refusal case.
         CliCase {
             id: "cli/write/refused-edit-leaves-the-file",
             doc: SHAPE,
             feed: Feed::File,
-            args: &[
-                "-i",
-                ".argo.tenants.t3.ops.DEFAULT_LANGUAGE = \"rm\"",
-                "@doc",
-            ],
+            args: &["-i", ".argo.global.ops.DOCS_RUN_TASKS = \"x\"", "@doc"],
             status: 5,
             stdout: Out::Empty,
             stderr: Out::Contains(&["Assign where the key is defined"]),

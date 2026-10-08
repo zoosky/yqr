@@ -1651,16 +1651,18 @@ fn a_no_op_does_not_swallow_an_alias_refusal() {
 }
 
 #[test]
-fn a_no_op_does_not_swallow_a_merge_key_refusal() {
-    // `c.k` is not `c`'s own entry -- `<<: *m` produced it -- so there is no
-    // key there to write, whatever value is asked for.
+fn a_no_op_does_not_swallow_a_merge_key_write() {
+    // `c.k` is not `c`'s own entry -- `<<: *m` produced it -- so a write
+    // there has real work to do whatever the value: the explicit shadow
+    // entry decouples `c.k` from the anchor. Assigning the value it
+    // already reports must create the entry, not be skipped as a no-op.
     let doc = "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n";
+    let same = run(&[".c.k = 1"], doc);
+    assert_eq!(same.status, 0, "stderr: {}", same.stderr);
     assert_eq!(
-        run(&[".c.k = 1"], doc).status,
-        5,
-        "the value it already has"
+        same.stdout, "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n  k: 1\n",
+        "the value it already has still writes the shadow"
     );
-    assert_eq!(run(&[".c.k = 9"], doc).status, 5, "a different value");
     // A sibling the mapping really owns is unaffected by either rule.
     assert_eq!(
         run(&[".c.z = 2"], doc).stdout,
@@ -1715,31 +1717,40 @@ fn reading_a_comment_and_writing_it_back_is_a_no_op() {
     assert_eq!(run(&[filter.as_str()], doc).stdout, doc);
 }
 
-// Bug b020: a key a `<<` merge or an alias expansion put in the typed view is
-// refused, correctly -- there is no entry in the mapping to write. The reason
-// given used to be `path not found`, for a path yqr had just read a value
-// from, which is the tool contradicting itself.
+// Feature f025 (closing bug b020's missing half): a key a `<<` merge put
+// in the typed view is overridden by creating an explicit entry, through
+// `=` and `|=` alike. The alias-parent case keeps b020's refusal, worded
+// by what is actually wrong -- never `path not found` for a path yqr had
+// just read a value from, which is the tool contradicting itself.
 #[test]
-fn a_merged_in_key_is_refused_by_what_is_actually_wrong() {
+fn a_merged_in_key_is_overridden_and_an_alias_parent_is_refused() {
     let doc = "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n";
     // The premise: the path reads.
     assert_eq!(run(&["-r", ".c.k"], doc).stdout, "1\n");
 
-    for filter in [".c.k = 9", ".c.k |= 2", ".c.k = 1"] {
+    for filter in [".c.k = 9", ".c.k |= 9"] {
         let out = run(&[filter], doc);
-        assert_eq!(out.status, 5, "{filter}");
-        assert!(
-            out.stderr.contains("no \"k\" entry of its own"),
-            "{filter}: names what is wrong: {}",
-            out.stderr
+        assert_eq!(out.status, 0, "{filter}: stderr: {}", out.stderr);
+        assert_eq!(
+            out.stdout, "base: &m\n  k: 1\nc:\n  <<: *m\n  z: 2\n  k: 9\n",
+            "{filter}: the shadow entry is the only change"
         );
-        assert!(
-            !out.stderr.contains("path not found"),
-            "{filter}: and does not deny a path it can read: {}",
-            out.stderr
-        );
-        assert_eq!(out.stdout, "", "{filter}: a refusal writes nothing");
     }
+
+    let alias = "base: &m\n  k: 1\nc: *m\n";
+    let out = run(&[".c.k = 9"], alias);
+    assert_eq!(out.status, 5);
+    assert!(
+        out.stderr.contains("no \"k\" entry of its own"),
+        "names what is wrong: {}",
+        out.stderr
+    );
+    assert!(
+        !out.stderr.contains("path not found"),
+        "does not deny a path it can read: {}",
+        out.stderr
+    );
+    assert_eq!(out.stdout, "", "a refusal writes nothing");
 }
 
 #[test]
@@ -1894,21 +1905,23 @@ fn a_sequence_items_own_bytes_are_still_its_own() {
 #[test]
 fn the_merged_key_message_names_only_a_remedy_that_works() {
     // b020's first wording offered "add an explicit entry here to override
-    // it", which this very check refuses -- and inserting a sibling is
-    // refused too unless the mapping already owns one. Only the anchor route
-    // is named now, and it is asserted to work rather than asserted to exist.
+    // it" while the tool declined that edit. Since f025 the edit works --
+    // a merge-only mapping included -- so the two routes are both real:
+    // `.c.k` writes the shadow, `.base.k` changes every inheritor. The
+    // refusal that remains, on an alias-valued parent, names the second
+    // route, and it is asserted to work rather than asserted to exist.
     let doc = "base: &m\n  k: 1\nc:\n  <<: *m\n";
     let out = run(&[".c.k = 9"], doc);
-    assert_eq!(out.status, 5);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "base: &m\n  k: 1\nc:\n  <<: *m\n  k: 9\n");
+
+    let alias = "base: &m\n  k: 1\nc: *m\n";
+    let refused = run(&[".c.k = 9"], alias);
+    assert_eq!(refused.status, 5);
     assert!(
-        out.stderr.contains("Assign where the key is defined"),
+        refused.stderr.contains("Assign where the key is defined"),
         "{}",
-        out.stderr
-    );
-    assert!(
-        !out.stderr.contains("override"),
-        "no remedy yqr declines: {}",
-        out.stderr
+        refused.stderr
     );
     assert_eq!(
         run(&[".base.k = 9"], doc).stdout,

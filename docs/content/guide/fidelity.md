@@ -6,7 +6,8 @@
 # fixed in noyalib 0.0.28. The insert anchor, the kept block scalar and the
 # CRLF multi-line write are bugs b032, b034 and b030, all closed by the
 # noyalib 0.0.44 adoption (f035). Deleting inside a shared anchor is
-# Feature f038.
+# Feature f038; the merged-key override is f025, console blocks captured
+# from the f025 build on 2026-10-08.
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -212,22 +213,40 @@ it and exits 5 rather than emitting something surprising. With `-i` the
 file is left untouched on refusal, so a failed edit never leaves you with a
 half-written file.
 
-An entry that a `<<` merge or an alias produced is one of those refusals.
-You can *read* `.web.mode` -- it resolves to `0640` through the merge -- but
-there is no `mode` entry under `web` to write to, so yqr declines rather
-than inventing one:
+A key that reaches a mapping through a `<<` merge gives you two
+different edits, and the path you write picks between them. `.web.mode`
+names `web`'s key, so the edit creates an explicit entry that overrides
+the merge for `web` alone -- the definition and every other inheritor
+keep theirs:
 
 ```console
 $ yqr '.web.mode = 416' config.yaml
-yqr: runtime error: cannot assign at "web.mode": the mapping has no "mode" entry of its own to write; it is merged in from elsewhere, through a `<<` merge key or an alias. Assign where the key is defined instead
+defaults: &defaults
+  mode: 0640      # octal, on purpose
+  retries: 3
+
+# Services below inherit the defaults.
+web:
+  <<: *defaults
+  name: 'web'
+  mode: 416
+ver: 1.10
 ```
 
-So `.defaults.mode = 416` is the edit, and it changes the value for
-everything that inherits the anchor. `del(.defaults.mode)` follows the
-same rule: the entry is removed at the definition, and everything that
-inherits the anchor loses it. Writing an entry under `web` that
-overrides the merge for `web` alone is a different edit, and one yqr
-cannot make yet.
+`.defaults.mode = 416` is the other edit: it changes the value where it
+is defined, for everything that inherits the anchor. `del(.defaults.mode)`
+follows the same rule -- the entry is removed at the definition, and
+everything that inherits the anchor loses it.
+
+One shape stays a refusal: when the mapping's value *is* an alias
+(`web: *defaults`), there is nowhere to put an explicit entry without
+rewriting the alias into a block, so yqr declines and points at the
+definition:
+
+```console
+$ yqr '.web.mode = 416' aliased.yaml
+yqr: runtime error: cannot assign at "web.mode": the mapping is reached through an alias, so it has no "mode" entry of its own to write. Assign where the key is defined instead
+```
 
 ## A write that changes nothing changes nothing
 

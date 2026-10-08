@@ -126,7 +126,13 @@ pub(super) fn set_value_unless_unchanged(
     if new == current && !writer.value_is_borrowed(doc, path)? {
         return Ok(());
     }
-    refuse_scalar_to_collection(path, new, current)?;
+    // An inherited key is shadowed, not replaced (f025): `current` is a
+    // value this mapping does not own, so the collection-over-scalar rule
+    // compares against the wrong thing and does not apply. The writer's
+    // own refusals still do.
+    if !writer.key_is_inherited(doc, path)? {
+        refuse_scalar_to_collection(path, new, current)?;
+    }
     writer.set_value(doc, path, new)
 }
 

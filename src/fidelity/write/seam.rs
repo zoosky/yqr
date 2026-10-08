@@ -110,6 +110,19 @@ pub(crate) trait FidelityWriter {
     // Bug b019.
     fn value_is_borrowed(&self, doc: usize, path: &Path) -> Result<bool>;
 
+    /// Whether the last segment names a mapping key the mapping does not
+    /// own — a `<<` merge or an alias expansion put it in the typed view.
+    ///
+    /// A write at such a key is a creation (an explicit entry that
+    /// shadows the inherited value), not a replacement, so guards that
+    /// compare the new value against the inherited one do not apply.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when `doc` is out of range.
+    // Feature f025.
+    fn key_is_inherited(&self, doc: usize, path: &Path) -> Result<bool>;
+
     /// Insert a new `key: value` entry into the mapping at `parent`.
     ///
     /// The implementation places and spells `value`; callers pass a value, not
