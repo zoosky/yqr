@@ -6,6 +6,10 @@
 > was filed.
 
 **Status:** Resolved — filed and fixed 2026-08-22, the day `yqr-b019` landed.
+The missing half the review found — the override the first wording offered
+but the tool declined — shipped 2026-10-08 as `yqr-f025`: a merged-in key
+now takes an explicit shadow entry, and only an alias-reached parent keeps
+the refusal, still naming the definition route.
 Route 1 of §4, narrowed: yqr owns the message for the **merged-key** arm only,
 which §6 explains is not the two-voices trade §4 feared. The guide now quotes
 the refusal it previously had to paraphrase

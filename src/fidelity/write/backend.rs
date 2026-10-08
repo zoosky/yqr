@@ -189,26 +189,31 @@ impl FidelityWriter for NoyalibWriter {
 
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
         let path_str = to_noyalib_path(path);
-        // A merged-in key is refused either way; what yqr owns here is the
-        // *reason*. Only the anchor route is named, because it is the only one
-        // that works: writing an *overriding* entry here is this very check,
-        // and inserting a sibling is refused too unless the mapping already
-        // owns one (both measured). Naming a remedy the tool declines would be
-        // worse than naming none. Creating the override is `yqr-f025`. Upstream's resolver returns the same `None` for a key a
-        // merge produced as for one that does not exist, so `set_value`
-        // reports `path not found` for a path yqr had just read a value from —
-        // one tool contradicting itself. Its own `rename_key` words this
-        // correctly, so the wording is borrowed from there rather than
-        // invented. The alias arm is *not* intercepted: upstream's message for
-        // it is already accurate and names the way out.
+        // A key the mapping does not own takes one of two edits, chosen by
+        // the parent's shape. A parent that is itself a block mapping gets
+        // an explicit entry that shadows the merged-in value — the write
+        // names this mapping's key, so this mapping alone changes, and
+        // assigning at the definition remains the spelling for changing
+        // every inheritor. A parent whose value *is* an alias is refused:
+        // an explicit entry cannot exist in `c: *m` without rewriting the
+        // alias into a block, which is a restructuring the user must spell
+        // out, so the refusal names the definition route instead.
+        // Feature f025.
         if let (Some(PathSeg::Key(key)), Some(Borrowed::Key)) =
             (path.segments().last(), self.borrowed_site(doc, path)?)
         {
-            return Err(YqrError::eval(format!(
-                "cannot assign at {path_str:?}: the mapping has no {key:?} entry of its own \
-                 to write; it is merged in from elsewhere, through a `<<` merge key or an \
-                 alias. Assign where the key is defined instead"
-            )));
+            // A byte test cannot see this case — `get` on an alias returns
+            // the anchor's bytes (the b035 class) — so the borrow machinery
+            // answers it.
+            if self.value_is_borrowed(doc, &rebased(path, None))? {
+                return Err(YqrError::eval(format!(
+                    "cannot assign at {path_str:?}: the mapping is reached through a \
+                     `<<` merge or an alias, so it has no {key:?} entry of its own to \
+                     write. Assign where the key is defined instead"
+                )));
+            }
+            let key = key.clone();
+            return self.insert_override(doc, path, &path_str, &key, value);
         }
         let ny = insertable(value);
         // A value led by a `&anchor` or `!tag` property is not `set_value`'s
@@ -264,12 +269,21 @@ impl FidelityWriter for NoyalibWriter {
         }
     }
 
+    fn key_is_inherited(&self, doc: usize, path: &Path) -> Result<bool> {
+        Ok(matches!(
+            (path.segments().last(), self.borrowed_site(doc, path)?),
+            (Some(PathSeg::Key(_)), Some(Borrowed::Key))
+        ))
+    }
+
     fn insert_key(&mut self, doc: usize, parent: &Path, key: &str, value: &Value) -> Result<()> {
-        let parent_str = to_noyalib_path(parent);
-        let ny = insertable(value);
-        self.doc_mut(doc)?
-            .insert_entry_value(&parent_str, key, &ny)
-            .map_err(|e| YqrError::eval(format!("cannot insert key {key:?}: {e}")))
+        // One implementation for every new entry, inherited key or brand
+        // new: the engine's insertion where the mapping owns an entry to
+        // anchor on, the shadow splice where a `<<` merge is all it has,
+        // and yqr's wording for the shared-value refusal. Feature f025.
+        let path = parent.child(PathSeg::Key(key.to_string()));
+        let path_str = to_noyalib_path(&path);
+        self.insert_override(doc, &path, &path_str, key, value)
     }
 
     fn append(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {

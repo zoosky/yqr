@@ -67,6 +67,7 @@ mod delete;
 // Sequence reorder is one engine call per verb plus the index arithmetic and
 // refusals yqr owns around it; the same sibling-module split `delete` uses.
 mod reorder;
+mod shadow;
 
 mod backend;
 mod guards;

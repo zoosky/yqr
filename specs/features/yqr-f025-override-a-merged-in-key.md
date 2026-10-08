@@ -1,6 +1,7 @@
 # Feature f025 — Override a merged-in key by creating an explicit entry
 
-**Status:** Draft — filed 2026-08-22, from `yqr-b020`'s review
+**Status:** Done — shipped 2026-10-08; filed 2026-08-22 from `yqr-b020`'s
+review
 **Epic:** Write tier (`f006`)
 **Owner:** yqr maintainers
 **Related:** `yqr-b020` (whose refusal message this is the missing half of),
@@ -55,14 +56,89 @@ upstream's insert refuses for exactly that reason (§2). This is upstream work
 or yqr's own splice, the same fork in the road `yqr-f007` §5.1 records for
 delete.
 
-## 4. Acceptance criteria
+## 4. Decisions (2026-10-08)
 
-- [ ] Writing a merged-in key creates an explicit entry that shadows the
+**A bare `=` is the spelling.** The path is the choice §3 asked for:
+`.c.k = 9` asks for exactly `c.k` to become 9, and the explicit shadow
+entry is the only edit that does that and nothing else — writing at the
+definition would change siblings the filter never named. The two edits
+have two spellings already: `.c.k = 9` overrides for `c` alone,
+`.defaults.k = 9` changes every inheritor. No flag, no second operator.
+The same applies to `|=`, which reaches the write through the same
+resolver. One consequence is deliberate: assigning the value the key
+already inherits is **not** a no-op — the shadow decouples `c.k` from
+the anchor, which is real work (`yqr-b019`'s rule, now with the write
+it was waiting for).
+
+**The entry goes where every new key goes.** The engine's typed
+insertion places it, after the mapping's own entries. The hand-written
+"override directly under the `<<`" convention loses to having one
+placement rule for all new keys.
+
+**The merge-only mapping is yqr's splice.** Upstream's insertion still
+refuses it on 0.0.56 (no own entry to anchor against), and its
+fragment `set` cannot express the edit either (three variants measured:
+wrong column, indentation error, oracle refusal). yqr splices one
+placeholder line — `k: null`, or `{}`/`[]` for a collection value, so
+the follow-up write replaces like with like — after the mapping's last
+line, committed only when the re-parse is the original with exactly
+that shadow added. The real value then goes through the ordinary
+assignment, so the engine spells it: the same division of labor as
+`yqr-f036`'s collapse. The engine's merge-only refusal wording is
+pinned; if upstream rewords it, a test fails rather than the route
+silently dying.
+
+**What stays refused.** A parent reached through an alias (`c: *m`,
+or nested inside one): an explicit entry cannot exist there without
+rewriting the alias into a block, which is a restructuring the user
+must spell out. The refusal names the definition route, which works.
+The alias-*valued* entry itself (`.c = 1` over `c: *m`) keeps
+`yqr-b019`'s refusal untouched.
+
+## 5. Acceptance criteria
+
+- [x] Writing a merged-in key creates an explicit entry that shadows the
       inherited value, and the loaded-back document reflects the new value.
-- [ ] Every other byte is unchanged, including the `<<` line and the anchor.
-- [ ] It works on a merge-only mapping, with no own entry to anchor against.
-- [ ] The alias-*valued* case (`b: *x`, `.b = 1`) stays refused — replacing a
+- [x] Every other byte is unchanged, including the `<<` line and the anchor.
+- [x] It works on a merge-only mapping, with no own entry to anchor against.
+- [x] The alias-*valued* case (`b: *x`, `.b = 1`) stays refused — replacing a
       reference with a literal is a different question, and `yqr-b019` settled
       it.
-- [ ] `yqr-b020`'s refusal message names this route once it exists.
-- [ ] Corpus cases on `FIDELITY_RICH`, which already carries a `<<`.
+- [x] `yqr-b020`'s refusal message names this route once it exists. (The
+      merge arm no longer refuses at all; the refusal that remains, on an
+      alias-reached parent, names the definition route, and the guide
+      documents both edits.)
+- [x] Corpus cases on `FIDELITY_RICH`, which already carries a `<<` — the
+      two `yqr-b019`/`yqr-b020` pins flipped to the override behaviour.
+
+## 6. Code review
+
+The PR review returned nine findings; the fixes sharpened the feature
+into its general form:
+
+1. **Insertion follows the anchor rule.** A mapping inside a value an
+   alias shares was first refused (leaking the engine's API advice);
+   the engine's shared-value refusal now routes to the same splice, and
+   the proof accepts the insertion reflected at every alias site — the
+   mirror of `yqr-f038`'s deletion rule.
+2. **One route for every new entry.** `insert_key` goes through the
+   same machinery, so a brand-new key lands in a merge-only mapping
+   too, with yqr's wording and the integrity check it previously
+   lacked. A flow-shaped merge mapping takes the engine's own
+   insertion, measured working.
+3. **The sequence-item shape works.** `- <<: *m` (the docker-compose
+   idiom) was refused by the indent check; the splice now consumes
+   `- ` markers and continues at the item's key column.
+4. **The proof is path-anchored and order-sensitive.** The shadow is
+   accepted only at the parent path (its own position in the typed
+   view is the engine's merge ordering) or as a reflection of a path
+   prefix; sibling order is compared exactly, which `Value`'s
+   order-insensitive mapping equality would not.
+5. **Wording.** The borrowed-parent refusal names both mechanisms
+   (`<<` merge or alias); the splice route's flow spelling of a
+   collection override is pinned by test and recorded here as the
+   placeholder's doing (the engine replaces like with like); the
+   no-final-newline splice takes the nearest preceding line's
+   terminator, so a mixed-ending file is not made worse.
+6. **Cost.** The inherited-key check in the no-op guard runs only when
+   the collection-over-scalar rule would fire.
