@@ -1,7 +1,11 @@
 # Bug b035 — An entry whose value is an alias cannot be deleted or overwritten
 
 **Status:** Open — filed 2026-09-19, found while writing `yqr-f036`'s
-removed-anchor refusal
+removed-anchor refusal. **Filed upstream 2026-10-08** as noyalib#476,
+with the fix proposed as noyalib#477: `SpanTree::Alias` records the
+`*name` token's own span, `remove` and a scalar `set_value` go through
+it, a no-op keeps the reference, and every through-alias path keeps its
+refusal. Measured on 0.0.56; closes on the release that carries it
 **Severity:** Medium — nothing is corrupted, but a file with aliases has
 entries yqr cannot change at all, and yqr's own refusals point at them
 **Component:** write tier — `src/fidelity/write/delete.rs` (block path),

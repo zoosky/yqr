@@ -1,6 +1,10 @@
 # Bug b036 — Item spans shift under an anchored, indented block sequence
 
-**Status:** Open — filed 2026-10-08, found while measuring `yqr-f038`
+**Status:** Open — filed 2026-10-08, found while measuring `yqr-f038`.
+**Filed upstream the same day** as noyalib#474, with the fix proposed
+as noyalib#475: the green walk recursed into a nested collection from
+the `&anchor`/`!tag` prefix start instead of the node's own offset;
+closes on the release that carries it
 **Severity:** Low — no path yqr ships emits wrong bytes or corrupts a
 file; the cost is a delete that is refused on one layout and item reads
 that fall back to typed rendering
@@ -56,4 +60,10 @@ The spans are consistent with the item offsets being computed relative
 to a base that excludes the anchor property while the document's are
 not, the same class as `yqr-b028`'s document-relative stream positions.
 Upstream owns the fix; yqr has no workaround to add, since both of its
-consumers already degrade safely.
+consumers already degrade safely. Confirmed at the source while
+preparing noyalib#475: `entry_value` stretches the entry's value span
+over the property prefix (right for the entry itself) and the recursion
+reused that prefix start as its walk base; the sequence walk is
+arithmetic and returned the shifted span with confidence, while a
+mapping walk misread its key bytes and fell back to the typed cache,
+which is why only the sequence case surfaced.
