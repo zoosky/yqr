@@ -1,17 +1,18 @@
 ---
-# Traceability: yqr-k002. Every yqr filter here was run against v0.8.0
-# (re-measured 2026-09-07; first measured on v0.7.1) and every jq claim
-# against jq 1.8.2; re-measure rather than re-assert when either moves
-# (yqr-m001 §3 carries the release-time check).
+# Traceability: yqr-k002. Every yqr filter here was run against v0.9.0
+# (re-measured 2026-10-08; before that on v0.8.0 and first on v0.7.1) and
+# every jq claim against jq 1.8.2; re-measure rather than re-assert when
+# either moves (yqr-m001 §3 carries the release-time check).
 # Features: f001 (the grammar), f008 (arithmetic and |=), f017 (to_entries),
-# f007 (the write forms jq has no counterpart for).
+# f007 (the write forms jq has no counterpart for), f025 (the merged-key
+# override in the anchors paragraph).
 title: Coming to yqr from jq
 lead: >-
   Most of your jq muscle memory works unchanged. Here is the part that transfers, the one habit to unlearn, and where the two languages stop.
 description: >-
   A guide for jq users picking up yqr: which jq idioms work unchanged, the
   one operator that means something different, and what each tool can do
-  that the other cannot. Measured against yqr 0.8.0 and jq 1.8.2.
+  that the other cannot. Measured against yqr 0.9.0 and jq 1.8.2.
 menu:
   title: Coming from jq
   order: 5
@@ -91,7 +92,7 @@ In jq, `+=` is addition or concatenation, and appending to a list takes a
 **list** on the right. In yqr, `+=` means **append one element to a
 sequence**, and the right-hand side is the **element**:
 
-| | jq 1.8.2 | yqr 0.8.0 |
+| | jq 1.8.2 | yqr 0.9.0 |
 |---|---|---|
 | `.tags += ["x"]` | appends `x` | parse error -- yqr has no array literal |
 | `.tags += "x"` | appends the characters `x` | appends `x` as one item |
@@ -184,6 +185,21 @@ $ yqr 'swap(.tags; 0; 1)' config.yaml | sed -n '4,6p'
 tags:
   - export
   - search
+```
+
+Anchors are addressable the same way, because they are bytes jq's data
+model never sees. A key inherited through `<<: *defaults` can be
+overridden for one mapping alone -- the path picks the edit, and the
+`<<` line and the definition keep their bytes:
+
+```console
+$ yqr '.web.mode = 416' anchored.yaml
+defaults: &d
+  mode: 640
+web:
+  <<: *d
+  name: web
+  mode: 416
 ```
 
 And the whole file survives a round trip, which no data-model tool can
