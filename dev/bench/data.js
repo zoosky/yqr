@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791479549045,
+  "lastUpdate": 1791482193007,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2939,6 +2939,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 219357,
             "range": "± 596",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4e68e29f6b3371e0e6fbe9de732881c8389f2624",
+          "message": "feat: del inside a shared anchor follows the anchor rule (f038) (#138)\n\n* feat: del inside a shared anchor follows the anchor rule (f038)\n\nDeleting an entry inside a value an anchor shares was refused as a\nstructure change while the same edit through assignment succeeded.\nOne semantics per mechanism: the splice already landed at the\ndefinition, and since b026 every alias site seeing a definition edit\nis what an anchor means. del(.a.k) on a: &x with b: *x now works, and\nb loses k too.\n\nThe guard is not the assignment rule reused. changes_are_the_assignment\nsees a reflection as a subtree swapping the parent's before-value for\nits after-value, which holds at a plain alias site -- but a << merge\nsite reflects the removal as a larger mapping losing one key (the\ntenants shape: ops holds the merge and its own keys), measured directly\nwhen the corpus case on the production shape refused a first draft\nbuilt on the assignment rule. del gets its own\nchanges_are_the_deletion: a divergent collection is accepted only when\nit is the expected one with exactly the deleted segment removed,\nsurviving entries matching in order, recursively. Any other divergence\nstill refuses, and removing the &name itself while an alias uses it\nkeeps the f036 refusal naming both.\n\nThe measurement found b036, filed and pinned as it behaves: upstream\nspan_at shifts the item spans of an indented block sequence under an\nanchored key, so that one layout's delete stays refused ('source\nlayout is not supported') while the same-column layout works; reads of\nthe shape are correct because the wrong-node guard degrades them to a\ntyped render.\n\ndelete.rs crossed the 500-production-line rule with the new guard and\nis split into its directory module: mod.rs keeps the byte arithmetic\n(467 production lines), expected.rs the typed-value yardstick\n(remove_at_path, parent_len, changes_are_the_deletion). Import paths\nare unchanged.\n\nFive new unit tests (alias, merge-site, nested, sequence, equal\nsibling), the b036 pin, and a corpus write case on the production\ntenants shape. The fidelity guide documents the rule.\n\n* fix: apply the f038 code-review findings\n\nSix findings from the PR review; the load-bearing one tightens the\nrelaxed guard.\n\n- The reflection rule no longer excuses the loss of a same-named key\n  anywhere. A divergent site must have lost the exact value the delete\n  removed (a reflection is a copy), and the relaxed rule applies only\n  to documents that contain an alias at all -- an anchor-free document\n  keeps strict equality. Without these, an over-broad splice of the\n  b036 span-defect class that swallowed an unrelated same-named key\n  would have been excused by the name alone; the review's concrete\n  scenario (k: 2 swallowed while k: 1 was deleted) is now a unit test\n  that refuses.\n- The guard's safety comment in mod.rs now says what the relaxed\n  comparison proves in a shared document, instead of claiming every\n  over-broad span diverges.\n- A merge site layering several anchors (<<: [*x, *y]) where the\n  deleted key is inherited from more than one source stays refused by\n  design -- removing it at one definition surfaces the next source's\n  value, a value change rather than a removal. Pinned by a test and\n  recorded in the spec's §3.1.\n- expected.rs gains its inline unit tests (CLAUDE.md testing rule):\n  the acceptance shapes and every refusal branch, including the\n  wrong-value, wrong-key, longer-candidate and value-change cases.\n- The b036 spec filed in this PR cited the pre-split delete.rs path;\n  it now points at delete/mod.rs.\n- The deleted key's Value form is built once per check instead of once\n  per divergent stack frame.",
+          "timestamp": "2026-10-08T19:55:11+02:00",
+          "tree_id": "ca7e609b54ada2cab763deb1b7a57f47f42a5aa5",
+          "url": "https://github.com/zoosky/yqr/commit/4e68e29f6b3371e0e6fbe9de732881c8389f2624"
+        },
+        "date": 1791482191734,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 317,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3645,
+            "range": "± 88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 186591,
+            "range": "± 3756",
             "unit": "ns/iter"
           }
         ]
