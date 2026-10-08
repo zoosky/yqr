@@ -8,6 +8,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Added
 
+- **`del` inside a shared anchor.** Deleting an entry inside a value an
+  anchor shares (`del(.a.k)` on `a: &x` with `b: *x`) was refused as a
+  structure change; it now follows the rule assignment already had: the
+  edit lands at the anchor's definition, and every alias and `<<` merge
+  site shows the removal. Only the definition's bytes change. Removing
+  the `&name` itself while an alias still uses it is refused as before,
+  naming both.
+
 - **`yqr validate --schema <FILE>`: JSON Schema validation with source
   positions.** Every document of every input is checked against a JSON
   Schema (draft 2020-12), written in YAML or JSON. A violation renders
