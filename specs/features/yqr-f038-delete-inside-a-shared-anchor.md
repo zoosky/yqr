@@ -68,8 +68,23 @@ site is a **larger mapping losing one key** (the tenants shape:
 directly when the corpus case on the production shape refused. `del`
 gets its own `changes_are_the_deletion`: a divergent collection is
 accepted only when it is the expected one with exactly the deleted
-segment removed, surviving entries matching in order, recursively. Any
-other divergence still refuses.
+segment removed, the value that site loses **equal to the value the
+delete removed** (a reflection is a copy, so the name alone excuses
+nothing — without this, an over-broad splice of the `b036` class that
+swallowed a same-named key elsewhere would pass), and surviving entries
+matching in order, recursively. The relaxed rule applies only to a
+document that contains an alias at all; an anchor-free document keeps
+strict equality, where no reflection is possible and the old backstop
+is fully intact. Any other divergence still refuses.
+
+One shape stays refused by design: a merge site layering several
+anchors (`<<: [*x, *y]`) where the deleted key is inherited from more
+than one source. Removing it at `x`'s definition does not remove it
+from the site — the next source's value surfaces, a value change
+rather than a removal — so the rule refuses, the document is left
+untouched, and the case is pinned as it behaves. The residual the rule
+does accept — a coincidental site that lost the same key holding the
+same value — is the class the assignment rule already accepts.
 
 ### 3.2 What the measurement found
 

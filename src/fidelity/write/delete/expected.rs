@@ -60,9 +60,10 @@ fn navigate_mut<'a>(mut value: &'a mut Value, segs: &[PathSeg]) -> Option<&'a mu
 
 /// Whether `got` differs from `expected` only where a subtree reflects
 /// the deletion — every divergent collection is the expected one with
-/// exactly the deleted segment removed, its surviving entries matching
-/// in order (recursively, since a reflection can sit inside another
-/// shared value).
+/// exactly the deleted segment removed, the value it loses equal to the
+/// value the delete removed, and its surviving entries matching in order
+/// (recursively, since a reflection can sit inside another shared
+/// value).
 ///
 /// This is `del`'s counterpart to the assignment rule
 /// (`changes_are_the_assignment`): the alias sites of an anchor, and the
@@ -71,48 +72,192 @@ fn navigate_mut<'a>(mut value: &'a mut Value, segs: &[PathSeg]) -> Option<&'a mu
 /// the reflection is a larger mapping losing one key rather than a
 /// subtree swapping old for new. Any divergence that is not this removal
 /// refuses.
+///
+/// `deleted` — the value the target held — is load-bearing, not
+/// decoration: a reflection is a copy of the shared value, so the entry
+/// a site loses must have held exactly what the delete removed. Without
+/// it, an over-broad splice that swallowed a same-named key elsewhere
+/// (the `b036` span-defect class) would be excused by the name alone;
+/// with it, such a site only passes when it also held the same value,
+/// the residual coincidence class the assignment rule already accepts.
+/// The caller additionally applies this rule only to documents that
+/// contain an alias at all — an anchor-free document keeps the strict
+/// equality check, where no reflection is possible.
 // Feature f038.
-pub(super) fn changes_are_the_deletion(expected: &Value, got: &Value, last: &PathSeg) -> bool {
+pub(super) fn changes_are_the_deletion(
+    expected: &Value,
+    got: &Value,
+    last: &PathSeg,
+    deleted: &Value,
+) -> bool {
+    // The deleted key's `Value` form is built once; the recursion below
+    // runs on every structural delete of a shared value, and a per-frame
+    // allocation for the same key would be pure waste.
+    let key = match last {
+        PathSeg::Key(k) => Some(Value::String(k.clone())),
+        PathSeg::Index(_) => None,
+    };
+    reflects(expected, got, last, key.as_ref(), deleted)
+}
+
+/// The recursive half of [`changes_are_the_deletion`], with the deleted
+/// key pre-built.
+fn reflects(
+    expected: &Value,
+    got: &Value,
+    last: &PathSeg,
+    key: Option<&Value>,
+    deleted: &Value,
+) -> bool {
     if expected == got {
         return true;
     }
     match (expected, got) {
         (Value::Mapping(a), Value::Mapping(b)) => {
             if a.len() == b.len() {
-                return a.iter().zip(b.iter()).all(|((ka, va), (kb, vb))| {
-                    ka == kb && changes_are_the_deletion(va, vb, last)
-                });
+                return a
+                    .iter()
+                    .zip(b.iter())
+                    .all(|((ka, va), (kb, vb))| ka == kb && reflects(va, vb, last, key, deleted));
             }
-            let PathSeg::Key(key) = last else {
+            let Some(key) = key else {
                 return false;
             };
-            let key = Value::String(key.clone());
             a.len() == b.len() + 1
-                && a.contains_key(&key)
-                && a.iter()
-                    .filter(|(ka, _)| **ka != key)
-                    .zip(b.iter())
-                    .all(|((ka, va), (kb, vb))| ka == kb && changes_are_the_deletion(va, vb, last))
+                && a.get(key) == Some(deleted)
+                && a.iter().filter(|(ka, _)| *ka != key).zip(b.iter()).all(
+                    |((ka, va), (kb, vb))| ka == kb && reflects(va, vb, last, Some(key), deleted),
+                )
         }
         (Value::Sequence(a), Value::Sequence(b)) => {
             if a.len() == b.len() {
                 return a
                     .iter()
                     .zip(b.iter())
-                    .all(|(va, vb)| changes_are_the_deletion(va, vb, last));
+                    .all(|(va, vb)| reflects(va, vb, last, key, deleted));
             }
             let PathSeg::Index(i) = last else {
                 return false;
             };
             a.len() == b.len() + 1
-                && *i < a.len()
+                && a.get(*i) == Some(deleted)
                 && a.iter()
                     .enumerate()
                     .filter(|(j, _)| *j != *i)
                     .map(|(_, v)| v)
                     .zip(b.iter())
-                    .all(|(va, vb)| changes_are_the_deletion(va, vb, last))
+                    .all(|(va, vb)| reflects(va, vb, last, key, deleted))
         }
         _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parse(src: &str) -> Value {
+        crate::eval_str(".", src).unwrap().remove(0)
+    }
+
+    fn key(k: &str) -> PathSeg {
+        PathSeg::Key(k.to_string())
+    }
+
+    #[test]
+    fn identical_values_are_the_deletion() {
+        let v = parse("a: 1\nb: 2\n");
+        assert!(changes_are_the_deletion(
+            &v,
+            &v.clone(),
+            &key("k"),
+            &Value::Int(1)
+        ));
+    }
+
+    #[test]
+    fn a_reflection_losing_the_deleted_entry_is_accepted() {
+        // The merge-site shape: a larger mapping lost exactly the key,
+        // which held exactly the deleted value.
+        let expected = parse("m:\n  k: 1\n  own: 3\n");
+        let got = parse("m:\n  own: 3\n");
+        assert!(changes_are_the_deletion(
+            &expected,
+            &got,
+            &key("k"),
+            &Value::Int(1)
+        ));
+    }
+
+    #[test]
+    fn losing_a_same_named_key_with_a_different_value_refuses() {
+        // The b036 hazard class: an over-broad splice swallowed an
+        // unrelated `k: 2`. The name matches, the value does not.
+        let expected = parse("m:\n  k: 2\n  own: 3\n");
+        let got = parse("m:\n  own: 3\n");
+        assert!(!changes_are_the_deletion(
+            &expected,
+            &got,
+            &key("k"),
+            &Value::Int(1)
+        ));
+    }
+
+    #[test]
+    fn losing_a_different_key_refuses() {
+        let expected = parse("m:\n  k: 1\n  own: 3\n");
+        let got = parse("m:\n  k: 1\n");
+        assert!(!changes_are_the_deletion(
+            &expected,
+            &got,
+            &key("k"),
+            &Value::Int(1)
+        ));
+    }
+
+    #[test]
+    fn a_candidate_longer_than_expected_refuses() {
+        let expected = parse("m:\n  own: 3\n");
+        let got = parse("m:\n  k: 1\n  own: 3\n");
+        assert!(!changes_are_the_deletion(
+            &expected,
+            &got,
+            &key("k"),
+            &Value::Int(1)
+        ));
+    }
+
+    #[test]
+    fn an_equal_length_value_change_refuses() {
+        // The layered-merge shape (`<<: [*x, *y]`): the key survives with
+        // the next source's value. A changed value is not a removal, so
+        // the rule refuses and the delete stays refused (f038 §3.1).
+        let expected = parse("m:\n  k: 1\n  own: 3\n");
+        let got = parse("m:\n  k: 9\n  own: 3\n");
+        assert!(!changes_are_the_deletion(
+            &expected,
+            &got,
+            &key("k"),
+            &Value::Int(1)
+        ));
+    }
+
+    #[test]
+    fn a_sequence_reflection_checks_the_removed_items_value() {
+        let expected = parse("- 1\n- 2\n");
+        let got = parse("- 2\n");
+        let last = PathSeg::Index(0);
+        assert!(changes_are_the_deletion(
+            &expected,
+            &got,
+            &last,
+            &Value::Int(1)
+        ));
+        assert!(!changes_are_the_deletion(
+            &expected,
+            &got,
+            &last,
+            &Value::Int(7)
+        ));
     }
 }

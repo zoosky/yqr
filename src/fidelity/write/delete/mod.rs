@@ -185,6 +185,12 @@ impl NoyalibWriter {
         // spliced result must re-parse to. Computed in yqr's model so key order
         // (mapping) and index shifting (sequence) match block-delete semantics;
         // consumes `doc_value` rather than cloning the whole document.
+        // The value the target holds, kept for the integrity check: a true
+        // reflection of the deletion at an alias or merge site lost exactly
+        // this value, and nothing else is excused.
+        // Feature f038.
+        let deleted = walk_value(&doc_value, path.segments()).cloned();
+
         let expected = remove_at_path(doc_value, path.segments()).ok_or_else(|| {
             YqrError::eval(format!(
                 "cannot delete {path_str}: it does not address a removable entry"
@@ -299,8 +305,12 @@ impl NoyalibWriter {
         // `replace_span` guarantees only *valid YAML*, not structure
         // preservation (b004 2.5), so yqr owns the guard: re-parse the edited
         // source and require it to lower to the expected value. A dangling
-        // alias, an over-broad span, or a flow mis-edit all diverge here and
-        // are refused with the document untouched.
+        // alias, an over-broad span, or a flow mis-edit diverge here and are
+        // refused with the document untouched. In a document that shares the
+        // value through an anchor, the comparison is the relaxed rule below
+        // rather than strict equality, so what the guard proves there is
+        // "the deletion, reflected" rather than "no other change" — the same
+        // residual the assignment guard carries.
         let candidate =
             ::noyalib::cst::parse_document_with_config(&new_source, &crate::fidelity::cst_config())
                 .map_err(|e| {
@@ -311,11 +321,16 @@ impl NoyalibWriter {
         // The entry may sit inside a value an anchor shares, in which case
         // every alias and `<<` merge site reflects the removal — the anchor
         // rule `yqr-b026` set for assignment, followed here since
-        // `yqr-f038`. The check accepts the candidate when it differs from
-        // `expected` only where a subtree lost exactly the deleted segment;
-        // any other divergence still refuses.
+        // `yqr-f038`. The relaxed rule applies only when the document has an
+        // alias at all; an anchor-free document keeps strict equality, where
+        // the old backstop against an over-broad splice is fully intact.
         let got = Value::from(&*candidate.as_value());
-        if !changes_are_the_deletion(&expected, &got, last) {
+        let shared = !self.doc_ref(doc)?.aliases().is_empty();
+        let is_the_deletion = match (&deleted, shared) {
+            (Some(deleted), true) => changes_are_the_deletion(&expected, &got, last, deleted),
+            _ => got == expected,
+        };
+        if !is_the_deletion {
             return Err(YqrError::eval(format!(
                 "cannot delete {path_str}: the edit would change the document structure and was refused"
             )));
@@ -550,6 +565,25 @@ mod tests {
         assert_eq!(
             crate::eval_str(".m.own", &out).unwrap(),
             vec![crate::Value::Int(3)]
+        );
+    }
+
+    #[test]
+    fn a_layered_merge_site_keeps_the_refusal() {
+        // `m` merges two anchors and inherits `k` from both. Deleting `k`
+        // at `x`'s definition would not remove it from `m` — the next
+        // source's value surfaces (1 becomes 9), which is a value change,
+        // not a removal, and outside what f038 supports (`f038` §3.1).
+        // Pinned: the edit refuses and the document is untouched.
+        let err = del(
+            ".a.k",
+            "a: &x\n  k: 1\n  z: 2\ny: &y\n  k: 9\nm:\n  <<: [*x, *y]\n",
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(
+            err.contains("would change the document structure"),
+            "error: {err}"
         );
     }
 

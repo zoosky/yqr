@@ -6,7 +6,7 @@ file; the cost is a delete that is refused on one layout and item reads
 that fall back to typed rendering
 **Component:** upstream `Document::span_at`; reaches yqr through
 `src/fidelity/noyalib.rs` (read resolve) and
-`src/fidelity/write/delete.rs` (the item's owned range)
+`src/fidelity/write/delete/mod.rs` (the item's owned range)
 **Related:** `yqr-f038` (whose sequence case found it), `yqr-b028` (the
 previous span-offset defect, fixed in 0.0.36), `yqr-b035` (the other
 alias/anchor span gap)
@@ -46,7 +46,7 @@ Nothing silent, which is why the severity is low:
   same delete works when the items sit at the key's own column, and
   `yqr-f038` made it work inside a shared anchor on that layout.
 
-Pinned as it behaves in `src/fidelity/write/delete.rs` (the
+Pinned as it behaves in `src/fidelity/write/delete/mod.rs` (the
 `yqr-f038` test block), so the noyalib bump that fixes the spans will
 flip a test rather than pass silently.
 
