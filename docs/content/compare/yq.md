@@ -6,7 +6,8 @@
 # writing `!!merge <<:` in the anchors round trip. Re-measure rather than
 # re-assert when either moves; see yqr-k001 §7.
 # Traceability: Feature f007 (the write tier the yqr examples use), f012
-# (validate), f017 (to_entries).
+# (validate), f017 (to_entries), f040 (the --schema half of the validate
+# row, verified against the v0.9.0 build on 2026-10-08).
 title: yqr and yq -- which tool for which job
 lead: >-
   Two YAML tools with overlapping surfaces and different jobs. Here is what each one is good at, measured rather than argued.
@@ -37,7 +38,7 @@ This page answers that, with commands you can run.
 | Answer a question across a document -- filter, count, select | **yq** | yqr has no `select`, `map`, or `length` |
 | Build a document that does not exist yet | **yq** | yqr only edits documents that already do |
 | Convert to JSON, XML, TOML | **yq** | yqr is YAML in, YAML out |
-| Verify a file is correct before it ships | **yqr** | `validate --strict` catches what a parser accepts |
+| Verify a file is correct before it ships | **yqr** | `validate --strict` catches what a parser accepts; `--schema` adds JSON Schema verdicts with source positions |
 | Rename a key, edit a comment, reorder a list, in place | **yqr** | the rest of the file is not re-emitted |
 | Do several things in one expression | **yq** | yqr applies one edit per run |
 
