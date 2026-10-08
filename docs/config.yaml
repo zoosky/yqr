@@ -163,7 +163,7 @@ llms:
 
     Install: cargo install yqr
     Invoke:  yqr [-r] [-i] [-N] '<filter>' [file]      (stdin when file is omitted)
-             yqr validate [--strict] <file>...
+             yqr validate [--strict] [--schema <schema>] <file>...
 
     Flags:
       -r, --raw-output   print a string's value, not its YAML quoting

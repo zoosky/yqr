@@ -6,6 +6,26 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-08
+
+Schema validation with source positions, and the write tier's two
+merge-and-anchor gaps closed.
+
+`yqr validate --schema` checks every document against a JSON Schema
+(draft 2020-12) and reports each violation the way every other finding
+is reported: file, line, column, source window and caret, with the
+exact JSON pointer kept on a note line for scripts. Pointer-only
+schema validators leave the hunt for the offending line to you.
+
+The two new writes were both refusals whose own messages named the
+remedy: overriding a merged-in key, and deleting inside a shared
+anchor. Each now runs, and what remains refused says why in terms of
+the file, not the engine.
+
+This is a minor bump, not a patch: the library's `validate::Code` enum
+gained three variants, and two write refusals became writes, so a
+script matching on those exit codes sees new behavior.
+
 ### Added
 
 - **A merged-in key can be overridden.** `.web.mode = 416`, where `web`
