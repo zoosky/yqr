@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791484754462,
+  "lastUpdate": 1791489886479,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3023,6 +3023,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 293224,
             "range": "± 2251",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2bd3accab2283ea015de4f0dc41d75c6d8c18cf5",
+          "message": "chore: release v0.9.0 (#141)\n\n* chore: release v0.9.0\n\nSchema validation with source positions (f040), the merged-key\noverride (f025) and del inside a shared anchor (f038), on noyalib\n0.0.56. Minor bump per the pre-1.0 rule: the validate::Code enum\ngained three variants and two write refusals became writes.\n\nThe comparison page's validate row gains the --schema half, verified\nagainst this build rather than re-asserted (yqr-m001 §3).\n\n* docs: release-time re-measure of the jq guide, and --schema in llms.txt\n\nThe from-jq page carries its own re-measure rule; every console block\nwas re-run against the v0.9.0 build and every output held, so only\nthe measured-version notes move. The 'what jq cannot do' section\ngains the merged-key override with captured output: anchors are bytes\njq's data model never sees, and since f025 the inheritance they\ncreate is editable per mapping.\n\nllms.txt's invoke synopsis gains --schema, which the release added to\nvalidate.",
+          "timestamp": "2026-10-08T22:03:03+02:00",
+          "tree_id": "6910e0f5c75bbb234459fdeb4aa091b0ec0b7f5f",
+          "url": "https://github.com/zoosky/yqr/commit/2bd3accab2283ea015de4f0dc41d75c6d8c18cf5"
+        },
+        "date": 1791489884808,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 590,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6179,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 292964,
+            "range": "± 1194",
             "unit": "ns/iter"
           }
         ]
