@@ -108,6 +108,16 @@ noyalib = "0.0.56"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
+# JSON Schema 2020-12 validation for `validate --schema` (f040). Default
+# features are off deliberately: the `resolve-http` / `resolve-file`
+# resolvers stay out, so no build of yqr can resolve an external `$ref` --
+# a validator must not touch the network. Violations are consumed through
+# `iter_errors`, whose typed instance paths map onto the fidelity engine's
+# `Path` for source-span diagnostics.
+jsonschema = { version = "0.58", default-features = false }
+# The instance model `jsonschema` validates; yqr's `Value` is converted
+# into it (and never out of it) in src/validate/schema.rs.
+serde_json = "1"
 
 [dev-dependencies]
 criterion = "0.8.2"

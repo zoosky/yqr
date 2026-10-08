@@ -2,13 +2,16 @@
 # Traceability: Feature f012 (the validate subcommand); bug b014 §3.2 is
 # the Y103 check. Every console block re-run against v0.8.0 on 2026-09-07;
 # the indentation error gained its position with noyalib 0.0.36 (f029).
+# The --schema section is Feature f040; its console blocks captured from
+# the f040 build on 2026-10-08.
 title: Validating YAML from the command line
 lead: >-
-  How to check a file is still correct after an edit, what each exit code means, and how duplicate keys are reported.
+  How to check a file is still correct after an edit, what each exit code means, how duplicate keys are reported, and how to validate against a JSON Schema.
 description: >-
   Check a YAML file is still correct after an edit, with compiler-style
-  diagnostics -- and use --strict to catch duplicate keys that silently
-  drop data.
+  diagnostics -- use --strict to catch duplicate keys that silently drop
+  data, and --schema to validate against a JSON Schema with source
+  positions.
 menu:
   title: Validating YAML
   order: 3
@@ -157,6 +160,77 @@ load", `--strict` asks "will it load the way you think it will".
 **Use `--strict` in CI.** The cost is one flag; the thing it catches is
 silent data loss, which is the failure mode you find out about in
 production.
+
+## Validating against a schema
+
+Correct YAML is not yet the YAML your system accepts. `--schema` checks
+every document against a JSON Schema (draft 2020-12), written in YAML or
+JSON:
+
+```console
+$ cat schema.yaml
+type: object
+required: [spec]
+properties:
+  spec:
+    type: object
+    required: [image]
+    properties:
+      replicas:
+        type: integer
+      image:
+        type: string
+$ cat deploy.yaml
+name: web
+spec:
+  replicas: "three"
+$ yqr validate --schema schema.yaml deploy.yaml
+error[Y201]: "image" is a required property
+  --> deploy.yaml:3:1
+  |
+3 |   replicas: "three"
+  | ^
+  = note: at instance path /spec
+error[Y201]: "three" is not of type "integer"
+  --> deploy.yaml:3:13
+  |
+3 |   replicas: "three"
+  |             ^
+  = note: at instance path /spec/replicas
+$ echo $?
+1
+```
+
+The difference from schema validators you may know: the position. A
+violation names the line and column in your file, not just a JSON pointer
+you then go hunting for. The pointer is still there, on the note line,
+because scripts match on it.
+
+Three codes belong to this check, and like every other code they are
+stable: `Y201` is a violation in your document, `Y202` means the schema
+file itself is unusable (not valid YAML, or not a valid 2020-12 schema --
+the run stops rather than reporting a hollow pass), and `Y203` means the
+document holds a value JSON cannot represent (such as `.nan`), so it
+cannot be checked against a JSON Schema at all.
+
+```console
+$ yqr validate --schema badschema.yaml deploy.yaml
+error[Y202]: schema does not compile as JSON Schema 2020-12: 5 is not valid under any of the schemas listed in the 'anyOf' keyword
+  --> badschema.yaml
+  = help: the schema is a single JSON Schema 2020-12 document, in YAML or JSON
+$ echo $?
+1
+```
+
+Two boundaries worth knowing. The validator never touches the network: a
+schema that `$ref`s an external resource is refused as `Y202`, by
+construction. And the dialect is 2020-12, which covers SchemaStore-style
+schemas (GitHub Actions, docker-compose) well; Kubernetes CRD schemas are
+an older OpenAPI dialect and remain a job for kubeconform.
+
+The default checks still run first -- `--schema` adds to the verdict, it
+never replaces it -- and `--strict` combines with it the way you would
+expect.
 
 ## In a script
 

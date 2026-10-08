@@ -2258,3 +2258,190 @@ fn merge_heavy_document_validates_clean() {
     let _ = std::fs::remove_dir_all(&dir);
     assert_eq!(out.status, 0, "stderr: {}", out.stderr);
 }
+
+// -- Feature f040: validate --schema -------------------------------------------
+
+#[test]
+fn validate_schema_conforming_input_is_silent() {
+    let schema = temp_yaml("type: object\nproperties:\n  replicas:\n    type: integer\n");
+    let input = temp_yaml("replicas: 3\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            schema.to_str().unwrap(),
+            input.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&schema);
+    let _ = std::fs::remove_file(&input);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert!(out.stderr.is_empty(), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_schema_violation_is_a_located_y201() {
+    let schema = temp_yaml(
+        "type: object\nproperties:\n  spec:\n    type: object\n    properties:\n      replicas:\n        type: integer\n",
+    );
+    let input = temp_yaml("name: app\nspec:\n  replicas: \"three\"\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            schema.to_str().unwrap(),
+            input.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&schema);
+    let _ = std::fs::remove_file(&input);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains(":3:13"), "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("at instance path /spec/replicas"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(out.stdout.is_empty(), "findings go to stderr");
+}
+
+#[test]
+fn validate_schema_reads_the_input_from_stdin() {
+    let schema = temp_yaml("type: array\n");
+    let out = run(
+        &["validate", "--schema", schema.to_str().unwrap(), "-"],
+        "a: 1\n",
+    );
+    let _ = std::fs::remove_file(&schema);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("<stdin>:1:1"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_schema_unusable_schema_is_a_y202_against_the_schema_file() {
+    // Not a valid 2020-12 schema; the run stops before any input is
+    // validated, and the diagnostic names the schema file.
+    let schema = temp_yaml("type: 5\n");
+    let input = temp_yaml("a: 1\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            schema.to_str().unwrap(),
+            input.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&input);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y202]"), "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains(schema.to_str().unwrap()),
+        "stderr: {}",
+        out.stderr
+    );
+    let _ = std::fs::remove_file(&schema);
+}
+
+#[test]
+fn validate_schema_unreadable_schema_exits_five() {
+    let input = temp_yaml("a: 1\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            "no-such-schema.yaml",
+            input.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&input);
+    assert_eq!(out.status, 5, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("failed to read"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_schema_rejects_stdin_as_the_schema() {
+    let out = run(&["validate", "--schema", "-", "a.yaml"], "");
+    assert_eq!(out.status, 2, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("--schema requires a file path"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_schema_runs_alongside_the_default_checks() {
+    // A Y103 finding does not suppress the schema pass: the tree is
+    // usable and each finding is independently actionable.
+    let schema = temp_yaml("type: object\nproperties:\n  jobs:\n    type: integer\n");
+    let out = run(
+        &["validate", "--schema", schema.to_str().unwrap(), "-"],
+        "on:\n[]\njobs: {}\n",
+    );
+    let _ = std::fs::remove_file(&schema);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y103]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
+}
+
+#[test]
+fn validate_schema_skips_an_unparseable_input() {
+    // No tree, no schema pass: the Y001 is the whole verdict.
+    let schema = temp_yaml("type: object\n");
+    let out = run(
+        &["validate", "--schema", schema.to_str().unwrap(), "-"],
+        "a: [1,\n",
+    );
+    let _ = std::fs::remove_file(&schema);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
+    assert!(
+        !out.stderr.contains("error[Y201]"),
+        "stderr: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn validate_schema_validates_every_document_and_file() {
+    // Verdicts never fail-fast: both files are checked, and in the
+    // stream both documents are.
+    let schema = temp_yaml("type: object\n");
+    let bad = temp_yaml("- 1\n---\n- 2\n");
+    let good = temp_yaml("a: 1\n");
+    let out = run(
+        &[
+            "validate",
+            "--schema",
+            schema.to_str().unwrap(),
+            bad.to_str().unwrap(),
+            good.to_str().unwrap(),
+        ],
+        "",
+    );
+    let _ = std::fs::remove_file(&schema);
+    let _ = std::fs::remove_file(&bad);
+    let _ = std::fs::remove_file(&good);
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert_eq!(
+        out.stderr.matches("error[Y201]").count(),
+        2,
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(
+        out.stderr.contains("in document 2"),
+        "stderr: {}",
+        out.stderr
+    );
+}

@@ -114,6 +114,14 @@ pub struct ValidateArgs {
     /// last-wins — which after a bad edit means silently dropped data.
     #[arg(long)]
     pub strict: bool,
+
+    /// Validate each document against a JSON Schema (2020-12).
+    ///
+    /// The schema file is written in YAML or JSON. Violations are
+    /// reported with positions in the validated file's own source.
+    // Feature f040.
+    #[arg(long, value_name = "FILE")]
+    pub schema: Option<String>,
 }
 
 impl Cli {

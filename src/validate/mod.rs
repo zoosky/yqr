@@ -25,11 +25,17 @@
 //! resolved last-wins by virtually every parser, so a bad edit silently
 //! drops data. Duplicates are found by walking the lossless green tree, so
 //! every occurrence is reported with a real source position.
+//!
+//! The [`schema`] module adds the optional fourth check: each document
+//! validated against a JSON Schema 2020-12 document the caller provides,
+//! with every violation mapped back to a byte span in the original
+//! source.
 
 // Feature f012: the validate subcommand (spec: editing-loop verification).
 
 mod render;
 pub(crate) mod scan;
+pub mod schema;
 
 pub use render::render;
 
@@ -52,6 +58,15 @@ pub enum Code {
     KeyCollision,
     /// `Y103` — a block mapping's value is not indented past its key.
     BlockValueIndent,
+    /// `Y201` — a document violates the provided JSON Schema.
+    SchemaViolation,
+    /// `Y202` — the provided schema itself is unusable (not valid YAML,
+    /// not a single document, or not a valid JSON Schema 2020-12
+    /// document).
+    SchemaUnusable,
+    /// `Y203` — the document holds a value the JSON data model cannot
+    /// represent, so it cannot be validated against a JSON Schema.
+    OutsideJsonModel,
 }
 
 impl Code {
@@ -65,6 +80,9 @@ impl Code {
             Code::DuplicateKey => "Y101",
             Code::KeyCollision => "Y102",
             Code::BlockValueIndent => "Y103",
+            Code::SchemaViolation => "Y201",
+            Code::SchemaUnusable => "Y202",
+            Code::OutsideJsonModel => "Y203",
         }
     }
 }

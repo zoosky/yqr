@@ -251,6 +251,10 @@ error elsewhere.
 
 ### 5.1 Schema validation — sized follow-up (own spec, builds on f012)
 
+> **Picked up as `yqr-f040`** (2026-10-08), which makes the decisions
+> this section left open: direct `jsonschema` dependency, always-on
+> rather than a cargo feature, codes `Y201`/`Y202`/`Y203`.
+
 Out of f012's scope, but surveyed and sized so it can be picked up as the
 next feature (a separate spec, next free `yqr-fNNN`), landing as a
 `--schema <FILE>` flag on this subcommand — not a new command.

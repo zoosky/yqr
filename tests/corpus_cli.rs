@@ -167,6 +167,10 @@ fn run_case(case: &CliCase) {
             "@invalid" => sandbox.file("invalid.yaml", INVALID_YAML),
             "@dup" => sandbox.file("dup.yaml", DUPLICATE_KEYS),
             "@missing" => sandbox.path("missing.yaml").display().to_string(),
+            // Feature f040: schema fixtures for `validate --schema`.
+            "@schema" => sandbox.file("schema.yaml", corpus::cli::SCHEMA_OK),
+            "@schema-array" => sandbox.file("schema-array.yaml", corpus::cli::SCHEMA_ARRAY),
+            "@schema-bad" => sandbox.file("schema-bad.yaml", corpus::cli::SCHEMA_BAD),
             other => other.to_string(),
         })
         .collect();

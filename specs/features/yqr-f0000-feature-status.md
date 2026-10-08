@@ -358,6 +358,7 @@ run-order drift `f035` §3 characterised.
 | Feature | Title | Status |
 |---------|-------|--------|
 | [f012](yqr-f012-validate-command.md) | `yqr validate`: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, `--strict`) | Done |
+| [f040](yqr-f040-validate-schema.md) | `validate --schema`: JSON Schema 2020-12 validation with source spans | Done (2026-10-08: the `f012` §5.1 follow-up; violations map through `FidelityEngine::resolve` to rustc-style diagnostics on the original bytes, codes `Y201`–`Y203`; `jsonschema` 0.58 with resolvers off, so no build can resolve an external `$ref`) |
 
 Progress: shipped, then hardened by a full-branch code review (15
 confirmed findings, all fixed). yqr's first subcommand parses every
@@ -370,7 +371,16 @@ duplicate key — merge keys included — with both occurrences' positions;
 collisions report as `Y102` in the default checks, non-UTF-8 input as
 `Y003`. Conflict-marker files are recognized whole-file and anchored at
 the first marker. Rendering is hand-rolled — no new dependencies. The
-sized schema follow-up (`--schema`) stays open in the spec's §5.1.
+sized schema follow-up (`--schema`) shipped as f040: each document
+validated against a JSON Schema 2020-12 document, every violation mapped
+back to a byte span in the original source through the fidelity engine —
+the position no kubeconform-class tool offers. Merge- and alias-expanded
+content falls back to the nearest node with bytes of its own (an alias
+anchors at its definition, matching where a write through it lands). The
+schema engine is `jsonschema` 0.58 with default features off — no
+network, no filesystem `$ref` resolution — behind yqr's own `Schema`
+type, the same swappable-engine posture the YAML backend has. Accepted
+cost, measured in the spec's §5: +3.56 MiB release binary, 44 crates.
 
 ## Epic: Project website (f010)
 
@@ -399,12 +409,12 @@ page.
 
 ## Summary
 
-- Total features: 39
+- Total features: 40
 - Draft: 3 (f025, f027, f038)
 - In Progress: 0
-- Done: 32 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 33 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f026, f028, f029,
-  f030, f031, f032, f033, f034, f035, f036, f037, f039)
+  f030, f031, f032, f033, f034, f035, f036, f037, f039, f040)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)

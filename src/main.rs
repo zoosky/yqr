@@ -163,6 +163,33 @@ fn run_validate(args: &cli::ValidateArgs) -> ExitCode {
             )
             .exit();
     }
+    if args.schema.as_deref() == Some("-") {
+        cli::Cli::command()
+            .error(
+                clap::error::ErrorKind::ValueValidation,
+                "--schema requires a file path; it cannot read stdin",
+            )
+            .exit();
+    }
+
+    // Feature f040: the schema is compiled once and applied to every
+    // input. An unusable schema stops the run — validating files against
+    // no schema and reporting zero schema findings would be a false green.
+    let schema = match &args.schema {
+        None => None,
+        Some(path) => match load_schema(path) {
+            Ok(schema) => Some(schema),
+            Err(SchemaLoadError::Read(message)) => {
+                eprintln!("error: {message}");
+                return ExitCode::from(5);
+            }
+            Err(SchemaLoadError::Unusable(rendered)) => {
+                let (diagnostic, source) = rendered.as_ref();
+                eprint!("{}", yqr::validate::render(diagnostic, path, source));
+                return ExitCode::from(1);
+            }
+        },
+    };
 
     let mut worst: u8 = 0;
     for path in &args.files {
@@ -175,7 +202,14 @@ fn run_validate(args: &cli::ValidateArgs) -> ExitCode {
             Ok(bytes) => {
                 let (source, findings) = match String::from_utf8(bytes) {
                     Ok(source) => {
-                        let findings = yqr::validate::check_str(&source, args.strict);
+                        let mut findings = yqr::validate::check_str(&source, args.strict);
+                        // Feature f040: the schema pass runs whenever the
+                        // input parses; findings from the default checks
+                        // do not suppress it, since the tree is usable
+                        // and each finding is independently actionable.
+                        if let Some(schema) = &schema {
+                            findings.extend(yqr::validate::schema::check_schema(&source, schema));
+                        }
                         (source, findings)
                     }
                     // Wrong encoding is a content defect (exit 1 with a
@@ -218,6 +252,43 @@ fn read_validate_bytes(path: &str) -> Result<Vec<u8>, String> {
         return Ok(buf);
     }
     std::fs::read(path).map_err(|e| format!("failed to read {path:?}: {e}"))
+}
+
+/// Why a schema file could not become a validator.
+// Feature f040.
+enum SchemaLoadError {
+    /// The file could not be read — an environment problem, exit 5.
+    Read(String),
+    /// The file was read but is unusable as a schema — a content
+    /// problem, rendered as `Y202` against the schema file, exit 1.
+    /// Boxed: the error path carries the diagnostic and the schema
+    /// source for the window, which would otherwise dominate the `Ok`
+    /// size of every call.
+    Unusable(Box<(yqr::validate::Diagnostic, String)>),
+}
+
+/// Read and compile the schema file for `validate --schema`.
+// Feature f040.
+fn load_schema(path: &str) -> Result<yqr::validate::schema::Schema, SchemaLoadError> {
+    let bytes = std::fs::read(path)
+        .map_err(|e| SchemaLoadError::Read(format!("failed to read {path:?}: {e}")))?;
+    let source = match String::from_utf8(bytes) {
+        Ok(source) => source,
+        Err(err) => {
+            let valid_up_to = err.utf8_error().valid_up_to();
+            let mut bytes = err.into_bytes();
+            bytes.truncate(valid_up_to);
+            let prefix = String::from_utf8(bytes).expect("prefix up to valid_up_to is valid UTF-8");
+            let mut diagnostic = yqr::validate::encoding_diagnostic(&prefix);
+            diagnostic.code = yqr::validate::Code::SchemaUnusable;
+            diagnostic.message = "schema is not valid UTF-8".into();
+            return Err(SchemaLoadError::Unusable(Box::new((diagnostic, prefix))));
+        }
+    };
+    match yqr::validate::schema::Schema::compile(&source) {
+        Ok(schema) => Ok(schema),
+        Err(diagnostic) => Err(SchemaLoadError::Unusable(Box::new((diagnostic, source)))),
+    }
 }
 
 /// Resolve the file path to rewrite for `-i`, rejecting stdin.
