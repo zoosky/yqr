@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790183227017,
+  "lastUpdate": 1791473018274,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -2855,6 +2855,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 221800,
             "range": "± 2109",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "22a8fc41b739dcc0d85bb000e2a525eef15e0cb2",
+          "message": "chore(deps): adopt noyalib 0.0.56 (#136)\n\nFive upstream releases since the pinned 0.0.51. No production code\nchanges: all 565 tests pass with no expectation moved, and every\ncorpus, CLI and fidelity case is byte-identical.\n\nThe three parse-behaviour changes the releases advertise were measured\nagainst a 0.0.51 control build rather than taken from the notes, and\nnone is reachable through yqr:\n\n- 0.0.56 caps nesting at 256 levels on every path. yqr's own parse\n  configuration already refuses at 128 levels, so the cap sits behind a\n  limit yqr enforces first; a 300-level document fails identically on\n  both builds (exit 5, Y001 from validate).\n- 0.0.55 makes a verbatim tag name exactly its contents and refuses an\n  implicit flow key over 1024 characters. Both shapes read, validate\n  and normalize byte-identically on both builds through yqr's entry\n  points.\n\nThe rest is additive and unused here: structured diagnostics (0.0.52),\nparser-budget parity for the typed deserializer (0.0.53, upstream\nGHSA-4xcc-23fx-w2wj), bounded reader entry points (0.0.54), and limits\nenforced on every loader including the CST (0.0.55). yqr hands the\nengine complete strings and reads through the stream entry points, all\nof which already charged their budgets.",
+          "timestamp": "2026-10-08T17:22:11+02:00",
+          "tree_id": "93e9e5955df968a87c96627a744ae87ebb86b5bf",
+          "url": "https://github.com/zoosky/yqr/commit/22a8fc41b739dcc0d85bb000e2a525eef15e0cb2"
+        },
+        "date": 1791473016432,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 359,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4117,
+            "range": "± 222",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 178923,
+            "range": "± 11127",
             "unit": "ns/iter"
           }
         ]
