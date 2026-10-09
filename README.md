@@ -202,13 +202,22 @@ Guarantees and limits:
   scalar written over a block collection replaces it on the key's own line.
 - **Structural delete.** `del` removes multi-line and nested block entries too,
   not just single-line ones; it closes up the entry's lines and leaves every
-  surviving byte identical. Deleting the *only* entry of a block (which would
-  empty it) or an item of a *flow* collection (`[a, b]`) is refused with a clear
-  message.
+  surviving byte identical. Deleting the *only* entry of a block writes the
+  empty collection out (`{}` / `[]`), since a key with nothing under it reads
+  back as null; deleting an item of a *flow* collection (`[a, b]`) takes
+  exactly one separator with it.
+- **Anchors and aliases are editable, both ways.** A key inherited through
+  `<<` takes an explicit override entry (`.c.k = 9` shadows it for that
+  mapping alone; assign at the definition to change every inheritor), and an
+  entry whose value is an alias is edited through its own `*name` token:
+  `del(.j)` removes it, `.j = 5` replaces the reference, and writing the
+  value it already resolves to keeps the reference. A write landing *inside*
+  an anchor's shared value goes to the definition, and every alias shows it.
 - **Refusals name their reason.** A comment write on an entry whose value
   starts on the next line, a rename that would collide with a sibling, a
-  write to an entry a `<<` merge or alias produced, and a reorder index out
-  of range each fail with exit 5 and a message that says what to do instead.
+  write that resolves *through* an alias into the anchor's own bytes, and a
+  reorder index out of range each fail with exit 5 and a message that says
+  what to do instead.
 
 ## Validating files (`yqr validate`)
 
