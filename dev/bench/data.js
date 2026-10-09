@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791555989766,
+  "lastUpdate": 1791574132290,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3191,6 +3191,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 302736,
             "range": "± 4231",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7ec536bbce83efcf766ea73a79a3a5a478e131fe",
+          "message": "feat: binary releases and Homebrew, the three-target set via dist (f044) (#148)\n\n* feat: binary releases and Homebrew, the three-target set via dist (f044)\n\nCloses m001 $5.1, open since v0.1.0: releases carried no binaries, so\nevery install needed a Rust toolchain. From the next version tag on,\nrelease.yml -- generated and owned by dist 0.33.0, configured in\nCargo.toml -- builds aarch64-apple-darwin, x86_64-apple-darwin and\nx86_64-unknown-linux-musl, attaches tar.xz archives with SHA-256\nchecksums and a curl|sh installer, creates the GitHub release from the\nmatching changelog section, and pushes a generated formula to\nzoosky/homebrew-tap (created alongside this change).\n\nThe three targets are the minimal set that makes brew install work\neverywhere Homebrew runs: both Mac architectures, and musl so one\nstatic Linux binary has no glibc floor. ARM Linux and Windows wait for\na request. cargo publish is untouched: no crates.io job is configured,\nso it stays the separately authorized manual step (m004).\n\nMeasured before merge: dist plan names the full asset set; the\nhost-target archive builds locally and its binary evaluates a filter.\nThe end-to-end proof is the next release's own run (f044 $6), which\nneeds the HOMEBREW_TAP_TOKEN secret on this repo first.\n\nREADME documents the new install paths dated from the next release;\nthe site home page follows with the first binary release so the\ndeployed site never advertises a command that fails. m001 $3 and the\nAGENT.md workflow summary describe the new flow: tag push triggers the\nrelease build, and gh release create is no longer run by hand.\n\n* feat: release.sh, the mechanical half of a release in two phases\n\nprepare X.Y.Z rolls the changelog, bumps the three version stamps,\nrefreshes the lockfile, runs the full local gate, and opens the\nrelease PR; tag X.Y.Z, after that PR merges, tags the release commit\nand pushes the tag for release.yml to take over. --dry-run prints the\nmutating commands.\n\nThe split is where review and merge sit, and the refusals are the\npoint: dirty tree, off main, behind origin, an empty [Unreleased]\nsection, a version that is not an increase, or a tag that already\nexists each stop the run before anything moves. The editorial work\nstays human -- the changelog lead, the version choice, the docs\nre-measure -- and the script never runs cargo publish (m004).\n\nm001 section 3 documents it; shellcheck clean; failure paths\nexercised by hand.\n\n* fix: six review findings on the release machinery\n\n- release.sh tag now finds the 'chore: release vX.Y.Z' commit on main\n  by subject and tags that commit, never bare HEAD, so a feature PR\n  merged after the release PR cannot be swept into the release; it\n  says so when HEAD has moved on.\n- The tag-exists guard asks origin (git ls-remote) in both phases, not\n  just the local tag store, so a tag published from another machine is\n  caught before a divergent local tag is created.\n- prepare branches before touching any file: a red gate or a failed\n  push now strands its edits on the release branch, never on main.\n- The tap committer is the github-actions bot, not dist's hardcoded\n  'axo bot <admin+bot@axo.dev>': dist 0.33 has no config knob for it,\n  so regeneration goes through dist-regen.sh, which runs dist init and\n  re-applies the override, failing loudly if it stops taking. m001 and\n  the AGENT.md workflow summary point at the script.\n- The README's install code block opens with its availability line, so\n  what people copy carries the caveat that the prose held.\n- release.sh no longer prints internal spec IDs; the references moved\n  into comments (rule 19).\n\nshellcheck clean on both scripts.\n\n* fix: dist's consistency check accepts the committer override\n\nThe plan job failed on the patched workflow: dist verifies release.yml\nagainst what it would generate, and the committer override is a\ndeliberate difference. allow-dirty = [\"ci\"] records that the file is\nintentionally edited; because dist also refuses to regenerate an\nallow-dirty file, dist-regen.sh lifts the line for the regeneration,\nrestores it after, and now ends by running dist plan itself so a\nregeneration that would fail CI fails on the spot instead. Notes live\nabove the metadata section: dist init rewrites comments inside it.\n\n* docs(specs): m001 records the allow-dirty rationale and dist's rewrite behavior\n\ndist init rewrites its Cargo.toml blocks wholesale, comments included,\nso the explanation for allow-dirty could not live next to the line it\nexplains; it lives in m001 and dist-regen.sh instead.",
+          "timestamp": "2026-10-09T21:27:15+02:00",
+          "tree_id": "52d3d7d3636428dc75c659033c6dd76b8a75b518",
+          "url": "https://github.com/zoosky/yqr/commit/7ec536bbce83efcf766ea73a79a3a5a478e131fe"
+        },
+        "date": 1791574131341,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 569,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6441,
+            "range": "± 93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 298835,
+            "range": "± 6565",
             "unit": "ns/iter"
           }
         ]
