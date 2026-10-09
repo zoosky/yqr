@@ -27,11 +27,13 @@ cargo install yqr
 # binary at ~/.cargo/bin/yqr
 ```
 
-From the release after v0.10.0 on, prebuilt binaries remove the
-toolchain requirement — each release carries archives for Apple Silicon
-and Intel Macs and a static Linux x86_64 binary, with checksums:
+Prebuilt binaries remove the toolchain requirement — each release
+carries archives for Apple Silicon and Intel Macs and a static Linux
+x86_64 binary, with checksums:
 
 ```sh
+# Available from the first release after v0.10.0.
+
 # Homebrew (macOS and Linux)
 brew install zoosky/tap/yqr
 

@@ -185,7 +185,11 @@ reacts to version tags and produces archives for
 release itself, and the Homebrew formula. Publishing to crates.io from
 CI was considered and **not** adopted — `cargo publish` stays manual and
 separately authorized (`yqr-m004`). The workflow is regenerated with
-`dist init --yes`, never hand-edited.
+`.github/scripts/dist-regen.sh`, never with bare `dist init` and never
+by hand: dist 0.33 hardcodes its own author's bot ("axo bot
+<admin+bot@axo.dev>") as the tap committer with no config knob, so the
+script re-applies the github-actions bot identity after every
+regeneration and fails loudly if the override stops taking.
 
 ### 5.2 No automated PR review
 

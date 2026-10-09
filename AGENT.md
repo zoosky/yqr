@@ -458,7 +458,8 @@ nothing deploys. Run it with `cd specs && accent serve`. See `yqr-f010` and
 
 Generated and owned by **dist** (cargo-dist 0.33.0, pinned in
 `Cargo.toml` `[workspace.metadata.dist]`) — regenerate with
-`dist init --yes` after config changes, never hand-edit. On a version
+`.github/scripts/dist-regen.sh` after config changes (it re-applies the
+tap committer override dist has no knob for), never hand-edit. On a version
 tag it builds `aarch64-apple-darwin`, `x86_64-apple-darwin` and
 `x86_64-unknown-linux-musl`, attaches archives, checksums and a shell
 installer, creates the GitHub release from the changelog section, and
