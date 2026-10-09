@@ -6,11 +6,11 @@
 # "Keys with dots in them" is Feature f030.
 # "Copying a whole block" is Feature f032; the refusal is the
 # scalar-to-collection limit, and the scalar over a block is Feature f036
-# (it was the b029 refusal until then). The last bullet of "What is not here
-# yet" is Bug b032, fixed upstream as noyalib#418 and not yet released.
-# Every console block re-run against v0.8.0 on 2026-09-07; the manifest and
-# ci.yaml hold what the examples address (two containers, dotted labels,
-# three steps).
+# (it was the b029 refusal until then; the b032 bullet left when noyalib
+# 0.0.51 shipped the fix). Every console block re-run against v0.10.0 on
+# 2026-10-09 (before that v0.9.0 the same day, v0.8.0 on 2026-09-07); the
+# manifest and ci.yaml hold what the examples address (two containers,
+# dotted labels, three steps).
 title: Editing Kubernetes manifests without reformatting them
 lead: >-
   How to bump an image tag or a replica count so the diff is one line, and which edits yqr refuses outright.

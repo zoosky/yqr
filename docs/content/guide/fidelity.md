@@ -6,8 +6,11 @@
 # fixed in noyalib 0.0.28. The insert anchor, the kept block scalar and the
 # CRLF multi-line write are bugs b032, b034 and b030, all closed by the
 # noyalib 0.0.44 adoption (f035). Deleting inside a shared anchor is
-# Feature f038; the merged-key override is f025, console blocks captured
-# from the f025 build on 2026-10-08.
+# Feature f038; the merged-key override is f025. Editing the alias-valued
+# entry itself is the noyalib 0.0.57 adoption (f043). Every console block
+# re-run against v0.10.0 on 2026-10-09; the through-alias refusal gained
+# its mechanism-neutral wording in f025's review and the captured block
+# moved with it.
 title: Byte-for-byte YAML editing, explained
 lead: >-
   Why `yqr '.' f` reproduces `f` exactly, what survives a read, and when you want `--normalize` instead.
@@ -245,7 +248,24 @@ definition:
 
 ```console
 $ yqr '.web.mode = 416' aliased.yaml
-yqr: runtime error: cannot assign at "web.mode": the mapping is reached through an alias, so it has no "mode" entry of its own to write. Assign where the key is defined instead
+yqr: runtime error: cannot assign at "web.mode": the mapping is reached through a `<<` merge or an alias, so it has no "mode" entry of its own to write. Assign where the key is defined instead
+```
+
+The reference itself, though, is the entry's own byte sequence, so it
+edits like any other value: assigning replaces the `*defaults` token,
+`del` removes the entry, and the anchor's definition is never touched.
+Writing the value the alias already resolves to is a no-op that keeps
+your `*defaults` spelling -- a save that changes nothing re-spells
+nothing:
+
+```console
+$ yqr '.web = "standalone"' aliased.yaml
+defaults: &defaults
+  mode: 0640
+web: standalone
+$ yqr 'del(.web)' aliased.yaml
+defaults: &defaults
+  mode: 0640
 ```
 
 ## A write that changes nothing changes nothing

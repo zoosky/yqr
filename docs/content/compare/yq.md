@@ -1,7 +1,8 @@
 ---
 # Every command and its output on this page was run against yq v4.53.6 and
-# a real yqr build. The yqr commands were re-run against v0.9.0 on
-# 2026-10-09 (before that v0.8.0 on 2026-09-07, first measured on v0.7.1)
+# a real yqr build. The yqr commands were re-run against v0.10.0 on
+# 2026-10-09 (before that v0.9.0 the same day, v0.8.0 on 2026-09-07, first
+# measured on v0.7.1)
 # and every output held, the --schema half of the validate row included.
 # The yq outputs stand as measured on v4.53.6; the v4.53.3 to hand differs
 # only by writing `!!merge <<:` in the anchors round trip. Re-measure

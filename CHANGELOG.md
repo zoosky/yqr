@@ -6,6 +6,24 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-09
+
+The last byte of YAML yqr could not edit, closed: entries whose value
+is an alias reference.
+
+`del(.j)` on `j: *x` removes the entry and `.j = 5` replaces the
+reference, in every layout -- block entry, trailing comment, sequence
+item, flow member -- touching nothing of the anchor's. Both were
+refusals whose messages could only suggest editing the file by hand;
+both now run, which also lets the refusal for deleting a
+still-referenced `&name` name remedies that work. The engine fixes
+behind this shipped upstream first, in noyalib 0.0.57, as this
+project's own commits.
+
+This is a minor bump, not a patch: two refusals became writes, so a
+script that matched exit 5 on those filters now sees exit 0 and an
+edited file. The library API is unchanged.
+
 ### Added
 
 - **An entry whose value is an alias can be deleted and overwritten.**

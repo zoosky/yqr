@@ -1,6 +1,6 @@
 ---
 # Traceability: Feature f012 (the validate subcommand); bug b014 §3.2 is
-# the Y103 check. Every console block re-run against v0.9.0 on 2026-10-09
+# the Y103 check. Every console block re-run against v0.10.0 on 2026-10-09
 # (before that v0.8.0 on 2026-09-07, and the --schema blocks against the
 # f040 build on 2026-10-08); the usage-error block now quotes the full
 # output, clap's usage lines included. The indentation error gained its
