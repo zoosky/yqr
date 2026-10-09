@@ -32,6 +32,12 @@ binary that builds the deployed site.
 - **`--strict-links` is deprecated.** 0.26 makes a broken internal link
   fail the build by default and 0.27 removes the flag, so the build step
   and the docs drop it.
+- **Filed upstream** (2026-10-09, accentcms specs): `b377` — an invalid
+  component manifest demotes the component to "not declared" at warning
+  level while the build exits 0, the gap this adoption tripped on;
+  `f397` — `body: none` for presentational components, the missing kind
+  that made the manifest invalid; `f398` — block-level placement for a
+  plain-text-body component (the `loc` warning).
 - Nothing else. The breaking changes land as no-ops here, each checked
   rather than assumed: broken internal links already fail this site's
   builds (`--strict-links` since `yqr-b007`); no `[shortcode]` syntax

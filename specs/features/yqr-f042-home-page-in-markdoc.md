@@ -53,7 +53,10 @@ viewports, full-page screenshots, pixel diff):
 - Accepted normalizations: command text in recipes is uniform (the
   hand-placed filter-highlight spans had no markdown vocabulary),
   callout titles are block lines instead of run-in `strong`, and
-  snippet token coloring is plain text.
+  snippet token coloring is plain text. The missing vocabulary is
+  filed upstream as accentcms `f399` (highlight notation inside
+  fenced code, line- and span-level); if it lands, the three
+  normalizations are recoverable from markdown.
 
 ## 4. Acceptance criteria
 
