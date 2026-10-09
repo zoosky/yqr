@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "jq for YAML -- query and edit without reformatting",
   "url": "https://zoosky.github.io/yqr/",
-  "wordCount": 2148
+  "wordCount": 2181
 }
 </script>
 <link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
@@ -759,11 +759,13 @@ spec:
 <div class="section-head">
   <p class="eyebrow">installed paths</p>
   <h2>Where the binary actually lives</h2>
-<p>Install from crates.io with <code>cargo install yqr</code>, or build any of the paths below from a source checkout.</p>
+<p>Install with Homebrew or from crates.io, or build any of the paths below from a source checkout.</p>
 </div>
 <div class="paths">
 <div class="path-card">
   <h3>On your machine</h3>
+<p><code class="loc">brew install zoosky/tap/yqr</code></p>
+<p>Prebuilt for Apple Silicon, Intel Macs, and Linux x86_64 — no Rust toolchain involved. Each release also attaches the archives, checksums, and a <code>curl | sh</code> installer script.</p>
 <p><code class="loc">cargo install yqr</code></p>
 <p>Pulls the published crate to <code>~/.cargo/bin/yqr</code> — keep that directory on <code>PATH</code> so plain <code>yqr</code> resolves from any shell, including one already piping <code>kubectl</code> output.</p>
 <p><code class="loc">cargo build –release</code></p>

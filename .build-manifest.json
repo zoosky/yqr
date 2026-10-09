@@ -1,9 +1,9 @@
 {
   "version": 5,
-  "timestamp": "2026-10-09T20:08:27Z",
+  "timestamp": "2026-10-09T20:52:45Z",
   "pages": {
     "/": {
-      "content_hash": "0d6bb96947de1fab92728c027fa4ef3d313b7055332d2c68433e1c68c04d6deb",
+      "content_hash": "c73b1ffbc1b975e985208e8cb65378c936ce2d62be4e353ef9a32a43af7beef2",
       "template": "home.html.jinja",
       "template_hash": "be7fa24440cf0008c33b07b0f040687373e2a1e8bbd3ba26ea20b5c051fc2afc",
       "status": "published"
@@ -270,7 +270,7 @@
   "config_hash": "5e78d824246ee7aedd6042f007760a53f38f718fcc58896f0c8f5ea805b655de",
   "theme_hash": "10e34f9a3c31fd0427b13a3d585e61245322a6c9e9f0dbfd72f3c39e9c870771",
   "schema_hash": "9b219c8f3f63409377b1ff9c7e2570e1bbbe69b2adb16253262dee3a73fdd1ea",
-  "assets_hash": "739d1ec204c83e80c29c69e5d42d2fce637effb65a4f16208bca5dbae029242b",
+  "assets_hash": "8f8c5b8c7f5bbd33df87d3df3c61b7f0e449edc634a5cac97834adaa53bff3ae",
   "overrides_hash": "38c872a4415ffa903d910e43bb98fb0bad30fca40cf91700ba4eedad64cef70f",
   "fingerprint_hash": "",
   "built_on": "2026-10-09",
