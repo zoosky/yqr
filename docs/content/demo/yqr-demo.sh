@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 #
-# yqr demo -- a jq-style query & transform tool for YAML.
+# yqr demo -- a YAML editor with a fidelity guarantee, jq-style.
 #
-# A showcase that runs real queries against the sample files sitting next to
-# this script (deploy.yaml, config.yaml). Open those files to see exactly what
-# each query reads.
+# A showcase that runs real queries and real edits against the sample files
+# sitting next to this script (deploy.yaml, config.yaml, services.yaml).
+# Open those files to see exactly what each command reads. Every mutating
+# command works on a copy in a scratch directory, so re-running the demo is
+# idempotent and leaves nothing behind.
 #
 # Usage:  bash yqr-demo.sh          (from anywhere -- paths resolve to this dir)
 #
@@ -15,6 +17,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY="$SCRIPT_DIR/deploy.yaml"
 CONFIG="$SCRIPT_DIR/config.yaml"
+SERVICES="$SCRIPT_DIR/services.yaml"
 
 # --- pretty-printing helpers -------------------------------------------------
 bold=$(printf '\033[1m'); dim=$(printf '\033[2m'); cyan=$(printf '\033[36m')
@@ -32,6 +35,10 @@ run() {
 
 command -v yqr >/dev/null || { echo "yqr not found on PATH"; exit 1; }
 printf '%s' "$bold"; yqr --version | head -1; printf '%s\n' "$reset"
+
+# All mutating sections work in here, on copies of the samples.
+WORKDIR="$(mktemp -d -t yqr-demo.XXXXXX)"
+trap 'rm -rf "$WORKDIR"' EXIT
 
 # =============================================================================
 section "1. Navigate nested structure -- dotted paths & array indexing"
@@ -68,19 +75,50 @@ printf '%s# Opt into the classic pipeline with --normalize (drops comments, re-s
 printf '%s$ yqr %s%s\n' "$green" "--normalize '.' config.yaml" "$reset"
 yqr --normalize '.' "$CONFIG"; echo
 
-section "7. jq-style exit codes -- scriptable error handling"
+section "7. Edit without reformatting -- the diff is the line you changed"
+cp "$CONFIG" "$WORKDIR/config.yaml"
+printf '%s# A write replaces the value and touches nothing else -- the\n# comment two spaces to its right stays exactly where it was:%s\n' "$dim" "$reset"
+printf '%s$ yqr -i %s config.yaml && diff config.yaml.orig config.yaml%s\n' "$green" "'.replicas = 5'" "$reset"
+cp "$WORKDIR/config.yaml" "$WORKDIR/config.yaml.orig"
+yqr -i '.replicas = 5' "$WORKDIR/config.yaml"
+diff "$WORKDIR/config.yaml.orig" "$WORKDIR/config.yaml" || true
+echo
+printf '%s# Append to a sequence; delete an entry structurally. Every\n# surviving byte is identical:%s\n' "$dim" "$reset"
+printf '%s$ yqr %s config.yaml%s\n' "$green" "'.ports += 9090'" "$reset"
+yqr '.ports += 9090' "$WORKDIR/config.yaml"; echo
+printf '%s$ yqr %s config.yaml%s\n' "$green" "'del(.ports)'" "$reset"
+yqr 'del(.ports)' "$WORKDIR/config.yaml"; echo
+
+section "8. Anchors, aliases, merge keys -- editable, both ways"
+printf '%s# services.yaml shares a defaults block via &defaults / <<: / *defaults:%s\n' "$dim" "$reset"
+printf '%s$ yqr %s%s\n' "$green" "'.' services.yaml" "$reset"
+yqr '.' "$SERVICES"; echo
+printf '%s# A key inherited through <<: takes an explicit override entry --\n# only this mapping changes, the defaults block is untouched:%s\n' "$dim" "$reset"
+printf '%s$ yqr %s services.yaml%s\n' "$green" "'.web.retries = 5'" "$reset"
+yqr '.web.retries = 5' "$SERVICES"; echo
+printf '%s# An entry whose value IS an alias edits through its own *name token --\n# assigning replaces the reference, del removes the entry:%s\n' "$dim" "$reset"
+printf '%s$ yqr %s services.yaml%s\n' "$green" "'.alert = 9'" "$reset"
+yqr '.alert = 9' "$SERVICES"; echo
+printf '%s$ yqr %s services.yaml%s\n' "$green" "'del(.backup)'" "$reset"
+yqr 'del(.backup)' "$SERVICES"; echo
+printf '%s# Writing the value the alias already resolves to is a no-op that\n# keeps your *t spelling -- a save that changes nothing re-spells nothing:%s\n' "$dim" "$reset"
+printf '%s$ yqr %s services.yaml | grep alert%s\n' "$green" "'.alert = 5'" "$reset"
+yqr '.alert = 5' "$SERVICES" | grep alert
+echo
+
+section "9. Comments are addressable -- read them, write them"
+run "Read the comment on a value"  'line_comment(.replicas)' -r "$CONFIG"
+run "Write one"                    'line_comment(.name) = "renamed 2026-10"' "$CONFIG"
+
+section "10. jq-style exit codes -- scriptable error handling"
 printf '%s# Parse errors exit 3; runtime errors exit 5 -- so you can branch in scripts:%s\n' "$dim" "$reset"
 printf '%s$ echo '\''x: 1'\'' | yqr '\''.x.y'\''  %s# index a number -> runtime error\n' "$green" "$reset"
 if echo 'x: 1' | yqr '.x.y'; then :; else printf '%s-> exit %s%s\n' "$dim" "$?" "$reset"; fi
 echo
 
-section "8. Validate after editing -- a verdict humans and agents can act on"
-# Work on a copy in a scratch directory, never the sample file itself, so
-# re-running the demo is idempotent and leaves nothing behind. Running from
-# that directory keeps the paths in the diagnostics identical to the
-# commands printed above them.
-WORKDIR="$(mktemp -d -t yqr-demo.XXXXXX)"
-trap 'rm -rf "$WORKDIR"' EXIT
+section "11. Validate after editing -- a verdict humans and agents can act on"
+# Run from the scratch directory so the paths in the diagnostics are
+# identical to the commands printed above them.
 cp "$CONFIG" "$WORKDIR/config.yaml"
 cd "$WORKDIR"
 printf '%s# Edit in place, then ask whether the file is still correct YAML:%s\n' "$dim" "$reset"
@@ -102,5 +140,11 @@ cp "$CONFIG" config.yaml; printf 'replicas: 9\n' >> config.yaml
 printf '%s$ yqr validate --strict config.yaml%s\n' "$green" "$reset"
 if yqr validate --strict config.yaml; then :; else printf '%s-> exit %s%s\n' "$dim" "$?" "$reset"; fi
 echo
+printf '%s# And --schema holds the values to a JSON Schema, with the finding\n# located in YOUR file, not in an abstract instance path:%s\n' "$dim" "$reset"
+cp "$CONFIG" config.yaml
+printf '{"type":"object","properties":{"replicas":{"type":"integer","minimum":5}}}\n' > schema.json
+printf '%s$ yqr validate --schema schema.json config.yaml%s\n' "$green" "$reset"
+if yqr validate --schema schema.json config.yaml; then :; else printf '%s-> exit %s%s\n' "$dim" "$?" "$reset"; fi
+echo
 
-printf '%sThat is yqr: jq ergonomics, YAML-native, with a byte-exact fidelity mode\nand a validate pass that tells you when an edit went wrong.%s\n' "$bold" "$reset"
+printf '%sThat is yqr: jq ergonomics, YAML-native, fidelity by default -- the\ndiff is the line you changed -- and a validate pass that tells you when\nan edit went wrong.%s\n' "$bold" "$reset"
