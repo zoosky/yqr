@@ -94,6 +94,52 @@
     return html + escapeHtml(snippet.substring(pos));
   }
 
+  // Text fragments (Feature f374).
+  //
+  // A result link carries `#:~:text=<word>` for each query word, so the
+  // browser scrolls to the first match and highlights it the way its own
+  // find-in-page does. Browsers without text fragments ignore the directive
+  // and open the page unchanged, so no feature detection is needed.
+  var FRAGMENT_WORD_LIMIT = 3;
+
+  // "-" and "," delimit the prefix/suffix and range parts of a text
+  // directive, so neither may survive into a word.
+  function encodeFragmentWord(word) {
+    return encodeURIComponent(word).replace(/-/g, "%2D").replace(/,/g, "%2C");
+  }
+
+  // The words worth marking: each one once, longest first.
+  //
+  // The browser scrolls to the first directive, and the longest word of a
+  // query is its most distinctive one. Taking words as typed would spend the
+  // budget on the function words English puts first -- "how to configure
+  // caching" would mark "how", "to" and "configure" and scroll to the intro,
+  // dropping the word the reader came for. The sort is stable, so words of
+  // equal length keep the order they were typed.
+  function fragmentWords(queryTokens) {
+    var words = [];
+    for (var i = 0; i < queryTokens.length; i++) {
+      var word = queryTokens[i];
+      if (word && words.indexOf(word) === -1) words.push(word);
+    }
+    words.sort(function (a, b) {
+      return b.length - a.length;
+    });
+    return words.slice(0, FRAGMENT_WORD_LIMIT);
+  }
+
+  function withTextFragment(url, queryTokens) {
+    // A URL that pins its own fragment keeps it.
+    if (!url || url.indexOf("#") !== -1) return url;
+    var words = fragmentWords(queryTokens);
+    if (words.length === 0) return url;
+    var directives = [];
+    for (var i = 0; i < words.length; i++) {
+      directives.push("text=" + encodeFragmentWord(words[i]));
+    }
+    return url + "#:~:" + directives.join("&");
+  }
+
   function renderResults(container, results, queryTokens) {
     if (results.length === 0) {
       container.innerHTML =
@@ -109,7 +155,7 @@
       var snippet = highlightText(r.snippet, queryTokens, 150);
       html +=
         '<a class="acms-search-result" href="' +
-        escapeHtml(r.url) +
+        escapeHtml(withTextFragment(r.url, queryTokens)) +
         '" role="option"' +
         (i === 0 ? ' aria-selected="true"' : "") +
         ">" +
@@ -319,7 +365,6 @@
       if (query.length < 2) {
         resultsContainer.innerHTML = "";
         resultsContainer.hidden = true;
-        activeIndex = -1;
         return;
       }
 
@@ -414,7 +459,6 @@
       if (query.length < 2) {
         resultsContainer.innerHTML = "";
         resultsContainer.hidden = true;
-        activeIndex = -1;
         return;
       }
 
@@ -477,6 +521,13 @@
     } else {
       initLegacySearch(input, resultsContainer, limit);
     }
+
+    // A changed query gets a fresh result list whose first entry is
+    // preselected, so keyboard selection starts over. The backends cannot
+    // reset it from their doSearch: activeIndex is scoped to this function.
+    input.addEventListener("input", function () {
+      activeIndex = -1;
+    });
 
     input.addEventListener("focus", function () {
       // hasChildNodes() rather than reading innerHTML: same truthiness, but it

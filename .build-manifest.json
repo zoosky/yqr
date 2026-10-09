@@ -1,66 +1,77 @@
 {
-  "version": 1,
-  "timestamp": "2026-10-09T05:35:34Z",
+  "version": 5,
+  "timestamp": "2026-10-09T12:54:33Z",
   "pages": {
     "/": {
-      "content_hash": "e398e8629920fc98",
+      "content_hash": "0d6bb96947de1fab92728c027fa4ef3d313b7055332d2c68433e1c68c04d6deb",
       "template": "home.html.jinja",
-      "template_hash": "ec4708e5fc3ef15c"
+      "template_hash": "7b75cbce7c45c0a661b697b383a3cdffc375d8f5159cb2772ed44292d2ce93d3",
+      "status": "published"
     },
     "/changelog": {
-      "content_hash": "586d03c056774998",
+      "content_hash": "f44573ecc90174e52d09adbcdb4461e4491a1d36c2edd2355843143d6a4ed528",
       "template": "default.html.jinja",
-      "template_hash": "eb1d6e9a0337d72d"
+      "template_hash": "b83695040bb5e17442f9b8b7c2274cc5bce0549fd0d3cf11361ce30a7a6c2f9d",
+      "status": "published"
     },
     "/compare": {
-      "content_hash": "bc8a282e0d7a7fe3",
+      "content_hash": "25ce4960b21d26e01b7ae43df8147991bff15bb21ffb42f479cbe165a75afa8b",
       "template": "README.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/compare/yq": {
-      "content_hash": "cac6c93b08ed0c4c",
+      "content_hash": "068723ec5c28aa146dd1a2ab02f2c2d930b0d1a70fcba90e9059cf05a7e95f70",
       "template": "yq.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/demo": {
-      "content_hash": "b7e67f8bdc7199a5",
+      "content_hash": "af94aca8eab1c604c5afe32a8bd4590474cbe6edd7f4003cd9b57b33a654d498",
       "template": "README.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/guide": {
-      "content_hash": "ec4618b5adf28851",
+      "content_hash": "23821cddfb8a39d41202462437dc22afd1b0b0cf78be759e8cc804adedcc22aa",
       "template": "README.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/guide/enumerate": {
-      "content_hash": "0f507f8a69cb57ca",
+      "content_hash": "f2f25e3156e79fdaa229e457aae6ae1eaf4e646855d51704acfeb162df0410e4",
       "template": "enumerate.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/guide/fidelity": {
-      "content_hash": "4c985f17eb72226f",
+      "content_hash": "878d6ffbc7d41453c96dda4a4cc2a30f8dedf67ea0084de662361a662b102c32",
       "template": "fidelity.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/guide/from-jq": {
-      "content_hash": "1dee2dc0b40b2261",
+      "content_hash": "4e3b4ed99f51756f2cd37bf673a9b678a59779674effab404f041c3f7917f3cc",
       "template": "from-jq.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/guide/kubernetes": {
-      "content_hash": "53c81ba205e5cbea",
+      "content_hash": "04f72179b684c06fa08d4ded3615d85cf746a551797796530d75b2fa654ca030",
       "template": "kubernetes.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     },
     "/guide/validate": {
-      "content_hash": "3039f3d78f4a6865",
+      "content_hash": "af12e418a4933055cb20b9911644ed5d4602b5feb7552929fcb4b559f09cd344",
       "template": "validate.html.jinja",
-      "template_hash": "30406ea523c53def"
+      "template_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "published"
     }
   },
   "templates": {
     "base.html.jinja": {
-      "hash": "882cbcccc2a1e89b",
+      "hash": "288c21d1d160ba2fdaafdda2517adfad95d5d05cab31b9d06fff0c89b2142866",
       "includes": [
         "partials/head_meta.html.jinja",
         "partials/language-switcher.html.jinja",
@@ -69,32 +80,32 @@
       ]
     },
     "breadcrumbs.html.jinja": {
-      "hash": "9ee05c9c95fc0126",
+      "hash": "844418d6607ae13d4a1169103e0b21573f8a2ae13ed493c28e2fb3e1a78e7484",
       "includes": [
         "breadcrumbs.html.jinja"
       ]
     },
     "contact-island.html.jinja": {
-      "hash": "56e503f2b2aaab07",
+      "hash": "ba1524be04f49273f2ae1c376f8f238e9d401642ebbbd4b878ac0f3053eb2df7",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja"
       ]
     },
     "data-comments.html.jinja": {
-      "hash": "01dade3dd72018f7",
+      "hash": "2d7eb596037b7e197057958aadbc9957b605108868d2916c46c55d7204786687",
       "includes": [
         "data-comments.html.jinja"
       ]
     },
     "debug.html.jinja": {
-      "hash": "a02425cbbbfa6db6",
+      "hash": "11b5f7cf2949afbaf55082a5f2b9689abf0eec886c80b0c0d7b1a5b3e24ca17a",
       "includes": [
         "debug.html.jinja"
       ]
     },
     "default.html.jinja": {
-      "hash": "20d43fb9b3da6af8",
+      "hash": "877c7dd55fa1ad4486705ede880e8095cc2a78bf0f02457593781c2a107ea705",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja",
@@ -104,7 +115,7 @@
       ]
     },
     "docs-islands.html.jinja": {
-      "hash": "7f7484f83b8161f8",
+      "hash": "c7cbffe130a6bde1fcd0f9f78f6f07a2c1b16074c52a8f07f0271f2a67d9347b",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja",
@@ -114,7 +125,7 @@
       ]
     },
     "docs.html.jinja": {
-      "hash": "8ce13efd73d6bf46",
+      "hash": "bcfde2c8b4aa2119e07cd9eeeebdf51fcca9d31a86c8a01a42326cf31f8c78a0",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja",
@@ -125,37 +136,37 @@
       ]
     },
     "error.html.jinja": {
-      "hash": "1392a7dae147f351",
+      "hash": "9f49e388cb8d7480adc14694d8f92141e777bf2fb357ce50ae645a63e5a7f384",
       "includes": [
         "base.html.jinja"
       ]
     },
     "error/404.html.jinja": {
-      "hash": "bce34b82a3c2d06a",
+      "hash": "c545d98ba80f453ba6572013225aeba0f7c84da4503cdfb26ffb2cabfe09c5d4",
       "includes": [
         "base.html.jinja"
       ]
     },
     "home.html.jinja": {
-      "hash": "bdb350d9e89cf66d",
+      "hash": "39c0acddc4fdc2f83eac39afd2d7d9b795aac25790b6e6d4cde9a532b7c69240",
       "includes": [
         "base.html.jinja"
       ]
     },
     "islands-demo.html.jinja": {
-      "hash": "3764d63a6b8f8f5a",
+      "hash": "adbca2e52b21831187fbf889c4563f4996ee9e5eba0ff612946248cac87c033f",
       "includes": [
         "base.html.jinja"
       ]
     },
     "landing.html.jinja": {
-      "hash": "c23703ae4c9dfb65",
+      "hash": "7080fc5252be901cdd4e26b28d0991513b3e94db2c27a309c91e2a211468e3bc",
       "includes": [
         "base.html.jinja"
       ]
     },
     "modular.html.jinja": {
-      "hash": "38e09abd9aae4071",
+      "hash": "0e2ba864b0aba8cdff2bb0a710d3b9f682854815ed4f0963b93485e81512503d",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja",
@@ -163,7 +174,7 @@
       ]
     },
     "news.html.jinja": {
-      "hash": "d68634aa5cd2fb08",
+      "hash": "e9ce445910d7c909f60fe9204805441c3af9d17a07ecc3ea07f178e8e2a518e8",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja",
@@ -171,7 +182,7 @@
       ]
     },
     "page-index.html.jinja": {
-      "hash": "ff4a2801ef2c5ae3",
+      "hash": "6eb5d71ae3b49f11e11a29cbd87a37c4e81b6d501cfd5641c871394b8df71672",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja",
@@ -179,57 +190,57 @@
       ]
     },
     "page-nav.html.jinja": {
-      "hash": "9f92fdf1a9a4b0a9",
+      "hash": "2e9c21122a547c8211e7a8b522a24580c1143ce3777472b2108ed0ee7bda5314",
       "includes": [
         "page-nav.html.jinja"
       ]
     },
     "partials/diagram-example.html.jinja": {
-      "hash": "b24968d2c18adb87",
+      "hash": "1c723a1e48cd6edcf300728979f3ce2e6e05a94ee1d0358b7650c1f1814c8af9",
       "includes": [
         "partials/diagram-example.html.jinja"
       ]
     },
     "partials/diagram-fn-example.html.jinja": {
-      "hash": "c54106aeeff16b26",
+      "hash": "7c2c6944cd4863e15be3bee55143a395e56e022afd90cddb1277e4976a540da9",
       "includes": [
         "partials/diagram-fn-example.html.jinja"
       ]
     },
     "partials/docs-sidebar.html.jinja": {
-      "hash": "b872c32e5c65a70a",
+      "hash": "2b414e3572cd7c83c042d73fdd5f4246612374f87d4cef8e7d332afc51fc62ea",
       "includes": []
     },
     "partials/head_meta.html.jinja": {
-      "hash": "9f80d9c7b197857a",
+      "hash": "ad6aeec5fa9b64b89cbd40cc46ad1c9fd3a741dfcf8e2d93553271cbdae7e2f7",
       "includes": []
     },
     "partials/language-switcher.html.jinja": {
-      "hash": "5bc4be146ebac056",
+      "hash": "806dcbcc1fa22d158bf3b0e3ac7ba08ee749bf1cc7c6c95143a3364b11bfbeae",
       "includes": [
         "partials/language-switcher.html.jinja"
       ]
     },
     "partials/markdown-link.html.jinja": {
-      "hash": "1699b111be5f05fe",
+      "hash": "4113543e5009a7df681dfe0f1c2f8af6b93e5469f7e6612e11b7926c859e11fa",
       "includes": []
     },
     "partials/mermaid-loader.html.jinja": {
-      "hash": "76486288227f61f2",
+      "hash": "93e5b6675c3412f386dd799790d7c8df12a4dda90b5e6d9af58f3ca14520dd65",
       "includes": []
     },
     "partials/recent-documents.html.jinja": {
-      "hash": "454fc111772c0724",
+      "hash": "0409a240e7a4d143af31c3feee21d76d72f7b2f635b2f0f59d728a711d57cfdd",
       "includes": []
     },
     "partials/version-dropdown.html.jinja": {
-      "hash": "91b03f148f730e08",
+      "hash": "e431ec13b6344bd5e2c6882e1f9ba444ba26472040e13440ca9e350a3e954bee",
       "includes": [
         "partials/version-dropdown.html.jinja"
       ]
     },
     "remote-doc.html.jinja": {
-      "hash": "b99bd7310b2d5493",
+      "hash": "26238cfd1b3925ffcecefb68034e1ba1983d6b8a7cdd7b6ca17706fc8b95aa06",
       "includes": [
         "base.html.jinja",
         "breadcrumbs.html.jinja",
@@ -238,24 +249,55 @@
       ]
     },
     "tag.html.jinja": {
-      "hash": "ba17e7e911bf550e",
+      "hash": "ec714234c7309426966bcafea129ef29594b5bc4c80a5b983c9703bec9519d5b",
       "includes": [
         "base.html.jinja"
       ]
     },
     "tags.html.jinja": {
-      "hash": "de739b46790033b4",
+      "hash": "382ea063f02a7b5c4a690fae7afeb27bbcbd89873eb3deeef84243e1352ff141",
       "includes": [
         "base.html.jinja"
       ]
     },
     "toc.html.jinja": {
-      "hash": "bb16f2fdf8d4619d",
+      "hash": "5fea7654314417e41067fbfa3f26e29bb4dd1fd3329563a75f50670d1a47cd5b",
       "includes": [
         "toc.html.jinja"
       ]
     }
   },
-  "config_hash": "667d7f6595d4ae8c",
-  "theme_hash": "ae2b5e9479685a5e"
+  "config_hash": "5e78d824246ee7aedd6042f007760a53f38f718fcc58896f0c8f5ea805b655de",
+  "theme_hash": "1416caecd5d0c516d4e1b86c5e547d18f14de9818b041e71f8de61482fbd190d",
+  "schema_hash": "9b219c8f3f63409377b1ff9c7e2570e1bbbe69b2adb16253262dee3a73fdd1ea",
+  "assets_hash": "97271a63033640d27012ad052955809baeced8d69151b6266dbd3dd34037fd96",
+  "overrides_hash": "38c872a4415ffa903d910e43bb98fb0bad30fca40cf91700ba4eedad64cef70f",
+  "fingerprint_hash": "",
+  "built_on": "2026-10-09",
+  "links_clean": true,
+  "stubs": [
+    "changelog.md/index.html",
+    "changelog/default.md/index.html",
+    "changelog/default/index.html",
+    "compare.md/index.html",
+    "compare/README.md/index.html",
+    "compare/README/index.html",
+    "compare/yq.md/index.html",
+    "demo.md/index.html",
+    "demo/README.md/index.html",
+    "demo/README/index.html",
+    "guide.md/index.html",
+    "guide/README.md/index.html",
+    "guide/README/index.html",
+    "guide/enumerate.md/index.html",
+    "guide/fidelity.md/index.html",
+    "guide/from-jq.md/index.html",
+    "guide/kubernetes.md/index.html",
+    "guide/validate.md/index.html",
+    "index.md/index.html",
+    "index/index.html"
+  ],
+  "script_sources": [
+    "'wasm-unsafe-eval'"
+  ]
 }
