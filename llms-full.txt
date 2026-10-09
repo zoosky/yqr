@@ -439,9 +439,19 @@ tags:
 ```
 
 Anchors are addressable the same way, because they are bytes jq's data
-model never sees. A key inherited through `<<: *defaults` can be
-overridden for one mapping alone -- the path picks the edit, and the
-`<<` line and the definition keep their bytes:
+model never sees. Take a file where one mapping inherits another:
+
+```yaml
+defaults: &d
+  mode: 640
+web:
+  <<: *d
+  name: web
+```
+
+A key inherited through `<<: *d` can be overridden for one mapping
+alone -- the path picks the edit, and the `<<` line and the definition
+keep their bytes:
 
 ```console
 $ yqr '.web.mode = 416' anchored.yaml
@@ -887,27 +897,6 @@ Being straight about the edges, because finding them yourself is annoying:
 - **No builtins beyond `to_entries`.** There is no `select`, no `map`, and no
   string interpolation, so a filter cannot yet pick entries by a condition or
   reshape them.
-- **A new key can land below a comment that belongs to the key after it.**
-  This happens when the block you are adding to ends with a nested block of
-  its own and a comment follows. Adding `.spec.strategy` here writes it under
-  the comment, which then reads as documenting `strategy` rather than
-  `revision`:
-
-  ```yaml
-  spec:
-    replicas: 3
-    template:
-      spec:
-        containers:
-          - name: web
-  # Managed by the release pipeline. Do not edit by hand.
-  revision: 42
-  ```
-
-  The value is written correctly and no other byte moves, so nothing warns
-  you. It is fixed in the YAML engine and arrives with the next engine
-  release. Until then, check the result when the file has a comment in that
-  position.
 
 ## Next
 
@@ -1329,6 +1318,11 @@ $ kubectl get deploy web -o yaml | yqr validate --strict -
 $ helm template ./chart | yqr validate --strict -
 $ yqr validate --strict
 error: no input files; pass one or more YAML files, or '-' to read stdin
+
+Usage: yqr [OPTIONS] <FILTER> [FILE]
+       yqr <COMMAND>
+
+For more information, try '--help'.
 ```
 
 That refusal is the point. A validation gate whose file list came up empty
@@ -1773,9 +1767,12 @@ remedy: overriding a merged-in key, and deleting inside a shared
 anchor. Each now runs, and what remains refused says why in terms of
 the file, not the engine.
 
-This is a minor bump, not a patch: the library's `validate::Code` enum
-gained three variants, and two write refusals became writes, so a
-script matching on those exit codes sees new behavior.
+This is a minor bump, not a patch, for two separate reasons. For
+scripts: the two write refusals became writes, so a filter that exited
+5 now exits 0 and edits the file. For library users: the
+`validate::Code` enum gained three variants, which breaks exhaustive
+matches; exit codes are unchanged there, since a schema finding exits
+1 like every validation finding.
 
 ### Added
 

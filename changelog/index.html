@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-10-08",
+  "dateModified": "2026-10-09",
   "description": "All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.",
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 9392
+  "wordCount": 9421
 }
 </script>
 <script type="application/ld+json">
@@ -222,7 +222,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">47 min read</span>
+                    <span class="reading-time">48 min read</span>
                 </div>
                 
 
@@ -475,9 +475,12 @@ schema validators leave the hunt for the offending line to you.</p>
 remedy: overriding a merged-in key, and deleting inside a shared
 anchor. Each now runs, and what remains refused says why in terms of
 the file, not the engine.</p>
-<p>This is a minor bump, not a patch: the library’s <code>validate::Code</code> enum
-gained three variants, and two write refusals became writes, so a
-script matching on those exit codes sees new behavior.</p>
+<p>This is a minor bump, not a patch, for two separate reasons. For
+scripts: the two write refusals became writes, so a filter that exited
+5 now exits 0 and edits the file. For library users: the
+<code>validate::Code</code> enum gained three variants, which breaks exhaustive
+matches; exit codes are unchanged there, since a schema finding exits
+1 like every validation finding.</p>
 <h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
@@ -1531,7 +1534,7 @@ and optional error suppression (<code>f?</code>).</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-10-08</span>
+        <span>Site last updated: 2026-10-09</span>
         
     </footer>
 

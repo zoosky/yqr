@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-10-08",
+  "dateModified": "2026-10-09",
   "description": "Check a YAML file is still correct after an edit, with compiler-style diagnostics -- use --strict to catch duplicate keys that silently drop data, and --schema to validate against a JSON Schema with source positions.",
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
   "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 1275
+  "wordCount": 1287
 }
 </script>
 <script type="application/ld+json">
@@ -475,6 +475,11 @@ when you give it nothing:</p>
 $ helm template ./chart | yqr validate --strict -
 $ yqr validate --strict
 error: no input files; pass one or more YAML files, or '-' to read stdin
+
+Usage: yqr [OPTIONS] &lt;FILTER&gt; [FILE]
+       yqr &lt;COMMAND&gt;
+
+For more information, try '--help'.
 </code></pre>
 <p>That refusal is the point. A validation gate whose file list came up empty
 would otherwise report “all valid” over nothing, which is the one answer a
@@ -551,7 +556,7 @@ means.</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.25.0 (56c084f)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-10-08</span>
+        <span>Site last updated: 2026-10-09</span>
         
     </footer>
 
