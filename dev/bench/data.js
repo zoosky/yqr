@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791524221948,
+  "lastUpdate": 1791553682141,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3107,6 +3107,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 289454,
             "range": "± 3685",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "98a51450ce5ac0536c0c5d7fb359c855968e6710",
+          "message": "feat: adopt noyalib 0.0.57 — both open engine bugs close (f043) (#145)\n\nThe release carries yqr's own noyalib#475 and #477, closing b036 and\nb035. Six pinned expectations flipped, each as its bug spec\npredicted: the anchored indented sequence's item deletes (and the\nalias shows the removal, the f038 rule); a scalar at a direct alias\nentry or item replaces the *name token in every layout the b019\nfloor rule guards; an equal value stays a no-op keeping the\nreference, the engine's documented rule and deliberately the\nopposite call from f025's merged-key shadow (the merge case creates\nan entry that did not exist, the alias case would destroy spelling\nthat does); and through-alias paths keep an accurate refusal.\n\nOne yqr change rode the bump: the block delete delegates an\nalias-valued entry to upstream remove — the Borrowed::Value\ndiscriminator fires only when the addressed value IS the reference,\nkeeping the through-alias anchor-rule path untouched — and f036's\nremoved-anchor refusal names remedies that run (assign over the\nreference, or del its entry), with a test that runs one.\n\nThe release's six fuzzing-driven parse changes moved nothing yqr\npins: every suite passed with no expectation moved beyond the six\nabove (f043 §3).",
+          "timestamp": "2026-10-09T15:46:38+02:00",
+          "tree_id": "a73acb4de7aabb0a70902bd19fceb570379ef180",
+          "url": "https://github.com/zoosky/yqr/commit/98a51450ce5ac0536c0c5d7fb359c855968e6710"
+        },
+        "date": 1791553680519,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 313,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3766,
+            "range": "± 117",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 192281,
+            "range": "± 3616",
             "unit": "ns/iter"
           }
         ]
