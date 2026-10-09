@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791489886479,
+  "lastUpdate": 1791524221948,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3065,6 +3065,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 292964,
             "range": "± 1194",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5635b9993e769d3cc0beb452fb2a28902c3717fc",
+          "message": "docs: post-release review fixes, measured on v0.9.0 (#142)\n\nThe release-commit review returned eight findings; all are applied,\nand every console-block claim they touch was re-run against the\nv0.9.0 binary rather than re-asserted.\n\n- README documents --schema (usage line, a validate example, the\n  Y103 and Y201-Y203 rows the code table was missing, and the exit\n  paragraph), so the page cargo publish ships is accurate.\n- The kubernetes guide drops the b032 limitation bullet: the shipped\n  binary writes the key above the comment (verified on the bullet's\n  own example), since noyalib 0.0.44. Its console blocks were all\n  re-run on v0.9.0 and held.\n- The changelog's minor-bump rationale separates the two reasons:\n  refusals-became-writes changes exit codes (5 to 0); the Code enum\n  variants break exhaustive matches and change no exit code. The\n  GitHub release notes are re-published from the corrected section.\n- compare/yq.md's record is one coherent claim again: every yqr\n  command re-run on v0.9.0 and held (diff alignment, anchors round\n  trip, Y101, the one-shape edits, swap); the yq outputs stand as\n  measured, per the page's own rule.\n- validate.md's blocks were all re-run on v0.9.0; the no-input usage\n  error now quotes its full output, clap's usage lines included,\n  which the page had silently truncated.\n- from-jq.md shows the anchored.yaml fixture before using it, like\n  every other example on the page.\n- llms.txt's flag list explains --strict and --schema and the exit\n  list gains 2, so the self-contained synopsis is self-contained.\n- A new black-box test pins the class: every long flag the binary's\n  help advertises must be named in README and the llms block, and\n  every code in the registry must be in README's table, so the next\n  flag addition fails a test instead of shipping stale prose.",
+          "timestamp": "2026-10-09T07:35:23+02:00",
+          "tree_id": "b33d9a7afe38e1e85636ce5fd3e89f474e7b4241",
+          "url": "https://github.com/zoosky/yqr/commit/5635b9993e769d3cc0beb452fb2a28902c3717fc"
+        },
+        "date": 1791524220417,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 555,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6220,
+            "range": "± 34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 289454,
+            "range": "± 3685",
             "unit": "ns/iter"
           }
         ]
