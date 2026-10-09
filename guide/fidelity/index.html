@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
   "url": "https://zoosky.github.io/yqr/guide/fidelity",
-  "wordCount": 1360
+  "wordCount": 1443
 }
 </script>
 <script type="application/ld+json">
@@ -231,7 +231,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">7 min read</span>
+                    <span class="reading-time">8 min read</span>
                 </div>
                 
 
@@ -462,7 +462,21 @@ everything that inherits the anchor loses it.</p>
 rewriting the alias into a block, so yqr declines and points at the
 definition:</p>
 <pre><code class="language-console">$ yqr '.web.mode = 416' aliased.yaml
-yqr: runtime error: cannot assign at "web.mode": the mapping is reached through an alias, so it has no "mode" entry of its own to write. Assign where the key is defined instead
+yqr: runtime error: cannot assign at "web.mode": the mapping is reached through a `&lt;&lt;` merge or an alias, so it has no "mode" entry of its own to write. Assign where the key is defined instead
+</code></pre>
+<p>The reference itself, though, is the entry’s own byte sequence, so it
+edits like any other value: assigning replaces the <code>*defaults</code> token,
+<code>del</code> removes the entry, and the anchor’s definition is never touched.
+Writing the value the alias already resolves to is a no-op that keeps
+your <code>*defaults</code> spelling – a save that changes nothing re-spells
+nothing:</p>
+<pre><code class="language-console">$ yqr '.web = "standalone"' aliased.yaml
+defaults: &amp;defaults
+  mode: 0640
+web: standalone
+$ yqr 'del(.web)' aliased.yaml
+defaults: &amp;defaults
+  mode: 0640
 </code></pre>
 <h2 id="a-write-that-changes-nothing-changes-nothing">A write that changes nothing changes nothing<a class="heading-anchor" href="#a-write-that-changes-nothing-changes-nothing" aria-label="Link to this section"></a></h2>
 <p>Assigning a value that is already there does not rewrite it. yqr writes

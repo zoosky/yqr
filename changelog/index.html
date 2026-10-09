@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 9577
+  "wordCount": 9711
 }
 </script>
 <script type="application/ld+json">
@@ -222,7 +222,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">48 min read</span>
+                    <span class="reading-time">49 min read</span>
                 </div>
                 
 
@@ -235,6 +235,10 @@
     
         
         <li><a href="#unreleased">[Unreleased]</a></li>
+        
+    
+        
+        <li><a href="#0-10-0-2026-10-09">[0.10.0] - 2026-10-09</a></li>
         
     
         
@@ -393,6 +397,20 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<h2 id="0-10-0-2026-10-09">[0.10.0] - 2026-10-09<a class="heading-anchor" href="#0-10-0-2026-10-09" aria-label="Link to this section"></a></h2>
+<p>The last byte of YAML yqr could not edit, closed: entries whose value
+is an alias reference.</p>
+<p><code>del(.j)</code> on <code>j: *x</code> removes the entry and <code>.j = 5</code> replaces the
+reference, in every layout – block entry, trailing comment, sequence
+item, flow member – touching nothing of the anchor’s. Both were
+refusals whose messages could only suggest editing the file by hand;
+both now run, which also lets the refusal for deleting a
+still-referenced <code>&amp;name</code> name remedies that work. The engine fixes
+behind this shipped upstream first, in noyalib 0.0.57, as this
+project’s own commits.</p>
+<p>This is a minor bump, not a patch: two refusals became writes, so a
+script that matched exit 5 on those filters now sees exit 0 and an
+edited file. The library API is unchanged.</p>
 <h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>An entry whose value is an alias can be deleted and overwritten.</strong>
