@@ -169,10 +169,13 @@ llms:
       -r, --raw-output   print a string's value, not its YAML quoting
       -i, --in-place     write the edit back to the file (mutating filters only)
       -N, --normalize    re-serialize instead of preserving bytes
+      --strict           validate: also report duplicate mapping keys
+      --schema <FILE>    validate: check each document against a JSON Schema (2020-12)
 
     Exit codes:
       0  success
       1  validate found a problem in the file
+      2  usage error (no inputs, a repeated '-', --schema -)
       3  the filter could not be lexed or parsed
       5  runtime or I/O error, including a refused edit
 

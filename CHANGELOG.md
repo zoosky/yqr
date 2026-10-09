@@ -22,9 +22,12 @@ remedy: overriding a merged-in key, and deleting inside a shared
 anchor. Each now runs, and what remains refused says why in terms of
 the file, not the engine.
 
-This is a minor bump, not a patch: the library's `validate::Code` enum
-gained three variants, and two write refusals became writes, so a
-script matching on those exit codes sees new behavior.
+This is a minor bump, not a patch, for two separate reasons. For
+scripts: the two write refusals became writes, so a filter that exited
+5 now exits 0 and edits the file. For library users: the
+`validate::Code` enum gained three variants, which breaks exhaustive
+matches; exit codes are unchanged there, since a schema finding exits
+1 like every validation finding.
 
 ### Added
 

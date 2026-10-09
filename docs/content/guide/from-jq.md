@@ -188,9 +188,19 @@ tags:
 ```
 
 Anchors are addressable the same way, because they are bytes jq's data
-model never sees. A key inherited through `<<: *defaults` can be
-overridden for one mapping alone -- the path picks the edit, and the
-`<<` line and the definition keep their bytes:
+model never sees. Take a file where one mapping inherits another:
+
+```yaml
+defaults: &d
+  mode: 640
+web:
+  <<: *d
+  name: web
+```
+
+A key inherited through `<<: *d` can be overridden for one mapping
+alone -- the path picks the edit, and the `<<` line and the definition
+keep their bytes:
 
 ```console
 $ yqr '.web.mode = 416' anchored.yaml
