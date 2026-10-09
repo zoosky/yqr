@@ -10,6 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b037](yqr-b037-the-home-pages-instructional-highlights-are-gone.md) | The home page's instructional highlights are gone | Low | Open **2026-10-09**, the other half of `f042`'s accepted normalizations: the filter portions of 17 commands, the snippet token tints and the hit line flattened because fenced code has no span vocabulary. Parked, not abandoned — the emphasis is valuable for understanding and reapplies as `mark` components once an accent release carries accentcms `f399` (measured working in accent-proust already). The pre-f042 Playwright baseline is the reapplication target | `yqr-f042`, `yqr-f041`, accentcms `f399` |
 | [b036](yqr-b036-item-spans-shift-under-an-anchored-indented-sequence.md) | Item spans shift under an anchored, indented block sequence | Low | Open **2026-10-08**, found while measuring `f038`'s sequence case on noyalib 0.0.56. With an anchor on the key and the items indented past it, `span_at` reports the items' spans shifted by the anchor property's width (one lands on the line break, the next is empty); without the anchor, or with the items at the key's own column, the spans are exact. Nothing silent reaches a user: the read path's wrong-node guard degrades to a typed render and prints the right value, and `del` refuses the layout. Pinned as it behaves in the `f038` test block, so the fixing bump flips a test. Upstream owns the fix; both yqr consumers already degrade safely. Filed upstream 2026-10-08 as noyalib#474, fix proposed as noyalib#475 | `yqr-f038`, `yqr-b028`, `yqr-b035` |
 | [b035](yqr-b035-an-alias-valued-entry-cannot-be-deleted-or-overwritten.md) | An entry whose value is an alias cannot be deleted or overwritten | Medium | Open **2026-09-19**, found while writing `f036`'s removed-anchor refusal. `del(.j)` and `.j = 5` over `j: *x` are refused on every layout measured: the block delete says "its source layout is not supported", the flow delete and assignment give the engine's refusal. Likely cause: `span_at` on an alias returns the anchor's bytes, not the `*x` token's. The cost is that the refusal for removing a still-used anchor can only tell the user to edit the file by hand. `Document::aliases()` gives the token's span, which is what a fix would use. Filed upstream 2026-10-08 as noyalib#476, fix proposed as noyalib#477: the alias span node records the token, remove and scalar set_value go through it, through-alias paths keep their refusal | `yqr-f036`, `yqr-b026`, `yqr-f025` |
 
@@ -55,7 +56,9 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 35
-- Open: **2** — `b036`, filed 2026-10-08: item spans shift under an anchored,
+- Open: **3** — `b037`, filed 2026-10-09: the home page's instructional
+  highlights are parked until accentcms `f399` ships (reapply as marks);
+  `b036`, filed 2026-10-08: item spans shift under an anchored,
   indented block sequence (reads degrade safely, one delete layout refused);
   `b035`, filed 2026-09-19: an entry whose value is an alias
   (`j: *x`) cannot be deleted or overwritten on any layout measured, so
