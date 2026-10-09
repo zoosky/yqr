@@ -32,8 +32,6 @@ carries archives for Apple Silicon and Intel Macs and a static Linux
 x86_64 binary, with checksums:
 
 ```sh
-# Available from the first release after v0.10.0.
-
 # Homebrew (macOS and Linux)
 brew install zoosky/tap/yqr
 

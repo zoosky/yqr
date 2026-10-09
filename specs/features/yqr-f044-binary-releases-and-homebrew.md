@@ -1,7 +1,7 @@
 # Feature f044 — Binary releases and Homebrew: the three-target set via dist
 
-**Status:** Done — machinery shipped 2026-10-09; the first tag after this
-merge produces the first binary release (§6)
+**Status:** Done — machinery shipped 2026-10-09; first live run
+verified the same day with v0.11.0 (§7, last criterion)
 **Epic:** Distribution (f044)
 **Owner:** yqr maintainers
 **Related:** `yqr-m001` §3 and §5.1 (the gap this closes), `yqr-m004`
@@ -117,5 +117,13 @@ the tap, and `brew install zoosky/tap/yqr` works on a Mac.
       workflow summaries in `CLAUDE.md`/`AGENT.md` list `release.yml`.
 - [x] README documents brew, installer-script, and direct-download
       installs, dated from the next release.
-- [ ] First live run verified per §6 (requires the next version tag and
-      the `HOMEBREW_TAP_TOKEN` secret).
+- [x] First live run verified per §6: v0.11.0 (2026-10-09) attached
+      all three archives, checksums, the installer, and notes matching
+      the changelog section; `yqr.rb` landed in the tap committed by
+      the github-actions bot (the committer override held); and
+      `brew install zoosky/tap/yqr` on a Mac installed 0.11.0, whose
+      binary reports the release build and evaluates filters. One
+      finding: the first formula push failed 403 because the
+      fine-grained token did not yet include the tap repository —
+      widening the token and re-running only the failed job recovered
+      it, confirming §4's claim that the publish step is re-runnable.
