@@ -8,6 +8,13 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [0.11.0] - 2026-10-09
 
+The first release you can install without a Rust toolchain.
+
+Nothing about the binary's behavior changes -- there is no code change
+in this release at all. What changes is how it reaches you: the version
+tag now triggers a pipeline that builds, checksums, and publishes
+prebuilt binaries, and a Homebrew tap serves them.
+
 ### Added
 
 - **Prebuilt binaries, Homebrew, and a one-line installer.** This
