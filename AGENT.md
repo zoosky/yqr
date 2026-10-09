@@ -470,8 +470,12 @@ dry-run check. See `yqr-f044`.
 
 Releases are **manual decisions**: a human rolls the changelog and
 pushes the tag; the tag then triggers `release.yml`, which builds the
-binaries and creates the GitHub release itself. Full checklist and
-rationale in `yqr-m001` §3; the short form:
+binaries and creates the GitHub release itself.
+`.github/scripts/release.sh` runs the mechanical steps
+(`prepare X.Y.Z` before the release PR, `tag X.Y.Z` after it merges);
+the changelog writing, the version choice, the docs re-measure, and
+`cargo publish` stay human. Full checklist and rationale in `yqr-m001`
+§3; the short form:
 
 ```bash
 # 1. CHANGELOG.md: [Unreleased] becomes [X.Y.Z] - YYYY-MM-DD

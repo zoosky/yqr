@@ -125,6 +125,19 @@ git push origin vX.Y.Z
 cargo publish
 ```
 
+**The script.** `.github/scripts/release.sh` runs the mechanical half
+of this checklist in two phases, split where the PR's review and merge
+sit: `release.sh prepare X.Y.Z` (changelog roll, version stamps,
+lockfile, full local gate, release PR) and, after the merge,
+`release.sh tag X.Y.Z` (tag the release commit, push the tag,
+`release.yml` takes over). `--dry-run` prints the mutating commands.
+The script refuses to run on a dirty tree, off `main`, behind origin,
+with an empty `[Unreleased]` section, or with a version that is not an
+increase — and it never writes the changelog, never picks the version,
+never re-measures the docs, and **never runs `cargo publish`**
+(`yqr-m004`): those stay human. Verify each stamp moved; the script
+checks its own substitutions took.
+
 Notes that only live here:
 
 - **Version choice.** yqr is pre-1.0, so a breaking change — of the CLI
