@@ -1,7 +1,28 @@
 {# Table of contents partial (Feature f048).
    Include in any template: {% include "toc.html.jinja" %}
-   Requires page.toc in the template context. #}
+   Requires page.toc in the template context.
+
+   Two renderings, chosen by scale (yqr-b038). A page with a prose-sized
+   outline gets the full nested list. A long document -- the mounted
+   changelog is the live case: 16 releases times their Added/Fixed
+   subsections made 56 entries, 1700px of list before any content -- gets
+   a compact index instead: top-level entries only, flowing as wrapped
+   chips. The threshold is over the chip form's own row capacity, so a
+   page never gets the compact form without needing it; the mount cannot
+   carry frontmatter, which is why the rule is scale, not configuration. #}
 {% if page.toc %}
+{% if page.toc | length > 12 %}
+<nav class="toc toc-compact" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    {% for entry in page.toc %}
+        {% if entry.level <= 2 %}
+        <li><a href="#{{ entry.id }}">{{ entry.text }}</a></li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+</nav>
+{% else %}
 <nav class="toc" aria-label="Table of contents">
     <h4>On this page</h4>
     <ul>
@@ -12,4 +33,5 @@
     {% endfor %}
     </ul>
 </nav>
+{% endif %}
 {% endif %}
