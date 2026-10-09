@@ -34,11 +34,15 @@ Kubernetes spells file permissions in octal — `defaultMode: 0640` on a Secret 
 
 {% home-section id="paths" %}
 {% section-head eyebrow="installed paths" title="Where the binary actually lives" %}
-Install from crates.io with `cargo install yqr`, or build any of the paths below from a source checkout.
+Install with Homebrew or from crates.io, or build any of the paths below from a source checkout.
 {% /section-head %}
 
 {% grid kind="paths" %}
 {% path-card title="On your machine" %}
+{% loc text="brew install zoosky/tap/yqr" /%}
+
+Prebuilt for Apple Silicon, Intel Macs, and Linux x86_64 — no Rust toolchain involved. Each release also attaches the archives, checksums, and a `curl | sh` installer script.
+
 {% loc text="cargo install yqr" /%}
 
 Pulls the published crate to `~/.cargo/bin/yqr` — keep that directory on `PATH` so plain `yqr` resolves from any shell, including one already piping `kubectl` output.
