@@ -6,6 +6,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-09
+
 ### Added
 
 - **Prebuilt binaries, Homebrew, and a one-line installer.** This
