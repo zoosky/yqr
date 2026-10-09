@@ -1751,6 +1751,26 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **An entry whose value is an alias can be deleted and overwritten.**
+  `del(.j)` on `j: *x` removes the entry -- block entry, trailing
+  comment, sequence item or flow member -- and `.j = 5` replaces the
+  reference with the value, touching nothing of the anchor's. Writing
+  the value the alias already resolves to stays a no-op that keeps
+  your `*x` spelling. A path that resolves *through* an alias into the
+  anchor's own bytes still refuses, saying so. With this, the refusal
+  for deleting a still-referenced `&name` names remedies that run.
+  (noyalib 0.0.57, carrying this project's upstream fixes.)
+
+### Fixed
+
+- **Deleting an item of an indented sequence under an anchored key.**
+  `del(.a[0])` on `a: &x` with indented items was refused with "its
+  source layout is not supported"; the engine's item spans were shifted
+  by the anchor's width. Fixed upstream (noyalib 0.0.57); the delete
+  works and every alias of the anchor shows the removal.
+
 ## [0.9.0] - 2026-10-08
 
 Schema validation with source positions, and the write tier's two

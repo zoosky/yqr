@@ -1,6 +1,6 @@
 {
   "version": 5,
-  "timestamp": "2026-10-09T12:54:33Z",
+  "timestamp": "2026-10-09T13:46:49Z",
   "pages": {
     "/": {
       "content_hash": "0d6bb96947de1fab92728c027fa4ef3d313b7055332d2c68433e1c68c04d6deb",
@@ -9,7 +9,7 @@
       "status": "published"
     },
     "/changelog": {
-      "content_hash": "f44573ecc90174e52d09adbcdb4461e4491a1d36c2edd2355843143d6a4ed528",
+      "content_hash": "e6ba93c7a5f3eea098b9bc51aa3f37b20fc28594476e9746bab741d06f13909b",
       "template": "default.html.jinja",
       "template_hash": "b83695040bb5e17442f9b8b7c2274cc5bce0549fd0d3cf11361ce30a7a6c2f9d",
       "status": "published"
@@ -270,7 +270,7 @@
   "config_hash": "5e78d824246ee7aedd6042f007760a53f38f718fcc58896f0c8f5ea805b655de",
   "theme_hash": "1416caecd5d0c516d4e1b86c5e547d18f14de9818b041e71f8de61482fbd190d",
   "schema_hash": "9b219c8f3f63409377b1ff9c7e2570e1bbbe69b2adb16253262dee3a73fdd1ea",
-  "assets_hash": "97271a63033640d27012ad052955809baeced8d69151b6266dbd3dd34037fd96",
+  "assets_hash": "3ccbb041bfaea8b4c2d5fe26b1ac2716e4e5d008976ec47eba53ec7e39618d72",
   "overrides_hash": "38c872a4415ffa903d910e43bb98fb0bad30fca40cf91700ba4eedad64cef70f",
   "fingerprint_hash": "",
   "built_on": "2026-10-09",
