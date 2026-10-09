@@ -189,7 +189,16 @@ separately authorized (`yqr-m004`). The workflow is regenerated with
 by hand: dist 0.33 hardcodes its own author's bot ("axo bot
 <admin+bot@axo.dev>") as the tap committer with no config knob, so the
 script re-applies the github-actions bot identity after every
-regeneration and fails loudly if the override stops taking.
+regeneration and fails loudly if the override stops taking. Because
+dist's plan step verifies `release.yml` against what it would generate,
+the config carries `allow-dirty = ["ci"]` to record the file as
+deliberately edited; dist also refuses to *regenerate* an allow-dirty
+file, so the script lifts and restores that line around `dist init`,
+and ends by running `dist plan` itself so a combination that would fail
+CI fails on the spot. One more dist behavior worth knowing: `dist init`
+rewrites its two `Cargo.toml` blocks wholesale, comments included (and
+the comment lines directly above them), so explanations about that
+config belong here and in `dist-regen.sh`, not in `Cargo.toml`.
 
 ### 5.2 No automated PR review
 
