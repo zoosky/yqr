@@ -1,9 +1,11 @@
 ---
 # Traceability: Feature f012 (the validate subcommand); bug b014 §3.2 is
-# the Y103 check. Every console block re-run against v0.8.0 on 2026-09-07;
-# the indentation error gained its position with noyalib 0.0.36 (f029).
-# The --schema section is Feature f040; its console blocks captured from
-# the f040 build on 2026-10-08.
+# the Y103 check. Every console block re-run against v0.9.0 on 2026-10-09
+# (before that v0.8.0 on 2026-09-07, and the --schema blocks against the
+# f040 build on 2026-10-08); the usage-error block now quotes the full
+# output, clap's usage lines included. The indentation error gained its
+# position with noyalib 0.0.36 (f029). The --schema section is Feature
+# f040.
 title: Validating YAML from the command line
 lead: >-
   How to check a file is still correct after an edit, what each exit code means, how duplicate keys are reported, and how to validate against a JSON Schema.
@@ -263,6 +265,11 @@ $ kubectl get deploy web -o yaml | yqr validate --strict -
 $ helm template ./chart | yqr validate --strict -
 $ yqr validate --strict
 error: no input files; pass one or more YAML files, or '-' to read stdin
+
+Usage: yqr [OPTIONS] <FILTER> [FILE]
+       yqr <COMMAND>
+
+For more information, try '--help'.
 ```
 
 That refusal is the point. A validation gate whose file list came up empty

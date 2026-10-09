@@ -39,7 +39,7 @@ cargo build --release
 
 ```sh
 yqr [OPTIONS] <FILTER> [FILE]
-yqr validate [--strict] [FILES]...
+yqr validate [--strict] [--schema <FILE>] [FILES]...
 
 Arguments:
   <FILTER>  The jq-style filter to apply (e.g. '.foo.bar', '.items[]')
@@ -220,6 +220,7 @@ whether a file is still correct YAML:
 ```sh
 yqr validate deploy.yaml config.yaml   # silent, exit 0 when every file is valid
 yqr validate --strict deploy.yaml      # also flag duplicate mapping keys
+yqr validate --schema s.yaml a.yaml    # JSON Schema (2020-12) verdicts, with positions
 yqr validate - < input.yaml            # stdin is explicit: '-', at most once
 ```
 
@@ -251,15 +252,20 @@ reads.
 | `Y003` | The input bytes are not valid UTF-8                            | default    |
 | `Y101` | Duplicate mapping key (silently last-wins on ordinary reads)   | `--strict` |
 | `Y102` | Distinct keys collide after string conversion (`1:` vs `"1":`) | default    |
+| `Y103` | A block mapping's value is not indented past its key           | default    |
+| `Y201` | A document violates the provided JSON Schema                   | `--schema` |
+| `Y202` | The provided schema itself is unusable                         | `--schema` |
+| `Y203` | A value has no JSON form (`.nan`), so the schema cannot apply  | `--schema` |
 
 `--strict` finds **every** duplicate in one run — nested mappings, flow
 mappings, quoted respellings of the same key, and duplicate `<<` merge keys
 included — each with the positions of both occurrences.
 
 Exit codes are scriptable: `0` when every input is valid, `1` when any input
-has validation findings, `5` when an input cannot be read — the highest
-applicable code wins, and every input is checked in one run (usage mistakes
-such as no inputs or a repeated `-` exit 2). A file containing unresolved
+has validation findings — schema violations included — `5` when an input (or
+the schema file) cannot be read — the highest applicable code wins, and every
+input is checked in one run (usage mistakes such as no inputs, a repeated
+`-`, or `--schema -` exit 2). A file containing unresolved
 merge-conflict markers (`<<<<<<<`) gets a dedicated hint anchored at the
 first marker.
 

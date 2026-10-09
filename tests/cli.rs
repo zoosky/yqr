@@ -2391,3 +2391,85 @@ fn validate_schema_non_utf8_schema_is_a_y202_with_the_schema_help() {
         out.stderr
     );
 }
+
+// -- The prose synopses are pinned to the binary ------------------------------
+
+#[test]
+fn the_prose_synopses_name_every_flag_and_every_code() {
+    // The CLI synopsis is hand-maintained in README.md and in the llms
+    // block of docs/config.yaml, and it drifted twice in one release
+    // cycle: the --schema flag reached clap's help but neither prose
+    // copy. This holds both copies to the binary itself: every long
+    // flag the help advertises must be named in both, and every
+    // diagnostic code the registry can emit must be in README's table.
+    let root = env!("CARGO_MANIFEST_DIR");
+    let readme = std::fs::read_to_string(format!("{root}/README.md")).expect("README.md");
+    let config =
+        std::fs::read_to_string(format!("{root}/docs/config.yaml")).expect("docs/config.yaml");
+    let llms = config.split("\nllms:").nth(1).expect("llms block");
+
+    let mut flags: Vec<String> = Vec::new();
+    for args in [&["--help"][..], &["validate", "--help"][..]] {
+        let out = run(args, "");
+        for line in out.stdout.lines() {
+            let trimmed = line.trim_start();
+            let Some(at) = trimmed.find("--") else {
+                continue;
+            };
+            // A flag definition line starts with `-x, --name` or `--name`;
+            // prose mentioning `--` mid-sentence does not.
+            if !(trimmed.starts_with("--") || trimmed.starts_with('-') && at <= 4) {
+                continue;
+            }
+            let name: String = trimmed[at..]
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '-')
+                .collect();
+            if name.len() > 2 && name != "--help" && name != "--version" {
+                flags.push(name);
+            }
+        }
+    }
+    assert!(
+        flags.iter().any(|f| f == "--schema"),
+        "the help extraction must see the validate flags: {flags:?}"
+    );
+    for flag in &flags {
+        assert!(
+            readme.contains(flag.as_str()),
+            "README.md does not name {flag}, which the binary's help advertises"
+        );
+        assert!(
+            llms.contains(flag.as_str()),
+            "the llms block in docs/config.yaml does not name {flag}"
+        );
+    }
+
+    // Every code the registry can emit, scraped from the enum's own
+    // source so the list grows with it.
+    let registry = std::fs::read_to_string(format!("{root}/src/validate/mod.rs"))
+        .expect("src/validate/mod.rs");
+    let mut codes: Vec<&str> = Vec::new();
+    let bytes = registry.as_bytes();
+    for i in 0..bytes.len().saturating_sub(5) {
+        if bytes[i] == b'"'
+            && bytes[i + 1] == b'Y'
+            && bytes[i + 2].is_ascii_digit()
+            && bytes[i + 3].is_ascii_digit()
+            && bytes[i + 4].is_ascii_digit()
+            && bytes[i + 5] == b'"'
+        {
+            codes.push(&registry[i + 1..i + 5]);
+        }
+    }
+    assert!(
+        codes.contains(&"Y203"),
+        "the code scrape must see the registry: {codes:?}"
+    );
+    for code in codes {
+        assert!(
+            readme.contains(code),
+            "README.md's code table does not list {code}"
+        );
+    }
+}
