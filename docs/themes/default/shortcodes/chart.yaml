@@ -1,0 +1,9 @@
+# The filter-to-field route illustration. Pure template-side art: the
+# token-by-token highlighting has no markdown vocabulary, so the markup
+# lives here whole and the content page places it with one self-closing
+# call. The body kind is inline because a manifest must pick one; the
+# template renders none.
+name: chart
+description: The home page's filter-route illustration over a Pod manifest.
+params: []
+body: inline

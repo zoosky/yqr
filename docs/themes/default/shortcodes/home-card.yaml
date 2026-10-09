@@ -1,0 +1,15 @@
+# A home page card: heading plus markdown body (recipes nest inside).
+# Distinct from the canonical `card`, whose contract is a linked teaser;
+# these are the home page's recipe containers.
+name: home-card
+description: A home page card with a heading and nested recipes.
+params:
+  - name: title
+    type: string
+    required: true
+    description: The card heading.
+  - name: kind
+    type: string
+    required: false
+    description: card (default), mini-card, or explicit-card - the class the style block styles.
+body: markdown

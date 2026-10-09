@@ -1,0 +1,9 @@
+# One install-path card: a heading, then loc lines each followed by prose.
+name: path-card
+description: An installed-path card pairing location lines with prose.
+params:
+  - name: title
+    type: string
+    required: true
+    description: The card heading.
+body: markdown

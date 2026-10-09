@@ -399,6 +399,45 @@
   .recipe .cmd .filter{color:var(--route);}
   .recipe .note{font-size:13px; color:var(--text-faint); margin:0;}
 
+  /* ---------- markdoc shapes (f042) ----------
+     The body is markdown with components now, so notes and callout
+     bodies arrive as real paragraphs and code arrives as fenced
+     blocks. These rules give the rendered shapes the exact look the
+     hand-authored markup had, and keep grid items from blowing out
+     the mobile viewport (min-width:0 on every grid child). */
+  .paths > *, .cards > *, .trio > *, .explicit-recipes > *{min-width:0;}
+  .recipe .note p{margin:0; font-size:inherit; color:inherit;}
+  .recipe .note p + p{margin-top:6px;}
+  .outcomes-note p{
+    color:var(--text-soft);
+    font-size:15px;
+    max-width:74ch;
+    text-wrap:pretty;
+    margin:-32px 0 0;
+  }
+  .callout .callout-title{margin:0 0 6px; font-weight:700;}
+  .callout p{margin:10px 0 0;}
+  .callout p:first-of-type{margin-top:0;}
+  .callout pre code{font-size:inherit; color:inherit; background:none; padding:0;}
+  .card pre, .mini-card pre, .explicit-card pre, .path-card pre{
+    overflow-x:auto;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
+    max-width:100%;
+    background:var(--ink-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:12px 14px;
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--text);
+  }
+  .card pre code, .mini-card pre code, .explicit-card pre code,
+  .path-card pre code{
+    background:none; padding:0; color:inherit; font-size:inherit;
+  }
+  .path-card .loc + p{margin-top:6px;}
+
   .dockerfile{
     background:var(--ink-2);
     border:1px solid var(--line);

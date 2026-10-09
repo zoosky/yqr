@@ -1,0 +1,10 @@
+# A layout grid from the home page's style block: paths (two columns),
+# cards (two wide), trio (three minis), explicit-recipes (recipe pairs).
+name: grid
+description: A home page layout grid wrapping cards or recipes.
+params:
+  - name: kind
+    type: string
+    required: true
+    description: One of paths, cards, trio, explicit-recipes - the class the style block lays out.
+body: markdown

@@ -1,0 +1,13 @@
+# The home page's opening block: headline, lede, and a markdown body.
+name: hero
+description: The home page hero - headline, lede line, and an introductory passage.
+params:
+  - name: title
+    type: string
+    required: true
+    description: The page headline, rendered as the h1.
+  - name: lede
+    type: string
+    required: true
+    description: The one-line pitch under the headline.
+body: markdown

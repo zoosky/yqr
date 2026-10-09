@@ -1,0 +1,15 @@
+<div class="outcomes">
+  <div class="outcome exact">
+    <span class="badge">default</span>
+    <pre><span class="prompt">$</span> yqr '.spec.volumes[0].secret.defaultMode' pod.yaml
+<span class="out">0640</span></pre>
+  </div>
+  <div class="outcome drift">
+    <span class="badge">--normalize</span>
+    <pre><span class="prompt">$</span> yqr --normalize '.spec.volumes[0].secret.defaultMode' pod.yaml
+<span class="out">640</span></pre>
+  </div>
+</div>
+<div class="outcomes-note">
+{{ body }}
+</div>

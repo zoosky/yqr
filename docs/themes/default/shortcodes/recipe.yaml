@@ -1,0 +1,17 @@
+# One runnable command with its one-line story: the shape the home page
+# repeats seventeen times. The command renders behind a prompt; optional
+# output lines follow it; the body is the note under the pane.
+name: recipe
+description: A command pane with a prompt, optional output lines, and a note.
+params:
+  - name: cmd
+    type: string
+    required: true
+    description: The command as typed, without the prompt.
+  - name: out
+    type: list
+    required: false
+    items:
+      type: string
+    description: Output lines printed under the command, verbatim.
+body: markdown

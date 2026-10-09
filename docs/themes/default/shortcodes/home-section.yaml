@@ -1,0 +1,9 @@
+# A home page section: the anchor target and the vertical rhythm.
+name: home-section
+description: A home page section wrapper carrying the anchor id.
+params:
+  - name: id
+    type: string
+    required: true
+    description: The anchor id the header links and in-page links target.
+body: markdown

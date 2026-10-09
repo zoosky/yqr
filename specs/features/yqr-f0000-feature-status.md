@@ -402,6 +402,8 @@ cost, measured in the spec's §5: +3.56 MiB release binary, 44 crates.
 | [f022](yqr-f022-traceability-out-of-published-pages.md) | Move docs traceability out of the published page body | Done |
 | [f024](yqr-f024-accent-0-25-0-adoption.md) | Adopt accent 0.25.0: the five `llms.txt` findings, fixed | Done |
 | [f039](yqr-f039-the-changelog-on-the-website.md) | The changelog on the website, as a single-file mount of `CHANGELOG.md` | Done |
+| [f041](yqr-f041-accent-0-26-1-adoption.md) | Adopt accent 0.26.1: the component contract answered, the rest measured | Done (2026-10-09: CI pin to v0.26.1; the theme implements the nine canonical components from the pinned release; `--strict-links` dropped as deprecated; the other breaking changes measured as no-ops) |
+| [f042](yqr-f042-home-page-in-markdoc.md) | The home page in Markdoc: components over hand-authored HTML | Done (2026-10-09: 420 lines of hand-authored HTML become markdown with ten site components beside the canonical nine; guide/compare pages pixel-identical under a Playwright before/after harness, the home page converged to a 3px delta with the normalizations recorded) |
 
 Progress: the site builds from `docs/` (the home page is a real CMS page:
 original hand-authored markup in `content/index.md` with the design as a
@@ -420,12 +422,13 @@ page.
 
 ## Summary
 
-- Total features: 40
+- Total features: 42
 - Draft: 1 (f027)
 - In Progress: 0
-- Done: 35 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 37 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f025, f026, f028,
-  f029, f030, f031, f032, f033, f034, f035, f036, f037, f038, f039, f040)
+  f029, f030, f031, f032, f033, f034, f035, f036, f037, f038, f039, f040,
+  f041, f042)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
