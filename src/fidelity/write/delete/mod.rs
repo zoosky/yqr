@@ -81,6 +81,27 @@ impl NoyalibWriter {
             ));
         };
 
+        // An entry whose value is an alias reference owns exactly one value
+        // byte sequence in the source: the `*name` token, whose span only
+        // the engine records (noyalib 0.0.57, yqr's noyalib#477 — before
+        // it, every route to such an entry refused; bug b035). Delegated
+        // for the reason the flow class is (`yqr-f016` §5): upstream owns
+        // the token arithmetic and yqr has no implementation to disagree
+        // with. `Borrowed::Value` fires only when the addressed entry's
+        // value is the reference itself — a path that resolves *through*
+        // an alias lands on the definition's own bytes and keeps the
+        // anchor-rule path below.
+        // Feature f043.
+        if matches!(
+            self.borrowed_site(doc, path)?,
+            Some(crate::fidelity::write::seam::Borrowed::Value)
+        ) {
+            return self
+                .doc_mut(doc)?
+                .remove(&path_str)
+                .map_err(|e| YqrError::eval(format!("cannot delete {path_str}: {e}")));
+        }
+
         let doc_value = self.value(doc)?;
 
         // A flow collection (`[a, b]` / `{a: 1}`) is line-shaped differently:
@@ -534,20 +555,49 @@ mod tests {
         );
     }
 
-    // Bug b036, pinned as it behaves: under an anchored key, the items of
-    // an *indented* block sequence get shifted spans from the engine, so
-    // their owned range cannot be mapped and the delete refuses. The
-    // same-column layout above works; the noyalib bump that fixes the
-    // spans flips this assertion.
+    // Bug b036, closed by noyalib 0.0.57 (yqr's noyalib#475): the items
+    // of an indented block sequence under an anchored key report their
+    // own spans now, so the delete works and — the value being shared
+    // through `*x` — the alias shows the removal, the f038 rule.
     #[test]
-    fn an_indented_item_under_an_anchored_key_is_refused() {
-        let err = del(".a[0]", "a: &x\n  - 1\n  - 2\nb: *x\n")
-            .unwrap_err()
-            .to_string();
-        assert!(
-            err.contains("source layout is not supported"),
-            "error: {err}"
+    fn an_indented_item_under_an_anchored_key_deletes() {
+        let out = del(".a[0]", "a: &x\n  - 1\n  - 2\nb: *x\n").unwrap();
+        assert_eq!(out, "a: &x\n  - 2\nb: *x\n");
+        assert_eq!(
+            crate::eval_str(".b[0]", &out).unwrap(),
+            vec![crate::Value::Int(2)]
         );
+    }
+
+    // Bug b035, closed the same way (yqr's noyalib#477): an entry whose
+    // value is an alias reference deletes through its own token — block
+    // entry, trailing comment, sequence item and flow member — and the
+    // anchor keeps its bytes.
+    #[test]
+    fn an_alias_valued_entry_deletes_through_its_token() {
+        let out = del(".j", "a: &x 1\nj: *x\nz: 2\n").unwrap();
+        assert_eq!(out, "a: &x 1\nz: 2\n");
+        let out = del(".j", "a: &x 1\nj: *x  # retired\nz: 2\n").unwrap();
+        assert_eq!(out, "a: &x 1\nz: 2\n");
+        let out = del(".l[1]", "l:\n  - &x 1\n  - *x\n  - 3\n").unwrap();
+        assert_eq!(out, "l:\n  - &x 1\n  - 3\n");
+        let out = del(".m.j", "a: &x 1\nm: {j: *x, z: 2}\n").unwrap();
+        assert_eq!(out, "a: &x 1\nm: {z: 2}\n");
+    }
+
+    // The f036 refusal for removing a still-referenced `&name` now names
+    // remedies that run; this runs one.
+    #[test]
+    fn the_removed_anchor_remedy_runs() {
+        let doc = "k:\n  a: &x 1\nj: *x\n";
+        let err = del(".k", doc).unwrap_err().to_string();
+        assert!(
+            err.contains("assign a value over it, or `del(…)` its entry"),
+            "{err}"
+        );
+        let cleared = del(".j", doc).unwrap();
+        assert_eq!(cleared, "k:\n  a: &x 1\n");
+        del(".k", &cleared).unwrap();
     }
 
     #[test]

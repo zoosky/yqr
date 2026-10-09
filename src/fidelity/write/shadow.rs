@@ -512,13 +512,13 @@ mod tests {
     }
 
     #[test]
-    fn an_alias_valued_entry_stays_refused() {
-        // Criterion: replacing the reference itself is b019's question,
-        // not this feature's.
-        let err = assign(".c = 1", "m: &m\n  k: 1\nc: *m\n")
-            .unwrap_err()
-            .to_string();
-        assert!(!err.is_empty());
+    fn an_alias_valued_entry_takes_a_scalar_now() {
+        // Flipped by noyalib 0.0.57 (bug b035): writing a scalar at the
+        // entry replaces the `*m` reference and touches nothing else.
+        // The alias-reached *parent* refusal above is the rule that
+        // stays.
+        let out = assign(".c = 1", "m: &m\n  k: 1\nc: *m\n").unwrap();
+        assert_eq!(out, "m: &m\n  k: 1\nc: 1\n");
     }
 
     #[test]

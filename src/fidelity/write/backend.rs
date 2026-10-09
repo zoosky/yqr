@@ -112,7 +112,7 @@ impl NoyalibWriter {
         Ok(())
     }
 
-    fn borrowed_site(&self, doc: usize, path: &Path) -> Result<Option<Borrowed>> {
+    pub(super) fn borrowed_site(&self, doc: usize, path: &Path) -> Result<Option<Borrowed>> {
         let d = self.doc_ref(doc)?;
         let path_str = to_noyalib_path(path);
         // A key the source does not contain is not the mapping's own — a `<<`

@@ -1628,26 +1628,22 @@ fn both_assignment_forms_share_the_no_op_guard() {
 
 // Bug b019: the no-op guard ran ahead of the writer's refusals, so an
 // assignment whose value matched turned a refusal into a silent exit 0. The
-// value at an alias site equals the anchor's, but writing it would replace the
-// reference with a literal -- real work, and work the writer declines to do.
+// value at an alias site equals the anchor's. Since noyalib 0.0.57 (bug
+// b035) the writer answers both halves itself: an equal value is a no-op
+// that keeps the reference -- the engine's documented rule, so the
+// author's `*x` spelling survives a save that changes nothing -- and a
+// differing value replaces the token, touching only the addressed entry.
 #[test]
-fn a_no_op_does_not_swallow_an_alias_refusal() {
+fn an_alias_entry_keeps_the_reference_on_a_no_op_and_replaces_it_on_a_write() {
     let doc = "a: &x 1\nb: *x\n";
     for filter in [".b = 1", ".b |= ."] {
         let out = run(&[filter], doc);
-        assert_eq!(
-            out.status, 5,
-            "{filter}: an alias site is refused whether or not the value differs"
-        );
-        assert!(
-            out.stderr.contains("alias"),
-            "{filter}: the writer's own diagnostic, not a copy: {}",
-            out.stderr
-        );
+        assert_eq!(out.status, 0, "{filter}: {}", out.stderr);
+        assert_eq!(out.stdout, doc, "{filter}: the reference survives a no-op");
     }
-    // The refusal on a differing value is what it always was, and the two now
-    // agree.
-    assert_eq!(run(&[".b = 2"], doc).status, 5);
+    let out = run(&[".b = 2"], doc);
+    assert_eq!(out.status, 0, "stderr: {}", out.stderr);
+    assert_eq!(out.stdout, "a: &x 1\nb: 2\n");
 }
 
 #[test]
@@ -1796,15 +1792,16 @@ fn assigning_to_a_tagged_scalar_is_refused_by_the_tag() {
 }
 
 #[test]
-fn the_alias_refusal_is_left_to_the_writer() {
-    // b020 takes over only the merged-key reason. An alias *value* keeps
-    // upstream's wording, which is already accurate and names the way out --
-    // so the two refusals stay one voice each rather than yqr owning half of
-    // a message it did not establish.
-    let out = run(&[".b = 2"], "a: &x 1\nb: *x\n");
+fn the_through_alias_refusal_is_left_to_the_writer() {
+    // b020 takes over only the merged-key reason. The refusal that
+    // remains after noyalib 0.0.57 is the through-path -- a write that
+    // would land inside the anchor's own bytes -- and it keeps
+    // upstream's wording, which is accurate and names the way out.
+    let out = run(&[".b[0] = 2"], "a: &x\n  - 1\nb: *x\n");
     assert_eq!(out.status, 5);
     assert!(
-        out.stderr.contains("alias reference") && out.stderr.contains("edit the anchor"),
+        out.stderr.contains("resolves through an alias")
+            && out.stderr.contains("edit the anchor definition"),
         "{}",
         out.stderr
     );
@@ -1871,15 +1868,38 @@ fn an_alias_valued_sequence_item_is_refused_whatever_the_value() {
         ),
     ];
     for (what, doc, path) in shapes {
-        // The value that matches is the one that used to slip through.
+        // An equal value stays a no-op that keeps the reference (the
+        // b019 guard's point), except where the path resolves *through*
+        // the alias into the anchor's bytes, which still refuses.
+        let through = *what == "anchor outside the sequence";
         for filter in [format!("{path} = 1"), format!("{path} |= .")] {
             let out = run(&[filter.as_str()], doc);
-            assert_eq!(out.status, 5, "{what}: {filter}: {}", out.stderr);
-            assert_eq!(out.stdout, "", "{what}: {filter} writes nothing");
+            if through {
+                assert_eq!(out.status, 5, "{what}: {filter}: {}", out.stderr);
+            } else {
+                assert_eq!(out.status, 0, "{what}: {filter}: {}", out.stderr);
+                assert_eq!(out.stdout, *doc, "{what}: {filter} keeps the reference");
+            }
         }
-        // And the differing value refuses as it always did.
+        // A differing value replaces the item's own `*x` token (noyalib
+        // 0.0.57, bug b035) -- or keeps refusing on the through-path.
         let filter = format!("{path} = 99");
-        assert_eq!(run(&[filter.as_str()], doc).status, 5, "{what}: {filter}");
+        let out = run(&[filter.as_str()], doc);
+        if through {
+            assert_eq!(out.status, 5, "{what}: {filter}: {}", out.stderr);
+            assert!(
+                out.stderr.contains("resolves through an alias"),
+                "{what}: {}",
+                out.stderr
+            );
+        } else {
+            assert_eq!(out.status, 0, "{what}: {filter}: {}", out.stderr);
+            assert!(out.stdout.contains("- 99\n"), "{what}: {}", out.stdout);
+            assert!(
+                out.stdout.contains("&x 1"),
+                "{what}: the anchor keeps its bytes"
+            );
+        }
     }
 }
 

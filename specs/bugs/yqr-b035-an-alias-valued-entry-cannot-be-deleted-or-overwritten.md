@@ -1,11 +1,16 @@
 # Bug b035 — An entry whose value is an alias cannot be deleted or overwritten
 
-**Status:** Open — filed 2026-09-19, found while writing `yqr-f036`'s
-removed-anchor refusal. **Filed upstream 2026-10-08** as noyalib#476,
-with the fix proposed as noyalib#477: `SpanTree::Alias` records the
-`*name` token's own span, `remove` and a scalar `set_value` go through
-it, a no-op keeps the reference, and every through-alias path keeps its
-refusal. Measured on 0.0.56; closes on the release that carries it
+**Status:** Resolved — 2026-10-09 by `yqr-f043` (noyalib 0.0.57,
+carrying yqr's noyalib#477: `SpanTree::Alias` records the `*name`
+token's own span; `remove` and a scalar `set_value` go through it; a
+no-op keeps the reference; every through-alias path keeps its
+refusal). Filed 2026-09-19 from `yqr-f036`'s removed-anchor refusal,
+filed upstream 2026-10-08 as noyalib#476. One yqr change rode the
+adoption: the block delete delegates an alias-valued entry to
+upstream's `remove` (the `Borrowed::Value` discriminator keeps the
+through-alias anchor-rule path untouched), and `f036`'s refusal now
+names remedies that run — `del(…)` the entry, or assign over it — with
+a test that runs one. §5's criteria are all met
 **Severity:** Medium — nothing is corrupted, but a file with aliases has
 entries yqr cannot change at all, and yqr's own refusals point at them
 **Component:** write tier — `src/fidelity/write/delete.rs` (block path),
@@ -67,10 +72,10 @@ its remedy.
 
 ## 5. Acceptance criteria
 
-- [ ] `del` removes a block mapping entry and a block sequence item whose
+- [x] `del` removes a block mapping entry and a block sequence item whose
       value is an alias, with and without a trailing comment.
-- [ ] `=` replaces an alias with a scalar at a mapping key and a sequence
+- [x] `=` replaces an alias with a scalar at a mapping key and a sequence
       item.
-- [ ] The removed-anchor refusal in `anchor.rs` names the remedy that now
+- [x] The removed-anchor refusal in `anchor.rs` names the remedy that now
       runs, and a test runs it.
-- [ ] `local-ci.sh` clean.
+- [x] `local-ci.sh` clean.

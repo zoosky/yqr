@@ -337,12 +337,13 @@ mod tests {
     }
 
     #[test]
-    fn an_alias_to_a_block_is_the_engines_refusal() {
-        let err = set(".k", Value::Int(5), "a: &x\n  n: 1\nk: *x\n")
-            .unwrap_err()
-            .to_string();
-        assert!(err.contains("alias"), "{err}");
-        assert!(!err.contains("block collection"), "wrong diagnosis: {err}");
+    fn a_scalar_over_an_alias_to_a_block_replaces_the_reference() {
+        // Flipped by noyalib 0.0.57 (yqr's noyalib#477, bug b035): the
+        // entry's own value byte is the `*x` token, and a scalar written
+        // at the entry replaces the reference. The anchor's block and
+        // every other reference keep their bytes.
+        let out = set(".k", Value::Int(5), "a: &x\n  n: 1\nk: *x\n").unwrap();
+        assert_eq!(out, "a: &x\n  n: 1\nk: 5\n");
     }
 
     // Found in code review of f036: the engine refuses a write inside a value
