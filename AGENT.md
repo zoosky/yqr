@@ -502,7 +502,7 @@ it is a separately authorized step — never inferred from an instruction to
 - **Docs/specs-only PRs**: CI runs on these too, so they show the same
   `build · test · lint` check as any other PR; benchmarks still skip. No
   `cargo` run is needed locally for markdown-only changes; do rebuild the
-  site (`cd docs && accent build --clean --strict-links`) when touching
+  site (`cd docs && accent build --clean`) when touching
   `docs/`.
 
 **When CI fails**:

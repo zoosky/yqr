@@ -1,0 +1,20 @@
+<div class="chart">
+  <div class="chart-label">
+    <span class="eyebrow">the filter</span>
+    <code>.spec.volumes[0].secret.defaultMode</code>
+  </div>
+  <svg class="chart-route" viewBox="0 0 96 36" preserveAspectRatio="none" aria-hidden="true">
+    <path class="chart-route-path" d="M2 18 H84"></path>
+    <circle class="chart-route-dot" cx="88" cy="18" r="3.5"></circle>
+  </svg>
+  <pre class="chart-yaml"><code>apiVersion: v1
+kind: Pod
+metadata:
+<span class="tok-key">  name:</span> web
+spec:
+  volumes:
+    - name: tls
+      secret:
+        secretName: web-tls
+<span class="hit">        <span class="tok-key">defaultMode:</span> <span class="tok-val">0640</span></span></code></pre>
+</div>

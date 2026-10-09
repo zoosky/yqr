@@ -1,0 +1,7 @@
+# The default-vs-normalize outcome pair, with the explanation under it.
+# The two terminal panes are template-side art (prompt and output tokens
+# have no markdown vocabulary); the explanation is the markdown body.
+name: outcomes
+description: The byte-preserving vs normalized outcome panes, with their explanation.
+params: []
+body: markdown

@@ -3,6 +3,11 @@ description: Default Accent CMS theme - showcases Sass, utility CSS, icons, and 
 version: "1.0.0"
 author: Accent CMS
 license: MIT
+# The canonical components are the accent 0.26 default theme's own
+# implementations, copied at the pinned release (v0.26.0, site-dev
+# default theme) so the markup contract (data-canonical / data-part)
+# and attribute names match what `accent validate` checks. The site
+# components beside them carry the home page's structures (f042).
 assets:
   css:
     - css/main.scss

@@ -1,0 +1,11 @@
+# A filesystem or command location line inside a path card. Attribute
+# based so the call is a self-closing block between paragraphs; an
+# inline body would tie it into a paragraph.
+name: loc
+description: A location line (an install command or a path) inside a path card.
+params:
+  - name: text
+    type: string
+    required: true
+    description: The location or command, rendered verbatim in the loc style.
+body: inline

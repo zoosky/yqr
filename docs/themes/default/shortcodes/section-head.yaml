@@ -1,0 +1,13 @@
+# A section opener: eyebrow line, heading, optional lede in the body.
+name: section-head
+description: A section opener with an eyebrow line, a heading, and an optional lede.
+params:
+  - name: eyebrow
+    type: string
+    required: true
+    description: The small uppercase line above the heading.
+  - name: title
+    type: string
+    required: true
+    description: The section heading, rendered as an h2.
+body: markdown

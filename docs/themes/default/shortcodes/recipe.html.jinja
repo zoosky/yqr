@@ -1,0 +1,7 @@
+<div class="recipe">
+  <pre class="cmd"><span class="prompt">$</span> {{ attrs.cmd }}{% if attrs.out %}{% for line in attrs.out %}
+{{ line }}{% endfor %}{% endif %}</pre>
+  <div class="note">
+{{ body }}
+  </div>
+</div>
