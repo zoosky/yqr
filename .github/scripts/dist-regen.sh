@@ -11,7 +11,16 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
+# dist refuses to regenerate a file listed in allow-dirty, so lift the
+# line for the regeneration and restore it afterwards (CI's consistency
+# check needs it to tolerate the committer override below).
+perl -0pi -e 's/^allow-dirty = \["ci"\]\n//m' Cargo.toml
+
 dist init --yes
+
+perl -0pi -e 's/^(\[workspace\.metadata\.dist\]\n)/$1allow-dirty = ["ci"]\n/m' Cargo.toml
+grep -q '^allow-dirty = \["ci"\]' Cargo.toml \
+  || { echo "dist-regen.sh: failed to restore allow-dirty in Cargo.toml" >&2; exit 1; }
 
 perl -0pi -e '
   s/GITHUB_USER: "axo bot"/GITHUB_USER: "github-actions[bot]"/;
@@ -24,5 +33,9 @@ grep -q 'GITHUB_USER: "github-actions\[bot\]"' .github/workflows/release.yml \
   || { echo "dist-regen.sh: committer override did not take" >&2; exit 1; }
 grep -q 'GITHUB_EMAIL: "41898282' .github/workflows/release.yml \
   || { echo "dist-regen.sh: committer email override did not take" >&2; exit 1; }
+
+# The regenerated file plus the override must satisfy dist's own check,
+# or the plan job fails on the next push.
+dist plan >/dev/null
 
 echo "release.yml regenerated with the committer override applied."

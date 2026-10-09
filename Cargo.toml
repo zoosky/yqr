@@ -138,6 +138,7 @@ lto = "thin"
 
 # Config for 'dist'
 [workspace.metadata.dist]
+allow-dirty = ["ci"]
 # The preferred dist version to use in CI (Cargo.toml SemVer syntax)
 cargo-dist-version = "0.33.0"
 # CI backends to support
