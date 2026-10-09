@@ -46,7 +46,12 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.56 release. 0.0.52 through 0.0.56 change nothing yqr reads or
+# crates.io 0.0.57 release, which carries both of yqr's last open engine
+# fixes: noyalib#475 (b036 — an anchored, indented sequence's items report
+# their own spans) and noyalib#477 (b035 — an alias-valued entry is removed
+# or overwritten through its own `*name` token; a no-op keeps the
+# reference; through-alias paths still refuse). Its six fuzzing-driven
+# parse changes moved nothing yqr pins (f043 §3). 0.0.52 through 0.0.56 change nothing yqr reads or
 # writes: every corpus, CLI and fidelity case is byte-identical, and the three
 # parse-behaviour changes they advertise were measured against a 0.0.51
 # control build and are out of yqr's reach -- the new 256-level nesting cap
@@ -104,7 +109,7 @@ clap = { version = "4.6.1", features = ["derive"] }
 # b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44, b033 in 0.0.45.
 # Each pin and what it bought is in features f013-f029, f031, f034-f035 and
 # f037; see research r002 and the bug specs.
-noyalib = "0.0.56"
+noyalib = "0.0.57"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"

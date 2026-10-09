@@ -1,10 +1,13 @@
 # Bug b036 — Item spans shift under an anchored, indented block sequence
 
-**Status:** Open — filed 2026-10-08, found while measuring `yqr-f038`.
-**Filed upstream the same day** as noyalib#474, with the fix proposed
-as noyalib#475: the green walk recursed into a nested collection from
-the `&anchor`/`!tag` prefix start instead of the node's own offset;
-closes on the release that carries it
+**Status:** Resolved — 2026-10-09 by `yqr-f043` (noyalib 0.0.57,
+carrying yqr's noyalib#475). Filed 2026-10-08 while measuring
+`yqr-f038`, filed upstream the same day as noyalib#474 with the fix
+proposed as noyalib#475: the green walk recursed into a nested
+collection from the `&anchor`/`!tag` prefix start instead of the
+node's own offset. The pinned refusal flipped on the bump exactly as
+designed: `del(.a[0])` on the anchored indented sequence now works,
+with the alias showing the removal per the `f038` rule
 **Severity:** Low — no path yqr ships emits wrong bytes or corrupts a
 file; the cost is a delete that is refused on one layout and item reads
 that fall back to typed rendering

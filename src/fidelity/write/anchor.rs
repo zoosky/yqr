@@ -230,7 +230,8 @@ impl NoyalibWriter {
         };
         YqrError::eval(format!(
             "{refusal}: {holder} defines the anchor `&{name}`, which `*{name}` on line {} still \
-             refers to, so {consequence}. Change or remove that reference in the file first",
+             refers to, so {consequence}. Change or remove that reference first: assign a \
+             value over it, or `del(…)` its entry",
             line(*alias_at)
         ))
     }
