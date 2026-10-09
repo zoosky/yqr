@@ -1,6 +1,6 @@
 {
   "version": 5,
-  "timestamp": "2026-10-09T13:46:49Z",
+  "timestamp": "2026-10-09T14:12:15Z",
   "pages": {
     "/": {
       "content_hash": "0d6bb96947de1fab92728c027fa4ef3d313b7055332d2c68433e1c68c04d6deb",
@@ -11,7 +11,7 @@
     "/changelog": {
       "content_hash": "e6ba93c7a5f3eea098b9bc51aa3f37b20fc28594476e9746bab741d06f13909b",
       "template": "default.html.jinja",
-      "template_hash": "b83695040bb5e17442f9b8b7c2274cc5bce0549fd0d3cf11361ce30a7a6c2f9d",
+      "template_hash": "9e19ffe592e99015d33f441977e16084289378d08aae07023931018e77c2b263",
       "status": "published"
     },
     "/compare": {
@@ -261,16 +261,16 @@
       ]
     },
     "toc.html.jinja": {
-      "hash": "5fea7654314417e41067fbfa3f26e29bb4dd1fd3329563a75f50670d1a47cd5b",
+      "hash": "dab8b6f9268fa5998df0f07ca71088f72f5af306a035b8f64487a82b373709c7",
       "includes": [
         "toc.html.jinja"
       ]
     }
   },
   "config_hash": "5e78d824246ee7aedd6042f007760a53f38f718fcc58896f0c8f5ea805b655de",
-  "theme_hash": "1416caecd5d0c516d4e1b86c5e547d18f14de9818b041e71f8de61482fbd190d",
+  "theme_hash": "b047a12d88126d7ff91889c93cec5aab023b69a0758546cdee96d194f74e2d86",
   "schema_hash": "9b219c8f3f63409377b1ff9c7e2570e1bbbe69b2adb16253262dee3a73fdd1ea",
-  "assets_hash": "3ccbb041bfaea8b4c2d5fe26b1ac2716e4e5d008976ec47eba53ec7e39618d72",
+  "assets_hash": "5050ff6937eeb30ed573ce8d730d8820494f4e3c1ccf0d8c64e71e975c47d2d7",
   "overrides_hash": "38c872a4415ffa903d910e43bb98fb0bad30fca40cf91700ba4eedad64cef70f",
   "fingerprint_hash": "",
   "built_on": "2026-10-09",
