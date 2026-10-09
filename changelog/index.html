@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 9785
+  "wordCount": 9843
 }
 </script>
 <script type="application/ld+json">
@@ -222,7 +222,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">49 min read</span>
+                    <span class="reading-time">50 min read</span>
                 </div>
                 
 
@@ -235,6 +235,10 @@
     
         
         <li><a href="#unreleased">[Unreleased]</a></li>
+        
+    
+        
+        <li><a href="#0-11-0-2026-10-09">[0.11.0] - 2026-10-09</a></li>
         
     
         
@@ -399,6 +403,12 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<h2 id="0-11-0-2026-10-09">[0.11.0] - 2026-10-09<a class="heading-anchor" href="#0-11-0-2026-10-09" aria-label="Link to this section"></a></h2>
+<p>The first release you can install without a Rust toolchain.</p>
+<p>Nothing about the binary’s behavior changes – there is no code change
+in this release at all. What changes is how it reaches you: the version
+tag now triggers a pipeline that builds, checksums, and publishes
+prebuilt binaries, and a Homebrew tap serves them.</p>
 <h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>Prebuilt binaries, Homebrew, and a one-line installer.</strong> This
