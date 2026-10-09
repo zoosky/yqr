@@ -37,7 +37,7 @@ Package:   https://crates.io/crates/yqr
 
 ## yqr demo
 
-- [yqr demo](/yqr/demo): A runnable script that walks yqr's query and edit surface against sample files you can inspect afterwards.
+- [yqr demo](/yqr/demo): A runnable script that walks yqr's query, edit, and validate surface against sample files you can inspect afterwards.
 
 ## Changelog
 

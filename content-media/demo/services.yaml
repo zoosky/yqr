@@ -1,0 +1,13 @@
+# Service tiers share one block of defaults -- anchors on purpose.
+defaults: &defaults
+  mode: 0640      # octal, on purpose
+  retries: 3
+
+threshold: &t 5
+alert: *t
+
+web:
+  <<: *defaults
+  name: web
+backup: *defaults
+ver: 1.10

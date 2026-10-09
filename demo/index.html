@@ -13,7 +13,7 @@
 
 
 
-<meta name="description" content="A runnable script that walks yqr&#x27;s query and edit surface against sample files you can inspect afterwards.">
+<meta name="description" content="A runnable script that walks yqr&#x27;s query, edit, and validate surface against sample files you can inspect afterwards.">
 
 
 <link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;demo">
@@ -29,7 +29,7 @@
 
 
 <meta property="og:title" content="yqr demo">
-<meta property="og:description" content="A runnable script that walks yqr&#x27;s query and edit surface against sample files you can inspect afterwards.">
+<meta property="og:description" content="A runnable script that walks yqr&#x27;s query, edit, and validate surface against sample files you can inspect afterwards.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;demo">
 <meta property="og:site_name" content="yqr">
@@ -42,7 +42,7 @@
 
 
 <meta name="twitter:title" content="yqr demo">
-<meta name="twitter:description" content="A runnable script that walks yqr&#x27;s query and edit surface against sample files you can inspect afterwards.">
+<meta name="twitter:description" content="A runnable script that walks yqr&#x27;s query, edit, and validate surface against sample files you can inspect afterwards.">
 
 
 
@@ -92,11 +92,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-10-09",
-  "description": "A runnable script that walks yqr's query and edit surface against sample files you can inspect afterwards.",
+  "description": "A runnable script that walks yqr's query, edit, and validate surface against sample files you can inspect afterwards.",
   "inLanguage": "en",
   "name": "yqr demo",
   "url": "https://zoosky.github.io/yqr/demo",
-  "wordCount": 264
+  "wordCount": 404
 }
 </script>
 <script type="application/ld+json">
@@ -222,7 +222,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">2 min read</span>
+                    <span class="reading-time">3 min read</span>
                 </div>
                 
 
@@ -257,18 +257,23 @@
                 
 
                 <div class="content prose">
-                    <p>A runnable showcase of yqr, a jq-style query &amp; transform tool for YAML.</p>
+                    <p>A runnable showcase of yqr, a YAML editor with a fidelity guarantee and
+jq-style ergonomics.</p>
 <h2 id="run-it">Run it<a class="heading-anchor" href="#run-it" aria-label="Link to this section"></a></h2>
 <pre style="background-color:#2b303b;">
 <span style="color:#8fa1b3;">bash</span><span style="color:#c0c5ce;"> yqr-demo.sh
 </span></pre>
-<p>The script needs <code>yqr</code> on your <code>PATH</code>. It resolves its own directory, so it
-works from any working directory and reads the sample files in place.</p>
+<p>The script needs <code>yqr</code> on your <code>PATH</code> (<code>brew install zoosky/tap/yqr</code>, or
+<code>cargo install yqr</code>). It resolves its own directory, so it works from any
+working directory and reads the sample files in place; every mutating
+command works on a copy in a scratch directory, so re-running it is
+idempotent.</p>
 <h2 id="what-s-in-here">What’s in here<a class="heading-anchor" href="#what-s-in-here" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>File</th><th>Role</th></tr></thead><tbody>
-<tr><td><a href="https://github.com/zoosky/yqr/blob/main/docs/content/demo/yqr-demo.sh"><code>yqr-demo.sh</code></a></td><td>The narrated walkthrough (eight sections, each a real command). Linked on GitHub – accent does not serve script files as page media.</td></tr>
+<tr><td><a href="https://github.com/zoosky/yqr/blob/main/docs/content/demo/yqr-demo.sh"><code>yqr-demo.sh</code></a></td><td>The narrated walkthrough (eleven sections, each a real command). Linked on GitHub – accent does not serve script files as page media.</td></tr>
 <tr><td><a href="/yqr/content-media/demo/deploy.yaml"><code>deploy.yaml</code></a></td><td>A Kubernetes Deployment – the input for navigation &amp; iteration.</td></tr>
-<tr><td><a href="/yqr/content-media/demo/config.yaml"><code>config.yaml</code></a></td><td>A hand-commented config – the input for the fidelity engine.</td></tr>
+<tr><td><a href="/yqr/content-media/demo/config.yaml"><code>config.yaml</code></a></td><td>A hand-commented config – the input for fidelity, edits, and validate.</td></tr>
+<tr><td><a href="/yqr/content-media/demo/services.yaml"><code>services.yaml</code></a></td><td>Anchors, a merge key, and alias entries – the input for the alias edits.</td></tr>
 </tbody></table>
 <h2 id="what-it-shows">What it shows<a class="heading-anchor" href="#what-it-shows" aria-label="Link to this section"></a></h2>
 <ol>
@@ -278,8 +283,11 @@ works from any working directory and reads the sample files in place.</p>
 <li>Raw output – <code>-r</code> drops YAML quoting for shell scripting.</li>
 <li>Reads from stdin – pipe YAML straight in.</li>
 <li>Fidelity by default – <code>yqr '.'</code> reproduces the input byte-for-byte, comments and all, with no flag. <code>--normalize</code> opts into the classic re-serializing pipeline.</li>
+<li>Edit without reformatting – a write replaces one value and the diff is that line; append to a sequence, delete an entry structurally, and every surviving byte is identical.</li>
+<li>Anchors, aliases, merge keys – a key inherited through <code>&lt;&lt;:</code> takes an explicit override, an entry whose value is an alias is replaced or deleted through its own <code>*name</code> token, and writing the value an alias already resolves to keeps your <code>*name</code> spelling.</li>
+<li>Comments are addressable – read the comment on a value with <code>line_comment(...)</code>, or write one.</li>
 <li>jq-style exit codes – <code>3</code> for parse errors, <code>5</code> for runtime errors, for scriptable error handling.</li>
-<li>Validate after editing – <code>yqr validate</code> edits a copy in place, then confirms the file is still correct YAML (silent, exit 0). Break it and the verdict is a compiler-style diagnostic with a stable code, the offending line, and a caret; <code>--strict</code> additionally catches a duplicate key, which ordinary reads accept silently.</li>
+<li>Validate after editing – <code>yqr validate</code> confirms an edited file is still correct YAML (silent, exit 0); break it and the verdict is a compiler-style diagnostic with a stable code, the offending line, and a caret. <code>--strict</code> additionally catches a duplicate key, and <code>--schema</code> holds the values to a JSON Schema with the finding located in your file.</li>
 </ol>
 
                 </div>
