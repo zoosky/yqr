@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791553682141,
+  "lastUpdate": 1791555989766,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3149,6 +3149,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 192281,
             "range": "± 3616",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7aff85be2bafbf31b72c1333733097ccc37ce4ca",
+          "message": "chore: release v0.10.0 (#147)\n\n* chore(deps): cargo update, 29 compatible bumps, audit clean\n\nRoutine refresh ahead of the release: clap 4.6.7, noyalib's\ndependents and the rest of the tree at the latest 1.97-compatible\nversions. The full suite passes with no expectation moved, and\ncargo audit is clean on the refreshed lockfile.\n\n* chore: release v0.10.0\n\nThe changelog's Unreleased section becomes 0.10.0, dated today, with a\nlead paragraph naming the release: entries whose value is an alias\nreference can be deleted and overwritten, the last byte of YAML yqr\ncould not edit. Minor, not patch -- two refusals became writes, so\nexit 5 on those filters is now exit 0 and an edited file.\n\nThe docs move with it, measured rather than re-asserted:\n\n- README: the structural-delete bullet still described the pre-f016\n  refusals (sole-entry, flow item); it now states what ships. A new\n  bullet covers editing anchors and aliases from both sides, and the\n  refusals bullet names the through-alias write as the remaining\n  refusal class.\n- guide/fidelity: a passage on editing the alias-valued entry itself,\n  outputs captured from this build; the through-alias refusal's\n  captured message gains the mechanism-neutral wording it has had\n  since the f025 review -- caught by re-running the block.\n- kubernetes frontmatter: the measurement note still said v0.8.0 and\n  pointed at a b032 bullet that PR #142 removed; both corrected.\n- Every measured page re-run against v0.10.0: kubernetes (27 direct,\n  13 known replay artifacts hand-checked, same set as the v0.9.0\n  run), validate 20/20, fidelity 13 driver plus 4 fixture blocks by\n  hand, compare/yq and from-jq full sets. No output moved except the\n  one stale refusal message above.\n\nVersion stamps: Cargo.toml, Cargo.lock, the JSON-LD softwareVersion.\nlocal-ci green (fmt, clippy, build, test x2, bench compile, doc,\npackage contents, audit); accent build warning-free and validate\nclean.",
+          "timestamp": "2026-10-09T16:24:18+02:00",
+          "tree_id": "0d4013507c04fbefc10214f8cacef256f29abb75",
+          "url": "https://github.com/zoosky/yqr/commit/7aff85be2bafbf31b72c1333733097ccc37ce4ca"
+        },
+        "date": 1791555988290,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 576,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6547,
+            "range": "± 42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 302736,
+            "range": "± 4231",
             "unit": "ns/iter"
           }
         ]
