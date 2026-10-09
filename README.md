@@ -27,6 +27,22 @@ cargo install yqr
 # binary at ~/.cargo/bin/yqr
 ```
 
+From the release after v0.10.0 on, prebuilt binaries remove the
+toolchain requirement — each release carries archives for Apple Silicon
+and Intel Macs and a static Linux x86_64 binary, with checksums:
+
+```sh
+# Homebrew (macOS and Linux)
+brew install zoosky/tap/yqr
+
+# or the installer script attached to the latest release
+curl -LsSf https://github.com/zoosky/yqr/releases/latest/download/yqr-installer.sh | sh
+```
+
+Or download the archive for your platform from the
+[releases page](https://github.com/zoosky/yqr/releases) and put `yqr`
+on your `PATH`.
+
 Or build from a source checkout (requires the Rust **1.97.1** toolchain, pinned
 via `rust-toolchain.toml`):
 

@@ -400,8 +400,8 @@ bash .github/scripts/local-ci.sh   # fmt, clippy, build, test (x2), bench compil
 
 This project uses automated CI/CD pipelines to maintain code quality, especially important for multi-agent development where multiple AGENT instances may be working concurrently.
 
-There are four workflows: `ci.yml`, `benchmark.yml`, `pages.yml`, and
-`testbed.yml`. `specs/implementation/yqr-m001-ci-release-process.md` is the
+There are five workflows: `ci.yml`, `benchmark.yml`, `pages.yml`,
+`testbed.yml`, and `release.yml`. `specs/implementation/yqr-m001-ci-release-process.md` is the
 source of truth for all of them and for the release process; the summary
 below must stay in sync with it.
 
@@ -454,11 +454,24 @@ it has its own local-only site, `specs/config.yaml` on port 4401, which
 nothing deploys. Run it with `cd specs && accent serve`. See `yqr-f010` and
 `yqr-f021`.
 
+### Binary releases (`.github/workflows/release.yml`)
+
+Generated and owned by **dist** (cargo-dist 0.33.0, pinned in
+`Cargo.toml` `[workspace.metadata.dist]`) — regenerate with
+`dist init --yes` after config changes, never hand-edit. On a version
+tag it builds `aarch64-apple-darwin`, `x86_64-apple-darwin` and
+`x86_64-unknown-linux-musl`, attaches archives, checksums and a shell
+installer, creates the GitHub release from the changelog section, and
+pushes the Homebrew formula to `zoosky/homebrew-tap` (secret:
+`HOMEBREW_TAP_TOKEN`). On pull requests it runs its plan step as a
+dry-run check. See `yqr-f044`.
+
 ### Release Process
 
-Releases are **manual**: no workflow reacts to tags, so pushing a tag builds
-nothing and attaches no binaries. Full checklist and rationale in
-`yqr-m001` §3; the short form:
+Releases are **manual decisions**: a human rolls the changelog and
+pushes the tag; the tag then triggers `release.yml`, which builds the
+binaries and creates the GitHub release itself. Full checklist and
+rationale in `yqr-m001` §3; the short form:
 
 ```bash
 # 1. CHANGELOG.md: [Unreleased] becomes [X.Y.Z] - YYYY-MM-DD
@@ -473,7 +486,8 @@ git commit -m "chore: release vX.Y.Z"
 # After the PR merges, from an up-to-date main:
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z
-gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <changelog-section>
+# release.yml now builds binaries and creates the GitHub release —
+# do NOT also `gh release create`. Then, separately authorized:
 cargo publish   # see yqr-m004
 ```
 

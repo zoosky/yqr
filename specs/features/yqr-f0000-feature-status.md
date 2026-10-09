@@ -421,15 +421,25 @@ on the site are the same bytes the release process edits (`f039`); the
 deploy triggers include that file, or a release would not rebuild the
 page.
 
+## Epic: Distribution (f044)
+
+| Feature | Title | Status |
+|---------|-------|--------|
+| [f044](yqr-f044-binary-releases-and-homebrew.md) | Binary releases and Homebrew: the three-target set via dist | Done (2026-10-09: dist 0.33.0 generates `release.yml`; three targets, shell installer, formula pushed to `zoosky/homebrew-tap`; first live run fires on the next version tag and needs the `HOMEBREW_TAP_TOKEN` secret) |
+
+Progress: machinery shipped and measured locally (`dist plan` asset set,
+host-target archive smoke-tested); the end-to-end proof is the next
+release's pipeline run (`f044` §6).
+
 ## Summary
 
-- Total features: 43
+- Total features: 44
 - Draft: 1 (f027)
 - In Progress: 0
-- Done: 38 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 39 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f025, f026, f028,
   f029, f030, f031, f032, f033, f034, f035, f036, f037, f038, f039, f040,
-  f041, f042, f043)
+  f041, f042, f043, f044)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
