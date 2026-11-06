@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794006080994,
+  "lastUpdate": 1794006822592,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3485,6 +3485,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 212828,
             "range": "± 1148",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "55b7e5adea14df388a54db7462267aa223fe98f5",
+          "message": "feat: put JSON Schema validation behind a default-on schema cargo feature (#170)\n\njsonschema is the heaviest slice of the lib's dependency graph. A\nschema feature, on by default and implied by cli, lets a minimal build\nleave the whole stack out while keeping the full YAML-correctness\nverdict: check_str stays unconditional, check and the Schema type are\ngated whole so no build sees a different arity. The no-default lib\nresolves to 17 crates; the editor-profile wasm shim measures 344 KiB\nagainst 2.31 MiB with schema. The quality gates lint and test the\nno-default lib, compile the schema-only profile, and refuse gated\ndependencies in the minimal graph.",
+          "timestamp": "2026-11-07T00:12:19+01:00",
+          "tree_id": "a662a83f6442e384700b6595b58aaeb4fdf7d4e4",
+          "url": "https://github.com/zoosky/yqr/commit/55b7e5adea14df388a54db7462267aa223fe98f5"
+        },
+        "date": 1794006821202,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 308,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3345,
+            "range": "± 123",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 179195,
+            "range": "± 3787",
             "unit": "ns/iter"
           }
         ]
