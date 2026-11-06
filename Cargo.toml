@@ -37,9 +37,9 @@ default = ["cli", "schema"]
 cli = ["dep:clap", "schema"]
 schema = ["dep:jsonschema", "dep:serde_json"]
 
-# docs.rs builds with every feature enabled. The `cli` feature gates no lib
-# items today; this is a standing guard so items a future feature gates
-# (f047's schema types, f048's serde impls) stay in the published API docs.
+# docs.rs builds with every feature enabled, so gated lib items — the
+# `schema` feature's `validate::check` and `Schema` type today, anything a
+# later feature gates — stay in the published API docs.
 [package.metadata.docs.rs]
 all-features = true
 

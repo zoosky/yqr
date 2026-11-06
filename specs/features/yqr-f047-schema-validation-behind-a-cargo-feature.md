@@ -59,8 +59,11 @@ need.
       every `validate --schema` CLI case.
 - [x] The CI quality gate covers both feature states of the lib: the
       default state through every build/test step, the no-default state
-      through the lib check, whose dependency guard now also refuses
-      `jsonschema` and `serde_json`.
+      through its own clippy (`-D warnings`) and lib-test runs, plus a
+      compile check of the schema-only editor profile
+      (`--no-default-features --features schema`). The dependency guard
+      refuses `clap`, `jsonschema` and `serde_json` in the minimal graph
+      and fails on a grep error instead of passing vacuously.
 - [x] The wasm size delta is measured and recorded below.
 
 ## Measured wasm size (2026-11-07)

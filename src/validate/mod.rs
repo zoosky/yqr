@@ -26,7 +26,7 @@
 //! drops data. Duplicates are found by walking the lossless green tree, so
 //! every occurrence is reported with a real source position.
 //!
-//! The `schema` module adds the optional fourth check: each document
+//! The [`schema`] module adds the optional fourth check: each document
 //! validated against a JSON Schema 2020-12 document the caller provides,
 //! with every violation mapped back to a byte span in the original
 //! source. It sits behind the `schema` cargo feature (on by default), so
