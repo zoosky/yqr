@@ -7,12 +7,25 @@
  * - "docfind": loads the DocFind WASM engine for FST fuzzy matching
  * - "simple" (default): fetches a JSON index with substring matching
  *
- * Attaches to all elements with the `.acms-search-form` class.
+ * Attaches to all elements with the `.acms-search-form` class, and to a
+ * search island's form when the island calls `AccentSearch.init(island)`.
+ * Loading the script twice sets nothing up twice.
  */
 (function () {
   "use strict";
 
+  if (window.AccentSearch) return;
+
   var DEBOUNCE_MS = 200;
+
+  // The Simple Search index. The server rewrites every "/yqr/_search/" literal in
+  // this file to carry the deployment prefix, so the prefix is whatever comes
+  // before "/yqr/_search/index.json" here: empty at the root, "/site" under a
+  // prefix. The literal that measures it must not start with "/yqr/_search/".
+  var INDEX_URL = "/yqr/_search/index.json";
+  var BASE_PATH = INDEX_URL.slice(0, INDEX_URL.length - "_search/index.json".length - 1);
+
+  var EMPTY_TEXT = "No results found.";
 
   // ===========================================================================
   // Shared rendering helpers
@@ -140,10 +153,12 @@
     return url + "#:~:" + directives.join("&");
   }
 
-  function renderResults(container, results, queryTokens) {
+  // `emptyText` is the form's own message (b415), which a theme writes in the
+  // page's language; it is text, so it is escaped like indexed text.
+  function renderResults(container, results, queryTokens, emptyText) {
     if (results.length === 0) {
       container.innerHTML =
-        '<div class="acms-search-empty">No results found.</div>';
+        '<div class="acms-search-empty">' + escapeHtml(emptyText) + "</div>";
       container.hidden = false;
       return;
     }
@@ -172,11 +187,28 @@
     container.hidden = false;
   }
 
+  // Everything but letters, marks, digits and _: the index's separator, so a
+  // query tokenizes as content does (content_tokens in simple.rs). A browser
+  // without Unicode property escapes keeps every character outside ASCII.
+  var NON_WORD = (function () {
+    try {
+      return new RegExp("[^\\p{Alphabetic}\\p{M}\\p{N}_\\s]", "gu");
+    } catch (e) {
+      return /[^\w\s\u0080-\uFFFF]/g;
+    }
+  })();
+  // Layout hints the index drops: soft hyphen, zero-width space, non-joiner
+  // and joiner, word joiner, byte-order mark.
+  var INVISIBLE = /[\u00AD\u200B-\u200D\u2060\uFEFF]/g;
+
   function tokenize(text) {
     if (!text) return [];
     return text
+      .normalize("NFC")
+      .replace(INVISIBLE, "")
       .toLowerCase()
-      .replace(/[^\w\s]/g, " ")
+      .replace(/\u03C2/g, "\u03C3")
+      .replace(NON_WORD, " ")
       .split(/\s+/)
       .filter(function (w) {
         return w.length >= 2;
@@ -235,6 +267,43 @@
   }
 
   // ===========================================================================
+  // Language scoping (b415)
+  //
+  // On a site with several languages the form carries the URL root of the
+  // reader's language (empty for the default language) and the root of every
+  // language served under a prefix, without the deployment prefix. A result is
+  // in the language whose root its URL is under, or in the default language
+  // when it is under none: the URL model the server routes by. A form without
+  // the attributes keeps every result.
+  // ===========================================================================
+
+  function languageScope(form) {
+    var root = form.getAttribute("data-language-root");
+    if (root === null) return null;
+    var roots = (form.getAttribute("data-language-roots") || "")
+      .split(/\s+/)
+      .filter(function (r) {
+        return r.length > 0;
+      });
+    return { root: root, roots: roots };
+  }
+
+  function languageRootOf(url, roots) {
+    var path = url;
+    if (BASE_PATH && (url === BASE_PATH || url.indexOf(BASE_PATH + "/") === 0)) {
+      path = url.slice(BASE_PATH.length) || "/";
+    }
+    for (var i = 0; i < roots.length; i++) {
+      if (path === roots[i] || path.indexOf(roots[i] + "/") === 0) return roots[i];
+    }
+    return "";
+  }
+
+  function inLanguageScope(url, scope) {
+    return !scope || languageRootOf(url, scope.roots) === scope.root;
+  }
+
+  // ===========================================================================
   // Simple Search backend (Feature 092)
   // ===========================================================================
 
@@ -252,7 +321,7 @@
     legacyLoading = true;
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/yqr/_search/index.json", true);
+    xhr.open("GET", INDEX_URL, true);
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
       if (xhr.status === 200) {
@@ -325,7 +394,9 @@
     );
   }
 
-  function legacySearch(data, query, limit) {
+  // `languages` is the form's language scope, or null. Both scopes apply
+  // before the limit, so the limit counts the results the reader sees.
+  function legacySearch(data, query, limit, languages) {
     var queryTokens = tokenize(query);
     if (queryTokens.length === 0) return [];
 
@@ -337,6 +408,7 @@
     for (var i = 0; i < data.pages.length; i++) {
       var page = data.pages[i];
       if (roots && !inVersionScope(page.u, roots, scope)) continue;
+      if (!inLanguageScope(page.u, languages)) continue;
       var score = scorePage(page, queryTokens, data.weights);
       if (score > 0) {
         results.push({
@@ -357,7 +429,7 @@
     return results.slice(0, limit);
   }
 
-  function initLegacySearch(input, resultsContainer, limit) {
+  function initLegacySearch(input, resultsContainer, limit, options) {
     var debounceTimer = null;
 
     function doSearch() {
@@ -369,9 +441,9 @@
       }
 
       loadLegacyIndex(function (data) {
-        var results = legacySearch(data, query, limit);
+        var results = legacySearch(data, query, limit, options.languages);
         var queryTokens = tokenize(query);
-        renderResults(resultsContainer, results, queryTokens);
+        renderResults(resultsContainer, results, queryTokens, options.emptyText);
       });
     }
 
@@ -412,7 +484,8 @@
 
     import("/yqr/_search/docfind.js")
       .then(function (mod) {
-        return mod.default("/yqr/_search/docfind_bg.wasm").then(function () {
+        // The object form; wasm-bindgen warns on a bare URL.
+        return mod.default({ module_or_path: "/yqr/_search/docfind_bg.wasm" }).then(function () {
           docfindModule = mod;
           var cbs = docfindCallbacks;
           docfindCallbacks = [];
@@ -432,26 +505,39 @@
       });
   }
 
-  function docfindSearch(mod, query, limit) {
+  function docfindSearch(mod, query, limit, languages) {
+    // A form written by hand can carry a limit that is not a number, which
+    // the loop below would never reach.
+    if (!(limit > 0)) return [];
     try {
-      var raw = mod.search(query, limit);
-      var results = [];
-      for (var i = 0; i < raw.length; i++) {
-        var r = raw[i];
-        results.push({
-          url: r.href,
-          title: r.title,
-          snippet: r.body ? r.body.substring(0, 200) : "",
-          score: r.score || 1,
-        });
+      // The module cuts its list at the count it is asked for, before the
+      // language scope drops any result (b415). Ask for more until the scoped
+      // list is full or the module has no more to give; without a scope the
+      // first answer is the list, as it always was.
+      var want = limit;
+      var results;
+      for (;;) {
+        var raw = mod.search(query, want);
+        results = [];
+        for (var i = 0; i < raw.length && results.length < limit; i++) {
+          var r = raw[i];
+          if (!inLanguageScope(r.href, languages)) continue;
+          results.push({
+            url: r.href,
+            title: r.title,
+            snippet: r.body ? r.body.substring(0, 200) : "",
+            score: r.score || 1,
+          });
+        }
+        if (results.length >= limit || raw.length < want) return results;
+        want *= 4;
       }
-      return results;
     } catch (_) {
       return [];
     }
   }
 
-  function initDocFindSearch(form, input, resultsContainer, limit) {
+  function initDocFindSearch(form, input, resultsContainer, limit, options) {
     var debounceTimer = null;
 
     function doSearch() {
@@ -468,13 +554,13 @@
           // DocFind glue/WASM unavailable -- fall back to the Simple Search index
           // so search keeps working instead of silently returning nothing.
           loadLegacyIndex(function (data) {
-            var results = legacySearch(data, query, limit);
-            renderResults(resultsContainer, results, queryTokens);
+            var results = legacySearch(data, query, limit, options.languages);
+            renderResults(resultsContainer, results, queryTokens, options.emptyText);
           });
           return;
         }
-        var results = docfindSearch(mod, query, limit);
-        renderResults(resultsContainer, results, queryTokens);
+        var results = docfindSearch(mod, query, limit, options.languages);
+        renderResults(resultsContainer, results, queryTokens, options.emptyText);
       });
     }
 
@@ -512,14 +598,22 @@
     var input = form.querySelector(".acms-search-input");
     var resultsContainer = form.querySelector(".acms-search-results");
     if (!input || !resultsContainer) return;
+    // A form is set up once, whoever asks first: this script on load, or
+    // the search island the form is in.
+    if (form.hasAttribute("data-search-ready")) return;
+    form.setAttribute("data-search-ready", "");
 
     var limit = parseInt(form.getAttribute("data-limit") || "10", 10);
     var backend = form.getAttribute("data-search-backend") || "simple";
+    var options = {
+      languages: languageScope(form),
+      emptyText: form.getAttribute("data-no-results") || EMPTY_TEXT,
+    };
     var activeIndex = -1;
     if (backend === "docfind") {
-      initDocFindSearch(form, input, resultsContainer, limit);
+      initDocFindSearch(form, input, resultsContainer, limit, options);
     } else {
-      initLegacySearch(input, resultsContainer, limit);
+      initLegacySearch(input, resultsContainer, limit, options);
     }
 
     // A changed query gets a fresh result list whose first entry is
@@ -583,15 +677,22 @@
     });
   }
 
-  function init() {
-    var forms = document.querySelectorAll(".acms-search-form");
+  // Set up every search form under `root`, the document by default.
+  function init(root) {
+    var forms = (root || document).querySelectorAll(".acms-search-form");
     for (var i = 0; i < forms.length; i++) {
       initForm(forms[i]);
     }
   }
 
+  // The search island loads this script when it hydrates, or finds it
+  // loaded, and sets up its own form through this.
+  window.AccentSearch = { init: init };
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", function () {
+      init();
+    });
   } else {
     init();
   }

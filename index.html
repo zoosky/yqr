@@ -16,7 +16,7 @@
 <meta name="description" content="yqr is a jq-style command-line tool for YAML. Query any field, edit a file in place, and keep every comment, anchor, quote style and blank line byte-for-byte.">
 
 
-<link rel="canonical" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;">
+<link rel="canonical" href="https://zoosky.github.io/yqr/">
 
 
 
@@ -31,7 +31,7 @@
 <meta property="og:title" content="jq for YAML -- query and edit without reformatting">
 <meta property="og:description" content="yqr is a jq-style command-line tool for YAML. Query any field, edit a file in place, and keep every comment, anchor, quote style and blank line byte-for-byte.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;">
+<meta property="og:url" content="https://zoosky.github.io/yqr/">
 <meta property="og:site_name" content="yqr">
 <meta property="og:locale" content="en">
 
@@ -80,23 +80,23 @@
     
     
     
-    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;feed.xml">
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https://zoosky.github.io/yqr/feed.xml">
     
     
     
-    <meta name="build-hash" content="146af61686">
+    <meta name="build-hash" content="f3e1e6f4f0">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-10-09",
+  "dateModified": "2026-11-06",
   "description": "yqr is a jq-style command-line tool for YAML. Query any field, edit a file in place, and keep every comment, anchor, quote style and blank line byte-for-byte.",
   "inLanguage": "en",
   "name": "jq for YAML -- query and edit without reformatting",
   "url": "https://zoosky.github.io/yqr/",
-  "wordCount": 2181
+  "wordCount": 2544
 }
 </script>
 <link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
@@ -374,7 +374,9 @@
     .chart-route-path{animation:none; stroke-dashoffset:0;}
     .chart-route-dot{animation:none; opacity:1;}
   }
-  .chart-yaml{
+  /* The YAML pane is the chart's body: a processed fence whose key tints
+     and hit line are authored as mark components in content (b037). */
+  .chart pre{
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:8px;
@@ -384,9 +386,9 @@
     margin:0;
     color:var(--text-soft);
   }
-  .chart-yaml .tok-key{color:var(--tok-key);}
-  .chart-yaml .tok-str{color:var(--tok-str);}
-  .chart-yaml .hit{
+  .chart pre code{background:none; padding:0; color:inherit; font-size:inherit;}
+  .chart .mark-key{color:var(--tok-key);}
+  .chart .mark-hit{
     display:inline-block;
     width:100%;
     background:rgba(193,68,60,0.14);
@@ -394,7 +396,7 @@
     padding-left:8px;
     margin-left:-10px;
   }
-  .chart-yaml .hit .tok-val{color:var(--brass-soft); font-weight:600;}
+  .chart .mark-hit .mark-value{color:var(--brass-soft); font-weight:600;}
 
   @media (max-width:640px){
     /* `1fr` alone keeps `min-width:auto`, so the nowrap filter chip -- 322px
@@ -447,8 +449,20 @@
     word-break:break-word;
     color:var(--text);
   }
-  .outcome pre .prompt{color:var(--text-faint);}
-  .outcome pre .out{color:var(--brass-soft); font-weight:600;}
+  .outcome pre code{background:none; padding:0; color:inherit; font-size:inherit;}
+  /* The prompt is theme chrome, not transcript text: the fence holds only
+     what the user types and copies, output lines carry a mark. */
+  .outcome pre code::before{content:"$ "; color:var(--text-faint);}
+  .outcome pre .mark-out{color:var(--brass-soft); font-weight:600;}
+  /* The explanation closes the strip, full width under the panes. */
+  .outcomes > p{
+    grid-column:1 / -1;
+    color:var(--text-soft);
+    font-size:15px;
+    max-width:74ch;
+    text-wrap:pretty;
+    margin:10px 0 0;
+  }
 
   /* ---------- sections ---------- */
   .wrap section{margin:64px 0;}
@@ -546,22 +560,6 @@
   .card > p{font-size:14px; color:var(--text-soft); margin:0 0 16px;}
   .recipe{margin:0 0 16px;}
   .recipe:last-child{margin-bottom:0;}
-  .recipe .cmd{
-    display:block;
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:10px 12px;
-    font-size:12.5px;
-    overflow-x:auto;
-    color:var(--text);
-    margin:0 0 6px;
-    white-space:pre-wrap;
-    overflow-wrap:break-word;
-  }
-  .recipe .cmd .prompt{color:var(--text-faint);}
-  .recipe .cmd .filter{color:var(--route);}
-  .recipe .note{font-size:13px; color:var(--text-faint); margin:0;}
 
   /* ---------- markdoc shapes (f042) ----------
      The body is markdown with components now, so notes and callout
@@ -570,15 +568,6 @@
      hand-authored markup had, and keep grid items from blowing out
      the mobile viewport (min-width:0 on every grid child). */
   .paths > *, .cards > *, .trio > *, .explicit-recipes > *{min-width:0;}
-  .recipe .note p{margin:0; font-size:inherit; color:inherit;}
-  .recipe .note p + p{margin-top:6px;}
-  .outcomes-note p{
-    color:var(--text-soft);
-    font-size:15px;
-    max-width:74ch;
-    text-wrap:pretty;
-    margin:-32px 0 0;
-  }
   .callout .callout-title{margin:0 0 6px; font-weight:700;}
   .callout p{margin:10px 0 0;}
   .callout p:first-of-type{margin-top:0;}
@@ -602,20 +591,34 @@
   }
   .path-card .loc + p{margin-top:6px;}
 
-  .dockerfile{
+  /* ---------- marks inside processed fences (b037) ----------
+     Editorial emphasis authored in content as mark components: the
+     filter portion of a recipe command, a recipe's output lines, the
+     Dockerfile's comments and keywords, a snippet's shown keys. The
+     recipe pane rules sit after the generic card `pre` rules above so
+     they win the specificity tie. */
+  .recipe pre{
     background:var(--ink-2);
     border:1px solid var(--line);
     border-radius:6px;
-    padding:14px 16px;
+    padding:10px 12px;
     font-size:12.5px;
     overflow-x:auto;
     color:var(--text);
-    margin:0 0 14px;
+    margin:0 0 6px;
     white-space:pre-wrap;
     overflow-wrap:break-word;
   }
-  .dockerfile .rem{color:var(--text-faint);}
-  .dockerfile .kw{color:var(--tok-key);}
+  /* The prompt is theme chrome, not command text: the fence holds only
+     what the user types and copies. */
+  .recipe pre code::before{content:"$ "; color:var(--text-faint);}
+  .recipe pre .mark-filter{color:var(--route);}
+  .recipe pre .mark-out{color:var(--brass-soft);}
+  .recipe p{font-size:13px; color:var(--text-faint); margin:0;}
+  .recipe p + p{margin-top:6px;}
+  .card pre .mark-comment{color:var(--text-faint);}
+  .card pre .mark-keyword{color:var(--tok-key);}
+  .explicit-card pre .mark-key{color:var(--tok-key);}
 
   /* ---------- beyond-kubernetes trio ---------- */
   .trio{
@@ -640,11 +643,11 @@
   }
   .mini-card > p{font-size:13px; color:var(--text-soft); margin:0 0 14px;}
   .mini-card .recipe{margin:0 0 12px;}
-  .mini-card .recipe .cmd{
+  .mini-card .recipe pre{
     font-size:11.5px;
     padding:8px 10px;
   }
-  .mini-card .recipe .note{font-size:12px;}
+  .mini-card .recipe p{font-size:12px;}
 
   /* ---------- further-afield stack ---------- */
   .explicit-card{
@@ -663,17 +666,6 @@
     color:var(--heading);
   }
   .explicit-card > p.lede{font-size:14px; color:var(--text-soft); margin:0 0 16px; max-width:64ch;}
-  .snippet{
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:12px 16px;
-    font-size:12.5px;
-    overflow-x:auto;
-    color:var(--text-soft);
-    margin:0 0 18px;
-  }
-  .snippet .tok-key{color:var(--tok-key);}
   .explicit-recipes{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -681,8 +673,7 @@
   }
   @media (max-width:700px){ .explicit-recipes{grid-template-columns:1fr;} }
   .explicit-recipes .recipe{min-width:0;}
-  .explicit-recipes .recipe .note{font-size:13.5px; color:var(--text-soft); line-height:1.55;}
-  .snippet, .snippet code{white-space:pre-wrap; overflow-wrap:break-word;}
+  .explicit-recipes .recipe p{font-size:13.5px; color:var(--text-soft); line-height:1.55;}
 
   /* ---------- filter grammar table ---------- */
   .wrap table{
@@ -729,30 +720,31 @@
     <path class="chart-route-path" d="M2 18 H84"></path>
     <circle class="chart-route-dot" cx="88" cy="18" r="3.5"></circle>
   </svg>
-  <pre class="chart-yaml"><code>apiVersion: v1
+<pre data-language="yaml"><code>apiVersion: v1
 kind: Pod
 metadata:
-<span class="tok-key">  name:</span> web
+  <span class="mark mark-key" data-part="mark">name:</span> web
 spec:
   volumes:
     - name: tls
       secret:
         secretName: web-tls
-<span class="hit">        <span class="tok-key">defaultMode:</span> <span class="tok-val">0640</span></span></code></pre>
+<span class="mark mark-hit" data-part="mark">        <span class="mark mark-key" data-part="mark">defaultMode:</span> <span class="mark mark-value" data-part="mark">0640</span></span>
+</code></pre>
 </div>
 <div class="outcomes">
-  <div class="outcome exact">
-    <span class="badge">default</span>
-    <pre><span class="prompt">$</span> yqr '.spec.volumes[0].secret.defaultMode' pod.yaml
-<span class="out">0640</span></pre>
-  </div>
-  <div class="outcome drift">
-    <span class="badge">--normalize</span>
-    <pre><span class="prompt">$</span> yqr --normalize '.spec.volumes[0].secret.defaultMode' pod.yaml
-<span class="out">640</span></pre>
-  </div>
+<div class="outcome exact">
+  <span class="badge">default</span>
+<pre data-language="console"><code>yqr '.spec.volumes[0].secret.defaultMode' pod.yaml
+<span class="mark mark-out" data-part="mark">0640</span>
+</code></pre>
 </div>
-<div class="outcomes-note">
+<div class="outcome drift">
+  <span class="badge">--normalize</span>
+<pre data-language="console"><code>yqr --normalize '.spec.volumes[0].secret.defaultMode' pod.yaml
+<span class="mark mark-out" data-part="mark">640</span>
+</code></pre>
+</div>
 <p>Kubernetes spells file permissions in octal — <code>defaultMode: 0640</code> on a Secret or ConfigMap volume. Read that field through yqr and the value comes back exactly as written, because yqr never re-typed it in the first place. Only if you opt into the classic <a href="#engines"><code>--normalize</code></a> pipeline is the leading zero lost: <code>640</code> is a different number.</p>
 </div>
 <section id="paths">
@@ -821,49 +813,44 @@ error[Y001]: expected a node but found StreamEnd
   <h3>Piped from kubectl</h3>
 <p>Standard operator loop: dump a resource as YAML, pull one field out of it, move on.</p>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> kubectl get pods -o yaml | yqr -r &#x27;.items[] | .metadata.name&#x27;</pre>
-  <div class="note">
+<pre data-language="console"><code>kubectl get pods -o yaml | yqr -r <span class="mark mark-filter" data-part="mark">'.items[] | .metadata.name'</span>
+</code></pre>
 <p>One pod name per line.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> kubectl get pod web-0 -o yaml | yqr -r &#x27;.spec.containers[0].image&#x27;</pre>
-  <div class="note">
+<pre data-language="console"><code>kubectl get pod web-0 -o yaml | yqr -r <span class="mark mark-filter" data-part="mark">'.spec.containers[0].image'</span>
+</code></pre>
 <p>The primary container’s image, unquoted.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> kubectl get pod web-0 -o yaml | yqr -r &#x27;.spec.initContainers[]? | .image&#x27;</pre>
-  <div class="note">
+<pre data-language="console"><code>kubectl get pod web-0 -o yaml | yqr -r <span class="mark mark-filter" data-part="mark">'.spec.initContainers[]? | .image'</span>
+</code></pre>
 <p>Init container images when the pod has any — the trailing <code>?</code> keeps pods with none from erroring the pipeline.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr validate --strict manifests&#x2f;*.yaml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr validate --strict manifests/*.yaml
+</code></pre>
 <p>A gate before <code>kubectl apply</code>: every manifest must parse, round-trip byte-for-byte, and carry no duplicate keys. Exit 1 with a located diagnostic if not — and an empty file list is a loud usage error, so a glob that matches nothing never passes as “all valid”.</p>
-  </div>
 </div>
 </div>
 <div class="card">
   <h3>Inside a container image</h3>
 <p>Bake the binary in, then use it in an init container to read a mounted manifest or ConfigMap before the main container starts.</p>
-<pre><code># -- build --
-FROM rust:1.97-slim AS build
+<pre data-language="dockerfile"><code><span class="mark mark-comment" data-part="mark"># -- build --</span>
+<span class="mark mark-keyword" data-part="mark">FROM</span> rust:1.97-slim <span class="mark mark-keyword" data-part="mark">AS</span> build
 WORKDIR /src
 COPY . .
 RUN cargo build --release
 
-# -- runtime --
-FROM debian:bookworm-slim
+<span class="mark mark-comment" data-part="mark"># -- runtime --</span>
+<span class="mark mark-keyword" data-part="mark">FROM</span> debian:bookworm-slim
 COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
-ENTRYPOINT ["yqr"]
+<span class="mark mark-keyword" data-part="mark">ENTRYPOINT</span> [&quot;yqr&quot;]
 </code></pre>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.data.enableBeta&#x27; &#x2f;config&#x2f;values.yaml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.data.enableBeta'</span> /config/values.yaml
+</code></pre>
 <p>Read a flag out of a mounted ConfigMap and hand it to the next step — a common init-container job.</p>
-  </div>
 </div>
 </div>
 </div>
@@ -879,48 +866,42 @@ ENTRYPOINT ["yqr"]
   <h3>CI&#x2f;CD pipelines</h3>
 <p>GitHub Actions workflows are YAML. Audit what a job actually runs without opening the file — these two ran against this repo’s own <code>ci.yml</code>.</p>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.jobs.test.[&quot;runs-on&quot;]&#x27; ci.yml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.jobs.test.[&quot;runs-on&quot;]'</span> ci.yml
+</code></pre>
 <p>ubuntu-latest — bracket syntax reaches keys a bareword can’t spell, like <code>runs-on</code>.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.jobs.test.steps[1].with.toolchain&#x27; ci.yml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.jobs.test.steps[1].with.toolchain'</span> ci.yml
+</code></pre>
 <p>1.97 — confirm the pinned Rust version without scrolling past the cache step.</p>
-  </div>
 </div>
 </div>
 <div class="mini-card">
   <h3>Docker Compose</h3>
 <p>Check what a compose file is about to pull and expose before you run it.</p>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.services[] | .image&#x27; compose.yaml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.services[] | .image'</span> compose.yaml
+</code></pre>
 <p>yqr-demo:latest, postgres:16 — every image referenced, one per line.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.services.web.environment.LOG_LEVEL&#x27; compose.yaml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.services.web.environment.LOG_LEVEL'</span> compose.yaml
+</code></pre>
 <p>debug — one config value, no grep.</p>
-  </div>
 </div>
 </div>
 <div class="mini-card">
   <h3>Ansible playbooks</h3>
 <p>A playbook is a YAML list of plays — walk it like any other sequence.</p>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.[0].tasks[] | .name&#x27; playbook.yml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.[0].tasks[] | .name'</span> playbook.yml
+</code></pre>
 <p>Install nginx, Start nginx — every task in the first play, at a glance.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.[0].hosts&#x27; playbook.yml</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.[0].hosts'</span> playbook.yml
+</code></pre>
 <p>web — which hosts that play targets.</p>
-  </div>
 </div>
 </div>
 </div>
@@ -934,85 +915,79 @@ ENTRYPOINT ["yqr"]
 <div class="explicit-card">
   <h3>OpenAPI specs</h3>
 <p>An OpenAPI document is plain YAML. Point yqr at it to pull a specific operation’s details out of a spec someone else wrote, without loading it into an editor.</p>
-<pre><code>paths:
+<pre data-language="yaml"><code><span class="mark mark-key" data-part="mark">paths:</span>
   /widgets/{id}:
     get:
-      summary: Get a widget
+      <span class="mark mark-key" data-part="mark">summary:</span> Get a widget
       responses:
-        "200":
-          description: OK
+        &quot;200&quot;:
+          <span class="mark mark-key" data-part="mark">description:</span> OK
 </code></pre>
 <div class="explicit-recipes">
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.paths.[&quot;&#x2f;widgets&#x2f;{id}&quot;].get.summary&#x27; openapi.yaml
-Get a widget</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.paths.[&quot;/widgets/{id}&quot;].get.summary'</span> openapi.yaml
+<span class="mark mark-out" data-part="mark">Get a widget</span>
+</code></pre>
 <p>Path keys have slashes and braces, so a bareword can’t spell them — bracket syntax reaches them anyway, the same way <code>.["runs-on"]</code> did for the CI workflow above.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.paths.[&quot;&#x2f;widgets&quot;].get.responses.[&quot;200&quot;].description&#x27; openapi.yaml
-OK</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.paths.[&quot;/widgets&quot;].get.responses.[&quot;200&quot;].description'</span> openapi.yaml
+<span class="mark mark-out" data-part="mark">OK</span>
+</code></pre>
 <p>Status codes are string keys, and an unquoted <code>200</code> in a filter would try to read a number. Bracket syntax reaches the string key <code>"200"</code> exactly as the spec wrote it.</p>
-  </div>
 </div>
 </div>
 </div>
 <div class="explicit-card">
   <h3>Prometheus alerting rules</h3>
 <p>Alerting rules are a YAML list of groups, each holding a list of rules. Reading one back tells you exactly what will page someone, and at what threshold.</p>
-<pre><code>groups:
+<pre data-language="yaml"><code><span class="mark mark-key" data-part="mark">groups:</span>
   - name: api-slos
     rules:
       - alert: HighErrorRate
-        expr: rate(http_requests_total{status="5xx"}[5m]) &gt; 0.05
+        expr: rate(http_requests_total{status=&quot;5xx&quot;}[5m]) &gt; 0.05
         for: 10m
         labels:
           severity: page
 </code></pre>
 <div class="explicit-recipes">
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.groups[0].rules[] | .alert&#x27; rules.yaml
-HighErrorRate
-HighLatency</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.groups[0].rules[] | .alert'</span> rules.yaml
+<span class="mark mark-out" data-part="mark">HighErrorRate</span>
+<span class="mark mark-out" data-part="mark">HighLatency</span>
+</code></pre>
 <p>Every alert name in the first group, without reading through a file’s worth of PromQL to find them.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.groups[0].rules[0].expr&#x27; rules.yaml
-rate(http_requests_total{status=&quot;5xx&quot;}[5m]) &gt; 0.05</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.groups[0].rules[0].expr'</span> rules.yaml
+<span class="mark mark-out" data-part="mark">rate(http_requests_total{status=&quot;5xx&quot;}[5m]) &gt; 0.05</span>
+</code></pre>
 <p>The exact expression for that alert — useful when you just need to confirm the number that pages someone, not re-read the whole rules file.</p>
-  </div>
 </div>
 </div>
 </div>
 <div class="explicit-card">
   <h3>Application config</h3>
 <p>Most services ship a YAML config file alongside the binary — database targets, ports, feature flags. yqr reads it the same way it reads anything else.</p>
-<pre><code>database:
+<pre data-language="yaml"><code><span class="mark mark-key" data-part="mark">database:</span>
   host: db.internal
   port: 5432
-featureFlags:
+<span class="mark mark-key" data-part="mark">featureFlags:</span>
   newCheckout: true
   betaSearch: false
 </code></pre>
 <div class="explicit-recipes">
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.database.host&#x27; application.yaml
-db.internal</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.database.host'</span> application.yaml
+<span class="mark mark-out" data-part="mark">db.internal</span>
+</code></pre>
 <p>Confirm which database an environment’s config actually points at before you run a migration against it.</p>
-  </div>
 </div>
 <div class="recipe">
-  <pre class="cmd"><span class="prompt">$</span> yqr -r &#x27;.featureFlags.newCheckout&#x27; application.yaml
-true</pre>
-  <div class="note">
+<pre data-language="console"><code>yqr -r <span class="mark mark-filter" data-part="mark">'.featureFlags.newCheckout'</span> application.yaml
+<span class="mark mark-out" data-part="mark">true</span>
+</code></pre>
 <p>Read a single feature flag’s value straight out of the file that ships with the deploy, instead of grepping for it.</p>
-  </div>
 </div>
 </div>
 </div>
@@ -1073,10 +1048,10 @@ true</pre>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.26.1 (7f9f313)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-10-09</span>
+        <span>Site last updated: 2026-11-06</span>
         
     </footer>
 
