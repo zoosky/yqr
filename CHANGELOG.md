@@ -6,6 +6,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **A `cli` cargo feature, on by default.** The binary's dependencies
+  (clap and its proc-macro stack) now sit behind it, so a library
+  consumer building with `default-features = false` compiles yqr
+  without them. `cargo install yqr` and every existing workflow are
+  unchanged, and docs.rs keeps documenting the full surface.
+
 ### Changed
 
 - The pinned Rust toolchain was updated from 1.97.1 to 1.99.1, and the

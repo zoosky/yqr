@@ -1,6 +1,6 @@
 # Feature f046 — Put the CLI's dependencies behind a `cli` cargo feature
 
-**Status:** Draft
+**Status:** Done (2026-11-06)
 **Epic:** Library surface and wasm (`f046`–`f050`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f047` (the same cut for schema validation), `yqr-f049`
@@ -52,9 +52,11 @@ succeeds on 0.11.0 but builds clap and clap_derive along the way.
 
 ## Acceptance criteria
 
-- [ ] `cargo check --lib --no-default-features` passes, and `cargo
+- [x] `cargo check --lib --no-default-features` passes, and `cargo
       tree --no-default-features` shows no `clap`.
-- [ ] `cargo build` (default features) produces the binary as before;
+- [x] `cargo build` (default features) produces the binary as before;
       the CLI suite passes unchanged.
-- [ ] `cargo package --list` is unchanged except for `Cargo.toml`.
-- [ ] The CI quality gate runs the no-default-features lib check.
+- [x] `cargo package --list` is unchanged except for `Cargo.toml`.
+- [x] The CI quality gate runs the no-default-features lib check
+      (`ci.yml` and `local-ci.sh` both check the lib compiles and that
+      `cargo tree -e normal` carries no `clap`).

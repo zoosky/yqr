@@ -22,9 +22,23 @@ categories = ["command-line-utilities", "parsing"]
 # the files behind them. Guarded by the package-contents gate in local-ci.sh.
 exclude = [".agent/", ".github/", "docs/", "specs/", "tests/data/", "AGENT.md", "CLAUDE.md"]
 
+# Feature f046: the binary's dependencies sit behind the `cli` feature, on by
+# default, so `cargo install yqr` and every existing workflow are unchanged
+# while a library consumer (`default-features = false`) skips clap and its
+# proc-macro stack entirely.
+[features]
+default = ["cli"]
+cli = ["dep:clap"]
+
+# docs.rs documents the full surface: without this, optional-feature items
+# would silently vanish from the published API docs.
+[package.metadata.docs.rs]
+all-features = true
+
 [[bin]]
 name = "yqr"
 path = "src/main.rs"
+required-features = ["cli"]
 
 [lib]
 name = "yqr"
@@ -41,7 +55,7 @@ name = "corpus_bench"
 harness = false
 
 [dependencies]
-clap = { version = "4.6.1", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"], optional = true }
 # noyalib is yqr's YAML engine: the parser/emitter for the classic pipeline and
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
