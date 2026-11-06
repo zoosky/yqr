@@ -431,10 +431,34 @@ Progress: machinery shipped and measured locally (`dist plan` asset set,
 host-target archive smoke-tested); the end-to-end proof is the next
 release's pipeline run (`f044` §6).
 
+## Epic: Library surface and wasm (f046–f050)
+
+yqr as an embeddable engine: accentcms wants the filter language, the
+validator, and the fidelity write tier as a library — natively on the
+server and compiled to wasm in its admin authoring editor. The epic
+cuts the CLI and JSON Schema stacks out of the lib graph, makes
+diagnostics and edit operations serializable, pins the wasm target in
+CI, and exposes the write tier as a typed API so accent's own
+frontmatter editor (accentcms `f336`) and the browser run one
+implementation. Measured starting point (2026-11-06): the 0.11.0 lib
+already compiles for `wasm32-unknown-unknown` unchanged.
+
+| Feature | Title | Status |
+|---------|-------|--------|
+| [f046](yqr-f046-cli-dependencies-behind-a-cargo-feature.md) | Put the CLI's dependencies behind a `cli` cargo feature | Draft |
+| [f047](yqr-f047-schema-validation-behind-a-cargo-feature.md) | Put JSON Schema validation behind a `schema` cargo feature | Draft |
+| [f048](yqr-f048-serializable-diagnostics-and-filter-error-spans.md) | Serializable diagnostics and filter-error spans | Draft |
+| [f049](yqr-f049-wasm-target-support.md) | wasm target support: a CI lane and a bindings crate | Draft |
+| [f050](yqr-f050-typed-edit-api-one-editor-for-accent-and-the-browser.md) | A typed edit API: one editor for accentcms and the browser | Draft |
+
+Progress: filed 2026-11-06; nothing implemented yet. `f046`–`f048` are
+independent of each other; `f049` wants `f046`/`f047` for its size
+budget; `f050` builds on the write tier and feeds `f049`'s bindings.
+
 ## Summary
 
-- Total features: 44
-- Draft: 1 (f027)
+- Total features: 49
+- Draft: 6 (f027, f046, f047, f048, f049, f050)
 - In Progress: 0
 - Done: 39 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f025, f026, f028,
