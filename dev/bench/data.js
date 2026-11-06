@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794001962284,
+  "lastUpdate": 1794004310823,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3359,6 +3359,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 286485,
             "range": "± 1009",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a583f9e9fbcdffe70afbfe3a54f4b01a5f5e62d3",
+          "message": "chore: pin the Rust toolchain at 1.99.1, MSRV 1.99 (#164)\n\nThe toolchain pin, both workflow installs, the README build note and\nAGENT.md move from 1.97.1; rust-version moves from 1.97. The full gate\npasses on 1.99.1 with no code change: no new clippy lint fires and\nevery test is unchanged. Consumers on an older toolchain keep resolving\nearlier yqr releases through cargo's MSRV-aware resolver.",
+          "timestamp": "2026-11-06T23:30:07+01:00",
+          "tree_id": "83dda665e7482227ac766b03e19e04c8bd659294",
+          "url": "https://github.com/zoosky/yqr/commit/a583f9e9fbcdffe70afbfe3a54f4b01a5f5e62d3"
+        },
+        "date": 1794004309604,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 279,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3189,
+            "range": "± 70",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 173573,
+            "range": "± 3303",
             "unit": "ns/iter"
           }
         ]
