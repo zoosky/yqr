@@ -10,12 +10,12 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b037](yqr-b037-the-home-pages-instructional-highlights-are-gone.md) | The home page's instructional highlights are gone | Low | Open **2026-10-09**, the other half of `f042`'s accepted normalizations: the filter portions of 17 commands, the snippet token tints and the hit line flattened because fenced code has no span vocabulary. Parked, not abandoned — the emphasis is valuable for understanding and reapplies as `mark` components once an accent release carries accentcms `f399` (measured working in accent-proust already). The pre-f042 Playwright baseline is the reapplication target | `yqr-f042`, `yqr-f041`, accentcms `f399` |
 
 ## Resolved
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b037](yqr-b037-the-home-pages-instructional-highlights-are-gone.md) | The home page's instructional highlights are gone | Low | Resolved **2026-11-06** by adopting accent v0.28.1: accentcms `f399` (span marks in processed fences) shipped in v0.27.0 exactly as filed, and the emphasis `f042` had to flatten is authored in `content/index.md` again — `role="filter"` marks on the 16 recipe commands that have one, key tints and the nested hit line, and the Dockerfile tints the filing had not tracked. The chart's YAML pane and both outcome panes moved from template art back into content (`chart` grew a body, a new `outcome` component holds a pane), which is `f042` §2's preferred end state. The `recipe` component's `cmd`/`out` attributes gave way to a fence-opening body, since an attribute string cannot carry marks, and the `$` prompt is theme chrome so the fence holds only what the user copies. Filed 2026-10-09 as the other half of `f042`'s accepted normalizations; verified span-for-span against the pre-f042 markup with a Playwright pass, both themes, no mobile overflow, `llms-full.txt` clean of mark syntax | `yqr-f042`, `yqr-f041`, accentcms `f399` |
 | [b038](yqr-b038-the-changelog-toc-swallows-the-page.md) | The changelog's table of contents swallows the page | Medium | Resolved **2026-10-09**, filed and fixed the same day from a report on the deployed site: 56 TOC entries at 1,675px before any content. The TOC partial now chooses by scale — over 12 entries renders a compact top-level chip index — because the changelog mount carries no frontmatter by design (`f039`), so configuration was never available | `yqr-f039`, `yqr-f041` |
 | [b036](yqr-b036-item-spans-shift-under-an-anchored-indented-sequence.md) | Item spans shift under an anchored, indented block sequence | Low | Resolved **2026-10-09** by `yqr-f043` (noyalib 0.0.57, yqr's noyalib#475). Filed **2026-10-08**, found while measuring `f038`'s sequence case on noyalib 0.0.56. With an anchor on the key and the items indented past it, `span_at` reports the items' spans shifted by the anchor property's width (one lands on the line break, the next is empty); without the anchor, or with the items at the key's own column, the spans are exact. Nothing silent reaches a user: the read path's wrong-node guard degrades to a typed render and prints the right value, and `del` refuses the layout. Pinned as it behaves in the `f038` test block, so the fixing bump flips a test. Upstream owns the fix; both yqr consumers already degrade safely. Filed upstream 2026-10-08 as noyalib#474, fix proposed as noyalib#475 | `yqr-f038`, `yqr-b028`, `yqr-b035` |
 | [b035](yqr-b035-an-alias-valued-entry-cannot-be-deleted-or-overwritten.md) | An entry whose value is an alias cannot be deleted or overwritten | Medium | Resolved **2026-10-09** by `yqr-f043` (noyalib 0.0.57, yqr's noyalib#477); the block delete now delegates alias-valued entries to upstream `remove`, and the f036 refusal names remedies that run. Filed **2026-09-19**, found while writing `f036`'s removed-anchor refusal. `del(.j)` and `.j = 5` over `j: *x` are refused on every layout measured: the block delete says "its source layout is not supported", the flow delete and assignment give the engine's refusal. Likely cause: `span_at` on an alias returns the anchor's bytes, not the `*x` token's. The cost is that the refusal for removing a still-used anchor can only tell the user to edit the file by hand. `Document::aliases()` gives the token's span, which is what a fix would use. Filed upstream 2026-10-08 as noyalib#476, fix proposed as noyalib#477: the alias span node records the token, remove and scalar set_value go through it, through-alias paths keep their refusal | `yqr-f036`, `yqr-b026`, `yqr-f025` |
@@ -57,9 +57,11 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 35
-- Open: **1** — `b037`, filed 2026-10-09: the home page's instructional
-  highlights are parked until accentcms `f399` ships (reapply as marks).
-  Resolved since the last count: `b035` and `b036`, both closed by
+- Open: **0**. Resolved since the last count: `b037`, closed 2026-11-06
+  by the accent v0.28.1 adoption — accentcms `f399` shipped in v0.27.0,
+  and the home page's instructional highlights are authored as `mark`
+  components in content again, with the chart and outcome panes back in
+  content too. Before that: `b035` and `b036`, both closed by
   noyalib 0.0.57 carrying yqr's own fixes (noyalib#475, #477) — an
   entry whose value is an alias
   (`j: *x`) cannot be deleted or overwritten on any layout measured, so
@@ -127,7 +129,7 @@ status tracker convention).
   yqr's noyalib#296, released hours after it merged. Verified against the
   published crate on its own reproduction with all four controls
   (`yqr-f020` §3).
-- Resolved: 34 (b033, b032 and b034, b031, b029, b030, b028, b027, b026,
+- Resolved: 35 (b037 — see above; b033, b032 and b034, b031, b029, b030, b028, b027, b026,
   b025 and b024 — see above;
   b022 and b021 — closed by noyalib 0.0.28, see above;
   b023, b020, b019, b018, b017, b016, b015 — see above; b014, b013, b012, b011 —

@@ -2,9 +2,9 @@
    original standalone docs/content/home.html, ported to a real CMS page so
    `accent serve` and `accent build` render the same site (serve/build
    parity). The page body lives in content/index.md (frontmatter
-   `template: home`, `process.markdown: false` so the HTML passes through
-   untouched); this template carries the page's bespoke stylesheet and hands
-   the theme its header menu and footer.
+   `template: home`) as markdown with Markdoc components; this template
+   carries the page's bespoke stylesheet and hands the theme its header
+   menu and footer.
 
    The page follows the theme's color-mode mechanism: the ink palette is the
    dark mode (the original design), and a paper "daylight" palette drives
@@ -210,7 +210,9 @@
     .chart-route-path{animation:none; stroke-dashoffset:0;}
     .chart-route-dot{animation:none; opacity:1;}
   }
-  .chart-yaml{
+  /* The YAML pane is the chart's body: a processed fence whose key tints
+     and hit line are authored as mark components in content (b037). */
+  .chart pre{
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:8px;
@@ -220,9 +222,9 @@
     margin:0;
     color:var(--text-soft);
   }
-  .chart-yaml .tok-key{color:var(--tok-key);}
-  .chart-yaml .tok-str{color:var(--tok-str);}
-  .chart-yaml .hit{
+  .chart pre code{background:none; padding:0; color:inherit; font-size:inherit;}
+  .chart .mark-key{color:var(--tok-key);}
+  .chart .mark-hit{
     display:inline-block;
     width:100%;
     background:rgba(193,68,60,0.14);
@@ -230,7 +232,7 @@
     padding-left:8px;
     margin-left:-10px;
   }
-  .chart-yaml .hit .tok-val{color:var(--brass-soft); font-weight:600;}
+  .chart .mark-hit .mark-value{color:var(--brass-soft); font-weight:600;}
 
   @media (max-width:640px){
     /* `1fr` alone keeps `min-width:auto`, so the nowrap filter chip -- 322px
@@ -283,8 +285,20 @@
     word-break:break-word;
     color:var(--text);
   }
-  .outcome pre .prompt{color:var(--text-faint);}
-  .outcome pre .out{color:var(--brass-soft); font-weight:600;}
+  .outcome pre code{background:none; padding:0; color:inherit; font-size:inherit;}
+  /* The prompt is theme chrome, not transcript text: the fence holds only
+     what the user types and copies, output lines carry a mark. */
+  .outcome pre code::before{content:"$ "; color:var(--text-faint);}
+  .outcome pre .mark-out{color:var(--brass-soft); font-weight:600;}
+  /* The explanation closes the strip, full width under the panes. */
+  .outcomes > p{
+    grid-column:1 / -1;
+    color:var(--text-soft);
+    font-size:15px;
+    max-width:74ch;
+    text-wrap:pretty;
+    margin:10px 0 0;
+  }
 
   /* ---------- sections ---------- */
   .wrap section{margin:64px 0;}
@@ -382,22 +396,6 @@
   .card > p{font-size:14px; color:var(--text-soft); margin:0 0 16px;}
   .recipe{margin:0 0 16px;}
   .recipe:last-child{margin-bottom:0;}
-  .recipe .cmd{
-    display:block;
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:10px 12px;
-    font-size:12.5px;
-    overflow-x:auto;
-    color:var(--text);
-    margin:0 0 6px;
-    white-space:pre-wrap;
-    overflow-wrap:break-word;
-  }
-  .recipe .cmd .prompt{color:var(--text-faint);}
-  .recipe .cmd .filter{color:var(--route);}
-  .recipe .note{font-size:13px; color:var(--text-faint); margin:0;}
 
   /* ---------- markdoc shapes (f042) ----------
      The body is markdown with components now, so notes and callout
@@ -406,15 +404,6 @@
      hand-authored markup had, and keep grid items from blowing out
      the mobile viewport (min-width:0 on every grid child). */
   .paths > *, .cards > *, .trio > *, .explicit-recipes > *{min-width:0;}
-  .recipe .note p{margin:0; font-size:inherit; color:inherit;}
-  .recipe .note p + p{margin-top:6px;}
-  .outcomes-note p{
-    color:var(--text-soft);
-    font-size:15px;
-    max-width:74ch;
-    text-wrap:pretty;
-    margin:-32px 0 0;
-  }
   .callout .callout-title{margin:0 0 6px; font-weight:700;}
   .callout p{margin:10px 0 0;}
   .callout p:first-of-type{margin-top:0;}
@@ -438,20 +427,34 @@
   }
   .path-card .loc + p{margin-top:6px;}
 
-  .dockerfile{
+  /* ---------- marks inside processed fences (b037) ----------
+     Editorial emphasis authored in content as mark components: the
+     filter portion of a recipe command, a recipe's output lines, the
+     Dockerfile's comments and keywords, a snippet's shown keys. The
+     recipe pane rules sit after the generic card `pre` rules above so
+     they win the specificity tie. */
+  .recipe pre{
     background:var(--ink-2);
     border:1px solid var(--line);
     border-radius:6px;
-    padding:14px 16px;
+    padding:10px 12px;
     font-size:12.5px;
     overflow-x:auto;
     color:var(--text);
-    margin:0 0 14px;
+    margin:0 0 6px;
     white-space:pre-wrap;
     overflow-wrap:break-word;
   }
-  .dockerfile .rem{color:var(--text-faint);}
-  .dockerfile .kw{color:var(--tok-key);}
+  /* The prompt is theme chrome, not command text: the fence holds only
+     what the user types and copies. */
+  .recipe pre code::before{content:"$ "; color:var(--text-faint);}
+  .recipe pre .mark-filter{color:var(--route);}
+  .recipe pre .mark-out{color:var(--brass-soft);}
+  .recipe p{font-size:13px; color:var(--text-faint); margin:0;}
+  .recipe p + p{margin-top:6px;}
+  .card pre .mark-comment{color:var(--text-faint);}
+  .card pre .mark-keyword{color:var(--tok-key);}
+  .explicit-card pre .mark-key{color:var(--tok-key);}
 
   /* ---------- beyond-kubernetes trio ---------- */
   .trio{
@@ -476,11 +479,11 @@
   }
   .mini-card > p{font-size:13px; color:var(--text-soft); margin:0 0 14px;}
   .mini-card .recipe{margin:0 0 12px;}
-  .mini-card .recipe .cmd{
+  .mini-card .recipe pre{
     font-size:11.5px;
     padding:8px 10px;
   }
-  .mini-card .recipe .note{font-size:12px;}
+  .mini-card .recipe p{font-size:12px;}
 
   /* ---------- further-afield stack ---------- */
   .explicit-card{
@@ -499,17 +502,6 @@
     color:var(--heading);
   }
   .explicit-card > p.lede{font-size:14px; color:var(--text-soft); margin:0 0 16px; max-width:64ch;}
-  .snippet{
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:12px 16px;
-    font-size:12.5px;
-    overflow-x:auto;
-    color:var(--text-soft);
-    margin:0 0 18px;
-  }
-  .snippet .tok-key{color:var(--tok-key);}
   .explicit-recipes{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -517,8 +509,7 @@
   }
   @media (max-width:700px){ .explicit-recipes{grid-template-columns:1fr;} }
   .explicit-recipes .recipe{min-width:0;}
-  .explicit-recipes .recipe .note{font-size:13.5px; color:var(--text-soft); line-height:1.55;}
-  .snippet, .snippet code{white-space:pre-wrap; overflow-wrap:break-word;}
+  .explicit-recipes .recipe p{font-size:13.5px; color:var(--text-soft); line-height:1.55;}
 
   /* ---------- filter grammar table ---------- */
   .wrap table{
