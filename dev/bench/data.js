@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794005227301,
+  "lastUpdate": 1794006080994,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3443,6 +3443,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 274386,
             "range": "± 1766",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b5c6c5604b93e4dbadd7a80ed49a7388d09796b7",
+          "message": "feat: put the CLI's dependencies behind a default-on cli cargo feature (#167)\n\nclap and its proc-macro stack were unconditional dependencies, but only\nthe binary uses them. A cli feature, on by default, keeps cargo install\nand every existing workflow unchanged while a library consumer building\nwith default-features = false skips the whole stack. The quality gates\nenforce a clap-free no-default-features lib graph, docs.rs builds all\nfeatures, and the home page documents the library path.",
+          "timestamp": "2026-11-06T23:59:57+01:00",
+          "tree_id": "a080ea38d523738cf89b84e77725b6c747bc970d",
+          "url": "https://github.com/zoosky/yqr/commit/b5c6c5604b93e4dbadd7a80ed49a7388d09796b7"
+        },
+        "date": 1794006079897,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 417,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4313,
+            "range": "± 101",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 212828,
+            "range": "± 1148",
             "unit": "ns/iter"
           }
         ]
