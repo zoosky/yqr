@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794008248821,
+  "lastUpdate": 1794009490002,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3569,6 +3569,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 177420,
             "range": "± 1818",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "69420ce621d8fc3a9a15611b52d7484239df515e",
+          "message": "feat: wasm target support -- a CI lane and the yqr-wasm bindings crate (#172)\n\nThe lib compiled for wasm32-unknown-unknown by accident; now it is a\ncontract. CI checks the target for three editor-relevant feature\nstates on every PR, and the yqr-wasm workspace crate (publish = false)\nexposes eval, fidelityRun (via the new fidelity::run_program), and\nvalidate, with values and diagnostics as plain JS data and errors as\nstructured {kind, message, span} objects. Integers past JS's safe\nrange and non-string mapping keys are refused, not corrupted. Seven\nsmoke tests run in Node's wasm runtime; the optimized module measures\n676,767 bytes against a pinned-toolchain 900,000-byte CI ceiling, with\nwasm-pack pinned at v0.15.1.",
+          "timestamp": "2026-11-07T00:56:34+01:00",
+          "tree_id": "763b61c7426f5887e14953c745eac6c8da1000fb",
+          "url": "https://github.com/zoosky/yqr/commit/69420ce621d8fc3a9a15611b52d7484239df515e"
+        },
+        "date": 1794009488999,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 574,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5874,
+            "range": "± 38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 273101,
+            "range": "± 5635",
             "unit": "ns/iter"
           }
         ]
