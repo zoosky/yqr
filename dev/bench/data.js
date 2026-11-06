@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791576591625,
+  "lastUpdate": 1794001528252,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3275,6 +3275,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 300634,
             "range": "± 3121",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8951810b394da91dfacc45970a4f4ad5bf9be63",
+          "message": "chore: adopt noyalib 0.0.58, a hardening release that moves nothing (f045) (#158)\n\nOne lockfile package moves. The release hardens the parser, CST and\nloader boundaries (CST edits re-parse under the document's own\nconfiguration, policy checks on parses and edits), locates typed\ndeserialization errors, and raises the family MSRV to 1.89 - all on\npaths yqr does not call or already satisfies. All 621 tests pass with\nzero pinned expectations flipped; local-ci.sh clean.",
+          "timestamp": "2026-11-06T22:43:14+01:00",
+          "tree_id": "6ccf1fe488c134ab48aec437d6585216c8acfc51",
+          "url": "https://github.com/zoosky/yqr/commit/f8951810b394da91dfacc45970a4f4ad5bf9be63"
+        },
+        "date": 1794001527222,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 546,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5935,
+            "range": "± 215",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 291980,
+            "range": "± 5806",
             "unit": "ns/iter"
           }
         ]
