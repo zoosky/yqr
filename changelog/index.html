@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 10008
+  "wordCount": 10087
 }
 </script>
 <script type="application/ld+json">
@@ -414,6 +414,14 @@
 consumer building with <code>default-features = false</code> compiles yqr
 without them. <code>cargo install yqr</code> and every existing workflow are
 unchanged, and docs.rs keeps documenting the full surface.</li>
+<li><strong>A <code>schema</code> cargo feature, on by default and implied by <code>cli</code>.</strong>
+JSON Schema validation — <code>validate::check</code> and the <code>Schema</code> type,
+with the <code>jsonschema</code> and <code>serde_json</code> dependency stack behind them —
+now sits behind it. <code>validate::check_str</code> (syntax, stream integrity,
+indentation, strict mode) stays unconditional, so a minimal build
+keeps the full YAML-correctness verdict: a <code>default-features = false</code>
+lib resolves to 17 crates, and an editor-profile wasm module shrinks
+from 2.31 MiB to 344 KiB. The shipped binary is unchanged.</li>
 </ul>
 <h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
 <ul>
