@@ -2467,8 +2467,8 @@ fn the_prose_synopses_name_every_flag_and_every_code() {
 
     // Every code the registry can emit, scraped from the enum's own
     // source so the list grows with it.
-    let registry = std::fs::read_to_string(format!("{root}/src/validate/mod.rs"))
-        .expect("src/validate/mod.rs");
+    let registry = std::fs::read_to_string(format!("{root}/src/validate/diagnostic.rs"))
+        .expect("src/validate/diagnostic.rs");
     let mut codes: Vec<&str> = Vec::new();
     let bytes = registry.as_bytes();
     for i in 0..bytes.len().saturating_sub(5) {

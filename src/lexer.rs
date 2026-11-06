@@ -64,53 +64,104 @@ pub enum Token {
     Str(String),
 }
 
+/// A [`Token`] together with the **character** range it occupies in the
+/// filter source, which is what lets a parse error point at the token it
+/// is about.
+///
+/// The range counts characters, matching the lexer's cursor, so keeping it
+/// costs nothing per token. It is converted to a byte range by
+/// [`byte_range`] only when an error is actually raised — errors are rare,
+/// and the happy path should not pay for them.
+// Feature f048.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct SpannedToken {
+    pub(crate) token: Token,
+    pub(crate) span: std::ops::Range<usize>,
+}
+
+/// Convert a character range into the byte range it occupies in `src`.
+///
+/// Walks the source once; called only when constructing an error, never on
+/// the happy path. A character index at or past the end maps to the source
+/// length, so a cursor at end-of-input yields an empty range at the end.
+// Feature f048.
+pub(crate) fn byte_range(src: &str, chars: std::ops::Range<usize>) -> std::ops::Range<usize> {
+    let mut start = src.len();
+    let mut end = src.len();
+    for (char_idx, (byte, _)) in src.char_indices().enumerate() {
+        if char_idx == chars.start {
+            start = byte;
+        }
+        if char_idx == chars.end {
+            end = byte;
+            break;
+        }
+    }
+    start..end
+}
+
 /// Tokenize `src` into a vector of [`Token`]s.
 pub fn lex(src: &str) -> Result<Vec<Token>> {
-    let mut tokens = Vec::new();
+    Ok(lex_spanned(src)?.into_iter().map(|s| s.token).collect())
+}
+
+/// Tokenize `src`, keeping each token's character span for the parser's
+/// error reporting (see [`SpannedToken`]).
+// Feature f048.
+pub(crate) fn lex_spanned(src: &str) -> Result<Vec<SpannedToken>> {
+    let mut tokens: Vec<SpannedToken> = Vec::new();
     let chars: Vec<char> = src.chars().collect();
     let mut i = 0;
+
+    // Push `token` covering characters `from..to` (exclusive).
+    let push = |tokens: &mut Vec<SpannedToken>, token: Token, from: usize, to: usize| {
+        tokens.push(SpannedToken {
+            token,
+            span: from..to,
+        });
+    };
 
     while i < chars.len() {
         let c = chars[i];
         match c {
             c if c.is_whitespace() => i += 1,
             '.' => {
-                tokens.push(Token::Dot);
+                push(&mut tokens, Token::Dot, i, i + 1);
                 i += 1;
             }
             // Feature f006: `|` and `|=` share a prefix; peek to disambiguate.
             '|' => {
                 if chars.get(i + 1) == Some(&'=') {
-                    tokens.push(Token::PipeEq);
+                    push(&mut tokens, Token::PipeEq, i, i + 2);
                     i += 2;
                 } else {
-                    tokens.push(Token::Pipe);
+                    push(&mut tokens, Token::Pipe, i, i + 1);
                     i += 1;
                 }
             }
             '[' => {
-                tokens.push(Token::LBracket);
+                push(&mut tokens, Token::LBracket, i, i + 1);
                 i += 1;
             }
             ']' => {
-                tokens.push(Token::RBracket);
+                push(&mut tokens, Token::RBracket, i, i + 1);
                 i += 1;
             }
             '?' => {
-                tokens.push(Token::Question);
+                push(&mut tokens, Token::Question, i, i + 1);
                 i += 1;
             }
             // Feature f006: mutation operators and `del(...)` grouping.
             '=' => {
-                tokens.push(Token::Eq);
+                push(&mut tokens, Token::Eq, i, i + 1);
                 i += 1;
             }
             '+' => {
                 if chars.get(i + 1) == Some(&'=') {
-                    tokens.push(Token::PlusEq);
+                    push(&mut tokens, Token::PlusEq, i, i + 2);
                     i += 2;
                 } else {
-                    tokens.push(Token::Plus);
+                    push(&mut tokens, Token::Plus, i, i + 1);
                     i += 1;
                 }
             }
@@ -118,28 +169,28 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
             // negative literal, so it is handled with the number scanner
             // below, which already owns that decision.
             '*' => {
-                tokens.push(Token::Star);
+                push(&mut tokens, Token::Star, i, i + 1);
                 i += 1;
             }
             '/' => {
-                tokens.push(Token::Slash);
+                push(&mut tokens, Token::Slash, i, i + 1);
                 i += 1;
             }
             '%' => {
-                tokens.push(Token::Percent);
+                push(&mut tokens, Token::Percent, i, i + 1);
                 i += 1;
             }
             '(' => {
-                tokens.push(Token::LParen);
+                push(&mut tokens, Token::LParen, i, i + 1);
                 i += 1;
             }
             ')' => {
-                tokens.push(Token::RParen);
+                push(&mut tokens, Token::RParen, i, i + 1);
                 i += 1;
             }
             // Feature f007: reorder-verb argument separator.
             ';' => {
-                tokens.push(Token::Semi);
+                push(&mut tokens, Token::Semi, i, i + 1);
                 i += 1;
             }
             // `,` is the likeliest wrong guess for that separator, and it is
@@ -147,14 +198,17 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
             // the refusal points at `;` instead of just naming the byte.
             // Feature f007.
             ',' => {
-                return Err(YqrError::lex(format!(
-                    "unexpected character ',' at position {i}: yqr has no ',' operator; \
-                     a function separates its arguments with ';', as in swap(.xs; 0; 1)"
-                )));
+                return Err(YqrError::lex_at(
+                    format!(
+                        "unexpected character ',' at position {i}: yqr has no ',' operator; \
+                         a function separates its arguments with ';', as in swap(.xs; 0; 1)"
+                    ),
+                    byte_range(src, i..i + 1),
+                ));
             }
             '"' => {
-                let (s, next) = lex_string(&chars, i)?;
-                tokens.push(Token::Str(s));
+                let (s, next) = lex_string(&chars, i, src)?;
+                push(&mut tokens, Token::Str(s), i, next);
                 i = next;
             }
             // `-` is the one ambiguous operator: it also opens a negative
@@ -166,23 +220,24 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
             // has, resolved the same way.
             // Feature f008.
             '-' if !matches!(chars.get(i + 1), Some(d) if d.is_ascii_digit()) => {
-                tokens.push(Token::Minus);
+                push(&mut tokens, Token::Minus, i, i + 1);
                 i += 1;
             }
             c if c == '-' || c.is_ascii_digit() => {
-                let (tok, next) = lex_number(&chars, i)?;
-                tokens.push(tok);
+                let (tok, next) = lex_number(&chars, i, src)?;
+                push(&mut tokens, tok, i, next);
                 i = next;
             }
             c if is_ident_start(c) => {
                 let (s, next) = lex_ident(&chars, i);
-                tokens.push(Token::Ident(s));
+                push(&mut tokens, Token::Ident(s), i, next);
                 i = next;
             }
             other => {
-                return Err(YqrError::lex(format!(
-                    "unexpected character {other:?} at position {i}"
-                )));
+                return Err(YqrError::lex_at(
+                    format!("unexpected character {other:?} at position {i}"),
+                    byte_range(src, i..i + 1),
+                ));
             }
         }
     }
@@ -214,7 +269,7 @@ fn lex_ident(chars: &[char], start: usize) -> (String, usize) {
 /// assignment RHS (`.x = 1.5`). A trailing `.` not followed by a digit is left
 /// for the [`Token::Dot`] rule, so `5.` lexes as `Int(5)` then `Dot`.
 // Feature f006: float RHS support.
-fn lex_number(chars: &[char], start: usize) -> Result<(Token, usize)> {
+fn lex_number(chars: &[char], start: usize, src: &str) -> Result<(Token, usize)> {
     let mut i = start;
     if chars[i] == '-' {
         i += 1;
@@ -224,9 +279,10 @@ fn lex_number(chars: &[char], start: usize) -> Result<(Token, usize)> {
         i += 1;
     }
     if i == digits_start {
-        return Err(YqrError::lex(format!(
-            "expected digits after '-' at position {start}"
-        )));
+        return Err(YqrError::lex_at(
+            format!("expected digits after '-' at position {start}"),
+            byte_range(src, start..i),
+        ));
     }
 
     let mut is_float = false;
@@ -257,27 +313,34 @@ fn lex_number(chars: &[char], start: usize) -> Result<(Token, usize)> {
 
     let text: String = chars[start..i].iter().collect();
     if is_float {
-        let f = text
-            .parse::<f64>()
-            .map_err(|e| YqrError::lex(format!("invalid number {text:?}: {e}")))?;
+        let f = text.parse::<f64>().map_err(|e| {
+            YqrError::lex_at(
+                format!("invalid number {text:?}: {e}"),
+                byte_range(src, start..i),
+            )
+        })?;
         // `parse::<f64>` maps an out-of-range magnitude to `±inf` (Ok, not Err).
         // Accepting it would silently write the bare token `inf`, which any YAML
         // reader reloads as the string "inf" — a silent type change. Refuse it.
         if !f.is_finite() {
-            return Err(YqrError::lex(format!(
-                "number {text:?} is out of range for a 64-bit float"
-            )));
+            return Err(YqrError::lex_at(
+                format!("number {text:?} is out of range for a 64-bit float"),
+                byte_range(src, start..i),
+            ));
         }
         Ok((Token::Float(f), i))
     } else {
-        let n = text
-            .parse::<i64>()
-            .map_err(|e| YqrError::lex(format!("invalid integer {text:?}: {e}")))?;
+        let n = text.parse::<i64>().map_err(|e| {
+            YqrError::lex_at(
+                format!("invalid integer {text:?}: {e}"),
+                byte_range(src, start..i),
+            )
+        })?;
         Ok((Token::Int(n), i))
     }
 }
 
-fn lex_string(chars: &[char], start: usize) -> Result<(String, usize)> {
+fn lex_string(chars: &[char], start: usize, src: &str) -> Result<(String, usize)> {
     // chars[start] == '"'
     let mut i = start + 1;
     let mut out = String::new();
@@ -297,7 +360,10 @@ fn lex_string(chars: &[char], start: usize) -> Result<(String, usize)> {
                     '"' => '"',
                     '/' => '/',
                     other => {
-                        return Err(YqrError::lex(format!("invalid escape sequence \\{other}")));
+                        return Err(YqrError::lex_at(
+                            format!("invalid escape sequence \\{other}"),
+                            byte_range(src, i - 1..i + 1),
+                        ));
                     }
                 };
                 out.push(esc);
@@ -309,7 +375,10 @@ fn lex_string(chars: &[char], start: usize) -> Result<(String, usize)> {
             }
         }
     }
-    Err(YqrError::lex("unterminated string literal".to_string()))
+    Err(YqrError::lex_at(
+        "unterminated string literal".to_string(),
+        byte_range(src, start..chars.len()),
+    ))
 }
 
 #[cfg(test)]

@@ -49,9 +49,9 @@ jobs:
       - name: Build
         run: cargo build --all-targets --locked
 
-      # Features f046/f047: the lib lints, tests and compiles without the
-      # CLI and JSON Schema dependency graphs (and in the schema-only editor
-      # profile), and clap, jsonschema and serde_json stay out of the minimal
+      # Features f046-f048: the lib lints, tests and compiles without the
+      # CLI, JSON Schema and serde dependency graphs (and in the schema-only editor
+      # profile), and clap, jsonschema, serde_json and serde stay out of the minimal
       # graph entirely. `cargo tree` writes to a file as its own command so a
       # tool failure fails the step instead of handing grep empty input, and
       # grep's exit code is inspected explicitly so a grep error (exit 2)
@@ -61,9 +61,10 @@ jobs:
           cargo clippy --lib --no-default-features --locked -- -D warnings
           cargo test --lib --no-default-features --locked
           cargo check --lib --no-default-features --features schema --locked
+          cargo check --lib --no-default-features --features serde --locked
           cargo tree --no-default-features --locked -e normal --prefix none > /tmp/lib-deps.txt
           rc=0
-          grep -E '^(clap|jsonschema|serde_json) ' /tmp/lib-deps.txt || rc=$?
+          grep -E '^(clap|jsonschema|serde_json|serde) ' /tmp/lib-deps.txt || rc=$?
           if [ "$rc" -eq 0 ]; then
             echo "error: a gated dependency is in the no-default-features graph" >&2
             exit 1
