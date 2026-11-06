@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 9899
+  "wordCount": 9957
 }
 </script>
 <script type="application/ld+json">
@@ -407,6 +407,12 @@
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
 <h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
 <ul>
+<li>The pinned Rust toolchain was updated from 1.97.1 to 1.99.1, and the
+minimum supported Rust version from 1.97 to 1.99 (<code>rust-version</code> in
+<code>Cargo.toml</code>). The full gate passes on 1.99.1 with no code change: no
+new clippy lint fires, and every test is unchanged. Consumers on an
+older toolchain keep resolving earlier yqr releases through cargo’s
+MSRV-aware resolver.</li>
 <li><strong>noyalib 0.0.57 → 0.0.58.</strong> No yqr behavior changes: every corpus, CLI
 and fidelity case is byte-identical. The release hardens the engine’s
 parser, CST and loader boundaries and adds positions to typed

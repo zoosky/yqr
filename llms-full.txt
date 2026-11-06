@@ -1778,6 +1778,12 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- The pinned Rust toolchain was updated from 1.97.1 to 1.99.1, and the
+  minimum supported Rust version from 1.97 to 1.99 (`rust-version` in
+  `Cargo.toml`). The full gate passes on 1.99.1 with no code change: no
+  new clippy lint fires, and every test is unchanged. Consumers on an
+  older toolchain keep resolving earlier yqr releases through cargo's
+  MSRV-aware resolver.
 - **noyalib 0.0.57 → 0.0.58.** No yqr behavior changes: every corpus, CLI
   and fidelity case is byte-identical. The release hardens the engine's
   parser, CST and loader boundaries and adds positions to typed
