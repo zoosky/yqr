@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 10087
+  "wordCount": 10208
 }
 </script>
 <script type="application/ld+json">
@@ -222,7 +222,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">51 min read</span>
+                    <span class="reading-time">52 min read</span>
                 </div>
                 
 
@@ -409,22 +409,42 @@
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
 <h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
 <ul>
-<li><strong>A <code>cli</code> cargo feature, on by default.</strong> The binary’s dependencies
+<li>
+<p><strong>A <code>cli</code> cargo feature, on by default.</strong> The binary’s dependencies
 (clap and its proc-macro stack) now sit behind it, so a library
 consumer building with <code>default-features = false</code> compiles yqr
 without them. <code>cargo install yqr</code> and every existing workflow are
-unchanged, and docs.rs keeps documenting the full surface.</li>
-<li><strong>A <code>schema</code> cargo feature, on by default and implied by <code>cli</code>.</strong>
+unchanged, and docs.rs keeps documenting the full surface.</p>
+</li>
+<li>
+<p><strong>A <code>schema</code> cargo feature, on by default and implied by <code>cli</code>.</strong>
 JSON Schema validation — <code>validate::check</code> and the <code>Schema</code> type,
 with the <code>jsonschema</code> and <code>serde_json</code> dependency stack behind them —
 now sits behind it. <code>validate::check_str</code> (syntax, stream integrity,
 indentation, strict mode) stays unconditional, so a minimal build
 keeps the full YAML-correctness verdict: a <code>default-features = false</code>
 lib resolves to 17 crates, and an editor-profile wasm module shrinks
-from 2.31 MiB to 344 KiB. The shipped binary is unchanged.</li>
+from 2.31 MiB to 344 KiB. The shipped binary is unchanged.</p>
+</li>
+<li>
+<p><strong>Structured diagnostics for editor hosts.</strong> <code>validate::Diagnostic</code>
+now carries the byte offset of its position beside line/column, and a
+filter lex/parse error carries the byte span of the offending token
+(<code>YqrError::span()</code>), so an editor can underline it without
+re-scanning. An opt-in <code>serde</code> cargo feature derives <code>Serialize</code> on
+these types, with the diagnostic code serialized as its stable string
+(<code>"Y101"</code>). Rendered CLI output is byte-identical.</p>
+</li>
 </ul>
 <h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
 <ul>
+<li><strong>Breaking (library API):</strong> <code>YqrError::Lex</code> and <code>YqrError::Parse</code> now
+carry a <code>FilterError { message, span }</code> instead of a bare <code>String</code>,
+and <code>validate::Diagnostic</code> gains an <code>offset</code> field and is
+<code>#[non_exhaustive]</code> (as is <code>FilterError</code>). Code matching on the
+variant payloads or constructing <code>Diagnostic</code> by struct literal must
+adjust; pre-1.0, the next release bumps the minor. The CLI is
+unaffected.</li>
 <li>The pinned Rust toolchain was updated from 1.97.1 to 1.99.1, and the
 minimum supported Rust version from 1.97 to 1.99 (<code>rust-version</code> in
 <code>Cargo.toml</code>). The full gate passes on 1.99.1 with no code change: no
