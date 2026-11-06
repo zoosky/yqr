@@ -257,7 +257,10 @@ pub fn open(input: &str) -> Result<Box<dyn FidelityEngine>> {
 /// # Errors
 ///
 /// Returns an error when the documents do not tile `input`.
-// Feature f040.
+// Feature f040. Only the schema pass (f047) calls it today; the cfg keeps
+// the no-schema build warning-free rather than reflecting anything
+// schema-specific about the function.
+#[cfg(feature = "schema")]
 pub(crate) fn open_parsed(
     input: &str,
     docs: Vec<::noyalib::cst::Document>,

@@ -13,6 +13,14 @@ All notable changes to `yqr` are documented here. The format is based on
   consumer building with `default-features = false` compiles yqr
   without them. `cargo install yqr` and every existing workflow are
   unchanged, and docs.rs keeps documenting the full surface.
+- **A `schema` cargo feature, on by default and implied by `cli`.**
+  JSON Schema validation — `validate::check` and the `Schema` type,
+  with the `jsonschema` and `serde_json` dependency stack behind them —
+  now sits behind it. `validate::check_str` (syntax, stream integrity,
+  indentation, strict mode) stays unconditional, so a minimal build
+  keeps the full YAML-correctness verdict: a `default-features = false`
+  lib resolves to 17 crates, and an editor-profile wasm module shrinks
+  from 2.31 MiB to 344 KiB. The shipped binary is unchanged.
 
 ### Changed
 

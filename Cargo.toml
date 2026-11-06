@@ -26,13 +26,20 @@ exclude = [".agent/", ".github/", "docs/", "specs/", "tests/data/", "AGENT.md", 
 # default, so `cargo install yqr` and every existing workflow are unchanged
 # while a library consumer (`default-features = false`) skips clap and its
 # proc-macro stack entirely.
+# Feature f047: JSON Schema validation sits behind the `schema` feature --
+# the heaviest slice of the lib's dependency graph (jsonschema pulls regex,
+# fancy-regex, referencing, fluent-uri, email_address), which a wasm editor
+# bundle that only lints syntax can leave out. `cli` implies `schema` so a
+# built binary always carries full validation and the `validate --schema`
+# flag needs no cfg in the CLI layer.
 [features]
-default = ["cli"]
-cli = ["dep:clap"]
+default = ["cli", "schema"]
+cli = ["dep:clap", "schema"]
+schema = ["dep:jsonschema", "dep:serde_json"]
 
-# docs.rs builds with every feature enabled. The `cli` feature gates no lib
-# items today; this is a standing guard so items a future feature gates
-# (f047's schema types, f048's serde impls) stay in the published API docs.
+# docs.rs builds with every feature enabled, so gated lib items — the
+# `schema` feature's `validate::check` and `Schema` type today, anything a
+# later feature gates — stay in the published API docs.
 [package.metadata.docs.rs]
 all-features = true
 
@@ -140,10 +147,10 @@ indexmap = "2"
 # a validator must not touch the network. Violations are consumed through
 # `iter_errors`, whose typed instance paths map onto the fidelity engine's
 # `Path` for source-span diagnostics.
-jsonschema = { version = "0.60", default-features = false }
+jsonschema = { version = "0.60", default-features = false, optional = true }
 # The instance model `jsonschema` validates; yqr's `Value` is converted
 # into it (and never out of it) in src/validate/schema.rs.
-serde_json = "1"
+serde_json = { version = "1", optional = true }
 
 [dev-dependencies]
 criterion = "0.8.2"

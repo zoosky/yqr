@@ -20,20 +20,31 @@ cargo clippy --all-targets --all-features -- -D warnings
 echo "=== build ==="
 cargo build --all-targets --locked
 
-# Feature f046: the lib must compile without the CLI's dependency graph, and
-# clap must stay out of it entirely -- a later change that re-couples the lib
-# to a CLI dependency fails here, not at a consumer. `cargo tree` writes to a
-# file as its own command: under `set -e` a tool failure stops the script
-# instead of handing grep empty input, and grep never SIGPIPEs the producer.
+# Features f046/f047: the lib must lint, test and compile without the CLI
+# and JSON Schema dependency graphs (and in the schema-only editor profile),
+# and clap, jsonschema and serde_json must stay out of the minimal graph
+# entirely -- a later change that re-couples the lib to a gated dependency
+# fails here, not at a consumer. `cargo tree` writes to a file as its own
+# command: under `set -e` a tool failure stops the script instead of handing
+# grep empty input, and grep never SIGPIPEs the producer. grep's exit code is
+# inspected explicitly so a grep *error* (exit 2) fails the gate rather than
+# reading as "no match".
 echo "=== lib without default features ==="
-cargo check --lib --no-default-features --locked
+cargo clippy --lib --no-default-features --locked -- -D warnings
+cargo test --lib --no-default-features --locked
+cargo check --lib --no-default-features --features schema --locked
 lib_deps=$(mktemp)
+trap 'rm -f "$lib_deps"' EXIT
 cargo tree --no-default-features --locked -e normal --prefix none > "$lib_deps"
-if grep '^clap ' "$lib_deps"; then
-  echo "error: clap is in the no-default-features dependency graph" >&2
+rc=0
+grep -E '^(clap|jsonschema|serde_json) ' "$lib_deps" || rc=$?
+if [ "$rc" -eq 0 ]; then
+  echo "error: a gated dependency is in the no-default-features graph" >&2
+  exit 1
+elif [ "$rc" -ne 1 ]; then
+  echo "error: the dependency guard's grep failed (exit $rc)" >&2
   exit 1
 fi
-rm -f "$lib_deps"
 
 echo "=== test ==="
 cargo test --all-targets --locked
