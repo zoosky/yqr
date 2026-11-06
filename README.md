@@ -43,7 +43,7 @@ Or download the archive for your platform from the
 [releases page](https://github.com/zoosky/yqr/releases) and put `yqr`
 on your `PATH`.
 
-Or build from a source checkout (requires the Rust **1.97.1** toolchain, pinned
+Or build from a source checkout (requires the Rust **1.99.1** toolchain, pinned
 via `rust-toolchain.toml`):
 
 ```sh

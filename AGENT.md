@@ -228,7 +228,7 @@ yqr/
 │   ├── workflows/     # ci.yml, benchmark.yml
 │   └── scripts/       # local-ci.sh (local CI mirror)
 ├── Cargo.toml
-├── rust-toolchain.toml  # Pins the 1.97.1 toolchain
+├── rust-toolchain.toml  # Pins the 1.99.1 toolchain
 ├── AGENT.md
 └── README.md
 ```
@@ -415,7 +415,7 @@ unrequirable (`yqr-m001` §2.1).
 
 **Runner**: `ubuntu-latest`. There is no self-hosted runner.
 
-**Job**: one job, `build · test · lint`, on the pinned 1.97.1 toolchain:
+**Job**: one job, `build · test · lint`, on the pinned 1.99.1 toolchain:
 `cargo fmt --all -- --check`, `cargo clippy --all-targets --all-features -D
 warnings`, `cargo build --all-targets --locked`, `cargo test --all-targets
 --locked`, then the same test run with `--all-features`. (The two test
