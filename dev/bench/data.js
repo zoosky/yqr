@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794006822592,
+  "lastUpdate": 1794008248821,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3527,6 +3527,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 179195,
             "range": "± 3787",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "202d592685d3dc377723472f812b45a44eae4285",
+          "message": "feat: serializable diagnostics and filter-error spans (#171)\n\nvalidate::Diagnostic carries the byte offset of its position beside\nline/column, and filter lex/parse errors carry the byte span of the\noffending token through FilterError and YqrError::span(), tracked as\ncharacter ranges in the lexer and converted only on the error path. An\nopt-in serde feature derives Serialize on these non_exhaustive output\ntypes, with Code as its stable string. Rendered CLI output is\nbyte-identical; parser.rs and validate's diagnostic types are split\nunder the 500-line module rule; the quality gates compile the serde\neditor profile. Breaking library API change recorded for the next\nminor.",
+          "timestamp": "2026-11-07T00:36:06+01:00",
+          "tree_id": "b7843807c14457a8b45e4439a005f3156a1e3fb2",
+          "url": "https://github.com/zoosky/yqr/commit/202d592685d3dc377723472f812b45a44eae4285"
+        },
+        "date": 1794008247612,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 303,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3158,
+            "range": "± 50",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 177420,
+            "range": "± 1818",
             "unit": "ns/iter"
           }
         ]
