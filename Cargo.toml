@@ -30,8 +30,9 @@ exclude = [".agent/", ".github/", "docs/", "specs/", "tests/data/", "AGENT.md", 
 default = ["cli"]
 cli = ["dep:clap"]
 
-# docs.rs documents the full surface: without this, optional-feature items
-# would silently vanish from the published API docs.
+# docs.rs builds with every feature enabled. The `cli` feature gates no lib
+# items today; this is a standing guard so items a future feature gates
+# (f047's schema types, f048's serde impls) stay in the published API docs.
 [package.metadata.docs.rs]
 all-features = true
 

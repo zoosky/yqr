@@ -458,7 +458,7 @@ budget; `f050` builds on the write tier and feeds `f049`'s bindings.
 
 ## Summary
 
-- Total features: 49
+- Total features: 50
 - Draft: 5 (f027, f047, f048, f049, f050)
 - In Progress: 0
 - Done: 41 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
