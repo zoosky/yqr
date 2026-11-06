@@ -12,7 +12,8 @@
 # inside `{% process=true %}` fences (b037, accentcms f399).
 # Traceability: yqr-b001, yqr-f003, yqr-m002, yqr-b037; features f006 (the
 # write tier) and f012 (validate) are the two the worked examples demonstrate.
-# The library path-card documents f046 (the cli cargo feature).
+# The library path-card documents f046 (the cli cargo feature) and f047
+# (the schema cargo feature).
 title: jq for YAML -- query and edit without reformatting
 lead: >-
   A jq-style query and editing tool for YAML: reads give back your own bytes, edits change only what you name.
@@ -86,7 +87,7 @@ Building from source instead? The binary lands at `target/release/yqr` (or `carg
 {% path-card title="In your Cargo.toml" %}
 {% loc text="yqr = { version = \"0.11\", default-features = false }" /%}
 
-yqr is also a Rust library: the filter language, the validator, and the byte-preserving engine behind one API ([docs.rs/yqr](https://docs.rs/yqr)). Turn off default features and the command-line layer (clap and its proc-macro stack) stays out of your build — the `cli` cargo feature only matters to the binary.
+yqr is also a Rust library: the filter language, the validator, and the byte-preserving engine behind one API ([docs.rs/yqr](https://docs.rs/yqr)). Turn off default features and both the command-line layer (the `cli` cargo feature: clap and its proc-macro stack) and JSON Schema validation (the `schema` feature: the `jsonschema` stack, most of the graph's weight) stay out of your build. Syntax and strict-mode validation remain — only schema checks need the heavy stack.
 {% /path-card %}
 
 {% path-card title="Inside a container image" %}

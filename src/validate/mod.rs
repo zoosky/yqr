@@ -26,15 +26,19 @@
 //! drops data. Duplicates are found by walking the lossless green tree, so
 //! every occurrence is reported with a real source position.
 //!
-//! The [`schema`] module adds the optional fourth check: each document
+//! The `schema` module adds the optional fourth check: each document
 //! validated against a JSON Schema 2020-12 document the caller provides,
 //! with every violation mapped back to a byte span in the original
-//! source.
+//! source. It sits behind the `schema` cargo feature (on by default), so
+//! a build that only needs the YAML-correctness verdict — a wasm editor
+//! bundle, for instance — leaves the JSON Schema dependency stack out.
 
 // Feature f012: the validate subcommand (spec: editing-loop verification).
 
 mod render;
 pub(crate) mod scan;
+// Feature f047: the JSON Schema stack is optional.
+#[cfg(feature = "schema")]
 pub mod schema;
 
 pub use render::render;
@@ -109,50 +113,65 @@ pub struct Diagnostic {
 
 /// Check `source` and return every finding, in reporting order.
 ///
-/// Equivalent to [`check`] without a schema; kept as the plain entry
-/// point for callers that only want the YAML-correctness verdict.
+/// The plain entry point for callers that only want the YAML-correctness
+/// verdict. An empty result means the input is valid. The syntax check
+/// runs first and short-circuits: an unparseable input yields exactly one
+/// finding, because follow-on findings would describe a document that
+/// does not exist. Strict findings are reported in source order and
+/// require the stream-integrity check to hold (their positions are
+/// computed from the document offsets that check certifies).
 #[must_use]
 pub fn check_str(source: &str, strict: bool) -> Vec<Diagnostic> {
-    check(source, strict, None)
+    base_checks(source, strict).0
 }
 
-/// Check `source` — and, when a schema is given, validate every document
-/// against it — returning every finding in reporting order.
+/// Run the syntax, stream-integrity, indentation, and (optional) strict
+/// checks, returning the findings and — when the parse is trustworthy —
+/// the parsed documents for a follow-on pass over the same trees.
 ///
-/// An empty result means the input is valid. The syntax check runs first
-/// and short-circuits: an unparseable input yields exactly one finding,
-/// because follow-on findings would describe a document that does not
-/// exist. Strict findings are reported in source order and require the
-/// stream-integrity check to hold (their positions are computed from the
-/// document offsets that check certifies).
-///
-/// The schema pass runs on the same parse as the other checks, and only
-/// when that parse is trustworthy: a syntax or stream-integrity finding
-/// means there is no tree whose spans can be believed, so the schema
-/// pass is skipped and the parse finding is the verdict. Lint-class
-/// findings (an under-indented value, a duplicate key) do not suppress
-/// it — the tree is usable and each finding is independently actionable.
-// Feature f040.
-#[must_use]
-pub fn check(source: &str, strict: bool, schema: Option<&schema::Schema>) -> Vec<Diagnostic> {
+/// `None` documents mean the parse cannot be believed: either the input
+/// did not parse (the single finding is the verdict) or the documents do
+/// not tile the source byte-for-byte.
+fn base_checks(
+    source: &str,
+    strict: bool,
+) -> (Vec<Diagnostic>, Option<Vec<::noyalib::cst::Document>>) {
     let docs =
         match ::noyalib::cst::parse_stream_with_config(source, &crate::fidelity::cst_config()) {
             Ok(docs) => docs,
-            Err(err) => return vec![syntax_diagnostic(&err, source)],
+            Err(err) => return (vec![syntax_diagnostic(&err, source)], None),
         };
 
     let mut findings = Vec::new();
     if let Some(diag) = tiling_diagnostic(source, docs.iter().map(::noyalib::cst::Document::source))
     {
         findings.push(diag);
-    } else {
-        findings.extend(block_value_indent_findings(source, &docs));
-        if strict {
-            findings.extend(strict_findings(source, &docs));
-        }
-        if let Some(schema) = schema {
-            findings.extend(schema::check_parsed(source, docs, schema));
-        }
+        return (findings, None);
+    }
+    findings.extend(block_value_indent_findings(source, &docs));
+    if strict {
+        findings.extend(strict_findings(source, &docs));
+    }
+    (findings, Some(docs))
+}
+
+/// Check `source` — and, when a schema is given, validate every document
+/// against it — returning every finding in reporting order.
+///
+/// Everything [`check_str`] documents holds here too. The schema pass
+/// runs on the same parse as the other checks, and only when that parse
+/// is trustworthy: a syntax or stream-integrity finding means there is
+/// no tree whose spans can be believed, so the schema pass is skipped
+/// and the parse finding is the verdict. Lint-class findings (an
+/// under-indented value, a duplicate key) do not suppress it — the tree
+/// is usable and each finding is independently actionable.
+// Feature f040; gated by f047.
+#[cfg(feature = "schema")]
+#[must_use]
+pub fn check(source: &str, strict: bool, schema: Option<&schema::Schema>) -> Vec<Diagnostic> {
+    let (mut findings, docs) = base_checks(source, strict);
+    if let (Some(schema), Some(docs)) = (schema, docs) {
+        findings.extend(schema::check_parsed(source, docs, schema));
     }
     findings
 }
