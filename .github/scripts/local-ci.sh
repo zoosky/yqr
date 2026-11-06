@@ -58,11 +58,15 @@ if rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown;
   cargo check --lib --target wasm32-unknown-unknown --no-default-features --features serde --locked
   cargo clippy -p yqr-wasm --target wasm32-unknown-unknown --all-targets --locked -- -D warnings
   if command -v wasm-pack >/dev/null 2>&1; then
+    # wasm-pack's own cargo calls do not take --locked; the --locked clippy
+    # above has already proven the lockfile is in sync, so they resolve
+    # identically. GNU stat first: BSD stat fails cleanly on -c, while GNU
+    # stat -f would print filesystem status and poison the size variable.
     echo "=== wasm bindings (build, smoke test, size budget) ==="
     wasm-pack build yqr-wasm --target web --release
     wasm-pack test --node yqr-wasm
-    wasm_size=$(stat -f %z yqr-wasm/pkg/yqr_wasm_bg.wasm 2>/dev/null \
-      || stat -c %s yqr-wasm/pkg/yqr_wasm_bg.wasm)
+    wasm_size=$(stat -c %s yqr-wasm/pkg/yqr_wasm_bg.wasm 2>/dev/null \
+      || stat -f %z yqr-wasm/pkg/yqr_wasm_bg.wasm)
     echo "optimized wasm size: $wasm_size bytes"
     if [ "$wasm_size" -gt 900000 ]; then
       echo "error: yqr_wasm_bg.wasm is $wasm_size bytes, over the 900000-byte budget" >&2

@@ -16,7 +16,6 @@
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 use yqr::Value;
-use yqr::ast::Program;
 
 /// The structured error every export rejects with.
 ///
@@ -25,6 +24,7 @@ use yqr::ast::Program;
 /// `message` is the same prose the CLI prints, and `span` — present for
 /// filter compilation errors that know it — is the byte range of the
 /// offending token in the filter string.
+// Feature f049.
 #[derive(Debug, Serialize)]
 pub struct ErrorEnvelope {
     /// Error category: `lex`, `parse`, `eval`, `io`, or `data`.
@@ -66,10 +66,17 @@ impl ErrorEnvelope {
 /// Serializes a [`Value`] as plain JS data: scalars as themselves,
 /// sequences as arrays, mappings as objects.
 ///
-/// Mapping keys must be strings — a mapping keyed by a number or a
-/// collection has no JS-object spelling, so it is refused (the `data`
-/// error kind) rather than silently renamed.
+/// Two shapes are refused (the `data` error kind) rather than silently
+/// corrupted: an integer past JS's safe range (2^53 - 1), which would
+/// round through an f64, and a mapping keyed by a non-string, which has
+/// no JS-object spelling. The engine string-keys every parsed mapping
+/// (the smoke suite pins that), so the key arm guards computed values
+/// only.
+// Feature f049.
 struct JsData<'a>(&'a Value);
+
+/// The largest integer magnitude a JS `Number` represents exactly.
+const JS_MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
 
 impl Serialize for JsData<'_> {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
@@ -77,6 +84,9 @@ impl Serialize for JsData<'_> {
         match self.0 {
             Value::Null => s.serialize_unit(),
             Value::Bool(b) => s.serialize_bool(*b),
+            Value::Int(n) if n.unsigned_abs() > JS_MAX_SAFE_INTEGER => Err(S::Error::custom(
+                format!("the integer {n} is outside JS's safely representable range"),
+            )),
             Value::Int(n) => s.serialize_i64(*n),
             Value::Float(f) => s.serialize_f64(*f),
             Value::String(text) => s.serialize_str(text),
@@ -120,6 +130,7 @@ fn to_js<T: Serialize>(value: &T) -> Result<JsValue, JsValue> {
 /// Rejects with an [`ErrorEnvelope`] when the filter does not compile,
 /// the input does not parse, evaluation fails, or a result has no JS
 /// spelling (a mapping keyed by a non-string).
+// Feature f049.
 #[wasm_bindgen]
 pub fn eval(filter: &str, yaml: &str) -> Result<JsValue, JsValue> {
     let values = yqr::eval_str(filter, yaml).map_err(|e| ErrorEnvelope::from_yqr(&e).into_js())?;
@@ -135,14 +146,12 @@ pub fn eval(filter: &str, yaml: &str) -> Result<JsValue, JsValue> {
 ///
 /// Rejects with an [`ErrorEnvelope`] when the filter does not compile,
 /// the engine refuses the input or the edit, or evaluation fails.
+// Feature f049.
 #[wasm_bindgen(js_name = fidelityRun)]
 pub fn fidelity_run(filter: &str, yaml: &str) -> Result<String, JsValue> {
-    let result = match yqr::parser::parse_program(filter) {
-        Ok(Program::Query(target)) => yqr::fidelity::run_target(&target, yaml, false),
-        Ok(Program::Mutate(mutation)) => yqr::fidelity::write::apply(&mutation, yaml),
-        Err(err) => Err(err),
-    };
-    result.map_err(|e| ErrorEnvelope::from_yqr(&e).into_js())
+    yqr::parser::parse_program(filter)
+        .and_then(|program| yqr::fidelity::run_program(&program, yaml, false))
+        .map_err(|e| ErrorEnvelope::from_yqr(&e).into_js())
 }
 
 /// Check a YAML document and return every finding as structured data:
@@ -156,6 +165,7 @@ pub fn fidelity_run(filter: &str, yaml: &str) -> Result<String, JsValue> {
 ///
 /// Rejects with an [`ErrorEnvelope`] only when the findings cannot be
 /// serialized; an invalid document is a normal result, not an error.
+// Feature f049.
 #[wasm_bindgen]
 pub fn validate(yaml: &str, strict: bool) -> Result<JsValue, JsValue> {
     to_js(&yqr::validate::check_str(yaml, strict))

@@ -67,6 +67,33 @@ fn validate_reports_structured_diagnostics() {
 }
 
 #[wasm_bindgen_test]
+fn a_parsed_mapping_with_scalar_keys_crosses_as_an_object() {
+    // The engine string-keys every parsed mapping (`1:` reads as the key
+    // "1"), so YAML input cannot reach JsData's non-string-key refusal;
+    // that arm guards computed values only. Pin the string-keying here so
+    // a future engine change surfaces in this suite.
+    let out = eval(".", "1: a\n2: b\n").expect("scalar keys read as strings");
+    let values: Vec<std::collections::HashMap<String, String>> =
+        serde_wasm_bindgen::from_value(out).expect("a JS object keyed by strings");
+    assert_eq!(values[0].get("1").map(String::as_str), Some("a"));
+}
+
+#[wasm_bindgen_test]
+fn an_integer_past_js_safe_range_is_refused_not_rounded() {
+    // 2^53 + 1 has no exact f64 spelling; silently rounding it would make
+    // the editor show and write back a different number.
+    let err = eval(".id", "id: 9007199254740993\n").expect_err("unsafe integer must refuse");
+    let envelope: serde_json_shape::Envelope =
+        serde_wasm_bindgen::from_value(err).expect("a structured object");
+    assert_eq!(envelope.kind, "data");
+
+    // The largest safe integer still crosses exactly.
+    let out = eval(".id", "id: 9007199254740991\n").expect("safe integer crosses");
+    let values: Vec<f64> = serde_wasm_bindgen::from_value(out).expect("a JS array");
+    assert_eq!(values, vec![9007199254740991.0]);
+}
+
+#[wasm_bindgen_test]
 fn a_filter_error_crosses_as_a_structured_object() {
     let err = eval(".a = 5", DEPLOY).expect_err("a mutation is not a read");
     let envelope: serde_json_shape::Envelope =

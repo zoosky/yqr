@@ -67,8 +67,11 @@ without touching yqr's semver.
   error crossing as a structured object with its span.
 - Errors cross as an `ErrorEnvelope { kind, message, span }`; values
   and diagnostics serialize to plain JS objects
-  (`serde-wasm-bindgen`'s json-compatible mode). A mapping keyed by a
-  non-string is refused (`kind: "data"`), not silently renamed.
+  (`serde-wasm-bindgen`'s json-compatible mode). An integer past JS's
+  safe range (2^53 - 1) is refused (`kind: "data"`), not silently
+  rounded, and so is a mapping keyed by a non-string — a defensive arm
+  only, since the engine string-keys every parsed mapping (the smoke
+  suite pins both the refusal and the string-keying).
 - wasm-opt needed `--enable-bulk-memory` and
   `--enable-nontrapping-float-to-int`: current rustc emits those
   post-MVP features by default and wasm-pack's bundled wasm-opt
@@ -84,7 +87,7 @@ LTO, strip from the workspace release profile), editor profile:
 
 | Artifact | Size |
 |----------|------|
-| `yqr_wasm_bg.wasm`, optimized | 676,586 bytes (661 KiB) |
+| `yqr_wasm_bg.wasm`, optimized | 676,767 bytes (661 KiB) |
 | CI ceiling | 900,000 bytes |
 
 The bindings cost ~330 KiB over `f047`'s bare-lib shim (344 KiB):

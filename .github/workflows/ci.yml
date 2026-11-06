@@ -87,13 +87,19 @@ jobs:
 
       # Feature f049: the bindings crate lints, builds, behaves at run time
       # (one read, one byte-preserving edit, one validate, inside Node's
-      # wasm runtime), and stays under its size budget. Measured 676,586
+      # wasm runtime), and stays under its size budget. Measured 676,767
       # bytes optimized on 2026-11-07; the generous ceiling catches drift,
-      # not noise.
+      # not noise. wasm-pack is pinned (it keys the wasm-opt it downloads to
+      # its own version), so a new release cannot change module size or flag
+      # handling under an unchanged repo. wasm-pack's own cargo calls do not
+      # take --locked, but the --locked clippy above has already proven the
+      # lockfile is in sync, so they resolve identically.
       - name: wasm bindings (clippy, build, smoke test, size budget)
         run: |
           cargo clippy -p yqr-wasm --target wasm32-unknown-unknown --all-targets --locked -- -D warnings
-          curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+          curl -sSfL https://github.com/rustwasm/wasm-pack/releases/download/v0.15.1/wasm-pack-v0.15.1-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz --strip-components=1 -C "$HOME/.cargo/bin" --wildcards '*/wasm-pack'
+          wasm-pack --version
           wasm-pack build yqr-wasm --target web --release
           wasm-pack test --node yqr-wasm
           size=$(stat -c %s yqr-wasm/pkg/yqr_wasm_bg.wasm)
