@@ -28,10 +28,14 @@ pub type Result<T> = std::result::Result<T, YqrError>;
 /// With the `serde` cargo feature, this type serializes with its `message`
 /// and `span` fields (`span` as `{ "start": .., "end": .. }` byte offsets,
 /// or `null`). That shape is an interface for editor hosts: fields may be
-/// added, but removing or renaming one is a breaking change.
+/// added, but removing or renaming one is a breaking change. The struct is
+/// `#[non_exhaustive]` so a field addition is not a breaking Rust-API
+/// change either: hosts read these errors through [`YqrError`]'s
+/// constructors, they do not build them.
 // Feature f048.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[non_exhaustive]
 pub struct FilterError {
     /// One-line description of the problem, exactly as the CLI prints it
     /// (after its `lex error: ` / `parse error: ` prefix).

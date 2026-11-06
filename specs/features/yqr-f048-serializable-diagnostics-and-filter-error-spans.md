@@ -58,12 +58,17 @@ underline the offending token without the span.
 - `Code` serializes as its stable string (`"Y101"`), not the Rust
   variant name. Serialized shapes are documented on the types as an
   interface: fields may be added, removals are breaking.
-- The `serde` feature is additive and off by default. Note: the
-  *default* graph already carries serde transitively (`schema` pulls
-  `serde_json`, and noyalib pulls `serde_core`); what this feature
-  keeps optional is the derive stack on yqr's own types, and the
-  minimal (`--no-default-features`) graph stays serde-free — the CI
-  dependency guard now refuses `serde` there too.
+- The `serde` feature is additive and off by default. What it keeps
+  optional is the serde facade/derive stack on yqr's own types: the
+  minimal (`--no-default-features`) graph carries no `serde` crate and
+  the CI dependency guard refuses it there — but it is not literally
+  serde-free, since noyalib pulls `serde_core` and `serde_ignored`
+  transitively, and the *default* graph carries full serde via
+  `schema`'s `serde_json`. Size a wasm build from the measured numbers
+  in `yqr-f047`, not from crate names.
+- `Diagnostic` and `FilterError` are `#[non_exhaustive]`: they are
+  outputs hosts read, never construct, so the documented "fields may
+  be added" policy holds for the Rust API as well as the JSON shape.
 
 ## Acceptance criteria
 

@@ -33,6 +33,7 @@ echo "=== lib without default features ==="
 cargo clippy --lib --no-default-features --locked -- -D warnings
 cargo test --lib --no-default-features --locked
 cargo check --lib --no-default-features --features schema --locked
+cargo check --lib --no-default-features --features serde --locked
 lib_deps=$(mktemp)
 trap 'rm -f "$lib_deps"' EXIT
 cargo tree --no-default-features --locked -e normal --prefix none > "$lib_deps"

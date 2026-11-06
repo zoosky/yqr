@@ -64,8 +64,14 @@ pub enum Token {
     Str(String),
 }
 
-/// A [`Token`] together with the byte range it occupies in the filter
-/// source, which is what lets a parse error point at the token it is about.
+/// A [`Token`] together with the **character** range it occupies in the
+/// filter source, which is what lets a parse error point at the token it
+/// is about.
+///
+/// The range counts characters, matching the lexer's cursor, so keeping it
+/// costs nothing per token. It is converted to a byte range by
+/// [`byte_range`] only when an error is actually raised — errors are rare,
+/// and the happy path should not pay for them.
 // Feature f048.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct SpannedToken {
@@ -73,37 +79,25 @@ pub(crate) struct SpannedToken {
     pub(crate) span: std::ops::Range<usize>,
 }
 
-/// The byte offsets the lexer's char-indexed cursor maps through.
+/// Convert a character range into the byte range it occupies in `src`.
 ///
-/// The lexer scans a `Vec<char>` (positions in its error messages are
-/// character positions, a stable CLI contract), while spans are byte ranges
-/// into the source string. This table converts: entry `i` is the byte
-/// offset of character `i`, and one past the last entry is the source
-/// length, so a cursor at end-of-input maps to an empty range at the end.
+/// Walks the source once; called only when constructing an error, never on
+/// the happy path. A character index at or past the end maps to the source
+/// length, so a cursor at end-of-input yields an empty range at the end.
 // Feature f048.
-struct ByteMap {
-    starts: Vec<usize>,
-    len: usize,
-}
-
-impl ByteMap {
-    fn new(src: &str) -> Self {
-        ByteMap {
-            starts: src.char_indices().map(|(b, _)| b).collect(),
-            len: src.len(),
+pub(crate) fn byte_range(src: &str, chars: std::ops::Range<usize>) -> std::ops::Range<usize> {
+    let mut start = src.len();
+    let mut end = src.len();
+    for (char_idx, (byte, _)) in src.char_indices().enumerate() {
+        if char_idx == chars.start {
+            start = byte;
+        }
+        if char_idx == chars.end {
+            end = byte;
+            break;
         }
     }
-
-    /// Byte offset of character `i` (the source length when `i` is past
-    /// the end).
-    fn at(&self, i: usize) -> usize {
-        self.starts.get(i).copied().unwrap_or(self.len)
-    }
-
-    /// Byte range covering characters `from..to`.
-    fn span(&self, from: usize, to: usize) -> std::ops::Range<usize> {
-        self.at(from)..self.at(to)
-    }
+    start..end
 }
 
 /// Tokenize `src` into a vector of [`Token`]s.
@@ -111,20 +105,19 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
     Ok(lex_spanned(src)?.into_iter().map(|s| s.token).collect())
 }
 
-/// Tokenize `src`, keeping each token's byte span for the parser's
-/// error reporting.
+/// Tokenize `src`, keeping each token's character span for the parser's
+/// error reporting (see [`SpannedToken`]).
 // Feature f048.
 pub(crate) fn lex_spanned(src: &str) -> Result<Vec<SpannedToken>> {
     let mut tokens: Vec<SpannedToken> = Vec::new();
     let chars: Vec<char> = src.chars().collect();
-    let bytes = ByteMap::new(src);
     let mut i = 0;
 
     // Push `token` covering characters `from..to` (exclusive).
     let push = |tokens: &mut Vec<SpannedToken>, token: Token, from: usize, to: usize| {
         tokens.push(SpannedToken {
             token,
-            span: bytes.span(from, to),
+            span: from..to,
         });
     };
 
@@ -210,11 +203,11 @@ pub(crate) fn lex_spanned(src: &str) -> Result<Vec<SpannedToken>> {
                         "unexpected character ',' at position {i}: yqr has no ',' operator; \
                          a function separates its arguments with ';', as in swap(.xs; 0; 1)"
                     ),
-                    bytes.span(i, i + 1),
+                    byte_range(src, i..i + 1),
                 ));
             }
             '"' => {
-                let (s, next) = lex_string(&chars, i, &bytes)?;
+                let (s, next) = lex_string(&chars, i, src)?;
                 push(&mut tokens, Token::Str(s), i, next);
                 i = next;
             }
@@ -231,7 +224,7 @@ pub(crate) fn lex_spanned(src: &str) -> Result<Vec<SpannedToken>> {
                 i += 1;
             }
             c if c == '-' || c.is_ascii_digit() => {
-                let (tok, next) = lex_number(&chars, i, &bytes)?;
+                let (tok, next) = lex_number(&chars, i, src)?;
                 push(&mut tokens, tok, i, next);
                 i = next;
             }
@@ -243,7 +236,7 @@ pub(crate) fn lex_spanned(src: &str) -> Result<Vec<SpannedToken>> {
             other => {
                 return Err(YqrError::lex_at(
                     format!("unexpected character {other:?} at position {i}"),
-                    bytes.span(i, i + 1),
+                    byte_range(src, i..i + 1),
                 ));
             }
         }
@@ -276,7 +269,7 @@ fn lex_ident(chars: &[char], start: usize) -> (String, usize) {
 /// assignment RHS (`.x = 1.5`). A trailing `.` not followed by a digit is left
 /// for the [`Token::Dot`] rule, so `5.` lexes as `Int(5)` then `Dot`.
 // Feature f006: float RHS support.
-fn lex_number(chars: &[char], start: usize, bytes: &ByteMap) -> Result<(Token, usize)> {
+fn lex_number(chars: &[char], start: usize, src: &str) -> Result<(Token, usize)> {
     let mut i = start;
     if chars[i] == '-' {
         i += 1;
@@ -288,7 +281,7 @@ fn lex_number(chars: &[char], start: usize, bytes: &ByteMap) -> Result<(Token, u
     if i == digits_start {
         return Err(YqrError::lex_at(
             format!("expected digits after '-' at position {start}"),
-            bytes.span(start, i),
+            byte_range(src, start..i),
         ));
     }
 
@@ -320,28 +313,34 @@ fn lex_number(chars: &[char], start: usize, bytes: &ByteMap) -> Result<(Token, u
 
     let text: String = chars[start..i].iter().collect();
     if is_float {
-        let f = text
-            .parse::<f64>()
-            .map_err(|e| YqrError::lex_at(format!("invalid number {text:?}: {e}"), bytes.span(start, i)))?;
+        let f = text.parse::<f64>().map_err(|e| {
+            YqrError::lex_at(
+                format!("invalid number {text:?}: {e}"),
+                byte_range(src, start..i),
+            )
+        })?;
         // `parse::<f64>` maps an out-of-range magnitude to `±inf` (Ok, not Err).
         // Accepting it would silently write the bare token `inf`, which any YAML
         // reader reloads as the string "inf" — a silent type change. Refuse it.
         if !f.is_finite() {
             return Err(YqrError::lex_at(
                 format!("number {text:?} is out of range for a 64-bit float"),
-                bytes.span(start, i),
+                byte_range(src, start..i),
             ));
         }
         Ok((Token::Float(f), i))
     } else {
-        let n = text
-            .parse::<i64>()
-            .map_err(|e| YqrError::lex_at(format!("invalid integer {text:?}: {e}"), bytes.span(start, i)))?;
+        let n = text.parse::<i64>().map_err(|e| {
+            YqrError::lex_at(
+                format!("invalid integer {text:?}: {e}"),
+                byte_range(src, start..i),
+            )
+        })?;
         Ok((Token::Int(n), i))
     }
 }
 
-fn lex_string(chars: &[char], start: usize, bytes: &ByteMap) -> Result<(String, usize)> {
+fn lex_string(chars: &[char], start: usize, src: &str) -> Result<(String, usize)> {
     // chars[start] == '"'
     let mut i = start + 1;
     let mut out = String::new();
@@ -363,7 +362,7 @@ fn lex_string(chars: &[char], start: usize, bytes: &ByteMap) -> Result<(String, 
                     other => {
                         return Err(YqrError::lex_at(
                             format!("invalid escape sequence \\{other}"),
-                            bytes.span(i - 1, i + 1),
+                            byte_range(src, i - 1..i + 1),
                         ));
                     }
                 };
@@ -378,7 +377,7 @@ fn lex_string(chars: &[char], start: usize, bytes: &ByteMap) -> Result<(String, 
     }
     Err(YqrError::lex_at(
         "unterminated string literal".to_string(),
-        bytes.span(start, chars.len()),
+        byte_range(src, start..chars.len()),
     ))
 }
 
