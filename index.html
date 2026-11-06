@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "jq for YAML -- query and edit without reformatting",
   "url": "https://zoosky.github.io/yqr/",
-  "wordCount": 2659
+  "wordCount": 2687
 }
 </script>
 <link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
@@ -766,7 +766,7 @@ spec:
 <div class="path-card">
   <h3>In your Cargo.toml</h3>
 <p><code class="loc">yqr = { version = "0.11", default-features = false }</code></p>
-<p>yqr is also a Rust library: the filter language, the validator, and the byte-preserving engine behind one API (<a href="https://docs.rs/yqr">docs.rs/yqr</a>). Turn off default features and both the command-line layer (the <code>cli</code> cargo feature: clap and its proc-macro stack) and JSON Schema validation (the <code>schema</code> feature: the <code>jsonschema</code> stack, most of the graph’s weight) stay out of your build. Syntax and strict-mode validation remain — only schema checks need the heavy stack. For editor hosts, the opt-in <code>serde</code> feature serializes diagnostics and filter errors as JSON, with byte offsets and token spans ready for squiggles.</p>
+<p>yqr is also a Rust library: the filter language, the validator, and the byte-preserving engine behind one API (<a href="https://docs.rs/yqr">docs.rs/yqr</a>). Turn off default features and both the command-line layer (the <code>cli</code> cargo feature: clap and its proc-macro stack) and JSON Schema validation (the <code>schema</code> feature: the <code>jsonschema</code> stack, most of the graph’s weight) stay out of your build. Syntax and strict-mode validation remain — only schema checks need the heavy stack. For editor hosts, the opt-in <code>serde</code> feature serializes diagnostics and filter errors as JSON, with byte offsets and token spans ready for squiggles — and the same engine compiles to WebAssembly (the <code>yqr-wasm</code> crate in the repository), so a browser editor queries, edits and validates with byte-for-byte fidelity, no server round-trip.</p>
 </div>
 <div class="path-card">
   <h3>Inside a container image</h3>
