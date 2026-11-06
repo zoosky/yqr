@@ -1776,6 +1776,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **noyalib 0.0.57 → 0.0.58.** No yqr behavior changes: every corpus, CLI
+  and fidelity case is byte-identical. The release hardens the engine's
+  parser, CST and loader boundaries and adds positions to typed
+  deserialization errors — paths yqr does not call or already satisfies.
+  Its new MSRV floor (Rust 1.89) sits under yqr's pinned toolchain.
+
 ## [0.11.0] - 2026-10-09
 
 The first release you can install without a Rust toolchain.
