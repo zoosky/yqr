@@ -106,6 +106,7 @@ dependency/release timing.
 | [f036](yqr-f036-relax-the-scalar-over-a-block-collection-refusal.md) | Reconsider the scalar-over-a-block-collection refusal | Done (2026-09-18: option 3 — `.k = 5` over a block collection writes `k: 5` on the key's own line, as a sequence item already did; the block collapses to a placeholder that the engine's scalar `set_value` then spells, so yqr owns no rendering; an anchored or tagged block is refused by name, and an alias falls through to the engine's accurate refusal) |
 | [f037](yqr-f037-noyalib-0-0-45-adoption.md) | Adopt noyalib 0.0.45: the leading comment anchors on the key, b033 closes | Done (0.0.45, 2026-09-18: yqr's noyalib#442 closes `b033`, the last open bug, with no yqr code change; a head comment above a block-valued key reads, writes and deletes; the release's four other fixes are on paths yqr does not call; four pinned expectations flipped) |
 | [f043](yqr-f043-noyalib-0-0-57-adoption.md) | Adopt noyalib 0.0.57: both open engine bugs close | Done (2026-10-09: noyalib#475 and #477 — yqr's own fixes — close `b036` and `b035`; six pins flipped as their bug specs predicted; one yqr change delegates alias-valued deletes to upstream `remove`, and the `f036` refusal names remedies that run) |
+| [f045](yqr-f045-noyalib-0-0-58-adoption.md) | Adopt noyalib 0.0.58: a hardening release, nothing observable moves | Done (2026-11-06: hardened parser/CST/loader boundaries, located typed-deserializer errors and an MSRV 1.89 floor — all on paths yqr does not call or already satisfies; the lockfile moves only noyalib and all 621 tests are byte-identical, zero pins flipped) |
 | [f038](yqr-f038-delete-inside-a-shared-anchor.md) | Delete inside a shared anchor | Done (2026-10-08: `del` follows the anchor rule assignment set — the entry is removed at the definition and every alias and `<<` merge site shows it; the check is `del`'s own `changes_are_the_deletion`, since a merge site is a larger mapping losing one key, which the assignment rule cannot express; the measurement found `b036`, an upstream span shift under an anchored indented sequence, pinned as it behaves) |
 
 Progress: f006 shipped on noyalib 0.0.14's first-class, re-parse-guarded mutators
@@ -433,13 +434,13 @@ release's pipeline run (`f044` §6).
 
 ## Summary
 
-- Total features: 44
+- Total features: 45
 - Draft: 1 (f027)
 - In Progress: 0
-- Done: 39 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 40 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f025, f026, f028,
   f029, f030, f031, f032, f033, f034, f035, f036, f037, f038, f039, f040,
-  f041, f042, f043, f044)
+  f041, f042, f043, f044, f045)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
