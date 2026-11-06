@@ -19,8 +19,16 @@ categories = ["command-line-utilities", "parsing"]
 # Dev-only files kept out of the published crate: `docs/` is the website (its
 # theme assets alone outweigh the source), and CLAUDE.md is a symlink to
 # AGENT.md that needs its own entry, since exclude matches paths rather than
-# the files behind them. Guarded by the package-contents gate in local-ci.sh.
-exclude = [".agent/", ".github/", "docs/", "specs/", "tests/data/", "AGENT.md", "CLAUDE.md"]
+# the files behind them. `yqr-wasm/` is a workspace member released as a
+# build artifact, never on crates.io. Guarded by the package-contents gate
+# in local-ci.sh.
+exclude = [".agent/", ".github/", "docs/", "specs/", "tests/data/", "AGENT.md", "CLAUDE.md", "yqr-wasm/"]
+
+# Feature f049: the wasm bindings crate is a workspace member so it shares
+# the lockfile (one dependency resolution for the engine and its boundary),
+# but it is `publish = false` — its artifact is the .wasm + JS glue.
+[workspace]
+members = ["yqr-wasm"]
 
 # Feature f046: the binary's dependencies sit behind the `cli` feature, on by
 # default, so `cargo install yqr` and every existing workflow are unchanged

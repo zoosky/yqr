@@ -297,6 +297,27 @@ pub fn run(filter: &str, input: &str, raw: bool) -> Result<String> {
     }
 }
 
+/// Execute a compiled [`Program`](crate::ast::Program) with the fidelity
+/// engine: a query slices original bytes through [`run_target`], a mutation
+/// rewrites only the bytes it touches through [`write::apply`].
+///
+/// This is the one dispatch rule for hosts that take both forms — the wasm
+/// boundary calls it. The CLI threads `--in-place` and `--normalize` around
+/// the same two calls in `main.rs`, so a new program form extends both
+/// match sites by compile error, not by divergence.
+///
+/// # Errors
+///
+/// Returns an error when the engine rejects the input or the edit, or
+/// evaluation fails.
+// Feature f049.
+pub fn run_program(program: &crate::ast::Program, input: &str, raw: bool) -> Result<String> {
+    match program {
+        crate::ast::Program::Query(target) => run_target(target, input, raw),
+        crate::ast::Program::Mutate(mutation) => write::apply(mutation, input),
+    }
+}
+
 /// Like [`run_ast`], but over a whole read [`Target`] — a value path, or a
 /// selector naming something attached to the nodes a path selects.
 ///

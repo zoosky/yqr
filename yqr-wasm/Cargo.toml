@@ -1,0 +1,39 @@
+# Feature f049: the browser boundary for yqr's engine. wasm-bindgen types
+# stay out of the yqr lib on purpose -- a server links the lib natively, and
+# only a browser needs the JS glue -- so this adapter crate is free to track
+# wasm-bindgen's cadence without touching yqr's semver. It is not published
+# to crates.io: its artifact is the .wasm + JS glue wasm-pack emits.
+[package]
+name = "yqr-wasm"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+description = "wasm-bindgen bindings for yqr: query, byte-preserving edits and validation in the browser"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/zoosky/yqr"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# The engine, in its editor profile: no CLI, no JSON Schema stack, serde on
+# so diagnostics and filter errors cross the boundary as structured data.
+yqr = { path = "..", default-features = false, features = ["serde"] }
+# The JS boundary itself.
+wasm-bindgen = "0.2"
+# Serializes yqr's diagnostic and value types into plain JS objects
+# (json_compatible mode), so the editor consumes ordinary data.
+serde-wasm-bindgen = "0.6"
+# The derive behind this crate's own error envelope.
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+# Runs the smoke suite inside a wasm runtime (wasm-pack test --node).
+wasm-bindgen-test = "0.3"
+
+# Size-optimize the shipped module, and tell wasm-opt about the post-MVP
+# wasm features current rustc emits by default (bulk memory, nontrapping
+# float-to-int) -- without the flags it refuses the module outright.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Oz", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"]

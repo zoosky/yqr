@@ -30,6 +30,14 @@ All notable changes to `yqr` are documented here. The format is based on
   these types, with the diagnostic code serialized as its stable string
   (`"Y101"`). Rendered CLI output is byte-identical.
 
+- **wasm target support.** The library's `wasm32-unknown-unknown`
+  compatibility is now a CI-pinned contract, and a new `yqr-wasm`
+  workspace crate (not on crates.io; its artifact is the `.wasm` + JS
+  glue) exposes `eval`, `fidelityRun`, and `validate` to the browser,
+  with values and diagnostics as plain JS data and errors as structured
+  objects carrying the filter span. A Node-run smoke suite and a size
+  budget (661 KiB optimized, 900 KB ceiling) guard it.
+
 ### Changed
 
 - **Breaking (library API):** `YqrError::Lex` and `YqrError::Parse` now
