@@ -29,6 +29,8 @@ jobs:
         with:
           toolchain: "1.99.1"
           components: rustfmt, clippy
+          # Feature f049: the lib's wasm compatibility is CI-pinned.
+          targets: wasm32-unknown-unknown
 
       - name: Cache cargo registry and target
         uses: actions/cache@v5
@@ -70,6 +72,34 @@ jobs:
             exit 1
           elif [ "$rc" -ne 1 ]; then
             echo "error: the dependency guard's grep failed (exit $rc)" >&2
+            exit 1
+          fi
+
+      # Feature f049: the lib compiles for wasm32 by contract, not by
+      # accident -- a dependency bump or new lib code that breaks the target
+      # fails the PR here, not at the first wasm consumer. Checked in the
+      # feature states a browser consumer builds.
+      - name: Check lib for wasm32 (editor profiles)
+        run: |
+          cargo check --lib --target wasm32-unknown-unknown --no-default-features --locked
+          cargo check --lib --target wasm32-unknown-unknown --no-default-features --features schema --locked
+          cargo check --lib --target wasm32-unknown-unknown --no-default-features --features serde --locked
+
+      # Feature f049: the bindings crate lints, builds, behaves at run time
+      # (one read, one byte-preserving edit, one validate, inside Node's
+      # wasm runtime), and stays under its size budget. Measured 676,586
+      # bytes optimized on 2026-11-07; the generous ceiling catches drift,
+      # not noise.
+      - name: wasm bindings (clippy, build, smoke test, size budget)
+        run: |
+          cargo clippy -p yqr-wasm --target wasm32-unknown-unknown --all-targets --locked -- -D warnings
+          curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+          wasm-pack build yqr-wasm --target web --release
+          wasm-pack test --node yqr-wasm
+          size=$(stat -c %s yqr-wasm/pkg/yqr_wasm_bg.wasm)
+          echo "optimized wasm size: $size bytes"
+          if [ "$size" -gt 900000 ]; then
+            echo "error: yqr_wasm_bg.wasm is $size bytes, over the 900000-byte budget" >&2
             exit 1
           fi
 

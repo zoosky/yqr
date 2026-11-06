@@ -47,6 +47,34 @@ elif [ "$rc" -ne 1 ]; then
   exit 1
 fi
 
+# Feature f049: the lib's wasm32 compatibility and the bindings crate are
+# CI contracts. Locally they run when the pieces are installed (rustup
+# target add wasm32-unknown-unknown; cargo install wasm-pack) and are
+# skipped with a notice otherwise -- CI always runs them.
+if rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then
+  echo "=== wasm32 lib (editor profiles) ==="
+  cargo check --lib --target wasm32-unknown-unknown --no-default-features --locked
+  cargo check --lib --target wasm32-unknown-unknown --no-default-features --features schema --locked
+  cargo check --lib --target wasm32-unknown-unknown --no-default-features --features serde --locked
+  cargo clippy -p yqr-wasm --target wasm32-unknown-unknown --all-targets --locked -- -D warnings
+  if command -v wasm-pack >/dev/null 2>&1; then
+    echo "=== wasm bindings (build, smoke test, size budget) ==="
+    wasm-pack build yqr-wasm --target web --release
+    wasm-pack test --node yqr-wasm
+    wasm_size=$(stat -f %z yqr-wasm/pkg/yqr_wasm_bg.wasm 2>/dev/null \
+      || stat -c %s yqr-wasm/pkg/yqr_wasm_bg.wasm)
+    echo "optimized wasm size: $wasm_size bytes"
+    if [ "$wasm_size" -gt 900000 ]; then
+      echo "error: yqr_wasm_bg.wasm is $wasm_size bytes, over the 900000-byte budget" >&2
+      exit 1
+    fi
+  else
+    echo "=== wasm bindings skipped (wasm-pack not installed) ==="
+  fi
+else
+  echo "=== wasm checks skipped (wasm32-unknown-unknown target not installed) ==="
+fi
+
 echo "=== test ==="
 cargo test --all-targets --locked
 

@@ -1,4 +1,7 @@
 /target
+yqr-wasm/target
+# wasm-pack's output: the .wasm + JS glue, a build artifact (f049).
+yqr-wasm/pkg/
 **/*.rs.bk
 Cargo.lock.orig
 *.pdb
