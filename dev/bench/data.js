@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794001528252,
+  "lastUpdate": 1794001962284,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3317,6 +3317,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 291980,
             "range": "± 5806",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5413b992f7a1ab1918a2dd50477d8ca5222b3331",
+          "message": "chore(deps): update rust crate serde_json to v1.0.154 (#155)\n\nCo-authored-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-06T22:50:54+01:00",
+          "tree_id": "dfe11fa57a7ec66e8598807a90f5d2b65c459390",
+          "url": "https://github.com/zoosky/yqr/commit/5413b992f7a1ab1918a2dd50477d8ca5222b3331"
+        },
+        "date": 1794001961245,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 563,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5951,
+            "range": "± 44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 286485,
+            "range": "± 1009",
             "unit": "ns/iter"
           }
         ]
