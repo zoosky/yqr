@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794004310823,
+  "lastUpdate": 1794005227301,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3401,6 +3401,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 173573,
             "range": "± 3303",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "238377095ea6007b63694cd51e8f784cf3ea6d73",
+          "message": "fix(deps): update rust crate jsonschema to 0.60 (#166)\n\nCo-authored-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-06T23:44:48+01:00",
+          "tree_id": "9314368b58596ce01809f03fb9469ffdfb38cd5e",
+          "url": "https://github.com/zoosky/yqr/commit/238377095ea6007b63694cd51e8f784cf3ea6d73"
+        },
+        "date": 1794005225618,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 534,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5638,
+            "range": "± 54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 274386,
+            "range": "± 1766",
             "unit": "ns/iter"
           }
         ]
