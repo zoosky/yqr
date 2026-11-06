@@ -24,7 +24,7 @@ jobs:
     name: Criterion benchmarks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain (1.99.1)
         uses: dtolnay/rust-toolchain@master

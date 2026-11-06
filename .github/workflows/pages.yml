@@ -67,7 +67,7 @@ jobs:
     name: build website
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install accent from GitHub releases
         run: |
