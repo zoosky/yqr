@@ -113,7 +113,7 @@
 
 {% include "debug.html.jinja" %}
 
-<script>
+<script nonce="{{ nonce }}">
 (function () {
     var area = document.getElementById("island-demo");
     var btn = document.getElementById("island-demo-start");

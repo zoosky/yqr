@@ -10,7 +10,7 @@
 {# blocks. Mermaid.js is still imported lazily so pages with zero #}
 {# diagrams pay no network cost. #}
 {% if not site.production %}
-<script type="module">
+<script nonce="{{ nonce }}" type="module">
     async function renderAll() {
         const blocks = document.querySelectorAll('pre.diagram-passthrough[data-diagram-lang="mermaid"]');
         if (blocks.length === 0) return;

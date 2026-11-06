@@ -29,14 +29,14 @@
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     {% if theme.styling is defined and theme.styling.tailwind_cdn %}
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script nonce="{{ nonce }}" src="https://cdn.tailwindcss.com"></script>
     {% if theme.styling.tailwind_config %}
-    <script>tailwind.config = {{ theme.styling.tailwind_config | safe }};</script>
+    <script nonce="{{ nonce }}">tailwind.config = {{ theme.styling.tailwind_config | safe }};</script>
     {% endif %}
     {% endif %}
     {% set analytics_id = get_env(name="ACCENT_ANALYTICS_ID") %}
     {% if analytics_id %}
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ analytics_id }}"></script>
+    <script nonce="{{ nonce }}" async src="https://www.googletagmanager.com/gtag/js?id={{ analytics_id }}"></script>
     {% endif %}
     {% if site.url %}
     {% if page.language and page.language != site.language %}
@@ -51,8 +51,8 @@
     {# Conditional KaTeX loading for pages with math expressions #}
     {% if page.has_math %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"
+    <script nonce="{{ nonce }}" defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+    <script nonce="{{ nonce }}" defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]})"></script>
     {% endif %}
     {{ json_ld() }}
@@ -134,24 +134,24 @@
     </div>
 
     {% for js in theme.assets.js %}
-    <script src="{{ url('/theme/assets/' ~ js) }}"></script>
+    <script nonce="{{ nonce }}" src="{{ url('/theme/assets/' ~ js) }}"></script>
     {% endfor %}
     {# Feature f164: click-to-copy handler is only loaded when the
        heading_anchor_style preset needs it. Keeps pure-CSS presets
        (`hash`, `pilcrow`, `gutter`) JS-free. #}
     {% if theme.heading_anchor_style == "copy" %}
-    <script src="{{ url('/theme/assets/js/heading-anchor-copy.js') }}" defer></script>
+    <script nonce="{{ nonce }}" src="{{ url('/theme/assets/js/heading-anchor-copy.js') }}" defer></script>
     {% endif %}
     {% if page.islands is defined and page.islands | length > 0 %}
     {% for island in page.islands %}
     {% if island.source == "plugin" %}
-    <script src="{{ url('/assets/plugins/' ~ island.plugin ~ '/' ~ island.js_path) }}" defer></script>
+    <script nonce="{{ nonce }}" src="{{ url('/assets/plugins/' ~ island.plugin ~ '/' ~ island.js_path) }}" defer></script>
     {% else %}
-    <script src="{{ url('/' ~ (('theme/assets/js/islands/' ~ island.component ~ '.js') | fingerprint)) }}" defer></script>
+    <script nonce="{{ nonce }}" src="{{ url('/' ~ (('theme/assets/js/islands/' ~ island.component ~ '.js') | fingerprint)) }}" defer></script>
     {% endif %}
     {% endfor %}
     {% endif %}
-    <script>
+    <script nonce="{{ nonce }}">
         (function () {
             var d = document.documentElement, s = localStorage.getItem('theme');
             if (s) d.setAttribute('data-theme', s);
