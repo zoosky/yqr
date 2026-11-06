@@ -46,7 +46,13 @@ clap = { version = "4.6.1", features = ["derive"] }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.57 release, which carries both of yqr's last open engine
+# crates.io 0.0.58 release, a hardening release that moves nothing yqr pins
+# (f045): CST parses and edits run the value policy and edits re-parse under
+# the document's own configuration — the contract yqr has leaned on since
+# 0.0.31 — the located unknown/missing-field errors are on the typed
+# deserializer path yqr does not call, and the new MSRV floor (1.89) sits
+# well under yqr's pinned 1.97.1 toolchain. All 621 tests are byte-identical
+# across the bump. 0.0.57 carried both of yqr's last open engine
 # fixes: noyalib#475 (b036 — an anchored, indented sequence's items report
 # their own spans) and noyalib#477 (b035 — an alias-valued entry is removed
 # or overwritten through its own `*name` token; a no-op keeps the
@@ -107,9 +113,9 @@ clap = { version = "4.6.1", features = ["derive"] }
 # Every bug yqr has filed against this engine is fixed in a published release:
 # b011-b014 in 0.0.25, b015 in 0.0.26, b016 in 0.0.27, b021-b022 in 0.0.28,
 # b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44, b033 in 0.0.45.
-# Each pin and what it bought is in features f013-f029, f031, f034-f035 and
-# f037; see research r002 and the bug specs.
-noyalib = "0.0.57"
+# Each pin and what it bought is in features f013-f029, f031, f034-f035,
+# f037, f043 and f045; see research r002 and the bug specs.
+noyalib = "0.0.58"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"
