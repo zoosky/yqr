@@ -89,7 +89,7 @@
    Guard: only load island-loader if base template did not already load
    it via page.islands. #}
 {% if not (page.islands is defined and page.islands | length > 0) %}
-<script src="{{ url('/' ~ ('theme/assets/js/island-loader.js' | fingerprint)) }}" defer></script>
+<script nonce="{{ nonce }}" src="{{ url('/' ~ ('theme/assets/js/island-loader.js' | fingerprint)) }}" defer></script>
 {% endif %}
-<script src="{{ url('/' ~ (('theme/assets/js/islands/contact-form.js') | fingerprint)) }}" defer></script>
+<script nonce="{{ nonce }}" src="{{ url('/' ~ (('theme/assets/js/islands/contact-form.js') | fingerprint)) }}" defer></script>
 {% endblock %}

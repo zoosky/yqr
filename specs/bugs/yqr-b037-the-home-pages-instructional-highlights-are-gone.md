@@ -118,4 +118,7 @@ search index carry the fences' plain text with no mark syntax, as
 `f399` promised. One pre-existing observation, out of scope here: under
 `accent serve` 0.28.1's nonce CSP, the theme's own inline scripts
 (theme-toggle init, diagram loader) are blocked in dev serve; the
-deployed static site serves no CSP header and is unaffected.
+deployed static site serves no CSP header and is unaffected. Filed and
+fixed as `yqr-b039` — the cause was this theme (forked before accent
+0.26) never stamping `nonce="{{ nonce }}"` on its script tags, not an
+accent gap.
