@@ -27,7 +27,7 @@ jobs:
       - name: Install Rust toolchain (1.97.1)
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.97.1"
+          toolchain: "1.99.1"
           components: rustfmt, clippy
 
       - name: Cache cargo registry and target
