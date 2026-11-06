@@ -1,7 +1,9 @@
 # Bug b037 — The home page's instructional highlights are gone
 
-**Status:** Open — filed 2026-10-09, from `yqr-f042`'s accepted
-normalizations; fix gated on accentcms `f399`
+**Status:** Resolved — 2026-11-06, by adopting accent v0.28.1 (the first
+pinned release carrying accentcms `f399`, which shipped in v0.27.0) and
+reauthoring the lost emphasis as `mark` components in
+`content/index.md`; see §5
 **Severity:** Low — nothing is wrong as data or layout, but the page
 teaches less: the emphasis that told a reader *which part* of a command
 or snippet to look at is flattened
@@ -69,9 +71,51 @@ flattened interim.
 
 ## 4. Acceptance criteria
 
-- [ ] An accent release carrying accentcms `f399` is pinned.
-- [ ] The filter portions, token tints and the hit line render again,
+- [x] An accent release carrying accentcms `f399` is pinned.
+- [x] The filter portions, token tints and the hit line render again,
       authored in `content/index.md` as marks, not HTML.
-- [ ] The chart and outcome panes are content again.
-- [ ] A Playwright pass against the pre-f042 baseline shows the
+- [x] The chart and outcome panes are content again.
+- [x] A Playwright pass against the pre-f042 baseline shows the
       emphasis restored.
+
+## 5. Resolution (2026-11-06)
+
+`ACCENT_VERSION` in `pages.yml` moved v0.26.1 -> v0.28.1 (local
+development was already there); accentcms `f399` shipped in v0.27.0 as
+filed — `{% process=true %}` fences plus a `mark` component — and the
+asset naming and checksum flow are unchanged. The three losses came
+back as authored marks, plus one §1 did not track:
+
+- The filter portion of every recipe command carries
+  `{% mark role="filter" %}` (16 commands; the `validate` recipe has no
+  filter). The `recipe` component's `cmd`/`out` attributes are gone:
+  its body now opens with the command as a processed console fence —
+  an attribute string cannot carry marks — and output lines are marked
+  `role="out"`. The `$` prompt became theme chrome (`::before` on the
+  pane's `code`), so the fence holds only what the user types and
+  copies.
+- The 3 explicit-card snippets mark their shown keys (`role="key"`),
+  and the chart's hit line is a whole-line `role="hit"` mark with the
+  key and value marked inside it — marks nest.
+- The chart's YAML pane and both outcome panes moved from template art
+  into content (`f042` §2's preferred end state): `chart` grew a
+  markdown body, and the outcome strip is a new `outcome` child
+  component (badge, kind) whose body is the transcript fence. Only the
+  chart's label and animated route stay template-side.
+- The Dockerfile pane's comment and keyword tints, flattened by the
+  same conversion but not listed in §1, are back as `role="comment"` /
+  `role="keyword"` marks.
+
+The theme's `mark` component renders
+`<span class="mark mark-<role>" data-part="mark">`, and the home style
+block maps the roles onto the colors it always had. Verified against
+the pre-f042 markup (the span-by-span source of truth) with a
+Playwright pass on `accent serve`: all mark counts match the original
+spans, the hit line renders with its background, border and value
+weight in both themes, `accent validate` and the build are clean, and
+the page has no horizontal overflow at 375px. `llms-full.txt` and the
+search index carry the fences' plain text with no mark syntax, as
+`f399` promised. One pre-existing observation, out of scope here: under
+`accent serve` 0.28.1's nonce CSP, the theme's own inline scripts
+(theme-toggle init, diagram loader) are blocked in dev serve; the
+deployed static site serves no CSP header and is unaffected.

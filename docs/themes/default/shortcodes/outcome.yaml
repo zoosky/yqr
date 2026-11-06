@@ -1,0 +1,15 @@
+# One pane of the outcome strip: a badge and a terminal transcript. The
+# body is a `{% process=true %}` console fence whose prompt and output
+# lines carry `mark` spans.
+name: outcome
+description: One outcome pane, a badge over a terminal transcript.
+params:
+  - name: kind
+    type: string
+    required: true
+    description: The pane's verdict, styling its badge -- exact or drift.
+  - name: badge
+    type: string
+    required: true
+    description: The badge text, e.g. the flag that produces this outcome.
+body: markdown

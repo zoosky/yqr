@@ -1,0 +1,13 @@
+# Editorial emphasis inside a processed code fence (accentcms f399): the
+# substring or line the reader should look at, which no grammar
+# highlighter can recover. Legal only where the author opted in with a
+# `{% process=true %}` fence. `role` is a free string; the home style
+# block styles: filter, hit, key, value, prompt, out, comment, keyword.
+name: mark
+description: An editorial emphasis span inside a processed code fence.
+params:
+  - name: role
+    type: string
+    required: true
+    description: "What the marked text is: filter, hit, key, value, prompt, out, comment, or keyword."
+body: inline

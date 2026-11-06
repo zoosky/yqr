@@ -1,17 +1,11 @@
 # One runnable command with its one-line story: the shape the home page
-# repeats seventeen times. The command renders behind a prompt; optional
-# output lines follow it; the body is the note under the pane.
+# repeats seventeen times. The body opens with the command as a
+# `{% process=true %}` console fence -- so the filter portion can carry a
+# `{% mark role="filter" %}` span (b037) and output lines are further
+# fence lines -- and the paragraphs after the fence are the note under
+# the pane. The prompt is theme chrome: the template's CSS renders it,
+# so the fence holds only what the user types and copies.
 name: recipe
-description: A command pane with a prompt, optional output lines, and a note.
-params:
-  - name: cmd
-    type: string
-    required: true
-    description: The command as typed, without the prompt.
-  - name: out
-    type: list
-    required: false
-    items:
-      type: string
-    description: Output lines printed under the command, verbatim.
+description: A command pane (a processed console fence) with a note under it.
+params: []
 body: markdown

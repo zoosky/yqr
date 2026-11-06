@@ -7,8 +7,11 @@
 # page repeats (hero, chart, outcomes, section heads, recipes, cards) are
 # theme components in themes/default/shortcodes/, and the design still
 # lives in themes/default/templates/home.html.jinja's style block.
-# Traceability: yqr-b001, yqr-f003, yqr-m002; features f006 (the write tier)
-# and f012 (validate) are the two the worked examples demonstrate.
+# The emphasis inside code -- the filter portion of each recipe command, the
+# snippet key tints, the chart's hit line -- is authored as `mark` components
+# inside `{% process=true %}` fences (b037, accentcms f399).
+# Traceability: yqr-b001, yqr-f003, yqr-m002, yqr-b037; features f006 (the
+# write tier) and f012 (validate) are the two the worked examples demonstrate.
 title: jq for YAML -- query and edit without reformatting
 lead: >-
   A jq-style query and editing tool for YAML: reads give back your own bytes, edits change only what you name.
@@ -26,9 +29,36 @@ template: home
 `yqr` is a jq-style filter for YAML. Point it at a manifest file, a `kubectl get -o yaml` dump, or a Helm-rendered bundle, and it walks straight to the field you asked for — as a value, not as JSON you have to decode back.
 {% /hero %}
 
-{% chart /%}
+{% chart %}
+```yaml {% process=true %}
+apiVersion: v1
+kind: Pod
+metadata:
+  {% mark role="key" %}name:{% /mark %} web
+spec:
+  volumes:
+    - name: tls
+      secret:
+        secretName: web-tls
+{% mark role="hit" %}        {% mark role="key" %}defaultMode:{% /mark %} {% mark role="value" %}0640{% /mark %}{% /mark %}
+```
+{% /chart %}
 
 {% outcomes %}
+{% outcome kind="exact" badge="default" %}
+```console {% process=true %}
+yqr '.spec.volumes[0].secret.defaultMode' pod.yaml
+{% mark role="out" %}0640{% /mark %}
+```
+{% /outcome %}
+
+{% outcome kind="drift" badge="--normalize" %}
+```console {% process=true %}
+yqr --normalize '.spec.volumes[0].secret.defaultMode' pod.yaml
+{% mark role="out" %}640{% /mark %}
+```
+{% /outcome %}
+
 Kubernetes spells file permissions in octal — `defaultMode: 0640` on a Secret or ConfigMap volume. Read that field through yqr and the value comes back exactly as written, because yqr never re-typed it in the first place. Only if you opt into the classic [`--normalize`](#engines) pipeline is the leading zero lost: `640` is a different number.
 {% /outcomes %}
 
@@ -117,19 +147,31 @@ error[Y001]: expected a node but found StreamEnd
 {% home-card title="Piped from kubectl" %}
 Standard operator loop: dump a resource as YAML, pull one field out of it, move on.
 
-{% recipe cmd="kubectl get pods -o yaml | yqr -r '.items[] | .metadata.name'" %}
+{% recipe %}
+```console {% process=true %}
+kubectl get pods -o yaml | yqr -r {% mark role="filter" %}'.items[] | .metadata.name'{% /mark %}
+```
 One pod name per line.
 {% /recipe %}
 
-{% recipe cmd="kubectl get pod web-0 -o yaml | yqr -r '.spec.containers[0].image'" %}
+{% recipe %}
+```console {% process=true %}
+kubectl get pod web-0 -o yaml | yqr -r {% mark role="filter" %}'.spec.containers[0].image'{% /mark %}
+```
 The primary container's image, unquoted.
 {% /recipe %}
 
-{% recipe cmd="kubectl get pod web-0 -o yaml | yqr -r '.spec.initContainers[]? | .image'" %}
+{% recipe %}
+```console {% process=true %}
+kubectl get pod web-0 -o yaml | yqr -r {% mark role="filter" %}'.spec.initContainers[]? | .image'{% /mark %}
+```
 Init container images when the pod has any — the trailing `?` keeps pods with none from erroring the pipeline.
 {% /recipe %}
 
-{% recipe cmd="yqr validate --strict manifests/*.yaml" %}
+{% recipe %}
+```console {% process=true %}
+yqr validate --strict manifests/*.yaml
+```
 A gate before `kubectl apply`: every manifest must parse, round-trip byte-for-byte, and carry no duplicate keys. Exit 1 with a located diagnostic if not — and an empty file list is a loud usage error, so a glob that matches nothing never passes as "all valid".
 {% /recipe %}
 {% /home-card %}
@@ -137,20 +179,23 @@ A gate before `kubectl apply`: every manifest must parse, round-trip byte-for-by
 {% home-card title="Inside a container image" %}
 Bake the binary in, then use it in an init container to read a mounted manifest or ConfigMap before the main container starts.
 
-```
-# -- build --
-FROM rust:1.97-slim AS build
+```dockerfile {% process=true %}
+{% mark role="comment" %}# -- build --{% /mark %}
+{% mark role="keyword" %}FROM{% /mark %} rust:1.97-slim {% mark role="keyword" %}AS{% /mark %} build
 WORKDIR /src
 COPY . .
 RUN cargo build --release
 
-# -- runtime --
-FROM debian:bookworm-slim
+{% mark role="comment" %}# -- runtime --{% /mark %}
+{% mark role="keyword" %}FROM{% /mark %} debian:bookworm-slim
 COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
-ENTRYPOINT ["yqr"]
+{% mark role="keyword" %}ENTRYPOINT{% /mark %} ["yqr"]
 ```
 
-{% recipe cmd="yqr -r '.data.enableBeta' /config/values.yaml" %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.data.enableBeta'{% /mark %} /config/values.yaml
+```
 Read a flag out of a mounted ConfigMap and hand it to the next step — a common init-container job.
 {% /recipe %}
 {% /home-card %}
@@ -166,11 +211,17 @@ Anything that's YAML takes the same filters. Three more places yqr earns its kee
 {% home-card kind="mini-card" title="CI/CD pipelines" %}
 GitHub Actions workflows are YAML. Audit what a job actually runs without opening the file — these two ran against this repo's own `ci.yml`.
 
-{% recipe cmd="yqr -r '.jobs.test.[\"runs-on\"]' ci.yml" %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.jobs.test.["runs-on"]'{% /mark %} ci.yml
+```
 ubuntu-latest — bracket syntax reaches keys a bareword can't spell, like `runs-on`.
 {% /recipe %}
 
-{% recipe cmd="yqr -r '.jobs.test.steps[1].with.toolchain' ci.yml" %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.jobs.test.steps[1].with.toolchain'{% /mark %} ci.yml
+```
 1.97 — confirm the pinned Rust version without scrolling past the cache step.
 {% /recipe %}
 {% /home-card %}
@@ -178,11 +229,17 @@ ubuntu-latest — bracket syntax reaches keys a bareword can't spell, like `runs
 {% home-card kind="mini-card" title="Docker Compose" %}
 Check what a compose file is about to pull and expose before you run it.
 
-{% recipe cmd="yqr -r '.services[] | .image' compose.yaml" %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.services[] | .image'{% /mark %} compose.yaml
+```
 yqr-demo:latest, postgres:16 — every image referenced, one per line.
 {% /recipe %}
 
-{% recipe cmd="yqr -r '.services.web.environment.LOG_LEVEL' compose.yaml" %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.services.web.environment.LOG_LEVEL'{% /mark %} compose.yaml
+```
 debug — one config value, no grep.
 {% /recipe %}
 {% /home-card %}
@@ -190,11 +247,17 @@ debug — one config value, no grep.
 {% home-card kind="mini-card" title="Ansible playbooks" %}
 A playbook is a YAML list of plays — walk it like any other sequence.
 
-{% recipe cmd="yqr -r '.[0].tasks[] | .name' playbook.yml" %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.[0].tasks[] | .name'{% /mark %} playbook.yml
+```
 Install nginx, Start nginx — every task in the first play, at a glance.
 {% /recipe %}
 
-{% recipe cmd="yqr -r '.[0].hosts' playbook.yml" %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.[0].hosts'{% /mark %} playbook.yml
+```
 web — which hosts that play targets.
 {% /recipe %}
 {% /home-card %}
@@ -209,22 +272,30 @@ Same grammar, different files — this time with the source shown, so nothing he
 {% home-card kind="explicit-card" title="OpenAPI specs" %}
 An OpenAPI document is plain YAML. Point yqr at it to pull a specific operation's details out of a spec someone else wrote, without loading it into an editor.
 
-```
-paths:
+```yaml {% process=true %}
+{% mark role="key" %}paths:{% /mark %}
   /widgets/{id}:
     get:
-      summary: Get a widget
+      {% mark role="key" %}summary:{% /mark %} Get a widget
       responses:
         "200":
-          description: OK
+          {% mark role="key" %}description:{% /mark %} OK
 ```
 
 {% grid kind="explicit-recipes" %}
-{% recipe cmd="yqr -r '.paths.[\"/widgets/{id}\"].get.summary' openapi.yaml" out=["Get a widget"] %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.paths.["/widgets/{id}"].get.summary'{% /mark %} openapi.yaml
+{% mark role="out" %}Get a widget{% /mark %}
+```
 Path keys have slashes and braces, so a bareword can't spell them — bracket syntax reaches them anyway, the same way `.["runs-on"]` did for the CI workflow above.
 {% /recipe %}
 
-{% recipe cmd="yqr -r '.paths.[\"/widgets\"].get.responses.[\"200\"].description' openapi.yaml" out=["OK"] %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.paths.["/widgets"].get.responses.["200"].description'{% /mark %} openapi.yaml
+{% mark role="out" %}OK{% /mark %}
+```
 Status codes are string keys, and an unquoted `200` in a filter would try to read a number. Bracket syntax reaches the string key `"200"` exactly as the spec wrote it.
 {% /recipe %}
 {% /grid %}
@@ -233,8 +304,8 @@ Status codes are string keys, and an unquoted `200` in a filter would try to rea
 {% home-card kind="explicit-card" title="Prometheus alerting rules" %}
 Alerting rules are a YAML list of groups, each holding a list of rules. Reading one back tells you exactly what will page someone, and at what threshold.
 
-```
-groups:
+```yaml {% process=true %}
+{% mark role="key" %}groups:{% /mark %}
   - name: api-slos
     rules:
       - alert: HighErrorRate
@@ -245,11 +316,20 @@ groups:
 ```
 
 {% grid kind="explicit-recipes" %}
-{% recipe cmd="yqr -r '.groups[0].rules[] | .alert' rules.yaml" out=["HighErrorRate", "HighLatency"] %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.groups[0].rules[] | .alert'{% /mark %} rules.yaml
+{% mark role="out" %}HighErrorRate{% /mark %}
+{% mark role="out" %}HighLatency{% /mark %}
+```
 Every alert name in the first group, without reading through a file's worth of PromQL to find them.
 {% /recipe %}
 
-{% recipe cmd="yqr -r '.groups[0].rules[0].expr' rules.yaml" out=["rate(http_requests_total{status=\"5xx\"}[5m]) > 0.05"] %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.groups[0].rules[0].expr'{% /mark %} rules.yaml
+{% mark role="out" %}rate(http_requests_total{status="5xx"}[5m]) > 0.05{% /mark %}
+```
 The exact expression for that alert — useful when you just need to confirm the number that pages someone, not re-read the whole rules file.
 {% /recipe %}
 {% /grid %}
@@ -258,21 +338,29 @@ The exact expression for that alert — useful when you just need to confirm the
 {% home-card kind="explicit-card" title="Application config" %}
 Most services ship a YAML config file alongside the binary — database targets, ports, feature flags. yqr reads it the same way it reads anything else.
 
-```
-database:
+```yaml {% process=true %}
+{% mark role="key" %}database:{% /mark %}
   host: db.internal
   port: 5432
-featureFlags:
+{% mark role="key" %}featureFlags:{% /mark %}
   newCheckout: true
   betaSearch: false
 ```
 
 {% grid kind="explicit-recipes" %}
-{% recipe cmd="yqr -r '.database.host' application.yaml" out=["db.internal"] %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.database.host'{% /mark %} application.yaml
+{% mark role="out" %}db.internal{% /mark %}
+```
 Confirm which database an environment's config actually points at before you run a migration against it.
 {% /recipe %}
 
-{% recipe cmd="yqr -r '.featureFlags.newCheckout' application.yaml" out=["true"] %}
+{% recipe %}
+```console {% process=true %}
+yqr -r {% mark role="filter" %}'.featureFlags.newCheckout'{% /mark %} application.yaml
+{% mark role="out" %}true{% /mark %}
+```
 Read a single feature flag's value straight out of the file that ships with the deploy, instead of grepping for it.
 {% /recipe %}
 {% /grid %}
