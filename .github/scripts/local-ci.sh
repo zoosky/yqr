@@ -20,6 +20,21 @@ cargo clippy --all-targets --all-features -- -D warnings
 echo "=== build ==="
 cargo build --all-targets --locked
 
+# Feature f046: the lib must compile without the CLI's dependency graph, and
+# clap must stay out of it entirely -- a later change that re-couples the lib
+# to a CLI dependency fails here, not at a consumer. `cargo tree` writes to a
+# file as its own command: under `set -e` a tool failure stops the script
+# instead of handing grep empty input, and grep never SIGPIPEs the producer.
+echo "=== lib without default features ==="
+cargo check --lib --no-default-features --locked
+lib_deps=$(mktemp)
+cargo tree --no-default-features --locked -e normal --prefix none > "$lib_deps"
+if grep '^clap ' "$lib_deps"; then
+  echo "error: clap is in the no-default-features dependency graph" >&2
+  exit 1
+fi
+rm -f "$lib_deps"
+
 echo "=== test ==="
 cargo test --all-targets --locked
 

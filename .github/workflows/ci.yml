@@ -49,6 +49,19 @@ jobs:
       - name: Build
         run: cargo build --all-targets --locked
 
+      # Feature f046: the lib compiles without the CLI's dependency graph,
+      # and clap stays out of it entirely. `cargo tree` writes to a file as
+      # its own command so a tool failure fails the step instead of handing
+      # grep empty input and passing vacuously.
+      - name: Check lib without default features
+        run: |
+          cargo check --lib --no-default-features --locked
+          cargo tree --no-default-features --locked -e normal --prefix none > /tmp/lib-deps.txt
+          if grep '^clap ' /tmp/lib-deps.txt; then
+            echo "error: clap is in the no-default-features dependency graph" >&2
+            exit 1
+          fi
+
       - name: Test
         run: cargo test --all-targets --locked
 

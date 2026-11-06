@@ -12,6 +12,7 @@
 # inside `{% process=true %}` fences (b037, accentcms f399).
 # Traceability: yqr-b001, yqr-f003, yqr-m002, yqr-b037; features f006 (the
 # write tier) and f012 (validate) are the two the worked examples demonstrate.
+# The library path-card documents f046 (the cli cargo feature).
 title: jq for YAML -- query and edit without reformatting
 lead: >-
   A jq-style query and editing tool for YAML: reads give back your own bytes, edits change only what you name.
@@ -80,6 +81,12 @@ Pulls the published crate to `~/.cargo/bin/yqr` — keep that directory on `PATH
 {% loc text="cargo build --release" /%}
 
 Building from source instead? The binary lands at `target/release/yqr` (or `cargo install --path .` to put a local checkout on `PATH`).
+{% /path-card %}
+
+{% path-card title="In your Cargo.toml" %}
+{% loc text="yqr = { version = \"0.11\", default-features = false }" /%}
+
+yqr is also a Rust library: the filter language, the validator, and the byte-preserving engine behind one API ([docs.rs/yqr](https://docs.rs/yqr)). Turn off default features and the command-line layer (clap and its proc-macro stack) stays out of your build — the `cli` cargo feature only matters to the binary.
 {% /path-card %}
 
 {% path-card title="Inside a container image" %}
