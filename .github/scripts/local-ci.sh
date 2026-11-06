@@ -20,9 +20,9 @@ cargo clippy --all-targets --all-features -- -D warnings
 echo "=== build ==="
 cargo build --all-targets --locked
 
-# Features f046/f047: the lib must lint, test and compile without the CLI
+# Features f046-f048: the lib must lint, test and compile without the CLI
 # and JSON Schema dependency graphs (and in the schema-only editor profile),
-# and clap, jsonschema and serde_json must stay out of the minimal graph
+# and clap, jsonschema, serde_json and serde must stay out of the minimal graph
 # entirely -- a later change that re-couples the lib to a gated dependency
 # fails here, not at a consumer. `cargo tree` writes to a file as its own
 # command: under `set -e` a tool failure stops the script instead of handing
@@ -37,7 +37,7 @@ lib_deps=$(mktemp)
 trap 'rm -f "$lib_deps"' EXIT
 cargo tree --no-default-features --locked -e normal --prefix none > "$lib_deps"
 rc=0
-grep -E '^(clap|jsonschema|serde_json) ' "$lib_deps" || rc=$?
+grep -E '^(clap|jsonschema|serde_json|serde) ' "$lib_deps" || rc=$?
 if [ "$rc" -eq 0 ]; then
   echo "error: a gated dependency is in the no-default-features graph" >&2
   exit 1

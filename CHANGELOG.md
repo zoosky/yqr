@@ -22,6 +22,14 @@ All notable changes to `yqr` are documented here. The format is based on
   lib resolves to 17 crates, and an editor-profile wasm module shrinks
   from 2.31 MiB to 344 KiB. The shipped binary is unchanged.
 
+- **Structured diagnostics for editor hosts.** `validate::Diagnostic`
+  now carries the byte offset of its position beside line/column, and a
+  filter lex/parse error carries the byte span of the offending token
+  (`YqrError::span()`), so an editor can underline it without
+  re-scanning. An opt-in `serde` cargo feature derives `Serialize` on
+  these types, with the diagnostic code serialized as its stable string
+  (`"Y101"`). Rendered CLI output is byte-identical.
+
 ### Changed
 
 - The pinned Rust toolchain was updated from 1.97.1 to 1.99.1, and the

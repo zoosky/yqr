@@ -1220,6 +1220,7 @@ dependencies = [
  "indexmap",
  "jsonschema",
  "noyalib",
+ "serde",
  "serde_json",
 ]
 

@@ -91,13 +91,37 @@ impl Code {
     }
 }
 
+/// Serializes as the stable code string (`"Y101"`) — the identifier scripts
+/// and editors already match on — rather than the Rust variant name.
+// Feature f048.
+#[cfg(feature = "serde")]
+impl serde::Serialize for Code {
+    fn serialize<S: serde::Serializer>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error> {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
 /// One validation finding, ready to render.
 ///
 /// `position` is a 1-based `(line, column)` in the checked source, present
-/// when the finding has one. `note` adds context (such as where the first
-/// occurrence of a duplicate key sits) and `help` suggests a fix when a
-/// concrete one exists.
+/// when the finding has one, and `offset` is the same location as a byte
+/// offset, so an editor can place a marker without re-scanning the
+/// document. `note` adds context (such as where the first occurrence of a
+/// duplicate key sits) and `help` suggests a fix when a concrete one
+/// exists.
+///
+/// With the `serde` cargo feature, the finding serializes with `code` as
+/// its stable string (`"Y101"`), `position` as a `[line, column]` pair or
+/// `null`, and every other field by name. That shape is an interface for
+/// editor hosts: fields may be added, but removing or renaming one is a
+/// breaking change. These types are outputs — they serialize but never
+/// deserialize.
+// Feature f048: the serialized shape and the byte offset.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Diagnostic {
     /// Which finding this is.
     pub code: Code,
@@ -105,6 +129,9 @@ pub struct Diagnostic {
     pub message: String,
     /// 1-based `(line, column)` when the finding has a location.
     pub position: Option<(usize, usize)>,
+    /// Byte offset into the checked source of the same location
+    /// `position` names.
+    pub offset: Option<usize>,
     /// Additional context line, rendered as `= note: ...`.
     pub note: Option<String>,
     /// Suggested fix, rendered as `= help: ...`.
@@ -189,6 +216,7 @@ pub fn encoding_diagnostic(valid_prefix: &str) -> Diagnostic {
         code: Code::Encoding,
         message: "input is not valid UTF-8".into(),
         position: Some(render::position_of(valid_prefix, valid_prefix.len())),
+        offset: Some(valid_prefix.len()),
         note: None,
         help: Some("yqr reads YAML as UTF-8; re-encode the file (e.g. iconv -t UTF-8)".into()),
     }
@@ -225,10 +253,11 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
     if let ::noyalib::Error::KeyCollision(key) | ::noyalib::Error::KeyCollisionAt { key, .. } = err
     {
         let position = err.location().map(|loc| locate(loc.index()));
+        let offset = err.location().map(|loc| loc.index());
         let note = err
             .location()
             .and_then(|loc| document_note(source, &starts, loc.index()));
-        return key_collision_diagnostic(key, position, note);
+        return key_collision_diagnostic(key, position, offset, note);
     }
     let (message, help) = match err {
         ::noyalib::Error::Parse(m) | ::noyalib::Error::ParseWithLocation { message: m, .. } => {
@@ -284,6 +313,7 @@ fn syntax_diagnostic(err: &::noyalib::Error, source: &str) -> Diagnostic {
         code: Code::Syntax,
         message,
         position: anchor.map(locate),
+        offset: anchor,
         note: anchor.and_then(|index| document_note(source, &starts, index)),
         help,
     }
@@ -322,6 +352,7 @@ where
         code: Code::StreamIntegrity,
         message: "parsed documents do not reproduce the input byte-for-byte".into(),
         position: None,
+        offset: None,
         note: Some(format!(
             "reassembled {} bytes from the parse, but the input has {}",
             rebuilt.len(),
@@ -351,6 +382,7 @@ fn block_value_indent_findings(source: &str, docs: &[::noyalib::cst::Document]) 
                 code: Code::BlockValueIndent,
                 message: "block mapping value is not indented past its key".to_string(),
                 position: Some((line, column)),
+                offset: Some(hit.value),
                 note: Some(format!(
                     "its key is at line {key_line}, column {key_column}, so the value must \
                      start at column {} or deeper",
@@ -399,6 +431,7 @@ fn strict_findings(source: &str, docs: &[::noyalib::cst::Document]) -> Vec<Diagn
                 code: Code::DuplicateKey,
                 message,
                 position: Some((line, column)),
+                offset: Some(dup.second),
                 note: Some(format!(
                     "first occurrence at line {first_line}, column {first_column}"
                 )),
@@ -415,12 +448,14 @@ fn strict_findings(source: &str, docs: &[::noyalib::cst::Document]) -> Vec<Diagn
 fn key_collision_diagnostic(
     key: &str,
     position: Option<(usize, usize)>,
+    offset: Option<usize>,
     note: Option<String>,
 ) -> Diagnostic {
     Diagnostic {
         code: Code::KeyCollision,
         message: format!("distinct mapping keys collide after string conversion: {key:?}"),
         position,
+        offset,
         note,
         help: Some(
             "yqr matches keys by spelling; rename one so the keys \
@@ -888,11 +923,38 @@ error[Y101]: duplicate mapping key \"a\"
             code: Code::Syntax,
             message: "m".into(),
             position: Some((1, 3)),
+            offset: Some(2),
             note: None,
             help: None,
         };
         let rendered = render(&d, "f", "\ta: 1\n");
         assert!(rendered.contains("1 |     a: 1\n"), "rendered:\n{rendered}");
         assert!(rendered.contains("  |      ^\n"), "rendered:\n{rendered}");
+    }
+
+    /// Pins the serialized diagnostic shape: editor hosts deserialize this,
+    /// so a field rename or removal here is a breaking change.
+    // Feature f048.
+    #[cfg(feature = "serde")]
+    #[test]
+    fn diagnostics_serialize_with_code_position_and_offset() {
+        let findings = check_str("a: 1\na: 2\n", true);
+        let json = serde_json::to_string(&findings).unwrap();
+        assert_eq!(
+            json,
+            r#"[{"code":"Y101","message":"duplicate mapping key \"a\"","position":[2,1],"offset":5,"note":"first occurrence at line 1, column 1","help":"later occurrences silently override earlier ones; remove or rename one"}]"#
+        );
+    }
+
+    /// Every produced diagnostic carries its position's byte offset, and the
+    /// two coordinate systems agree.
+    // Feature f048.
+    #[test]
+    fn offset_and_position_name_the_same_place() {
+        let source = "a: 1\na: 2\n";
+        for d in check_str(source, true) {
+            let (offset, position) = (d.offset.unwrap(), d.position.unwrap());
+            assert_eq!(render::position_of(source, offset), position);
+        }
     }
 }

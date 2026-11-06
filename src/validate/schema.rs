@@ -113,6 +113,7 @@ fn schema_unusable(message: String) -> Diagnostic {
         code: Code::SchemaUnusable,
         message,
         position: None,
+        offset: None,
         note: None,
         help: Some(SCHEMA_HELP.into()),
     }
@@ -209,6 +210,7 @@ fn not_validated(message: String) -> Diagnostic {
         code: Code::StreamIntegrity,
         message: format!("schema validation could not run: {message}"),
         position: None,
+        offset: None,
         note: None,
         help: Some(
             "the input exercises an engine defect; report it with this input attached".into(),
@@ -236,6 +238,7 @@ fn violation_diagnostic(
         code: Code::SchemaViolation,
         message: violation_message(err),
         position: Some(render::position_of(source, anchor)),
+        offset: Some(anchor),
         note: Some(located_note(&path, source, starts, anchor)),
         help: None,
     }
@@ -274,6 +277,7 @@ fn json_model_diagnostic(
         code: Code::OutsideJsonModel,
         message: format!("document {}", reason.describe()),
         position: Some(render::position_of(source, anchor)),
+        offset: Some(anchor),
         note: Some(located_note(path, source, starts, anchor)),
         help: Some(
             "JSON Schema validates the JSON data model; this document was not \

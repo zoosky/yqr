@@ -31,7 +31,8 @@ use crate::ast::{
     Ast, BinOp, Builtin, FOOT_COMMENT_REFUSAL, Mutation, Program, ReorderOp, Rhs, Target,
 };
 use crate::error::{Result, YqrError};
-use crate::lexer::{Token, lex};
+use crate::lexer::{Token, lex_spanned};
+use std::ops::Range;
 
 /// Compile a filter source string into an [`Ast`], rejecting mutations.
 ///
@@ -61,17 +62,21 @@ pub fn parse(src: &str) -> Result<Ast> {
 /// single mutation.
 // Feature f006: mutation-aware top-level parse.
 pub fn parse_program(src: &str) -> Result<Program> {
-    let tokens = lex(src)?;
-    if tokens.is_empty() {
+    let spanned = lex_spanned(src)?;
+    if spanned.is_empty() {
         // An empty program is treated as identity, which is friendlier than jq.
         return Ok(Program::Query(Target::Value(Ast::Identity)));
     }
-    let mut p = Parser { tokens, pos: 0 };
+    let (tokens, spans) = spanned.into_iter().map(|s| (s.token, s.span)).unzip();
+    let mut p = Parser {
+        tokens,
+        spans,
+        pos: 0,
+        end: src.len(),
+    };
     let program = p.parse_program()?;
     if let Some(tok) = p.peek() {
-        return Err(YqrError::parse(format!(
-            "unexpected trailing token {tok:?}"
-        )));
+        return Err(p.err_here(format!("unexpected trailing token {tok:?}")));
     }
     Ok(program)
 }
@@ -136,7 +141,12 @@ fn check_writable(path: &Ast, op: &str) -> Result<()> {
 
 struct Parser {
     tokens: Vec<Token>,
+    /// Byte span of each token in the filter source, parallel to `tokens`.
+    // Feature f048.
+    spans: Vec<Range<usize>>,
     pos: usize,
+    /// Length of the filter source: the anchor for "reached end" errors.
+    end: usize,
 }
 
 impl Parser {
@@ -156,15 +166,32 @@ impl Parser {
         tok
     }
 
+    /// The byte span of the token at `idx`, or an empty range at the end of
+    /// the source when the cursor has run out of tokens.
+    // Feature f048.
+    fn span_at(&self, idx: usize) -> Range<usize> {
+        self.spans.get(idx).cloned().unwrap_or(self.end..self.end)
+    }
+
+    /// A parse error anchored at the token the cursor sits on (the usual
+    /// case: the error was raised after a `peek`).
+    // Feature f048.
+    fn err_here(&self, msg: String) -> YqrError {
+        YqrError::parse_at(msg, self.span_at(self.pos))
+    }
+
+    /// A parse error anchored at the token just consumed (the error was
+    /// raised after an `advance` that returned the offending token).
+    // Feature f048.
+    fn err_prev(&self, msg: String) -> YqrError {
+        YqrError::parse_at(msg, self.span_at(self.pos.saturating_sub(1)))
+    }
+
     fn expect(&mut self, want: &Token) -> Result<()> {
         match self.advance() {
             Some(ref got) if got == want => Ok(()),
-            Some(got) => Err(YqrError::parse(format!(
-                "expected {want:?} but found {got:?}"
-            ))),
-            None => Err(YqrError::parse(format!(
-                "expected {want:?} but reached end"
-            ))),
+            Some(got) => Err(self.err_prev(format!("expected {want:?} but found {got:?}"))),
+            None => Err(self.err_here(format!("expected {want:?} but reached end"))),
         }
     }
 
@@ -334,7 +361,7 @@ impl Parser {
             self.advance();
             return Ok(());
         }
-        Err(YqrError::parse(format!(
+        Err(self.err_here(format!(
             "expected ';' between the arguments of {0}(...): the form is \
              {0}(<path>; {1}; {2}), found {3:?}",
             op.word(),
@@ -353,7 +380,7 @@ impl Parser {
                 self.advance();
                 Ok(n)
             }
-            other => Err(YqrError::parse(format!(
+            other => Err(self.err_here(format!(
                 "{}(...) takes two integer indices, found {other:?} \
                  (negative indices count from the end, as '.[-1]' does)",
                 op.word()
@@ -387,7 +414,7 @@ impl Parser {
                     "false" => Value::Bool(false),
                     "null" => Value::Null,
                     other => {
-                        return Err(YqrError::parse(format!(
+                        return Err(self.err_here(format!(
                             "expected a scalar literal or path on the right of '='/'+=' , \
                              found bare identifier {other:?} (only true/false/null are keywords)"
                         )));
@@ -397,7 +424,7 @@ impl Parser {
                 Ok(Rhs::Literal(literal))
             }
             Some(Token::Dot) => Ok(Rhs::Path(self.parse_pipeline()?)),
-            other => Err(YqrError::parse(format!(
+            other => Err(self.err_here(format!(
                 "expected a scalar literal or path on the right of '='/'+=' , found {other:?}"
             ))),
         }
@@ -521,7 +548,7 @@ impl Parser {
         // language where every builtin takes parentheses. Naming the mistake
         // beats reporting an unexpected '('.
         if matches!(self.peek(), Some(Token::LParen)) {
-            return Err(YqrError::parse(format!(
+            return Err(self.err_here(format!(
                 "'{}' takes no arguments: it reads whatever the pipe hands it. \
                  Write '<path> | {}' instead of '{}(<path>)'",
                 b.word(),
@@ -579,9 +606,14 @@ impl Parser {
                         steps.push(self.parse_bracket()?);
                     }
                     other => {
-                        return Err(YqrError::parse(format!(
-                            "expected a field name, a quoted key or '[' after '.', found {other:?}"
-                        )));
+                        // The offending token is the one after the dot the
+                        // cursor sits on, or the end of the source.
+                        return Err(YqrError::parse_at(
+                            format!(
+                                "expected a field name, a quoted key or '[' after '.', found {other:?}"
+                            ),
+                            self.span_at(self.pos + 1),
+                        ));
                     }
                 },
                 _ => break,
@@ -597,9 +629,13 @@ impl Parser {
             Some(Token::Int(n)) => Ast::Index(n),
             Some(Token::Str(s)) => Ast::Field(s),
             other => {
-                return Err(YqrError::parse(format!(
-                    "expected ']', integer, or string inside '[]', found {other:?}"
-                )));
+                let msg = format!("expected ']', integer, or string inside '[]', found {other:?}");
+                // `advance` consumed the offending token when there was one;
+                // otherwise the cursor sits at the end of the source.
+                return Err(match other {
+                    Some(_) => self.err_prev(msg),
+                    None => self.err_here(msg),
+                });
             }
         };
         self.expect(&Token::RBracket)?;
@@ -714,9 +750,40 @@ mod tests {
     fn a_dot_followed_by_a_literal_is_still_refused() {
         let err = parse(".a.5").unwrap_err();
         assert!(
-            matches!(err, YqrError::Parse(ref m) if m.contains("quoted key")),
+            matches!(err, YqrError::Parse(ref m) if m.message.contains("quoted key")),
             "{err:?}"
         );
+    }
+
+    /// The span a parse error carries slices the offending token out of the
+    /// filter string — the contract an editor relies on to underline it.
+    // Feature f048.
+    #[test]
+    fn parse_error_span_slices_the_offending_token() {
+        let filter = ".a = banana";
+        let err = parse_program(filter).unwrap_err();
+        let span = err.span().expect("a bare-identifier RHS has a span");
+        assert_eq!(&filter[span], "banana", "{err:?}");
+
+        let filter = ".a]";
+        let err = parse_program(filter).unwrap_err();
+        let span = err.span().expect("a trailing token has a span");
+        assert_eq!(&filter[span], "]", "{err:?}");
+
+        let filter = "swap(.xs; 0, 1)";
+        let err = parse_program(filter).unwrap_err();
+        let span = err.span().expect("the lexer locates the ','");
+        assert_eq!(&filter[span], ",", "{err:?}");
+    }
+
+    /// A filter that ends too early is anchored at an empty range at the end
+    /// of the source, where the missing token would go.
+    // Feature f048.
+    #[test]
+    fn parse_error_at_end_of_input_has_an_empty_end_span() {
+        let filter = ".a[";
+        let err = parse_program(filter).unwrap_err();
+        assert_eq!(err.span(), Some(3..3), "{err:?}");
     }
 
     #[test]

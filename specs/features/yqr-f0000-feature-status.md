@@ -448,23 +448,23 @@ already compiles for `wasm32-unknown-unknown` unchanged.
 |---------|-------|--------|
 | [f046](yqr-f046-cli-dependencies-behind-a-cargo-feature.md) | Put the CLI's dependencies behind a `cli` cargo feature | Done (2026-11-06: `cli` feature on by default, clap optional, bin gated by `required-features`; the lib compiles with `--no-default-features` and the quality gates enforce a clap-free lib graph; docs.rs builds all features) |
 | [f047](yqr-f047-schema-validation-behind-a-cargo-feature.md) | Put JSON Schema validation behind a `schema` cargo feature | Done (2026-11-07: `schema` feature on by default and implied by `cli`; `check` gated whole so no arity change; the lib's no-default graph drops to 17 crates and the editor-profile wasm shim measures 344 KiB vs 2.31 MiB with schema) |
-| [f048](yqr-f048-serializable-diagnostics-and-filter-error-spans.md) | Serializable diagnostics and filter-error spans | Draft |
+| [f048](yqr-f048-serializable-diagnostics-and-filter-error-spans.md) | Serializable diagnostics and filter-error spans | Done (2026-11-07: `Diagnostic` carries byte offsets beside line/column, filter lex/parse errors carry token byte spans via `FilterError`, and an opt-in `serde` feature derives `Serialize` with `Code` as its stable string; CLI output byte-identical) |
 | [f049](yqr-f049-wasm-target-support.md) | wasm target support: a CI lane and a bindings crate | Draft |
 | [f050](yqr-f050-typed-edit-api-one-editor-for-accent-and-the-browser.md) | A typed edit API: one editor for accentcms and the browser | Draft |
 
-Progress: `f046` landed 2026-11-06, `f047` 2026-11-07 (2/5). `f046`–`f048` are
-independent of each other; `f049` wants `f046`/`f047` for its size
-budget; `f050` builds on the write tier and feeds `f049`'s bindings.
+Progress: `f046` landed 2026-11-06, `f047` and `f048` 2026-11-07 (3/5).
+`f049` wants `f046`/`f047` for its size budget; `f050` builds on the
+write tier and feeds `f049`'s bindings.
 
 ## Summary
 
 - Total features: 50
-- Draft: 4 (f027, f048, f049, f050)
+- Draft: 3 (f027, f049, f050)
 - In Progress: 0
-- Done: 42 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 43 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f025, f026, f028,
   f029, f030, f031, f032, f033, f034, f035, f036, f037, f038, f039, f040,
-  f041, f042, f043, f044, f045, f046, f047)
+  f041, f042, f043, f044, f045, f046, f047, f048)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
