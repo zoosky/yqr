@@ -11,7 +11,7 @@ description: >-
   measured against real files rather than argued from feature lists.
 menu:
   title: Compare
-  order: 3
+  order: 4
 ---
 
 # How yqr compares

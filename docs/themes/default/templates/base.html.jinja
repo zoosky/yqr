@@ -84,13 +84,28 @@
                    rather than a literal "/" so the menu survives sub-path
                    deployments (site.base_path): with a prefix, every page
                    URL is one segment deeper and the home URL is the
-                   prefixed root, not "/". #}
+                   prefixed root, not "/".
+
+                   The home page is skipped: the wordmark above is the home
+                   link. The changelog is skipped in the main pass and pinned
+                   by the second loop: it is a single-file mount of the repo
+                   CHANGELOG, which carries no frontmatter, so its missing
+                   menu order would sort it first; mounts cannot default
+                   frontmatter (only a template), hence the theme pins it.
+                   The second loop renders nothing on a site that does not
+                   mount it (the internal specs site). #}
                 {% set home_url = url('/') %}
+                {% set changelog_url = url('/changelog') %}
                 {% set nav_depth = home_url | split("/") | list | length %}
                 {% for p in pages %}
                 {% set p_parts = p.url | split("/") | list %}
-                {% if p_parts | length <= nav_depth %} <li><a href="{{ p.url | safe }}" {% if p.url != home_url and page.url is
-                        startingwith(p.url) %} class="active" {% elif p.url==page.url %} class="active" {% endif
+                {% if p_parts | length <= nav_depth and p.url != home_url and p.url != changelog_url %} <li><a href="{{ p.url | safe }}" {% if page.url is
+                        startingwith(p.url) %} class="active" {% endif
+                        %}>{{ p.nav_title or p.title }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+                {% for p in pages %}
+                {% if p.url == changelog_url %} <li><a href="{{ p.url | safe }}" {% if page.url == p.url %} class="active" {% endif
                         %}>{{ p.nav_title or p.title }}</a></li>
                     {% endif %}
                     {% endfor %}

@@ -2,7 +2,8 @@
 lead: >-
   A runnable script that walks yqr's query, edit, and validate surface against sample files you can inspect afterwards.
 menu:
-  order: 4
+  title: Demo
+  order: 3
 ---
 # yqr demo
 
