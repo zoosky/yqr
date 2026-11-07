@@ -454,7 +454,10 @@ what a design question about other implementations is measured against.
 
 Builds the **public** Accent CMS site from `docs/` and deploys it to
 `gh-pages`, preserving the benchmark dashboard under `dev/`. Pull requests
-build and verify without deploying. The spec tree is not part of this site:
+build and verify without deploying. The job first builds the playground's
+wasm module (`.github/scripts/playground-wasm.sh`, pins shared with
+`ci.yml`'s wasm lane; `yqr-k003`), and pushes to `main` touching `src/**`,
+`yqr-wasm/**` or `Cargo.lock` also deploy so the module tracks the engine. The spec tree is not part of this site:
 it has its own local-only site, `specs/config.yaml` on port 4401, which
 nothing deploys. Run it with `cd specs && accent serve`. See `yqr-f010` and
 `yqr-f021`.

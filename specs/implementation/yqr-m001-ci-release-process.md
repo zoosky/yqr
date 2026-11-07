@@ -91,6 +91,15 @@ of it -- `yqr-f021`)
 and deploys it to `gh-pages`. Documented in `yqr-f010`; the accent binary is
 pinned by `ACCENT_VERSION` and the build runs with `--strict-links`.
 
+Since `yqr-k003` the job also builds the playground's wasm module before
+the site: the pinned 1.99.1 toolchain plus wasm-pack 0.15.1 (both pins
+shared with `ci.yml`'s wasm lane) run
+`.github/scripts/playground-wasm.sh`, which places the module and its JS
+glue in the theme's gitignored `assets/wasm/`. Pushes to `main` touching
+`src/**`, `yqr-wasm/**` or `Cargo.lock` therefore also deploy, so the
+module tracks the engine; pull-request triggers keep the docs paths, since
+an engine PR's wasm behaviour is already covered by `ci.yml`.
+
 ## 3. Release process
 
 Releases are **manual decisions**; the tag is the trigger. Pushing

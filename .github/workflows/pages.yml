@@ -42,6 +42,14 @@ on:
       # previous release's notes until the next unrelated docs change.
       - "CHANGELOG.md"
       - ".github/workflows/pages.yml"
+      # The playground page runs the engine compiled to wasm (yqr-k003),
+      # so an engine or bindings change on main redeploys the site; the
+      # module would otherwise freeze at the last docs edit. Deploy-only:
+      # pull requests keep the docs paths, because an engine PR's wasm
+      # behaviour is already verified by ci.yml's wasm lane.
+      - "src/**"
+      - "yqr-wasm/**"
+      - "Cargo.lock"
   pull_request:
     paths:
       - "docs/**"
@@ -81,6 +89,33 @@ jobs:
           install -D -m 0755 accent "${HOME}/.local/bin/accent"
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
           "${HOME}/.local/bin/accent" --version
+
+      # The playground's wasm module (yqr-k003): built from source on
+      # every site build, never committed. Toolchain and wasm-pack pins
+      # match ci.yml's wasm lane.
+      - name: Install Rust toolchain (1.99.1)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.99.1"
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-pages-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-pages-
+
+      - name: Build playground wasm assets
+        run: |
+          set -euo pipefail
+          curl -sSfL https://github.com/rustwasm/wasm-pack/releases/download/v0.15.1/wasm-pack-v0.15.1-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz --strip-components=1 -C "$HOME/.cargo/bin" --wildcards '*/wasm-pack'
+          wasm-pack --version
+          bash .github/scripts/playground-wasm.sh
 
       - name: Build site
         working-directory: docs

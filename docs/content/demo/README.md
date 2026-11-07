@@ -15,6 +15,9 @@ jq-style ergonomics.
 bash yqr-demo.sh
 ```
 
+Don't want to install anything? The [playground](/playground/) runs the
+same engine in your browser, compiled to WebAssembly.
+
 The script needs `yqr` on your `PATH` (`brew install zoosky/tap/yqr`, or
 `cargo install yqr`). It resolves its own directory, so it works from any
 working directory and reads the sample files in place; every mutating

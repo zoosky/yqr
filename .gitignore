@@ -2,6 +2,9 @@
 yqr-wasm/target
 # wasm-pack's output: the .wasm + JS glue, a build artifact (f049).
 yqr-wasm/pkg/
+# The playground's copy of that output inside the theme (yqr-k003);
+# .github/scripts/playground-wasm.sh produces both.
+docs/themes/default/assets/wasm/
 **/*.rs.bk
 Cargo.lock.orig
 *.pdb
