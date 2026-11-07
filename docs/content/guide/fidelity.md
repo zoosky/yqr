@@ -19,7 +19,7 @@ description: >-
   identity filter, and when you want the --normalize pipeline instead.
 menu:
   title: Byte-for-byte
-  order: 1
+  order: 2
 ---
 
 # Byte-for-byte, explained

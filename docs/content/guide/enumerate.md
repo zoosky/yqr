@@ -12,7 +12,7 @@ description: >-
   to_entries keeps both, so one filter can report what each value is about.
 menu:
   title: Enumerating mappings
-  order: 4
+  order: 5
 ---
 
 # Enumerating a mapping

@@ -15,7 +15,7 @@ description: >-
   that the other cannot. Measured against yqr 0.10.0 and jq 1.8.2.
 menu:
   title: Coming from jq
-  order: 5
+  order: 6
 ---
 
 # Coming to yqr from jq
