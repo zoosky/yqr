@@ -149,6 +149,11 @@ cargo bench --no-run
 
 # 5. Run benchmarks to catch performance regressions (perf-sensitive PRs only)
 cargo bench
+
+# 6. Validate the internal site content after each change. Covers the usage
+#    docs and the whole spec tree (broken links, missing templates, orphaned
+#    pages); exits non-zero on warnings. Run from the repo root.
+accent validate -c specs/config.yaml
 ```
 
 ### Clippy Configuration
@@ -522,7 +527,9 @@ it is a separately authorized step — never inferred from an instruction to
   `build · test · lint` check as any other PR; benchmarks still skip. No
   `cargo` run is needed locally for markdown-only changes; do rebuild the
   site (`cd docs && accent build --clean`) when touching
-  `docs/`.
+  `docs/`, and run `accent validate -c specs/config.yaml` from the repo
+  root after each change -- it checks the spec tree as well as the usage
+  docs.
 
 **When CI fails**:
 
