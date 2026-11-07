@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794060183017,
+  "lastUpdate": 1794060316773,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3863,6 +3863,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 279768,
             "range": "± 10162",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e01c9cbba9df4d53941c524b67d2f20349669b17",
+          "message": "chore: move the release workflow's global runner to ubuntu-26.04 (#188)\n\nRenovate proposed the bump by hand-editing the dist-generated\nrelease.yml (#177), which the next dist-regen.sh run would silently\nrevert. Set it instead through the github-custom-runners global knob\nin Cargo.toml and regenerate: the emitted release.yml is byte-identical\nto Renovate's proposal, and future regens keep it.\n\nCo-authored-by: Claude Fable 5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-07T15:03:36+01:00",
+          "tree_id": "c98dd7fef35939fffee032df8120d64a7e2b7ff8",
+          "url": "https://github.com/zoosky/yqr/commit/e01c9cbba9df4d53941c524b67d2f20349669b17"
+        },
+        "date": 1794060314888,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 547,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5124,
+            "range": "± 72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 273486,
+            "range": "± 1270",
             "unit": "ns/iter"
           }
         ]
