@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794010708957,
+  "lastUpdate": 1794046368732,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3653,6 +3653,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 279271,
             "range": "± 2041",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3a8485a3e5dd67bf2dd1cd6456ec68da8c27c4a1",
+          "message": "feat: attach the yqr-wasm package to releases; correct the playground's embedder pitch (#182)\n\nTwo changes from the npm-release question, decided in yqr-k003 s7:\n\n- Each release now attaches yqr-wasm-pkg.tar.gz (module, JS glue,\n  .d.ts, package.json under one directory) plus its .sha256, built by\n  .github/scripts/wasm-pkg-tarball.sh as a dist extra-artifact.\n  release.yml is unchanged: dist reads the config at build time and its\n  PR plan step validates it. npm is deferred until an embedder exists;\n  the spec records the triggers.\n- The playground page claimed the bindings crate was published; it is\n  not (publish = false). It now says the module is built from the crate\n  in the repository and points at the release artifact.\n\nyqr-m001 s2.5 and the AGENT.md release summary record the new artifact.",
+          "timestamp": "2026-11-07T11:11:13+01:00",
+          "tree_id": "1da53d2be89f2e7b587028023a94c02a500b063b",
+          "url": "https://github.com/zoosky/yqr/commit/3a8485a3e5dd67bf2dd1cd6456ec68da8c27c4a1"
+        },
+        "date": 1794046367647,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 575,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5802,
+            "range": "± 38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 272867,
+            "range": "± 1977",
             "unit": "ns/iter"
           }
         ]
