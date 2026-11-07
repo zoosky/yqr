@@ -201,6 +201,15 @@ install-updater = false
 # Path that installers should place binaries in
 install-path = "CARGO_HOME"
 
+# GitHub retired the macos-14 runner image dist defaults to for ARM
+# macOS: the v0.12.0 tag run was cancelled in 1s with "The configuration
+# 'macos-14-arm64-us-default' is not supported" (run 42363565480,
+# 2026-11-07). Pin the target to the current ARM image. dist computes
+# the runner matrix at run time from this config, so release.yml itself
+# does not change.
+[workspace.metadata.dist.github-custom-runners]
+aarch64-apple-darwin = "macos-15"
+
 # The yqr-wasm package as a release artifact (yqr-k003 §7): a pinned,
 # checksummed wasm-pack build for embedders, attached to each GitHub
 # release instead of publishing to npm. The script also writes the
