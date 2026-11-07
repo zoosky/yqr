@@ -31,6 +31,8 @@ serde = { version = "1", features = ["derive"] }
 [dev-dependencies]
 # Runs the smoke suite inside a wasm runtime (wasm-pack test --node).
 wasm-bindgen-test = "0.3"
+# Builds change-set JSON in the smoke tests the way a JS host would.
+js-sys = "0.3"
 
 # Size-optimize the shipped module, and tell wasm-opt about the post-MVP
 # wasm features current rustc emits by default (bulk memory, nontrapping

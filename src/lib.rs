@@ -17,6 +17,7 @@
 //! byte-preserving output, see [`fidelity::run`].
 
 pub mod ast;
+pub mod edit;
 pub mod error;
 pub mod eval;
 pub mod fidelity;
@@ -42,13 +43,7 @@ pub fn eval_str(filter: &str, input: &str) -> Result<Vec<Value>> {
 ///
 /// Returns an error when the input is not valid YAML or evaluation fails.
 pub fn eval_ast_str(ast: &ast::Ast, input: &str) -> Result<Vec<Value>> {
-    // Bug b025: the parser's default alias-to-anchor ratio heuristic (10.0)
-    // refuses legitimate merge-key-heavy documents — a Helm values file
-    // reusing 22 anchored defaults across 221 tenants trips it. The absolute
-    // budgets that actually bound billion-laughs amplification (total alias
-    // count, events, nodes, scalar bytes) all stay at their defaults; only
-    // the ratio heuristic is disabled.
-    let config = noyalib::ParserConfig::new().alias_anchor_ratio(None);
+    let config = parser_config();
     // `from_str` refuses a stream with more than one document (noyalib 0.0.29);
     // this pipeline's contract is the first document, as it always was.
     let mut docs = noyalib::document::load_all_with_config(input, &config)
@@ -59,6 +54,21 @@ pub fn eval_ast_str(ast: &ast::Ast, input: &str) -> Result<Vec<Value>> {
         .map(Value::from)
         .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
     eval::eval(ast, &value)
+}
+
+/// The parser configuration every typed (non-CST) read in yqr uses — the
+/// one place this decision lives, shared by the eval pipeline and the
+/// typed edit API's resolution walk.
+///
+/// Bug b025: the parser's default alias-to-anchor ratio heuristic (10.0)
+/// refuses legitimate merge-key-heavy documents — a Helm values file
+/// reusing 22 anchored defaults across 221 tenants trips it. The absolute
+/// budgets that actually bound billion-laughs amplification (total alias
+/// count, events, nodes, scalar bytes) all stay at their defaults; only
+/// the ratio heuristic is disabled. The CST path makes the same choice in
+/// `fidelity::cst_config`.
+pub(crate) fn parser_config() -> noyalib::ParserConfig {
+    noyalib::ParserConfig::new().alias_anchor_ratio(None)
 }
 
 /// Render a stream of output values to a string.

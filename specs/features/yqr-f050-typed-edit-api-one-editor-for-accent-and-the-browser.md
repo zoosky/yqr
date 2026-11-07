@@ -1,6 +1,7 @@
 # Feature f050 — A typed edit API: one editor for accentcms and the browser
 
-**Status:** Draft
+**Status:** Done (2026-11-07; the scalar-to-collection re-shape is
+split out as `yqr-f051`, see the decision log)
 **Epic:** Library surface and wasm (`f046`–`f050`)
 **Owner:** yqr maintainers
 **Related:** `yqr-f006`–`f008` (the write tier this exposes),
@@ -58,34 +59,83 @@ the same code compiled to wasm. That is the isomorphism.
    on disk. Those cases join yqr's corpus as the acceptance floor, so
    the convergence cannot silently weaken what accent ships today.
 
-## Semantics to reconcile (open questions)
+## Decisions (recorded 2026-11-07, before implementation)
 
-- **Parent creation.** accent's `set` creates missing intermediate
-  mappings (noyalib's parent-creating `set_path`, upstream `#327`);
-  yqr's `Assign` creates only a missing final key. Decide: a flag on
-  the set op, or parent creation as the typed API's default with the
-  filter language unchanged.
-- **Scalar-to-collection replacement.** noyalib's `set_value` refuses
-  replacing a scalar with a collection; accent's editor renders a YAML
-  fragment for exactly this case. The typed API must cover it, ideally
-  by moving that fragment path into yqr so accent's last hand-rendered
-  YAML goes away.
+- **Parent creation is the typed API's default.** An editor host that
+  sets `menu.visible` means *make it so*; a flag would be one every
+  host passes always, which is a default spelled as a flag. The filter
+  language is unchanged (`.a.b = 1` on a missing `.a` stays a no-op).
+  Implementation: the typed layer resolves the longest existing prefix
+  of the path against the document's value view, then applies **one**
+  guarded `Assign` that creates the first missing key with the nested
+  remainder as its value. A missing level addressed by *index* is
+  refused — only mapping levels are created, as in accent.
+- **Document creation.** A `set` against contentless input — empty,
+  whitespace, or comments only (zero parsed documents) — creates the
+  document, keeping any comment bytes in front (accent's editor opens
+  an empty block as an empty mapping and the first set fills it);
+  `remove` and `rename` against one are no-ops. The write tier itself
+  still refuses an empty stream — the typed layer owns this case. An
+  explicit `---` document with a null body is *not* contentless; the
+  write tier's refusal stands there.
+- **Multi-document guard.** Missing-prefix resolution reads the first
+  document; when creation would actually fire on a stream with more
+  than one document, the op refuses (review finding: a shortened
+  assign with a nested value could clobber a later document's sibling
+  keys, since the write tier applies a mutation to every document).
+  Full-path sets on streams behave as the write tier always has.
+- **Scalar-to-collection replacement: deferred.** The typed `set`
+  refuses it with the write tier's own message, and accent keeps its
+  fragment fallback until yqr grows a typed re-shape — that is a write
+  tier feature (fragment rendering in the replaced node's style, plus
+  the re-parse guard), not a binding-layer patch, and it is filed as
+  `yqr-f051`. The contract tests that cover the fallback stay in
+  accent until then; the ported floor covers everything else.
 - **What stays out.** Frontmatter extraction (the `---` block split)
   is markdown-domain and stays in accent; yqr sees only YAML. Field
-  coercion and schema-aware validation stay in accent's API layer.
+  coercion, schema-aware validation, and the mapping `diff` that
+  derives change sets stay in accent's layer.
 - **Engine lockstep.** Once accent consumes yqr, both crates must pin
   the same noyalib version, or one document parses two ways in one
   product. Where that rule lives (a yqr implementation spec, and the
   comment above accent's `yqr` dependency) is decided when accent's
-  adoption lands; it must exist before it does.
+  adoption lands; it must exist before it does. Unchanged by this
+  implementation.
+- **Serde is two-way for ops.** Unlike `f048`'s output-only
+  diagnostics, ops are *inputs*: behind the `serde` feature they
+  derive `Serialize` and `Deserialize`, and `Value` gains both (JSON
+  data model; a non-string mapping key refuses to serialize). The wasm
+  boundary gains `applyAll(ops, yaml)`.
+
+## As landed (2026-11-07)
+
+`yqr::edit`: `Path` (typed segments: `Key`/`Index`), `Op`
+(`Set`/`Remove`/`Rename`/`Append`/`SetHeadComment`), and
+`apply_all(ops, input)` with the contracts above. Each op lowers to one
+guarded write-tier mutation; `Set` additionally resolves missing
+mapping levels (one `Assign` of the first missing key with the nested
+remainder) and creates the document when the input is empty. `Remove`
+and `Rename` against an empty document are no-ops, matching accent.
+Behind the `serde` feature, ops and `Value` (de)serialize in the JSON
+data model, and the wasm boundary gains `applyAll(ops, yaml)`.
+
+The ported contract floor lives in `tests/edit_contract.rs` (18
+cases). Accent-domain cases stayed behind: the `---` block split, the
+mapping `diff`, the CST path-grammar spelling (typed segments have no
+grammar to misread — one case pins that hostile keys are just data),
+and the scalar-to-collection fragment fallback, deferred as
+`yqr-f051`.
 
 ## Acceptance criteria
 
-- [ ] A host composes set/remove/rename/append ops from typed parts —
+- [x] A host composes set/remove/rename/append ops from typed parts —
       no filter text — and applies them through one entry point.
-- [ ] Empty change set in, input bytes out, byte-identical; a test
+- [x] Empty change set in, input bytes out, byte-identical; a test
       pins it.
-- [ ] Every op is exercised through the wasm bindings (`f049`) as JSON.
-- [ ] accent's `f336` contract tests run in yqr's suite and pass.
-- [ ] The parent-creation and scalar-to-collection decisions are
+- [x] Every op is exercised through the wasm bindings (`f049`) as JSON.
+- [x] accent's `f336` contract tests run in yqr's suite and pass — the
+      YAML-editing floor in full; the scalar-to-collection case moves
+      with its feature to `yqr-f051`, and accent keeps its fallback
+      until then (see the decision log).
+- [x] The parent-creation and scalar-to-collection decisions are
       recorded in this spec before implementation starts.

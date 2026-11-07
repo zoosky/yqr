@@ -122,3 +122,49 @@ mod serde_json_shape {
         pub message: String,
     }
 }
+
+/// Feature f050: every typed edit op crosses the boundary as JSON and
+/// applies through one entry point.
+#[wasm_bindgen_test]
+fn a_typed_change_set_crosses_as_json_and_applies_in_order() {
+    use yqr_wasm::apply_all;
+
+    let ops = js_sys::JSON::parse(
+        r#"[
+            {"Set": {"path": [{"Key": "title"}], "value": "New"}},
+            {"Set": {"path": [{"Key": "menu"}, {"Key": "visible"}], "value": false}},
+            {"Append": {"path": [{"Key": "tags"}], "value": "b"}},
+            {"Rename": {"path": [{"Key": "lead"}], "to": "summary"}},
+            {"Remove": {"path": [{"Key": "draft"}]}},
+            {"SetHeadComment": {"path": [{"Key": "title"}], "text": "the page name"}}
+        ]"#,
+    )
+    .expect("valid JSON");
+
+    let input = "title: Old\nlead: L  # keep\ndraft: true\ntags:\n  - a\n";
+    let out = apply_all(ops, input).expect("the change set applies");
+    assert!(out.contains("# the page name"), "{out}");
+    assert!(out.contains("title: New"), "{out}");
+    assert!(out.contains("menu:\n  visible: false"), "{out}");
+    assert!(out.contains("summary: L  # keep"), "{out}");
+    assert!(out.contains("  - a\n  - b"), "{out}");
+    assert!(!out.contains("draft"), "{out}");
+
+    // An empty change set is the input, byte for byte.
+    let empty = js_sys::JSON::parse("[]").expect("valid JSON");
+    assert_eq!(apply_all(empty, input).expect("empty applies"), input);
+
+    // A refusal carries the op's index, as a structured error.
+    let refused =
+        js_sys::JSON::parse(r#"[{"Append": {"path": [{"Key": "title"}], "value": "x"}}]"#)
+            .expect("valid JSON");
+    let err = apply_all(refused, input).expect_err("append to a scalar refuses");
+    let envelope: serde_json_shape::Envelope =
+        serde_wasm_bindgen::from_value(err).expect("a structured object");
+    assert_eq!(envelope.kind, "eval");
+    assert!(
+        envelope.message.contains("op 0 (append)"),
+        "{}",
+        envelope.message
+    );
+}
