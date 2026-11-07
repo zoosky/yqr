@@ -67,7 +67,7 @@ Kubernetes spells file permissions in octal — `defaultMode: 0640` on a Secret 
 
 {% home-section id="paths" %}
 {% section-head eyebrow="installed paths" title="Where the binary actually lives" %}
-Install with Homebrew or from crates.io, or build any of the paths below from a source checkout.
+Install with Homebrew or from crates.io, or build any of the paths below from a source checkout. The [install guide](guide/install) walks every option, checksum verification included.
 {% /section-head %}
 
 {% grid kind="paths" %}

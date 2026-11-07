@@ -19,7 +19,7 @@ description: >-
   diff is exactly one line, with comments and formatting left alone.
 menu:
   title: Kubernetes manifests
-  order: 2
+  order: 3
 ---
 
 # Editing Kubernetes manifests

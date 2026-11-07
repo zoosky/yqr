@@ -1,9 +1,9 @@
 ---
 title: yqr guide
 lead: >-
-  Where to start: five task-shaped pages covering byte-for-byte reads, surgical edits, validation, enumeration, and arriving from jq.
+  Where to start: installing yqr, byte-for-byte reads, surgical edits, validation, enumeration, and arriving from jq.
 description: >-
-  Practical guides for yqr: what byte-for-byte editing means, editing
+  Practical guides for yqr: installing it, what byte-for-byte editing means, editing
   Kubernetes manifests without reformatting them, validating YAML,
   enumerating a mapping without losing the keys, and which jq habits carry
   over.
@@ -17,6 +17,8 @@ menu:
 Short, task-shaped pages. Every command in them was run against a real
 build, and the output you see is the output it printed.
 
+- [Install yqr](install) -- Homebrew, a shell installer, `cargo install`,
+  or a prebuilt archive you verify yourself.
 - [Byte-for-byte, explained](fidelity) -- what yqr preserves, why the
   identity filter is a useful test, and when you want `--normalize`
   instead.

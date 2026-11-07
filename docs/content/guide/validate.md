@@ -16,7 +16,7 @@ description: >-
   positions.
 menu:
   title: Validating YAML
-  order: 3
+  order: 4
 ---
 
 # Validating YAML
