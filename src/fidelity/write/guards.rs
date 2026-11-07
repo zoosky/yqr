@@ -122,6 +122,7 @@ pub(super) fn set_value_unless_unchanged(
     path: &Path,
     new: &Value,
     current: &Value,
+    policy: super::WritePolicy,
 ) -> Result<()> {
     if new == current && !writer.value_is_borrowed(doc, path)? {
         return Ok(());
@@ -133,6 +134,15 @@ pub(super) fn set_value_unless_unchanged(
     let rule_applies = matches!(new, Value::Sequence(_) | Value::Mapping(_))
         && !matches!(current, Value::Sequence(_) | Value::Mapping(_));
     if rule_applies && !writer.key_is_inherited(doc, path)? {
+        // A caller that opted in takes the guarded re-shape instead of the
+        // refusal — mapping entries only. A sequence item keeps refusing:
+        // the typed route onto a sequence is an append, and the refusal
+        // names it. Feature f051.
+        if policy.reshape_scalar_to_collection
+            && matches!(path.segments().last(), Some(PathSeg::Key(_)))
+        {
+            return writer.reshape_scalar(doc, path, new);
+        }
         refuse_scalar_to_collection(path, new, current)?;
     }
     writer.set_value(doc, path, new)

@@ -451,18 +451,19 @@ already compiles for `wasm32-unknown-unknown` unchanged.
 | [f048](yqr-f048-serializable-diagnostics-and-filter-error-spans.md) | Serializable diagnostics and filter-error spans | Done (2026-11-07: `Diagnostic` carries byte offsets beside line/column, filter lex/parse errors carry token byte spans via `FilterError`, and an opt-in `serde` feature derives `Serialize` with `Code` as its stable string; CLI output byte-identical) |
 | [f049](yqr-f049-wasm-target-support.md) | wasm target support: a CI lane and a bindings crate | Done (2026-11-07: CI pins wasm32 for three lib profiles; `yqr-wasm` workspace member exposes `eval`/`fidelityRun`/`validate` with structured errors; five Node-run smoke tests; 661 KiB optimized against a 900 KB CI ceiling) |
 | [f050](yqr-f050-typed-edit-api-one-editor-for-accent-and-the-browser.md) | A typed edit API: one editor for accentcms and the browser | Done (2026-11-07: `yqr::edit` — typed `Path`/`Op`/`apply_all`, parent and document creation on `Set`, serde two-way, `applyAll` on the wasm boundary, accent's 18-case contract floor ported; scalar-to-collection re-shape split out as `f051`) |
-| [f051](yqr-f051-typed-scalar-to-collection-reshape.md) | A typed scalar-to-collection re-shape for the edit API | Draft |
+| [f051](yqr-f051-typed-scalar-to-collection-reshape.md) | A typed scalar-to-collection re-shape for the edit API | In Progress (2026-11-07: the re-shape lives in the engine — noyalib `grow_value`, developed on the fork and verified in yqr through a git pin; all acceptance criteria pass, and Done waits on the upstream release that lets the pin come out) |
 
 Progress: the epic is complete — `f046` landed 2026-11-06; `f047`,
-`f048`, `f049` and `f050` 2026-11-07. One follow-up filed: `f051`, the
-typed scalar-to-collection re-shape that lets accent delete its last
-hand-rendered YAML.
+`f048`, `f049` and `f050` 2026-11-07. The follow-up `f051`, the typed
+scalar-to-collection re-shape that lets accent delete its last
+hand-rendered YAML, is implemented against the noyalib fork and waits
+on the upstream release.
 
 ## Summary
 
 - Total features: 51
-- Draft: 2 (f027, f051)
-- In Progress: 0
+- Draft: 1 (f027)
+- In Progress: 1 (f051)
 - Done: 45 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f025, f026, f028,
   f029, f030, f031, f032, f033, f034, f035, f036, f037, f038, f039, f040,

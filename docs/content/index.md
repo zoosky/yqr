@@ -14,7 +14,8 @@
 # write tier) and f012 (validate) are the two the worked examples demonstrate.
 # The library path-card documents f046 (the cli cargo feature), f047
 # (the schema cargo feature), f048 (the serde feature's diagnostics) and
-# f049 (the wasm boundary) and f050 (the typed edit API).
+# f049 (the wasm boundary), f050 (the typed edit API) and f051 (its
+# scalar-to-collection re-shape).
 title: jq for YAML -- query and edit without reformatting
 lead: >-
   A jq-style query and editing tool for YAML: reads give back your own bytes, edits change only what you name.
@@ -88,7 +89,7 @@ Building from source instead? The binary lands at `target/release/yqr` (or `carg
 {% path-card title="In your Cargo.toml" %}
 {% loc text="yqr = { version = \"0.11\", default-features = false }" /%}
 
-yqr is also a Rust library: the filter language, the validator, and the byte-preserving engine behind one API ([docs.rs/yqr](https://docs.rs/yqr)). Turn off default features and both the command-line layer (the `cli` cargo feature: clap and its proc-macro stack) and JSON Schema validation (the `schema` feature: the `jsonschema` stack, most of the graph's weight) stay out of your build. Syntax and strict-mode validation remain — only schema checks need the heavy stack. For editor hosts, the opt-in `serde` feature serializes diagnostics and filter errors as JSON, with byte offsets and token spans ready for squiggles — and the same engine compiles to WebAssembly (the `yqr-wasm` crate in the repository), so a browser editor queries, edits and validates with byte-for-byte fidelity, no server round-trip. A typed edit API (`yqr::edit`) lets a host compose change sets as plain data — paths and values, no filter syntax — and apply them through the same surgical write path.
+yqr is also a Rust library: the filter language, the validator, and the byte-preserving engine behind one API ([docs.rs/yqr](https://docs.rs/yqr)). Turn off default features and both the command-line layer (the `cli` cargo feature: clap and its proc-macro stack) and JSON Schema validation (the `schema` feature: the `jsonschema` stack, most of the graph's weight) stay out of your build. Syntax and strict-mode validation remain — only schema checks need the heavy stack. For editor hosts, the opt-in `serde` feature serializes diagnostics and filter errors as JSON, with byte offsets and token spans ready for squiggles — and the same engine compiles to WebAssembly (the `yqr-wasm` crate in the repository), so a browser editor queries, edits and validates with byte-for-byte fidelity, no server round-trip. A typed edit API (`yqr::edit`) lets a host compose change sets as plain data — paths and values, no filter syntax — and apply them through the same surgical write path, including the one edit the filter language refuses: growing a scalar entry into a collection, verified to load back as the value written.
 {% /path-card %}
 
 {% path-card title="Inside a container image" %}
