@@ -32,6 +32,17 @@ refuses the crossing, and accent keeps the fallback.
    (`a_scalar_grows_into_a_collection_through_the_fragment_fallback`)
    ports into `tests/edit_contract.rs`.
 
+## Note: the set op's extra parse
+
+`f050`'s typed `set` parses the current document state once per op (the
+missing-prefix resolution walk) on top of the write tier's own parse —
+the price of deciding creation *before* mutating. Sharing that parse
+needs a write-tier entry point that takes an already-parsed stream.
+This feature adds a write-tier entry point anyway (the re-shape), so
+when it is implemented, weigh folding the shared-parse optimization in;
+it only matters if change-set sizes make the double parse measurable.
+The note in the code lives on `edit::set`.
+
 ## Acceptance criteria
 
 - [ ] A typed `set` of a collection value over a scalar succeeds, in
