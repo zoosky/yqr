@@ -1808,6 +1808,18 @@ All notable changes to `yqr` are documented here. The format is based on
   objects carrying the filter span. A Node-run smoke suite and a size
   budget (661 KiB optimized, 900 KB ceiling) guard it.
 
+- **A typed edit API (`yqr::edit`).** Hosts compose edits as data — a
+  `Path` of typed key/index segments, ops for set, remove, rename,
+  append, and head-comment writes — and apply a change set through
+  `apply_all`, the same guarded, byte-preserving write tier the CLI
+  uses, with no trip through filter syntax. A set creates missing
+  mapping levels and, on an empty document, the document; an empty
+  change set returns the input byte-identical; the first refusal names
+  the op's index. With the `serde` feature the ops cross the wasm
+  boundary as JSON (`applyAll`), so a browser editor and a server
+  compose edits in one vocabulary. accentcms's frontmatter-editor
+  contract suite is ported as the acceptance floor.
+
 ### Changed
 
 - **Breaking (library API):** `YqrError::Lex` and `YqrError::Parse` now

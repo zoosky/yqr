@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-06",
+  "dateModified": "2026-11-07",
   "description": "All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.",
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 10279
+  "wordCount": 10392
 }
 </script>
 <script type="application/ld+json">
@@ -443,6 +443,19 @@ glue) exposes <code>eval</code>, <code>fidelityRun</code>, and <code>validate</c
 with values and diagnostics as plain JS data and errors as structured
 objects carrying the filter span. A Node-run smoke suite and a size
 budget (661 KiB optimized, 900 KB ceiling) guard it.</p>
+</li>
+<li>
+<p><strong>A typed edit API (<code>yqr::edit</code>).</strong> Hosts compose edits as data — a
+<code>Path</code> of typed key/index segments, ops for set, remove, rename,
+append, and head-comment writes — and apply a change set through
+<code>apply_all</code>, the same guarded, byte-preserving write tier the CLI
+uses, with no trip through filter syntax. A set creates missing
+mapping levels and, on an empty document, the document; an empty
+change set returns the input byte-identical; the first refusal names
+the op’s index. With the <code>serde</code> feature the ops cross the wasm
+boundary as JSON (<code>applyAll</code>), so a browser editor and a server
+compose edits in one vocabulary. accentcms’s frontmatter-editor
+contract suite is ported as the acceptance floor.</p>
 </li>
 </ul>
 <h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
@@ -1588,7 +1601,7 @@ and optional error suppression (<code>f?</code>).</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-06</span>
+        <span>Site last updated: 2026-11-07</span>
         
     </footer>
 
