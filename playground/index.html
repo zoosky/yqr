@@ -95,7 +95,7 @@
   "inLanguage": "en",
   "name": "Playground",
   "url": "https://zoosky.github.io/yqr/playground",
-  "wordCount": 353
+  "wordCount": 373
 }
 </script>
 <script type="application/ld+json">
@@ -333,11 +333,14 @@ can inspect.</li>
 already know.</li>
 </ul>
 <h2 id="for-embedders">For embedders<a class="heading-anchor" href="#for-embedders" aria-label="Link to this section"></a></h2>
-<p>The module this page loads is the published <code>yqr-wasm</code> bindings crate:
-<code>eval</code> for reads, <code>fidelityRun</code> for byte-preserving execution, <code>validate</code>
-for diagnostics, and a typed edit API for programs. If you are building an
-editor, the playground is a working integration to crib from — view
-source, or start at the bindings crate in the repository.</p>
+<p>The module this page loads is built from the <code>yqr-wasm</code> bindings crate in
+the repository: <code>eval</code> for reads, <code>fidelityRun</code> for byte-preserving
+execution, <code>validate</code> for diagnostics, and a typed edit API for programs.
+Every release attaches the built package (module, JS glue, and type
+declarations) as <code>yqr-wasm-pkg.tar.gz</code> on the
+<a href="https://github.com/zoosky/yqr/releases">GitHub release</a>, checksummed. If
+you are building an editor, the playground is a working integration to
+crib from — view source, or start at the bindings crate.</p>
 
     </div>
 </article>
