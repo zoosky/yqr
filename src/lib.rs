@@ -17,6 +17,7 @@
 //! byte-preserving output, see [`fidelity::run`].
 
 pub mod ast;
+pub mod edit;
 pub mod error;
 pub mod eval;
 pub mod fidelity;

@@ -216,3 +216,118 @@ mod tests {
         );
     }
 }
+
+/// Serde impls for [`Value`], behind the `serde` cargo feature.
+///
+/// Unlike the validator's diagnostics (outputs, `Serialize` only), a value
+/// travels both ways: the typed edit API's ops carry one *into* yqr, so
+/// `Deserialize` exists too. The wire shape is the JSON data model — a
+/// mapping serializes as an object, so a non-string key refuses rather
+/// than being silently renamed; deserialized object keys come back as
+/// [`Value::String`] keys. An integer deserializes as [`Value::Int`] when
+/// it fits `i64` and as [`Value::Float`] otherwise.
+// Feature f050.
+#[cfg(feature = "serde")]
+mod serde_impls {
+    use super::{Mapping, Value};
+    use serde::de::{MapAccess, SeqAccess, Visitor};
+    use serde::ser::{Error as _, SerializeMap, SerializeSeq};
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::fmt;
+
+    impl Serialize for Value {
+        fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+            match self {
+                Value::Null => s.serialize_unit(),
+                Value::Bool(b) => s.serialize_bool(*b),
+                Value::Int(n) => s.serialize_i64(*n),
+                Value::Float(f) => s.serialize_f64(*f),
+                Value::String(text) => s.serialize_str(text),
+                Value::Sequence(items) => {
+                    let mut seq = s.serialize_seq(Some(items.len()))?;
+                    for item in items {
+                        seq.serialize_element(item)?;
+                    }
+                    seq.end()
+                }
+                Value::Mapping(map) => {
+                    let mut out = s.serialize_map(Some(map.len()))?;
+                    for (key, value) in map {
+                        let Value::String(key) = key else {
+                            return Err(S::Error::custom(
+                                "a mapping key is not a string, so the value has no \
+                                 JSON-object spelling",
+                            ));
+                        };
+                        out.serialize_entry(key, value)?;
+                    }
+                    out.end()
+                }
+            }
+        }
+    }
+
+    impl<'de> Deserialize<'de> for Value {
+        fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+            struct ValueVisitor;
+
+            impl<'de> Visitor<'de> for ValueVisitor {
+                type Value = Value;
+
+                fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                    f.write_str("a JSON-model value")
+                }
+
+                fn visit_unit<E>(self) -> Result<Value, E> {
+                    Ok(Value::Null)
+                }
+
+                fn visit_none<E>(self) -> Result<Value, E> {
+                    Ok(Value::Null)
+                }
+
+                fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Value, D::Error> {
+                    Value::deserialize(d)
+                }
+
+                fn visit_bool<E>(self, b: bool) -> Result<Value, E> {
+                    Ok(Value::Bool(b))
+                }
+
+                fn visit_i64<E>(self, n: i64) -> Result<Value, E> {
+                    Ok(Value::Int(n))
+                }
+
+                fn visit_u64<E>(self, n: u64) -> Result<Value, E> {
+                    Ok(i64::try_from(n).map_or(Value::Float(n as f64), Value::Int))
+                }
+
+                fn visit_f64<E>(self, f: f64) -> Result<Value, E> {
+                    Ok(Value::Float(f))
+                }
+
+                fn visit_str<E>(self, text: &str) -> Result<Value, E> {
+                    Ok(Value::String(text.to_owned()))
+                }
+
+                fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Value, A::Error> {
+                    let mut items = Vec::new();
+                    while let Some(item) = seq.next_element()? {
+                        items.push(item);
+                    }
+                    Ok(Value::Sequence(items))
+                }
+
+                fn visit_map<A: MapAccess<'de>>(self, mut access: A) -> Result<Value, A::Error> {
+                    let mut map = Mapping::new();
+                    while let Some((key, value)) = access.next_entry::<String, Value>()? {
+                        map.insert(Value::String(key), value);
+                    }
+                    Ok(Value::Mapping(map))
+                }
+            }
+
+            d.deserialize_any(ValueVisitor)
+        }
+    }
+}

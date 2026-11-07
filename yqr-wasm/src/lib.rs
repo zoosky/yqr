@@ -165,6 +165,26 @@ pub fn fidelity_run(filter: &str, yaml: &str) -> Result<String, JsValue> {
 ///
 /// Rejects with an [`ErrorEnvelope`] only when the findings cannot be
 /// serialized; an invalid document is a normal result, not an error.
+/// Apply a typed change set — ops as plain JS data, no filter text — and
+/// return the edited document, bytes untouched except where an op landed.
+///
+/// `ops` is an array in the shape `yqr::edit::Op` serializes to, for
+/// example `[{"Set": {"path": [{"Key": "title"}], "value": "New"}}]`. An
+/// empty array returns the input unchanged.
+///
+/// # Errors
+///
+/// Rejects with an [`ErrorEnvelope`]: kind `data` when `ops` is not a
+/// change set, otherwise the first refusing op's error, its message
+/// prefixed with the op's index and name.
+// Feature f050.
+#[wasm_bindgen(js_name = applyAll)]
+pub fn apply_all(ops: JsValue, yaml: &str) -> Result<String, JsValue> {
+    let ops: Vec<yqr::edit::Op> = serde_wasm_bindgen::from_value(ops)
+        .map_err(|e| ErrorEnvelope::data(format!("not a change set: {e}")).into_js())?;
+    yqr::edit::apply_all(&ops, yaml).map_err(|e| ErrorEnvelope::from_yqr(&e).into_js())
+}
+
 // Feature f049.
 #[wasm_bindgen]
 pub fn validate(yaml: &str, strict: bool) -> Result<JsValue, JsValue> {

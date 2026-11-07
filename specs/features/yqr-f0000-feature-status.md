@@ -450,21 +450,23 @@ already compiles for `wasm32-unknown-unknown` unchanged.
 | [f047](yqr-f047-schema-validation-behind-a-cargo-feature.md) | Put JSON Schema validation behind a `schema` cargo feature | Done (2026-11-07: `schema` feature on by default and implied by `cli`; `check` gated whole so no arity change; the lib's no-default graph drops to 17 crates and the editor-profile wasm shim measures 344 KiB vs 2.31 MiB with schema) |
 | [f048](yqr-f048-serializable-diagnostics-and-filter-error-spans.md) | Serializable diagnostics and filter-error spans | Done (2026-11-07: `Diagnostic` carries byte offsets beside line/column, filter lex/parse errors carry token byte spans via `FilterError`, and an opt-in `serde` feature derives `Serialize` with `Code` as its stable string; CLI output byte-identical) |
 | [f049](yqr-f049-wasm-target-support.md) | wasm target support: a CI lane and a bindings crate | Done (2026-11-07: CI pins wasm32 for three lib profiles; `yqr-wasm` workspace member exposes `eval`/`fidelityRun`/`validate` with structured errors; five Node-run smoke tests; 661 KiB optimized against a 900 KB CI ceiling) |
-| [f050](yqr-f050-typed-edit-api-one-editor-for-accent-and-the-browser.md) | A typed edit API: one editor for accentcms and the browser | Draft |
+| [f050](yqr-f050-typed-edit-api-one-editor-for-accent-and-the-browser.md) | A typed edit API: one editor for accentcms and the browser | Done (2026-11-07: `yqr::edit` — typed `Path`/`Op`/`apply_all`, parent and document creation on `Set`, serde two-way, `applyAll` on the wasm boundary, accent's 18-case contract floor ported; scalar-to-collection re-shape split out as `f051`) |
+| [f051](yqr-f051-typed-scalar-to-collection-reshape.md) | A typed scalar-to-collection re-shape for the edit API | Draft |
 
-Progress: `f046` landed 2026-11-06; `f047`, `f048` and `f049`
-2026-11-07 (4/5). `f050` builds on the write tier and will extend
-`f049`'s bindings.
+Progress: the epic is complete — `f046` landed 2026-11-06; `f047`,
+`f048`, `f049` and `f050` 2026-11-07. One follow-up filed: `f051`, the
+typed scalar-to-collection re-shape that lets accent delete its last
+hand-rendered YAML.
 
 ## Summary
 
-- Total features: 50
-- Draft: 2 (f027, f050)
+- Total features: 51
+- Draft: 2 (f027, f051)
 - In Progress: 0
-- Done: 44 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
+- Done: 45 (f002, f006, f007, f008, f009, f010, f011, f012, f013, f014, f015,
   f016, f017, f018, f019, f020, f021, f022, f023, f024, f025, f026, f028,
   f029, f030, f031, f032, f033, f034, f035, f036, f037, f038, f039, f040,
-  f041, f042, f043, f044, f045, f046, f047, f048, f049)
+  f041, f042, f043, f044, f045, f046, f047, f048, f049, f050)
 - Superseded: 4 (f003, f004 — single-engine consolidation, `yqr-m005`; f005 —
   fidelity-by-default flip, `yqr-f009`; f001 — re-scoped by `yqr-a003`, M0
   landed and M1–M4 retired as a plan)
