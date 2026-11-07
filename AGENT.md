@@ -554,5 +554,15 @@ cargo run -- validate --strict deploy.yaml config.yaml
 cargo run -- --normalize '.' config.yaml
 ```
 
+## Agent skills
+
+### Issue tracker
+
+Issues are markdown spec files under `specs/` (ground rule 16), never GitHub Issues or scratch files. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` at the repo root; architecture decisions live in `specs/architecture/yqr-aNNN-*.md`. See `docs/agents/domain.md`.
+
 
 
