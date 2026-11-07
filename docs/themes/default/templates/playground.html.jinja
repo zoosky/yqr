@@ -1,0 +1,112 @@
+{% extends "base.html.jinja" %}
+
+{# The /playground/ page: yqr compiled to WebAssembly, hydrated as an
+   island (yqr-playground.js). Everything inside <accent-island> is the
+   no-JS / no-wasm fallback until the island hides it and reveals the UI.
+   The sample document here is the one specs/marketing/yqr-k003 measured
+   every preset against; change one, re-verify the other. #}
+
+{% block content %}
+<article class="playground-page">
+    <h1>{{ page.title }}</h1>
+
+    {% if page.lead %}
+    <p class="lead">{{ page.lead }}</p>
+    {% endif %}
+
+    <accent-island data-component="yqr-playground" data-hydrate="load"
+        data-props='{"pkg": "{{ url('/theme/assets/wasm') }}"}'>
+
+        <div class="yqr-pg">
+            <div class="yqr-pg-fallback">
+                <p>The playground needs JavaScript and WebAssembly. Without
+                them, the ten-second version is the CLI:</p>
+                <pre><code>brew install zoosky/tap/yqr   # or: cargo install yqr
+yqr '.server.port = 9090' config.yaml</code></pre>
+                <p>Or run the <a href="{{ url('/demo/') }}">demo script</a>,
+                which walks the same surface against sample files you can
+                inspect afterwards.</p>
+            </div>
+
+            <div class="yqr-pg-ui" hidden>
+                <div class="yqr-pg-filterbar">
+                    <label class="yqr-pg-filterlabel" for="yqr-pg-filter-input">Filter</label>
+                    <input id="yqr-pg-filter-input" class="yqr-pg-filter" type="text"
+                           value=".server.port" spellcheck="false"
+                           autocomplete="off" autocapitalize="off">
+                    <button type="button" class="yqr-pg-run">Run</button>
+                </div>
+
+                <div class="yqr-pg-error" hidden></div>
+
+                <div class="yqr-pg-presets" role="group" aria-label="Preset filters">
+                    <button type="button" class="yqr-pg-preset" data-filter=".server.port">read a value</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".services[].name">iterate</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".services[0].image">through the merge key</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".versions.api">quotes kept</button>
+                    <button type="button" class="yqr-pg-preset" data-filter="line_comment(.server.port)">read a comment</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".server.port = 9090">edit one value</button>
+                    <button type="button" class="yqr-pg-preset" data-filter="del(.features[1])">delete an entry</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".replicas |= . + 1">update in place</button>
+                    <button type="button" class="yqr-pg-preset yqr-pg-preset-err" data-filter=".server |">an error, on purpose</button>
+                </div>
+
+                <div class="yqr-pg-grid">
+                    <section class="yqr-pg-pane">
+                        <h2>Your document <span class="yqr-pg-hint">editable — paste your own YAML</span></h2>
+                        <textarea class="yqr-pg-doc" rows="28" spellcheck="false"># Deployment manifest for the demo service.
+# Every byte of this file matters: comments, quotes, even the odd
+# indentation below are part of the document.
+replicas: 2
+server:
+  host: example.internal
+  port: 8080        # changing this? keep it in sync with the probe
+  tls: true
+
+defaults: &amp;defaults
+  image: registry.example/app:1.4.2
+  pull_policy: IfNotPresent
+
+services:
+  - name: api
+    &lt;&lt;: *defaults
+    port: 8080
+  - name: worker
+    &lt;&lt;: *defaults
+    port: 9090
+
+features:
+  - metrics
+  - tracing     # expensive; off in small clusters
+  - canary
+
+versions:
+  api: "1.4.2"   # quoted on purpose: 1.4 the float is not a version
+</textarea>
+                        <h2>Checks</h2>
+                        <div class="yqr-pg-checks" aria-live="polite"></div>
+                    </section>
+
+                    <section class="yqr-pg-pane">
+                        <h2>What the CLI prints</h2>
+                        <p class="yqr-pg-counter" aria-live="polite"></p>
+                        <pre class="yqr-pg-document"></pre>
+                        <h2>Output values <span class="yqr-pg-hint">the data API: eval as plain JS values</span></h2>
+                        <pre class="yqr-pg-values"></pre>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </accent-island>
+
+    <div class="content prose">
+        {{ page.content | safe }}
+    </div>
+</article>
+
+{# The island's component script, loaded template-locally: only this page
+   has the element, and `page.islands` frontmatter is not wired through
+   this accent version. defer puts registration after island-loader.js's
+   discovery pass; the loader's pending queue handles that order. #}
+<script nonce="{{ nonce }}" src="{{ url('/theme/assets/js/islands/yqr-playground.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,204 @@
+/// Styles for the /playground/ page and its island (yqr-playground.js).
+///
+/// Works in both themes through the color custom properties; the only
+/// literal colors are the brand amber (#c68a3e) and teal (#4fb3ac).
+
+.playground-page {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+
+    > h1 {
+        margin-bottom: 0.5rem;
+    }
+}
+
+.yqr-pg {
+    margin: 1.5rem 0 2.5rem;
+}
+
+.yqr-pg-fallback {
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    background: var(--color-bg-subtle, rgba(198, 138, 62, 0.06));
+}
+
+.yqr-pg-filterbar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.yqr-pg-filterlabel {
+    font-weight: 600;
+}
+
+.yqr-pg-filter {
+    flex: 1;
+    padding: 0.55rem 0.75rem;
+    font-family: var(--font-mono, monospace);
+    font-size: 1rem;
+    border: 1px solid var(--color-border-strong, #999);
+    border-radius: 6px;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #111);
+
+    &:focus {
+        outline: 2px solid #4fb3ac;
+        outline-offset: 1px;
+    }
+}
+
+.yqr-pg-run {
+    padding: 0.55rem 1.4rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: #c68a3e;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+
+    &:hover {
+        background: #b07a33;
+    }
+}
+
+.yqr-pg-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.75rem 0 1rem;
+}
+
+.yqr-pg-preset {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.85rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--color-text, #111);
+    background: var(--color-bg-muted, #f3f3f3);
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: 999px;
+    cursor: pointer;
+
+    &:hover {
+        border-color: #4fb3ac;
+        color: #4fb3ac;
+    }
+}
+
+.yqr-pg-preset-err:hover {
+    border-color: #c68a3e;
+    color: #c68a3e;
+}
+
+.yqr-pg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+
+    @media (max-width: 860px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.yqr-pg-pane h2 {
+    font-size: 1rem;
+    margin: 1rem 0 0.4rem;
+}
+
+.yqr-pg-hint {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text-muted, #666);
+}
+
+.yqr-pg-doc {
+    width: 100%;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border-strong, #999);
+    border-radius: 6px;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #111);
+    resize: vertical;
+    white-space: pre;
+}
+
+.yqr-pg-document,
+.yqr-pg-values {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: 6px;
+    background: var(--color-bg-subtle, #fafafa);
+    color: var(--color-text, #111);
+    overflow-x: auto;
+    white-space: pre;
+    min-height: 2.5rem;
+    margin: 0;
+}
+
+.yqr-pg-changed {
+    background: rgba(198, 138, 62, 0.35);
+    color: inherit;
+    border-radius: 2px;
+}
+
+.yqr-pg-counter {
+    font-size: 0.85rem;
+    margin: 0 0 0.4rem;
+    min-height: 1.2em;
+}
+
+.yqr-pg-counter-clean {
+    color: #4fb3ac;
+    font-weight: 600;
+}
+
+.yqr-pg-counter-edited {
+    color: #c68a3e;
+    font-weight: 600;
+}
+
+.yqr-pg-error {
+    margin: 0.6rem 0;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #c68a3e;
+    border-radius: 6px;
+    background: rgba(198, 138, 62, 0.1);
+    font-size: 0.9rem;
+}
+
+.yqr-pg-error-span {
+    margin: 0.4rem 0 0;
+    font-family: var(--font-mono, monospace);
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+}
+
+.yqr-pg-checks {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.yqr-pg-check-ok {
+    color: #4fb3ac;
+}
+
+.yqr-pg-check-finding {
+    color: var(--color-text, #111);
+}
+
+.yqr-pg-check-help {
+    color: var(--color-text-muted, #666);
+    padding-left: 1rem;
+}
