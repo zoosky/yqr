@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 10392
+  "wordCount": 10541
 }
 </script>
 <script type="application/ld+json">
@@ -251,7 +251,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">52 min read</span>
+                    <span class="reading-time">53 min read</span>
                 </div>
                 
 
@@ -436,6 +436,13 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<p>The release for hosts. The engine that was a CLI becomes something you
+can embed: the library slims to profile-sized builds behind cargo
+features, diagnostics and filter errors become structured data an editor
+can underline with, a typed edit API composes byte-preserving changes
+without filter syntax, and the whole thing compiles to WebAssembly –
+with a browser playground to prove it and the built wasm package
+attached to this release. The CLI’s behavior does not change at all.</p>
 <h3 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
@@ -471,7 +478,17 @@ workspace crate (not on crates.io; its artifact is the <code>.wasm</code> + JS
 glue) exposes <code>eval</code>, <code>fidelityRun</code>, and <code>validate</code> to the browser,
 with values and diagnostics as plain JS data and errors as structured
 objects carrying the filter span. A Node-run smoke suite and a size
-budget (661 KiB optimized, 900 KB ceiling) guard it.</p>
+budget (661 KiB optimized, 900 KB ceiling) guard it. An interactive
+playground at <a href="https://zoosky.github.io/yqr/playground">https://zoosky.github.io/yqr/playground</a> runs these
+bindings in the browser: presets over a commented sample document, a
+byte-diff that shows exactly what an edit touched, live validation,
+and compiler-style filter errors.</p>
+</li>
+<li>
+<p><strong>The wasm package as a release asset.</strong> Each release attaches
+<code>yqr-wasm-pkg.tar.gz</code> (the module, JS glue, and TypeScript
+declarations wasm-pack emits) with a <code>.sha256</code> beside it — a pinned,
+checksummed artifact for embedders, in place of an npm release.</p>
 </li>
 <li>
 <p><strong>A typed edit API (<code>yqr::edit</code>).</strong> Hosts compose edits as data — a
