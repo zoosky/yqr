@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="The same engine as the CLI, compiled to WebAssembly, running in your browser. Type a filter, edit the document, and watch exactly which bytes an edit touches.">
+
+
+<link rel="canonical" href="https://zoosky.github.io/yqr/playground">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Playground">
+<meta property="og:description" content="The same engine as the CLI, compiled to WebAssembly, running in your browser. Type a filter, edit the document, and watch exactly which bytes an edit touches.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://zoosky.github.io/yqr/playground">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Playground">
+<meta name="twitter:description" content="The same engine as the CLI, compiled to WebAssembly, running in your browser. Type a filter, edit the document, and watch exactly which bytes an edit touches.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https://zoosky.github.io/yqr/feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="f3e1e6f4f0">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-11-07",
+  "description": "The same engine as the CLI, compiled to WebAssembly, running in your browser. Type a filter, edit the document, and watch exactly which bytes an edit touches.",
+  "inLanguage": "en",
+  "name": "Playground",
+  "url": "https://zoosky.github.io/yqr/playground",
+  "wordCount": 353
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/playground",
+      "name": "Playground",
+      "position": 2
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            
+            <button id="nav-menu-toggle" class="nav-menu-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path class="nav-menu-bars" d="M4 7h16M4 12h16M4 17h16" />
+                    <path class="nav-menu-close" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <ul id="nav-menu">
+                
+                
+                
+                
+                
+                 <li><a href="/yqr/changelog" >Changelog</a></li>
+                    
+                    
+                
+                 <li><a href="/yqr/" >Home</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/demo" >yqr demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/playground"  class="active" >Playground</a></li>
+                    
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article class="playground-page">
+    <h1>Playground</h1>
+
+    
+    <p class="lead">The same engine as the CLI, compiled to WebAssembly, running in your browser. Type a filter, edit the document, and watch exactly which bytes an edit touches.</p>
+    
+
+    <accent-island data-component="yqr-playground" data-hydrate="load"
+        data-props='{"pkg": "/yqr/theme/assets/wasm"}'>
+
+        <div class="yqr-pg">
+            <div class="yqr-pg-fallback">
+                <p>The playground needs JavaScript and WebAssembly. Without
+                them, the ten-second version is the CLI:</p>
+                <pre><code>brew install zoosky/tap/yqr   # or: cargo install yqr
+yqr '.server.port = 9090' config.yaml</code></pre>
+                <p>Or run the <a href="/yqr/demo/">demo script</a>,
+                which walks the same surface against sample files you can
+                inspect afterwards.</p>
+            </div>
+
+            <div class="yqr-pg-ui" hidden>
+                <div class="yqr-pg-filterbar">
+                    <label class="yqr-pg-filterlabel" for="yqr-pg-filter-input">Filter</label>
+                    <input id="yqr-pg-filter-input" class="yqr-pg-filter" type="text"
+                           value=".server.port" spellcheck="false"
+                           autocomplete="off" autocapitalize="off">
+                    <button type="button" class="yqr-pg-run">Run</button>
+                </div>
+
+                <div class="yqr-pg-error" hidden></div>
+
+                <div class="yqr-pg-presets" role="group" aria-label="Preset filters">
+                    <button type="button" class="yqr-pg-preset" data-filter=".server.port">read a value</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".services[].name">iterate</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".services[0].image">through the merge key</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".versions.api">quotes kept</button>
+                    <button type="button" class="yqr-pg-preset" data-filter="line_comment(.server.port)">read a comment</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".server.port = 9090">edit one value</button>
+                    <button type="button" class="yqr-pg-preset" data-filter="del(.features[1])">delete an entry</button>
+                    <button type="button" class="yqr-pg-preset" data-filter=".replicas |= . + 1">update in place</button>
+                    <button type="button" class="yqr-pg-preset yqr-pg-preset-err" data-filter=".server |">an error, on purpose</button>
+                </div>
+
+                <div class="yqr-pg-grid">
+                    <section class="yqr-pg-pane">
+                        <h2>Your document <span class="yqr-pg-hint">editable — paste your own YAML</span></h2>
+                        <textarea class="yqr-pg-doc" rows="28" spellcheck="false"># Deployment manifest for the demo service.
+# Every byte of this file matters: comments, quotes, even the odd
+# indentation below are part of the document.
+replicas: 2
+server:
+  host: example.internal
+  port: 8080        # changing this? keep it in sync with the probe
+  tls: true
+
+defaults: &amp;defaults
+  image: registry.example/app:1.4.2
+  pull_policy: IfNotPresent
+
+services:
+  - name: api
+    &lt;&lt;: *defaults
+    port: 8080
+  - name: worker
+    &lt;&lt;: *defaults
+    port: 9090
+
+features:
+  - metrics
+  - tracing     # expensive; off in small clusters
+  - canary
+
+versions:
+  api: "1.4.2"   # quoted on purpose: 1.4 the float is not a version
+</textarea>
+                        <h2>Checks</h2>
+                        <div class="yqr-pg-checks" aria-live="polite"></div>
+                    </section>
+
+                    <section class="yqr-pg-pane">
+                        <h2>What the CLI prints</h2>
+                        <p class="yqr-pg-counter" aria-live="polite"></p>
+                        <pre class="yqr-pg-document"></pre>
+                        <h2>Output values <span class="yqr-pg-hint">the data API: eval as plain JS values</span></h2>
+                        <pre class="yqr-pg-values"></pre>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </accent-island>
+
+    <div class="content prose">
+        <h2 id="what-you-are-looking-at">What you are looking at<a class="heading-anchor" href="#what-you-are-looking-at" aria-label="Link to this section"></a></h2>
+<p>This page runs yqr itself — not a lookalike. The Rust engine behind the
+CLI is compiled to a WebAssembly module, and every run above calls the
+same entry points <code>yqr '.server.port = 9090' config.yaml</code> calls on your
+machine.</p>
+<p>Everything happens locally. Your document never leaves the page, which is
+the point: yqr exists for configuration files, and configuration files are
+exactly what you don’t paste into someone else’s server.</p>
+<h2 id="what-to-try">What to try<a class="heading-anchor" href="#what-to-try" aria-label="Link to this section"></a></h2>
+<ul>
+<li><strong>Run a read.</strong> Any read — the first preset, or <code>.</code> — reports every byte
+untouched. That is not a rendering choice: the engine slices your
+original bytes rather than re-serializing a parse tree.</li>
+<li><strong>Run an edit.</strong> <code>.server.port = 9090</code> highlights the only bytes that
+changed. The comment at the end of that line, the odd spacing before it,
+and every other line survive byte-for-byte.</li>
+<li><strong>Paste your own YAML.</strong> The document pane is editable. Bring the most
+comment-laden, strangely indented file you have; that is the file the
+fidelity guarantee is for.</li>
+<li><strong>Break the filter.</strong> The last preset is a parse error. The offending
+spot is underlined under the filter box, the way the CLI prints it —
+errors are structured data here, not strings.</li>
+<li><strong>Break the document.</strong> Duplicate a key and watch the checks pane: the
+findings are the same diagnostics <code>yqr validate --strict</code> prints, with
+code, line and column.</li>
+</ul>
+<h2 id="where-to-go-next">Where to go next<a class="heading-anchor" href="#where-to-go-next" aria-label="Link to this section"></a></h2>
+<ul>
+<li>The <a href="/yqr/guide/fidelity/">fidelity guide</a> explains how byte-preserving
+editing works and where its edges are.</li>
+<li>The <a href="/yqr/demo/">demo script</a> walks the full surface — including the parts a
+browser page can’t show, like exit codes and stdin — against files you
+can inspect.</li>
+<li><a href="/yqr/guide/from-jq/">From jq</a> maps the filter language onto what you
+already know.</li>
+</ul>
+<h2 id="for-embedders">For embedders<a class="heading-anchor" href="#for-embedders" aria-label="Link to this section"></a></h2>
+<p>The module this page loads is the published <code>yqr-wasm</code> bindings crate:
+<code>eval</code> for reads, <code>fidelityRun</code> for byte-preserving execution, <code>validate</code>
+for diagnostics, and a typed edit API for programs. If you are building an
+editor, the playground is a working integration to crib from — view
+source, or start at the bindings crate in the repository.</p>
+
+    </div>
+</article>
+
+
+<script src="/yqr/theme/assets/js/islands/yqr-playground.js" defer></script>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-11-07</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    <script src="/yqr/theme/assets/js/nav-menu.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>
