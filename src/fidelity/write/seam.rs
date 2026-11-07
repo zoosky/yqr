@@ -89,6 +89,27 @@ pub(crate) trait FidelityWriter {
     /// collection, or the edit would re-parse differently.
     fn set_value(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
 
+    /// Replace the **scalar** at `path` with a collection — the re-shape
+    /// [`set_value`](Self::set_value) refuses, as its own policy-gated
+    /// route (only the typed edit API opts in; the filter language never
+    /// reaches this).
+    ///
+    /// The collection is rendered in block style one indent step past the
+    /// entry's key (or flow, when the site sits inside a flow collection),
+    /// a comment trailing the scalar stays on the key's line, and the
+    /// result must load back as the pre-edit document with exactly this
+    /// path replaced — a full load-back oracle, stronger than
+    /// [`set_value`](Self::set_value)'s re-parse check.
+    ///
+    /// # Errors
+    ///
+    /// Errors when the path does not resolve, the value there carries an
+    /// anchor or tag property or is an alias token, the site's layout is
+    /// not supported, or the result would not load back as the value
+    /// written. Every refusal leaves the stream unchanged.
+    // Feature f051.
+    fn reshape_scalar(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()>;
+
     /// Whether the value at `path` lives elsewhere in the document rather than
     /// at the entry the path names: an alias reference resolved through to its
     /// anchor, or an entry a `<<` merge produced.

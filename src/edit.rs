@@ -19,9 +19,14 @@
 //!
 //! - A [`Op::Set`] creates missing intermediate *mapping* levels — an
 //!   editor host that sets `menu.visible` means make it so. A missing
-//!   level addressed by index is refused, and a scalar sitting where a
-//!   mapping is needed is a refused re-shape, exactly as replacing a
-//!   scalar with a collection is.
+//!   level addressed by index is refused, and a scalar sitting *mid-path*,
+//!   where the path needs to descend further, is a refused re-shape.
+//! - A [`Op::Set`] whose **final** entry holds a scalar and whose value is
+//!   a collection performs the re-shape the filter language refuses: the
+//!   collection is written in block style one indent step past the key
+//!   (flow inside a flow collection), and the result must load back as
+//!   the value written. A sequence *item* keeps the refusal — the typed
+//!   route onto a sequence is [`Op::Append`].
 //! - A `Set` against contentless input (empty, whitespace, or comments
 //!   only) creates the document, keeping any comment bytes in front;
 //!   `Remove` and `Rename` against one are no-ops.
@@ -30,7 +35,7 @@
 //!   refuses instead of risking a sibling-clobbering write into a later
 //!   document whose shape diverges — apply the change set per document.
 
-// Feature f050.
+// Features f050, f051.
 
 use crate::ast::{Ast, Mutation, Rhs, Target};
 use crate::error::{Result, YqrError};
@@ -154,7 +159,9 @@ impl From<Vec<Segment>> for Path {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Op {
     /// Set `path` to `value`, creating a missing final key and missing
-    /// intermediate mapping levels.
+    /// intermediate mapping levels. A collection value over an existing
+    /// scalar mapping entry re-shapes the entry in place (see the module
+    /// doc); a scalar mid-path still refuses.
     Set {
         /// Where to write.
         path: Path,
@@ -311,12 +318,18 @@ fn set(path: &Path, value: &Value, input: &str) -> Result<String> {
             path.display(),
         )));
     }
-    write::apply(
+    // The one policy difference from the filter language: a collection
+    // written over a scalar performs the guarded re-shape instead of
+    // refusing. Feature f051.
+    write::apply_with(
         &Mutation::Assign {
             target: Target::Value(target.to_ast()?),
             rhs: Rhs::Literal(nested),
         },
         input,
+        write::WritePolicy {
+            reshape_scalar_to_collection: true,
+        },
     )
 }
 
@@ -382,13 +395,14 @@ fn resolve_set(path: &Path, value: &Value, root: &Value) -> Result<(Path, Value)
                 }
             },
             // A scalar (or a container of the other kind) where the path
-            // needs to descend further: writing past it would re-shape the
-            // node, which is the same refusal as replacing a scalar with a
-            // collection.
+            // needs to descend further. The final-entry re-shape (f051)
+            // replaces a value the caller names in full; writing *past* a
+            // scalar would discard it on the way to somewhere else, so the
+            // mid-path crossing stays refused.
             _ if !last => {
                 return Err(YqrError::eval(format!(
                     "cannot set '{}': {} does not hold a {} to descend into; \
-                     growing it is a re-shape this API refuses",
+                     growing it mid-path is a re-shape this API refuses",
                     path.display(),
                     prefix_name(path, depth),
                     match segment {
@@ -589,6 +603,65 @@ mod tests {
         let out = apply_all(&[set(Path::root().key("title"), Value::Int(1))], input).unwrap();
         assert!(out.contains("title: 1"), "{out}");
         assert!(out.contains("other: 2"), "{out}");
+    }
+
+    // -- Feature f051: the scalar-to-collection re-shape ------------------
+
+    #[test]
+    fn a_collection_over_a_scalar_reshapes_the_entry_in_place() {
+        let out = apply_all(
+            &[set(
+                Path::root().key("tags"),
+                Value::Sequence(vec![Value::String("a".into()), Value::String("b".into())]),
+            )],
+            "tags: solo\nname: x\n",
+        )
+        .unwrap();
+        assert_eq!(out, "tags:\n  - a\n  - b\nname: x\n");
+    }
+
+    #[test]
+    fn the_reshape_keeps_a_trailing_comment_on_the_keys_line() {
+        let out = apply_all(
+            &[set(
+                Path::root().key("tags"),
+                Value::Sequence(vec![Value::String("a".into())]),
+            )],
+            "tags: solo # keep\n",
+        )
+        .unwrap();
+        assert_eq!(out, "tags: # keep\n  - a\n");
+    }
+
+    #[test]
+    fn a_mapping_value_reshapes_and_loads_back() {
+        let mut inner = Mapping::new();
+        inner.insert(Value::String("x".into()), Value::Int(1));
+        inner.insert(Value::String("y".into()), Value::String("yes".into()));
+        let value = Value::Mapping(inner);
+        let out = apply_all(
+            &[set(Path::root().key("m"), value.clone())],
+            "m: old\nafter: 1\n",
+        )
+        .unwrap();
+        assert!(out.ends_with("after: 1\n"), "{out}");
+        assert_eq!(crate::eval_str(".m", &out).unwrap(), vec![value]);
+    }
+
+    #[test]
+    fn a_collection_over_a_sequence_item_still_refuses() {
+        let err = apply_all(
+            &[set(
+                Path::root().key("xs").index(0),
+                Value::Sequence(vec![Value::Int(1)]),
+            )],
+            "xs:\n  - solo\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.to_string().contains("writes a collection only where"),
+            "{err}"
+        );
     }
 
     #[test]

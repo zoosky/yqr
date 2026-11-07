@@ -594,8 +594,7 @@ dependencies = [
 [[package]]
 name = "noyalib"
 version = "0.0.58"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fad8f1a552070f6ba5f60f25e880f7b6daeda8fe138f589345141d31a21a3bb"
+source = "git+https://github.com/zoosky/noyalib.git?rev=56d4f2a4a3a720351459566cbd2b9eac47a974b2#56d4f2a4a3a720351459566cbd2b9eac47a974b2"
 dependencies = [
  "hashbrown",
  "indexmap",
