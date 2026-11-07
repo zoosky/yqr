@@ -9,7 +9,7 @@ lead: >-
   an edit touches.
 template: playground
 menu:
-  order: 5
+  order: 2
 ---
 
 ## What you are looking at
