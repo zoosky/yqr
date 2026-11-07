@@ -209,6 +209,11 @@ install-path = "CARGO_HOME"
 # does not change.
 [workspace.metadata.dist.github-custom-runners]
 aarch64-apple-darwin = "macos-15"
+# Runner for the non-build jobs (plan, host, announce, ...) that dist
+# bakes into release.yml. Renovate proposed hand-editing the generated
+# file to ubuntu-26.04 (PR #177); the knob lives here so dist-regen.sh
+# keeps emitting it.
+global = "ubuntu-26.04"
 
 # The yqr-wasm package as a release artifact (yqr-k003 §7): a pinned,
 # checksummed wasm-pack build for embedders, attached to each GitHub
