@@ -6,6 +6,14 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+The release for hosts. The engine that was a CLI becomes something you
+can embed: the library slims to profile-sized builds behind cargo
+features, diagnostics and filter errors become structured data an editor
+can underline with, a typed edit API composes byte-preserving changes
+without filter syntax, and the whole thing compiles to WebAssembly --
+with a browser playground to prove it and the built wasm package
+attached to this release. The CLI's behavior does not change at all.
+
 ### Added
 
 - **A `cli` cargo feature, on by default.** The binary's dependencies
@@ -36,7 +44,15 @@ All notable changes to `yqr` are documented here. The format is based on
   glue) exposes `eval`, `fidelityRun`, and `validate` to the browser,
   with values and diagnostics as plain JS data and errors as structured
   objects carrying the filter span. A Node-run smoke suite and a size
-  budget (661 KiB optimized, 900 KB ceiling) guard it.
+  budget (661 KiB optimized, 900 KB ceiling) guard it. An interactive
+  playground at <https://zoosky.github.io/yqr/playground> runs these
+  bindings in the browser: presets over a commented sample document, a
+  byte-diff that shows exactly what an edit touched, live validation,
+  and compiler-style filter errors.
+- **The wasm package as a release asset.** Each release attaches
+  `yqr-wasm-pkg.tar.gz` (the module, JS glue, and TypeScript
+  declarations wasm-pack emits) with a `.sha256` beside it — a pinned,
+  checksummed artifact for embedders, in place of an npm release.
 
 - **A typed edit API (`yqr::edit`).** Hosts compose edits as data — a
   `Path` of typed key/index segments, ops for set, remove, rename,
