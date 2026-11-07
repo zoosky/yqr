@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794009490002,
+  "lastUpdate": 1794010708957,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3611,6 +3611,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 273101,
             "range": "± 5635",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f429ce3a06f378a750bf884f795fc8366f900416",
+          "message": "feat: a typed edit API -- one editor for accentcms and the browser (#173)\n\nyqr::edit lets hosts compose edits as data: a Path of typed key/index\nsegments, ops for set, remove, rename, append, and head-comment\nwrites, and apply_all running a change set through the same guarded,\nbyte-preserving write tier the CLI uses. Set creates missing mapping\nlevels (refusing on multi-document streams where that could clobber a\nlater document) and creates the document on contentless input; an\nempty change set returns the input byte-identical; the first refusal\nnames the op index. Ops and Value are two-way serializable behind the\nserde feature and cross the wasm boundary through applyAll. accent's\nf336 editor contract suite is ported as the acceptance floor; the\nscalar-to-collection re-shape is filed as yqr-f051.",
+          "timestamp": "2026-11-07T01:16:48+01:00",
+          "tree_id": "7fe3d8ff6eab8c28f04829e99a954accc638958d",
+          "url": "https://github.com/zoosky/yqr/commit/f429ce3a06f378a750bf884f795fc8366f900416"
+        },
+        "date": 1794010707216,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 583,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5892,
+            "range": "± 55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 279271,
+            "range": "± 2041",
             "unit": "ns/iter"
           }
         ]
