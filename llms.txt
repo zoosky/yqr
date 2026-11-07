@@ -31,17 +31,17 @@ Package:   https://crates.io/crates/yqr
 - [Enumerating a mapping without losing the keys](/yqr/guide/enumerate): How to report what each entry of a mapping is about, with `to_entries`, when iterating throws the keys away.
 - [Validating YAML from the command line](/yqr/guide/validate): How to check a file is still correct after an edit, what each exit code means, how duplicate keys are reported, and how…
 
-## How yqr compares to other YAML tools
+## Playground
 
-- [yqr and yq -- which tool for which job](/yqr/compare/yq): Two YAML tools with overlapping surfaces and different jobs. Here is what each one is good at, measured rather than…
+- [Playground](/yqr/playground): The same engine as the CLI, compiled to WebAssembly, running in your browser. Type a filter, edit the document, and…
 
 ## yqr demo
 
 - [yqr demo](/yqr/demo): A runnable script that walks yqr's query, edit, and validate surface against sample files you can inspect afterwards.
 
-## Playground
+## How yqr compares to other YAML tools
 
-- [Playground](/yqr/playground): The same engine as the CLI, compiled to WebAssembly, running in your browser. Type a filter, edit the document, and…
+- [yqr and yq -- which tool for which job](/yqr/compare/yq): Two YAML tools with overlapping surfaces and different jobs. Here is what each one is good at, measured rather than…
 
 ## Changelog
 
