@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794060164660,
+  "lastUpdate": 1794060183017,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3821,6 +3821,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 268800,
             "range": "± 1672",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1cc3281b3461f840cb3250447c3201c6be522295",
+          "message": "chore(deps): update actions/checkout action to v7 (#169)\n\nCo-authored-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-07T15:01:22+01:00",
+          "tree_id": "c942293dfa2fe92cebcf859e3fcf59f8ca9ab47e",
+          "url": "https://github.com/zoosky/yqr/commit/1cc3281b3461f840cb3250447c3201c6be522295"
+        },
+        "date": 1794060181192,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 585,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5886,
+            "range": "± 48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 279768,
+            "range": "± 10162",
             "unit": "ns/iter"
           }
         ]
