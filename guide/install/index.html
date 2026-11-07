@@ -1,0 +1,509 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install yqr - yqr</title>
+    
+    
+
+
+
+
+
+<meta name="description" content="Install yqr with Homebrew, the release shell installer, cargo install, or a prebuilt archive with checksum verification, then confirm the binary runs.">
+
+
+<link rel="canonical" href="https://zoosky.github.io/yqr/guide/install">
+
+
+
+
+
+
+
+
+
+
+
+<meta property="og:title" content="Install yqr">
+<meta property="og:description" content="Install yqr with Homebrew, the release shell installer, cargo install, or a prebuilt archive with checksum verification, then confirm the binary runs.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://zoosky.github.io/yqr/guide/install">
+<meta property="og:site_name" content="yqr">
+<meta property="og:locale" content="en">
+
+
+
+
+
+
+
+<meta name="twitter:title" content="Install yqr">
+<meta name="twitter:description" content="Install yqr with Homebrew, the release shell installer, cargo install, or a prebuilt archive with checksum verification, then confirm the binary runs.">
+
+
+
+
+
+
+<meta name="google-site-verification" content="yS18C91qoSaQvcIS0JI33YvZ-KKx_kDXfJarTH7dqGw">
+<meta property="og:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+<meta property="og:image:alt" content="yqr -- jq for YAML. A terminal showing an edit that changes one value and leaves the surrounding comment untouched.">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https:&#x2f;&#x2f;zoosky.github.io&#x2f;yqr&#x2f;theme&#x2f;assets&#x2f;og-image.png">
+
+    <link rel="icon" type="image/svg+xml" href="/yqr/theme/assets/favicon.svg">
+    <meta name="theme-color" content="#0b1524">
+    
+    
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/main.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/editions.css">
+    
+    <link rel="stylesheet" href="/yqr/theme/assets/css/utilities.css">
+    
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    
+    
+    
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="yqr RSS Feed" href="https://zoosky.github.io/yqr/feed.xml">
+    
+    
+    
+    <meta name="build-hash" content="f3e1e6f4f0">
+    
+    
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "dateModified": "2026-11-07",
+  "description": "Install yqr with Homebrew, the release shell installer, cargo install, or a prebuilt archive with checksum verification, then confirm the binary runs.",
+  "inLanguage": "en",
+  "name": "Install yqr",
+  "url": "https://zoosky.github.io/yqr/guide/install",
+  "wordCount": 445
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/",
+      "name": "Home",
+      "position": 1
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide",
+      "name": "Guide",
+      "position": 2
+    },
+    {
+      "@type": "ListItem",
+      "item": "https://zoosky.github.io/yqr/guide/install",
+      "name": "Install",
+      "position": 3
+    }
+  ]
+}
+</script>
+<link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
+
+<body data-heading-anchor-style="copy">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header>
+        <nav>
+            <a href="/yqr/" class="site-title"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="#c68a3e" stroke-width="1.4" />
+                    <path d="M12 5 L14 12 L12 19 L10 12 Z" stroke="#4fb3ac" stroke-width="1.4"
+                        stroke-linecap="round" />
+                </svg>yqr</a>
+            
+            <button id="nav-menu-toggle" class="nav-menu-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path class="nav-menu-bars" d="M4 7h16M4 12h16M4 17h16" />
+                    <path class="nav-menu-close" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <ul id="nav-menu">
+                
+                
+                
+                
+                
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/guide"  class="active" >Guide</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/playground" >Playground</a></li>
+                    
+                    
+                
+                 <li><a href="/yqr/demo" >Demo</a></li>
+                    
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/compare" >Compare</a></li>
+                    
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                
+                    
+                
+                 <li><a href="/yqr/changelog" >Changelog</a></li>
+                    
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+            </ul>
+            
+            <div class="nav-tools">
+                
+                <button id="search-trigger" class="search-trigger" aria-label="Search" aria-expanded="false" aria-controls="search-overlay" aria-keyshortcuts="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+                <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle-light">&#9790;</span>
+                    <span class="theme-toggle-dark">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        
+<article>
+    
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    
+        <a href="&#x2f;yqr&#x2f;">Home</a>
+        <span aria-hidden="true">/</span>
+    
+        <a href="&#x2f;yqr&#x2f;guide">Guide</a>
+        <span aria-hidden="true">/</span>
+    
+    <span aria-current="page">Install</span>
+</nav>
+
+
+    <h1>Install yqr</h1>
+
+    
+                
+
+                
+                
+                <div class="page-meta">
+                    
+                    
+                    <span class="reading-time">3 min read</span>
+                </div>
+                
+
+                
+
+
+<nav class="toc" aria-label="Table of contents">
+    <h4>On this page</h4>
+    <ul>
+    
+        <li class="toc-level-1">
+            <a href="#install">Install</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#homebrew">Homebrew</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#shell-installer">Shell installer</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#prebuilt-archive">Prebuilt archive</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#cargo-install">cargo install</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#from-a-source-checkout">From a source checkout</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#confirm-it-works">Confirm it works</a>
+        </li>
+    
+        <li class="toc-level-2">
+            <a href="#no-install-at-all">No install at all</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+                
+                
+
+                
+                
+
+                <div class="content prose">
+                    <h1 id="install">Install<a class="heading-anchor" href="#install" aria-label="Link to this section"></a></h1>
+<p>Every path below ends with a <code>yqr</code> binary on your <code>PATH</code>. Pick the one
+that matches how you manage tools; they all install the same program.</p>
+<h2 id="homebrew">Homebrew<a class="heading-anchor" href="#homebrew" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ brew install zoosky/tap/yqr
+</code></pre>
+<p>Installs the prebuilt binary — Apple Silicon and Intel Macs, and x86_64
+Linux. The release pipeline pushes each version’s formula to the tap, so
+<code>brew upgrade</code> tracks new releases.</p>
+<h2 id="shell-installer">Shell installer<a class="heading-anchor" href="#shell-installer" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/zoosky/yqr/releases/latest/download/yqr-installer.sh | sh
+</code></pre>
+<p>Detects your platform, downloads the matching archive from the latest
+GitHub release, and installs the binary into <code>$CARGO_HOME/bin</code>
+(<code>~/.cargo/bin</code> by default) — no Rust toolchain involved. Prefer not to
+pipe a script into <code>sh</code>? The next section is the same download done by
+hand.</p>
+<h2 id="prebuilt-archive">Prebuilt archive<a class="heading-anchor" href="#prebuilt-archive" aria-label="Link to this section"></a></h2>
+<p>Each <a href="https://github.com/zoosky/yqr/releases/latest">GitHub release</a>
+attaches an archive per platform, with a SHA-256 checksum beside it:</p>
+<table><thead><tr><th>Archive</th><th>Platform</th></tr></thead><tbody>
+<tr><td><code>yqr-aarch64-apple-darwin.tar.xz</code></td><td>macOS, Apple Silicon</td></tr>
+<tr><td><code>yqr-x86_64-apple-darwin.tar.xz</code></td><td>macOS, Intel</td></tr>
+<tr><td><code>yqr-x86_64-unknown-linux-musl.tar.xz</code></td><td>Linux x86_64 — static musl build, runs on any distribution</td></tr>
+</tbody></table>
+<p>Download, verify, unpack:</p>
+<pre><code class="language-console">$ curl -sLO https://github.com/zoosky/yqr/releases/latest/download/yqr-aarch64-apple-darwin.tar.xz
+$ curl -sLO https://github.com/zoosky/yqr/releases/latest/download/yqr-aarch64-apple-darwin.tar.xz.sha256
+$ shasum -a 256 -c yqr-aarch64-apple-darwin.tar.xz.sha256
+yqr-aarch64-apple-darwin.tar.xz: OK
+shasum: WARNING: 1 line is improperly formatted
+$ tar xf yqr-aarch64-apple-darwin.tar.xz
+</code></pre>
+<p><code>OK</code> is the verdict; the warning is <code>shasum</code> objecting to the checksum
+file’s trailing blank line and does not affect it. The archive holds the
+<code>yqr</code> binary alongside the licenses, README, and changelog — copy the
+binary anywhere on your <code>PATH</code>.</p>
+<h2 id="cargo-install">cargo install<a class="heading-anchor" href="#cargo-install" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ cargo install yqr
+</code></pre>
+<p>Builds the <a href="https://crates.io/crates/yqr">published crate</a> from source
+with your own toolchain (Rust 1.99 or later) and installs it to
+<code>~/.cargo/bin/yqr</code>. Using yqr as a Rust library rather than a binary?
+Depend on the crate instead — the <a href="/yqr/#paths">home page</a> shows the
+<code>default-features = false</code> form that leaves the CLI layer out, and
+<a href="https://docs.rs/yqr">docs.rs/yqr</a> documents the API.</p>
+<h2 id="from-a-source-checkout">From a source checkout<a class="heading-anchor" href="#from-a-source-checkout" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ git clone https://github.com/zoosky/yqr
+$ cd yqr
+$ cargo build --release
+</code></pre>
+<p>The binary lands at <code>target/release/yqr</code>; <code>cargo install --path .</code> puts
+it on your <code>PATH</code> instead.</p>
+<h2 id="confirm-it-works">Confirm it works<a class="heading-anchor" href="#confirm-it-works" aria-label="Link to this section"></a></h2>
+<pre><code class="language-console">$ yqr --version
+yqr 0.12.0 (b484fc9, built 2026-11-07 10:30:44 UTC)
+target: aarch64-apple-darwin
+$ echo 'a: 1' | yqr '.a'
+1
+</code></pre>
+<p>The version line names the release, the exact commit it was built from,
+and the target — worth pasting into a bug report.</p>
+<h2 id="no-install-at-all">No install at all<a class="heading-anchor" href="#no-install-at-all" aria-label="Link to this section"></a></h2>
+<p>The <a href="/yqr/playground">playground</a> runs the same engine in your browser,
+compiled to WebAssembly: paste YAML, run filters, and watch the
+byte-for-byte guarantee hold, without touching your machine. Embedding
+that engine in your own page is the playground’s closing note — every
+release attaches the built wasm package as <code>yqr-wasm-pkg.tar.gz</code>.</p>
+
+                </div>
+
+                
+
+                
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+                
+                
+
+                
+                
+
+                
+
+                
+
+                
+                
+
+                
+
+
+                
+
+<nav class="page-nav" aria-label="Page navigation">
+    
+    
+    <a href="&#x2f;yqr&#x2f;guide&#x2f;fidelity" class="nav-next">
+        <span class="nav-label">Next &rarr;</span>
+        <span class="nav-title">Byte-for-byte</span>
+    </a>
+    
+</nav>
+
+</article>
+
+    </main>
+
+    <footer>
+        <span>&copy; 2025-2026 yqr Authors</span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
+        
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span>Site last updated: 2026-11-07</span>
+        
+    </footer>
+
+    
+    <div id="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Search">
+        <div id="search-overlay-backdrop"></div>
+        <div id="search-overlay-card">
+            <div class="acms-search-form" data-limit="10" data-search-backend="docfind">
+  <input type="search" class="acms-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search docs…">
+  <div class="acms-search-results" role="listbox" aria-label="Search results" hidden></div>
+  <script src="/yqr/_search/search.js" defer></script>
+</div>
+        </div>
+    </div>
+
+    
+    <script src="/yqr/theme/assets/js/island-loader.js"></script>
+    
+    <script src="/yqr/theme/assets/js/islands/copy-code.js"></script>
+    
+    <script src="/yqr/theme/assets/js/tabs.js"></script>
+    
+    <script src="/yqr/theme/assets/js/search-keys.js"></script>
+    
+    <script src="/yqr/theme/assets/js/nav-menu.js"></script>
+    
+    
+    
+    <script src="/yqr/theme/assets/js/heading-anchor-copy.js" defer></script>
+    
+    
+    <script>
+        (function () {
+            var d = document.documentElement, s = localStorage.getItem('theme');
+            if (s) d.setAttribute('data-theme', s);
+            else if (window.matchMedia('(prefers-color-scheme:dark)').matches) d.setAttribute('data-theme', 'dark');
+            var btn = document.querySelector('.theme-toggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = d.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                d.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            });
+        })();
+    </script>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

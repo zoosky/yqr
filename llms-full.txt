@@ -1085,6 +1085,111 @@ language work.
 
 ---
 
+# Install yqr
+
+URL: /yqr/guide/install
+
+# Install
+
+Every path below ends with a `yqr` binary on your `PATH`. Pick the one
+that matches how you manage tools; they all install the same program.
+
+## Homebrew
+
+```console
+$ brew install zoosky/tap/yqr
+```
+
+Installs the prebuilt binary — Apple Silicon and Intel Macs, and x86_64
+Linux. The release pipeline pushes each version's formula to the tap, so
+`brew upgrade` tracks new releases.
+
+## Shell installer
+
+```console
+$ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/zoosky/yqr/releases/latest/download/yqr-installer.sh | sh
+```
+
+Detects your platform, downloads the matching archive from the latest
+GitHub release, and installs the binary into `$CARGO_HOME/bin`
+(`~/.cargo/bin` by default) — no Rust toolchain involved. Prefer not to
+pipe a script into `sh`? The next section is the same download done by
+hand.
+
+## Prebuilt archive
+
+Each [GitHub release](https://github.com/zoosky/yqr/releases/latest)
+attaches an archive per platform, with a SHA-256 checksum beside it:
+
+| Archive | Platform |
+|---|---|
+| `yqr-aarch64-apple-darwin.tar.xz` | macOS, Apple Silicon |
+| `yqr-x86_64-apple-darwin.tar.xz` | macOS, Intel |
+| `yqr-x86_64-unknown-linux-musl.tar.xz` | Linux x86_64 — static musl build, runs on any distribution |
+
+Download, verify, unpack:
+
+```console
+$ curl -sLO https://github.com/zoosky/yqr/releases/latest/download/yqr-aarch64-apple-darwin.tar.xz
+$ curl -sLO https://github.com/zoosky/yqr/releases/latest/download/yqr-aarch64-apple-darwin.tar.xz.sha256
+$ shasum -a 256 -c yqr-aarch64-apple-darwin.tar.xz.sha256
+yqr-aarch64-apple-darwin.tar.xz: OK
+shasum: WARNING: 1 line is improperly formatted
+$ tar xf yqr-aarch64-apple-darwin.tar.xz
+```
+
+`OK` is the verdict; the warning is `shasum` objecting to the checksum
+file's trailing blank line and does not affect it. The archive holds the
+`yqr` binary alongside the licenses, README, and changelog — copy the
+binary anywhere on your `PATH`.
+
+## cargo install
+
+```console
+$ cargo install yqr
+```
+
+Builds the [published crate](https://crates.io/crates/yqr) from source
+with your own toolchain (Rust 1.99 or later) and installs it to
+`~/.cargo/bin/yqr`. Using yqr as a Rust library rather than a binary?
+Depend on the crate instead — the [home page](/#paths) shows the
+`default-features = false` form that leaves the CLI layer out, and
+[docs.rs/yqr](https://docs.rs/yqr) documents the API.
+
+## From a source checkout
+
+```console
+$ git clone https://github.com/zoosky/yqr
+$ cd yqr
+$ cargo build --release
+```
+
+The binary lands at `target/release/yqr`; `cargo install --path .` puts
+it on your `PATH` instead.
+
+## Confirm it works
+
+```console
+$ yqr --version
+yqr 0.12.0 (b484fc9, built 2026-11-07 10:30:44 UTC)
+target: aarch64-apple-darwin
+$ echo 'a: 1' | yqr '.a'
+1
+```
+
+The version line names the release, the exact commit it was built from,
+and the target — worth pasting into a bug report.
+
+## No install at all
+
+The [playground](../playground) runs the same engine in your browser,
+compiled to WebAssembly: paste YAML, run filters, and watch the
+byte-for-byte guarantee hold, without touching your machine. Embedding
+that engine in your own page is the playground's closing note — every
+release attaches the built wasm package as `yqr-wasm-pkg.tar.gz`.
+
+---
+
 # Validating YAML from the command line
 
 URL: /yqr/guide/validate
@@ -1368,6 +1473,8 @@ URL: /yqr/guide
 Short, task-shaped pages. Every command in them was run against a real
 build, and the output you see is the output it printed.
 
+- [Install yqr](install) -- Homebrew, a shell installer, `cargo install`,
+  or a prebuilt archive you verify yourself.
 - [Byte-for-byte, explained](fidelity) -- what yqr preserves, why the
   identity filter is a useful test, and when you want `--normalize`
   instead.
@@ -1460,7 +1567,8 @@ Don't want to install anything? The [playground](/playground/) runs the
 same engine in your browser, compiled to WebAssembly.
 
 The script needs `yqr` on your `PATH` (`brew install zoosky/tap/yqr`, or
-`cargo install yqr`). It resolves its own directory, so it works from any
+`cargo install yqr` -- the [install guide](/guide/install) has every
+option). It resolves its own directory, so it works from any
 working directory and reads the sample files in place; every mutating
 command works on a copy in a scratch directory, so re-running it is
 idempotent.

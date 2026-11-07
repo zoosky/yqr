@@ -13,7 +13,7 @@
 
 
 
-<meta name="description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
+<meta name="description" content="Practical guides for yqr: installing it, what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
 
 
 <link rel="canonical" href="https://zoosky.github.io/yqr/guide">
@@ -29,7 +29,7 @@
 
 
 <meta property="og:title" content="yqr guide">
-<meta property="og:description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
+<meta property="og:description" content="Practical guides for yqr: installing it, what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://zoosky.github.io/yqr/guide">
 <meta property="og:site_name" content="yqr">
@@ -42,7 +42,7 @@
 
 
 <meta name="twitter:title" content="yqr guide">
-<meta name="twitter:description" content="Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
+<meta name="twitter:description" content="Practical guides for yqr: installing it, what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.">
 
 
 
@@ -92,11 +92,11 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "dateModified": "2026-11-07",
-  "description": "Practical guides for yqr: what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.",
+  "description": "Practical guides for yqr: installing it, what byte-for-byte editing means, editing Kubernetes manifests without reformatting them, validating YAML, enumerating a mapping without losing the keys, and which jq habits carry over.",
   "inLanguage": "en",
   "name": "yqr guide",
   "url": "https://zoosky.github.io/yqr/guide",
-  "wordCount": 146
+  "wordCount": 163
 }
 </script>
 <script type="application/ld+json">
@@ -187,8 +187,13 @@
                 
                     
                 
+                
+                    
+                
                  <li><a href="/yqr/changelog" >Changelog</a></li>
                     
+                    
+                
                     
                 
                     
@@ -282,6 +287,8 @@
 <p>Short, task-shaped pages. Every command in them was run against a real
 build, and the output you see is the output it printed.</p>
 <ul>
+<li><a href="/yqr/guide/install">Install yqr</a> – Homebrew, a shell installer, <code>cargo install</code>,
+or a prebuilt archive you verify yourself.</li>
 <li><a href="/yqr/guide/fidelity">Byte-for-byte, explained</a> – what yqr preserves, why the
 identity filter is a useful test, and when you want <code>--normalize</code>
 instead.</li>
