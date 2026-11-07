@@ -6,6 +6,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-07
+
 The release for hosts. The engine that was a CLI becomes something you
 can embed: the library slims to profile-sized builds behind cargo
 features, diagnostics and filter errors become structured data an editor
