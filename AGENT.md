@@ -469,8 +469,10 @@ Generated and owned by **dist** (cargo-dist 0.33.0, pinned in
 `.github/scripts/dist-regen.sh` after config changes (it re-applies the
 tap committer override dist has no knob for), never hand-edit. On a version
 tag it builds `aarch64-apple-darwin`, `x86_64-apple-darwin` and
-`x86_64-unknown-linux-musl`, attaches archives, checksums and a shell
-installer, creates the GitHub release from the changelog section, and
+`x86_64-unknown-linux-musl`, attaches archives, checksums, a shell
+installer and the `yqr-wasm-pkg.tar.gz` embedder package (a dist
+extra-artifact, `yqr-k003` §7), creates the GitHub release from the
+changelog section, and
 pushes the Homebrew formula to `zoosky/homebrew-tap` (secret:
 `HOMEBREW_TAP_TOKEN`). On pull requests it runs its plan step as a
 dry-run check. See `yqr-f044`.

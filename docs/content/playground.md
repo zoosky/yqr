@@ -53,8 +53,11 @@ exactly what you don't paste into someone else's server.
 
 ## For embedders
 
-The module this page loads is the published `yqr-wasm` bindings crate:
-`eval` for reads, `fidelityRun` for byte-preserving execution, `validate`
-for diagnostics, and a typed edit API for programs. If you are building an
-editor, the playground is a working integration to crib from — view
-source, or start at the bindings crate in the repository.
+The module this page loads is built from the `yqr-wasm` bindings crate in
+the repository: `eval` for reads, `fidelityRun` for byte-preserving
+execution, `validate` for diagnostics, and a typed edit API for programs.
+Every release attaches the built package (module, JS glue, and type
+declarations) as `yqr-wasm-pkg.tar.gz` on the
+[GitHub release](https://github.com/zoosky/yqr/releases), checksummed. If
+you are building an editor, the playground is a working integration to
+crib from — view source, or start at the bindings crate.

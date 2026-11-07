@@ -100,6 +100,16 @@ glue in the theme's gitignored `assets/wasm/`. Pushes to `main` touching
 module tracks the engine; pull-request triggers keep the docs paths, since
 an engine PR's wasm behaviour is already covered by `ci.yml`.
 
+### 2.5 `release.yml` — the wasm package artifact
+
+Each release also attaches `yqr-wasm-pkg.tar.gz` and its `.sha256`: the
+wasm-pack build of the bindings crate, for embedders, in place of an npm
+release (decision and revisit triggers in `yqr-k003` §7). It is a dist
+extra-artifact — `Cargo.toml` `[[workspace.metadata.dist.extra-artifacts]]`
+runs `.github/scripts/wasm-pkg-tarball.sh` on the global artifacts job —
+so `release.yml` itself is unchanged; dist reads the config at build
+time, and its plan step validates it on every PR.
+
 ## 3. Release process
 
 Releases are **manual decisions**; the tag is the trigger. Pushing

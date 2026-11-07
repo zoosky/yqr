@@ -1,8 +1,9 @@
 # Marketing k003 — The playground: yqr compiled to WebAssembly, in the reader's browser
 
 **Status:** Done (2026-11-07) — `/playground/` shipped; every acceptance
-criterion in §7 verified in a real browser (Playwright over
-`accent serve --no-tls`) before the PR.
+criterion in §8 verified in a real browser (Playwright over
+`accent serve --no-tls`) before the PR. §7 (distribution) added the same
+day: the wasm package ships as a release artifact, npm deferred.
 **Owner:** yqr maintainers
 **Last updated:** 2026-11-07
 **Related:** `yqr-f049` (the wasm target and the bindings crate this runs),
@@ -147,7 +148,38 @@ it.
   is the whole page. That is the progressive-enhancement contract the
   theme's islands already follow.
 
-## 7. Acceptance criteria
+## 7. Distribution: a release artifact, not npm (added 2026-11-07)
+
+The playground's embedder pitch raised the question of an npm release,
+accent-sass-style. Decided against, for now:
+
+- **No consumer needs it.** The playground builds the module from source;
+  accentcms consumes nothing yet, and its planned adoption (accent `f430`)
+  is the Rust crate, not a JS package. accent-sass pays npm's costs —
+  publish ordering, version lockstep, token custody, a wasm job that
+  twice shipped empty artifacts — because its npm package has users.
+- **Pre-1.0 churn.** yqr breaks its surface on minors; npm consumers
+  would inherit that immediately.
+- Both names (`yqr`, `yqr-wasm`) were free on the registry on
+  2026-11-07, so waiting costs little.
+
+What ships instead: each release attaches `yqr-wasm-pkg.tar.gz` (module,
+JS glue, `.d.ts`, `package.json`) plus its `.sha256` — a pinned,
+checksummed artifact with no registry custody. It is a dist
+extra-artifact (`Cargo.toml` `[[workspace.metadata.dist.extra-artifacts]]`
+running `.github/scripts/wasm-pkg-tarball.sh`); `dist plan`, which
+`release.yml` runs on every PR, verifies the configuration, and `ci.yml`'s
+wasm lane keeps the underlying build green. The module inside carries
+`yqr-wasm`'s own version (the adapter tracks its own surface, per the
+crate's manifest comment); the release tag names the engine version.
+
+Revisit npm when one of these fires: an external embedder asks, the
+accent browser editor adopts the module, or 1.0 stabilizes the surface.
+Then follow accent-sass's shape (a `release.sh` step, npm last, unscoped
+name, trusted publishing). Like `cargo publish` (`yqr-m004`), an npm
+publish is a separately authorized step, never inferred.
+
+## 8. Acceptance criteria
 
 - [x] `/playground/` builds and validates in both site configs
       (`accent build` in `docs/`, `accent validate -c specs/config.yaml`).
