@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794046944192,
+  "lastUpdate": 1794047420369,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3737,6 +3737,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 266820,
             "range": "± 1978",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b484fc943db07eee4656ed7d3fa704cf8247128e",
+          "message": "fix: pin the ARM macOS release runner to macos-15 (#186)\n\nGitHub retired the macos-14 image dist defaults to for\naarch64-apple-darwin: the v0.12.0 tag run was cancelled in 1s with\n'The configuration macos-14-arm64-us-default is not supported' before\nany release was created. Pin the target via\nworkspace.metadata.dist.github-custom-runners; dist computes the\nrunner matrix at run time, so the regenerated release.yml is\nbyte-identical.",
+          "timestamp": "2026-11-07T11:29:00+01:00",
+          "tree_id": "c89e5c3c7321bd8c3caad4851e95a7ac947b16d0",
+          "url": "https://github.com/zoosky/yqr/commit/b484fc943db07eee4656ed7d3fa704cf8247128e"
+        },
+        "date": 1794047418953,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 310,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3163,
+            "range": "± 45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 171745,
+            "range": "± 1554",
             "unit": "ns/iter"
           }
         ]
