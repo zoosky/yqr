@@ -200,3 +200,11 @@ publish-jobs = ["homebrew"]
 install-updater = false
 # Path that installers should place binaries in
 install-path = "CARGO_HOME"
+
+# The yqr-wasm package as a release artifact (yqr-k003 §7): a pinned,
+# checksummed wasm-pack build for embedders, attached to each GitHub
+# release instead of publishing to npm. The script also writes the
+# .sha256 beside it.
+[[workspace.metadata.dist.extra-artifacts]]
+artifacts = ["yqr-wasm-pkg.tar.gz", "yqr-wasm-pkg.tar.gz.sha256"]
+build = ["bash", ".github/scripts/wasm-pkg-tarball.sh"]
