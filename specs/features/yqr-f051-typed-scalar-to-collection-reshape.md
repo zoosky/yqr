@@ -90,12 +90,12 @@ fork (`zoosky/noyalib`, checked out at
 `accentcms-proj/dependencies/noyalib`) and consumed by yqr through a
 `[patch.crates-io]` entry pinned to the fork commit, so the crates.io
 dependency and `cargo package` stay intact. This feature's branch does
-not merge to `main` while the patch is in place. Once the design is
-proven end to end (yqr's suite, the ported accent contract test, the
-corpus), the engine change goes upstream as a PR against
-`sebastienrousseau/noyalib`; yqr adopts the crates.io release that
-carries it and drops the patch. accent deletes its fallback only after
-that yqr release ships.
+not merge to `main` while the patch is in place. The design proved out
+end to end (yqr's suite, the ported accent contract test, the corpus,
+and accent's full workspace suite against the pins), and the engine
+change is upstream as noyalib PR #505; yqr adopts the crates.io
+release that carries it and drops the patch. accent deletes its
+fallback only after that yqr release ships.
 
 ## Note: the set op's extra parse
 
