@@ -154,17 +154,6 @@ pub fn fidelity_run(filter: &str, yaml: &str) -> Result<String, JsValue> {
         .map_err(|e| ErrorEnvelope::from_yqr(&e).into_js())
 }
 
-/// Check a YAML document and return every finding as structured data:
-/// code (`"Y101"`), message, 1-based `[line, column]`, byte offset, note
-/// and help — the serialized shape of [`yqr::validate::Diagnostic`].
-///
-/// An empty array means the document is valid. `strict` adds the
-/// duplicate-key findings ordinary reads accept silently.
-///
-/// # Errors
-///
-/// Rejects with an [`ErrorEnvelope`] only when the findings cannot be
-/// serialized; an invalid document is a normal result, not an error.
 /// Apply a typed change set — ops as plain JS data, no filter text — and
 /// return the edited document, bytes untouched except where an op landed.
 ///
@@ -185,6 +174,17 @@ pub fn apply_all(ops: JsValue, yaml: &str) -> Result<String, JsValue> {
     yqr::edit::apply_all(&ops, yaml).map_err(|e| ErrorEnvelope::from_yqr(&e).into_js())
 }
 
+/// Check a YAML document and return every finding as structured data:
+/// code (`"Y101"`), message, 1-based `[line, column]`, byte offset, note
+/// and help — the serialized shape of [`yqr::validate::Diagnostic`].
+///
+/// An empty array means the document is valid. `strict` adds the
+/// duplicate-key findings ordinary reads accept silently.
+///
+/// # Errors
+///
+/// Rejects with an [`ErrorEnvelope`] only when the findings cannot be
+/// serialized; an invalid document is a normal result, not an error.
 // Feature f049.
 #[wasm_bindgen]
 pub fn validate(yaml: &str, strict: bool) -> Result<JsValue, JsValue> {

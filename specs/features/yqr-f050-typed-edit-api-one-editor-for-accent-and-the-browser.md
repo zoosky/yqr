@@ -70,11 +70,20 @@ the same code compiled to wasm. That is the isomorphism.
   guarded `Assign` that creates the first missing key with the nested
   remainder as its value. A missing level addressed by *index* is
   refused — only mapping levels are created, as in accent.
-- **Document creation.** A `set` against an empty document creates it
-  (accent's editor opens an empty block as an empty mapping and the
-  first set fills it); `remove` and `rename` against an empty document
-  are no-ops. The write tier itself still refuses an empty stream —
-  the typed layer owns this case.
+- **Document creation.** A `set` against contentless input — empty,
+  whitespace, or comments only (zero parsed documents) — creates the
+  document, keeping any comment bytes in front (accent's editor opens
+  an empty block as an empty mapping and the first set fills it);
+  `remove` and `rename` against one are no-ops. The write tier itself
+  still refuses an empty stream — the typed layer owns this case. An
+  explicit `---` document with a null body is *not* contentless; the
+  write tier's refusal stands there.
+- **Multi-document guard.** Missing-prefix resolution reads the first
+  document; when creation would actually fire on a stream with more
+  than one document, the op refuses (review finding: a shortened
+  assign with a nested value could clobber a later document's sibling
+  keys, since the write tier applies a mutation to every document).
+  Full-path sets on streams behave as the write tier always has.
 - **Scalar-to-collection replacement: deferred.** The typed `set`
   refuses it with the write tier's own message, and accent keeps its
   fragment fallback until yqr grows a typed re-shape — that is a write

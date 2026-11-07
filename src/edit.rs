@@ -22,11 +22,13 @@
 //!   level addressed by index is refused, and a scalar sitting where a
 //!   mapping is needed is a refused re-shape, exactly as replacing a
 //!   scalar with a collection is.
-//! - A `Set` against an empty document creates the document; `Remove` and
-//!   `Rename` against one are no-ops.
+//! - A `Set` against contentless input (empty, whitespace, or comments
+//!   only) creates the document, keeping any comment bytes in front;
+//!   `Remove` and `Rename` against one are no-ops.
 //! - Missing-prefix resolution reads the **first** document of a stream.
-//!   For the multi-document case, apply ops to each document separately if
-//!   their shapes diverge.
+//!   When creation would actually fire on a multi-document stream, the op
+//!   refuses instead of risking a sibling-clobbering write into a later
+//!   document whose shape diverges — apply the change set per document.
 
 // Feature f050.
 
@@ -279,14 +281,36 @@ fn apply_one(op: &Op, input: &str) -> Result<String> {
 
 /// The set op: one guarded assignment, with the target and value adjusted
 /// so missing mapping levels come into being (see the module doc).
+///
+/// Each set costs one extra parse of the current document state (the
+/// resolution walk) on top of the write tier's own. That is the price of
+/// deciding creation *before* mutating; sharing the parse would need a
+/// write-tier entry point that takes a parsed stream, a later
+/// optimization if change-set sizes ever make it matter.
 fn set(path: &Path, value: &Value, input: &str) -> Result<String> {
     if path.segments().is_empty() {
         return Err(path.to_ast().expect_err("the empty path is refused"));
     }
-    if input.trim().is_empty() {
-        return create_document(path, value);
+    let (root, document_count) = load_root(input)?;
+    // No documents at all — empty, whitespace, or comments only: there is
+    // nothing for the write tier to edit, so the document is created, with
+    // whatever bytes were there (a leading comment) kept in front.
+    let Some(root) = root else {
+        return create_document(path, value, input);
+    };
+    let (target, nested) = resolve_set(path, value, &root)?;
+    // Parent creation resolves against the first document, but the write
+    // tier applies a mutation to every document of a stream; a shortened
+    // target with a nested value could then overwrite a mapping that
+    // exists in a later document, silently dropping its other keys.
+    if target.segments().len() < path.segments().len() && document_count > 1 {
+        return Err(YqrError::eval(format!(
+            "cannot set '{}': the stream has {document_count} documents and \
+             creating missing levels resolves against the first one only; \
+             apply the change set to each document separately",
+            path.display(),
+        )));
     }
-    let (target, nested) = resolve_set(path, value, input)?;
     write::apply(
         &Mutation::Assign {
             target: Target::Value(target.to_ast()?),
@@ -296,58 +320,86 @@ fn set(path: &Path, value: &Value, input: &str) -> Result<String> {
     )
 }
 
+/// Name a path prefix in an error message.
+fn prefix_name(path: &Path, depth: usize) -> String {
+    if depth == 0 {
+        "the document root".to_string()
+    } else {
+        format!("'{}'", path.prefix(depth).display())
+    }
+}
+
 /// Decide what one assignment writes: the full path when it, or everything
 /// but its final key, already exists; otherwise the prefix ending at the
 /// first missing key, with the remaining segments nested as mappings
 /// around `value`.
-fn resolve_set(path: &Path, value: &Value, input: &str) -> Result<(Path, Value)> {
-    let root = first_document(input)?;
+fn resolve_set(path: &Path, value: &Value, root: &Value) -> Result<(Path, Value)> {
     let segments = path.segments();
-    let mut node = &root;
+    let mut node = root;
     for (depth, segment) in segments.iter().enumerate() {
-        let next = match (node, segment) {
-            (Value::Mapping(map), Segment::Key(key)) => node_get(map, key),
-            (Value::Sequence(items), Segment::Index(index)) => seq_get(items, *index),
-            // A scalar (or a type mismatch) where the path needs a
-            // container: writing past it would re-shape the node, which is
-            // the same refusal as replacing a scalar with a collection.
-            _ if depth + 1 < segments.len() => {
+        let last = depth + 1 == segments.len();
+        match (node, segment) {
+            (Value::Mapping(map), Segment::Key(key)) => match node_get(map, key) {
+                Some(child) => node = child,
+                // The final segment is missing: the write tier's ordinary
+                // new-key creation handles it on the full path.
+                None if last => break,
+                // An intermediate mapping level is missing: create mapping
+                // levels from here down. A sequence level cannot be
+                // conjured — there is no "empty sequence with an element
+                // at index n" — so an index anywhere below refuses.
+                None => {
+                    if let Some(bad) = segments[depth + 1..].iter().find_map(|s| match s {
+                        Segment::Index(index) => Some(*index),
+                        Segment::Key(_) => None,
+                    }) {
+                        return Err(YqrError::eval(format!(
+                            "cannot set '{}': creating the missing levels under {} \
+                             stops at index [{bad}] — only mapping levels are created",
+                            path.display(),
+                            prefix_name(path, depth),
+                        )));
+                    }
+                    let target = path.prefix(depth + 1);
+                    let nested = nest(&segments[depth + 1..], value.clone());
+                    return Ok((target, nested));
+                }
+            },
+            (Value::Sequence(items), Segment::Index(index)) => match seq_get(items, *index) {
+                Some(child) => node = child,
+                // The sequence exists; the index does not. On the final
+                // segment the write tier owns the verdict; mid-path there
+                // is nothing to descend into and nothing to create.
+                None if last => break,
+                None => {
+                    return Err(YqrError::eval(format!(
+                        "cannot set '{}': the sequence at {} has no index [{index}] \
+                         (len {})",
+                        path.display(),
+                        prefix_name(path, depth),
+                        items.len(),
+                    )));
+                }
+            },
+            // A scalar (or a container of the other kind) where the path
+            // needs to descend further: writing past it would re-shape the
+            // node, which is the same refusal as replacing a scalar with a
+            // collection.
+            _ if !last => {
                 return Err(YqrError::eval(format!(
-                    "cannot set {:?}: {:?} does not hold a {} to descend into; \
+                    "cannot set '{}': {} does not hold a {} to descend into; \
                      growing it is a re-shape this API refuses",
                     path.display(),
-                    path.prefix(depth).display(),
+                    prefix_name(path, depth),
                     match segment {
                         Segment::Key(_) => "mapping",
                         Segment::Index(_) => "sequence",
                     },
                 )));
             }
-            _ => None,
-        };
-        match next {
-            Some(child) => node = child,
-            // The final segment is missing: the write tier's ordinary
-            // new-key creation handles it on the full path.
-            None if depth + 1 == segments.len() => break,
-            // An intermediate level is missing: create mapping levels from
-            // here down. A sequence level cannot be conjured — there is no
-            // obvious "empty sequence with one element at index n".
-            None => {
-                if let Some(bad) = segments[depth..].iter().find_map(|s| match s {
-                    Segment::Index(index) => Some(*index),
-                    Segment::Key(_) => None,
-                }) {
-                    return Err(YqrError::eval(format!(
-                        "cannot set {:?}: a missing level is addressed by index \
-                         [{bad}], and only missing mapping levels are created",
-                        path.display(),
-                    )));
-                }
-                let target = path.prefix(depth + 1);
-                let nested = nest(&segments[depth + 1..], value.clone());
-                return Ok((target, nested));
-            }
+            // A mismatched final step: the write tier's own refusal says
+            // what is wrong.
+            _ => break,
         }
     }
     Ok((path.clone(), value.clone()))
@@ -365,23 +417,29 @@ fn nest(segments: &[Segment], value: Value) -> Value {
     })
 }
 
-/// Create a document that is nothing but this set: the nested value,
-/// emitted in block style. Only reached for empty input, where the write
-/// tier has no document to edit.
-fn create_document(path: &Path, value: &Value) -> Result<String> {
+/// Create the document a set against contentless input produces: the
+/// nested value, emitted in block style, after whatever bytes were there
+/// (a leading comment survives). Only reached when the input parses to no
+/// documents at all.
+fn create_document(path: &Path, value: &Value, input: &str) -> Result<String> {
     if let Some(Segment::Index(index)) = path
         .segments()
         .iter()
         .find(|s| matches!(s, Segment::Index(_)))
     {
         return Err(YqrError::eval(format!(
-            "cannot set {:?} in an empty document: a level is addressed by \
+            "cannot set '{}' in an empty document: a level is addressed by \
              index [{index}], and only mapping levels are created",
             path.display(),
         )));
     }
     let document = nest(path.segments(), value.clone());
-    crate::render(std::slice::from_ref(&document), false)
+    let rendered = crate::render(std::slice::from_ref(&document), false)?;
+    if input.is_empty() {
+        return Ok(rendered);
+    }
+    let separator = if input.ends_with('\n') { "" } else { "\n" };
+    Ok(format!("{input}{separator}{rendered}"))
 }
 
 /// Mapping lookup by string key.
@@ -401,16 +459,23 @@ fn seq_get(items: &[Value], index: i64) -> Option<&Value> {
     items.get(resolved)
 }
 
-/// Parse the first document of `input` into the value view the missing-
-/// prefix resolution walks.
-fn first_document(input: &str) -> Result<Value> {
-    let config = ::noyalib::ParserConfig::new().alias_anchor_ratio(None);
-    let mut docs = ::noyalib::document::load_all_with_config(input, &config)
+/// Parse `input` into the value view the missing-prefix resolution walks:
+/// the first document (`None` when the stream holds no documents — empty,
+/// whitespace, or comments only) and how many documents the stream holds.
+fn load_root(input: &str) -> Result<(Option<Value>, usize)> {
+    let config = crate::parser_config();
+    let docs = ::noyalib::document::load_all_with_config(input, &config)
         .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
-    docs.next()
-        .ok_or_else(|| YqrError::io("failed to parse YAML input: the stream is empty"))?
-        .map(Value::from)
-        .map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))
+    let mut first = None;
+    let mut count = 0usize;
+    for doc in docs {
+        let doc = doc.map_err(|e| YqrError::io(format!("failed to parse YAML input: {e}")))?;
+        if count == 0 {
+            first = Some(Value::from(doc));
+        }
+        count += 1;
+    }
+    Ok((first, count))
 }
 
 #[cfg(test)]
@@ -454,10 +519,11 @@ mod tests {
 
     #[test]
     fn a_missing_mapping_level_nests_the_value() {
+        let (root, _) = load_root("title: x\n").unwrap();
         let (target, nested) = resolve_set(
             &Path::root().key("menu").key("nav").key("visible"),
             &Value::Bool(false),
-            "title: x\n",
+            &root.unwrap(),
         )
         .unwrap();
         assert_eq!(target, Path::root().key("menu"));
@@ -501,6 +567,53 @@ mod tests {
         )
         .unwrap_err();
         assert!(err.to_string().contains("cannot index string"), "{err}");
+    }
+
+    #[test]
+    fn parent_creation_on_a_multi_document_stream_refuses() {
+        // doc1 lacks `menu`, doc2 has one with other keys: a shortened
+        // assign with a nested value would clobber doc2's siblings, so the
+        // op refuses rather than resolving against doc1 alone.
+        let input = "title: x\n---\nmenu:\n  nav:\n    a: 1\n  other: 2\n";
+        let err = apply_all(
+            &[set(
+                Path::root().key("menu").key("nav").key("visible"),
+                Value::Bool(false),
+            )],
+            input,
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("2 documents"), "{err}");
+
+        // A full-path set that exists everywhere it applies stays fine.
+        let out = apply_all(&[set(Path::root().key("title"), Value::Int(1))], input).unwrap();
+        assert!(out.contains("title: 1"), "{out}");
+        assert!(out.contains("other: 2"), "{out}");
+    }
+
+    #[test]
+    fn a_set_on_a_comments_only_document_keeps_the_comment() {
+        let out = apply_all(
+            &[set(Path::root().key("title"), Value::String("New".into()))],
+            "# generated\n",
+        )
+        .unwrap();
+        assert_eq!(out, "# generated\ntitle: New\n");
+    }
+
+    #[test]
+    fn an_out_of_range_sequence_index_mid_path_names_the_range() {
+        let err = apply_all(
+            &[set(
+                Path::root().key("items").index(5).key("name"),
+                Value::Int(1),
+            )],
+            "items:\n  - a\n",
+        )
+        .unwrap_err();
+        let message = err.to_string();
+        assert!(message.contains("no index [5]"), "{message}");
+        assert!(message.contains("len 1"), "{message}");
     }
 
     /// The serialized op shape is an interface; this test pins it.
