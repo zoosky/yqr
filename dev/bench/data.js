@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794060316773,
+  "lastUpdate": 1794260680851,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3905,6 +3905,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 273486,
             "range": "± 1270",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "35c52a00ca67053e2b6b32e1de31d1f540a21139",
+          "message": "feat: the typed scalar-to-collection re-shape for the edit API (f051) (#190)\n\n* feat: the typed scalar-to-collection re-shape for the edit API\n\nThe engine grows the route (noyalib grow_value, the upstream completion\nof #328): the collection is rendered block one indent step past the key\n(flow inside flow collections), a comment trailing the scalar stays on\nthe key's line, and the candidate must load back as the document with\nexactly the one path replaced before a byte changes.\n\nyqr keeps the policy: write::apply is unchanged and the filter language\nkeeps refusing the crossing, while a crate-internal apply_with carries\na WritePolicy whose one flag routes the refusal in\nset_value_unless_unchanged into the new FidelityWriter::reshape_scalar\n— one engine call plus the tier's integrity checks. Only edit::Op::Set\nopts in, so the wasm applyAll boundary inherits the behavior. Sequence\nitems keep their refusal (Op::Append is the typed route), and a scalar\nmid-path stays refused.\n\naccent's contract test ports into tests/edit_contract.rs, replacing the\none that pinned the refusal; the superseded pin moves to the\nsequence-item site.\n\nVerification pin: noyalib comes from the fork via [patch.crates-io]\n(zoosky/noyalib feat/cst-grow-value, 56d4f2a, tag grow-value-rc.2)\nuntil the upstream PR ships in a crates.io release; this branch does\nnot merge while the patch is in place. See the design section of\nyqr-f051.\n\n* docs: record noyalib PR 505 in the f051 design section\n\n* feat: adopt noyalib 0.0.59, drop the f051 verification pin\n\nThe release carries both upstream contributions from the f051 work:\ngrow_value (noyalib#505, incorporated upstream with authorship\npreserved) and the insert-anchor fix for a sequence-item mapping whose\nonly key sits on the dash line (noyalib#499, yqr's #506). The\n[patch.crates-io] pin comes out, every suite is byte-identical against\nthe release, and the #499 shape gains its own pin in the write tier's\ntests: .servers[0].port = 80 over '- name: web' inserts at the key's\ncolumn, in both the indented and indentless spellings.\n\nf051 is Done; accent's fallback deletion (its f434) waits on the next\nyqr release.",
+          "timestamp": "2026-11-09T22:42:56+01:00",
+          "tree_id": "28af8fd9bdb332f0c4b365b8001f604f83c1afd0",
+          "url": "https://github.com/zoosky/yqr/commit/35c52a00ca67053e2b6b32e1de31d1f540a21139"
+        },
+        "date": 1794260678815,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 574,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 5797,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 274395,
+            "range": "± 3717",
             "unit": "ns/iter"
           }
         ]
