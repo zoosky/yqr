@@ -1943,6 +1943,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-09
+
 The release that closes the edit API's one gap. Growing a scalar into a
 collection — the edit the typed `Set` refused and every host had to
 work around — now happens in place, verified, with the mechanics in the
