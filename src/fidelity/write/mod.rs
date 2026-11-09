@@ -444,6 +444,30 @@ mod tests {
         assert_eq!(out, "metadata:\n  name: app\n  env: prod\n");
     }
 
+    // noyalib#499, fixed in 0.0.59: the insert anchor took its column from
+    // the line's leading spaces, which on `- name: web` is the dash's
+    // column, so a key could not be added to a sequence-item mapping whose
+    // only key sits on the `- ` line — the usual shape right after
+    // appending an item. Nothing else here would catch its return.
+    #[test]
+    fn new_key_is_inserted_into_a_dash_line_item() {
+        let out = apply(
+            &assign(".servers[0].port", Rhs::Literal(Value::Int(80))),
+            "servers:\n  - name: web\n",
+        )
+        .unwrap();
+        assert_eq!(out, "servers:\n  - name: web\n    port: 80\n");
+
+        // The indentless spelling anchored at column 0 and failed the
+        // same way.
+        let out = apply(
+            &assign(".servers[0].port", Rhs::Literal(Value::Int(80))),
+            "servers:\n- name: web\n",
+        )
+        .unwrap();
+        assert_eq!(out, "servers:\n- name: web\n  port: 80\n");
+    }
+
     #[test]
     fn append_pushes_a_block_sequence_item() {
         let out = apply(

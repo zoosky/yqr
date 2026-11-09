@@ -1,6 +1,8 @@
 # Feature f051 — A typed scalar-to-collection re-shape for the edit API
 
-**Status:** In Progress
+**Status:** Done (2026-11-09: noyalib 0.0.59 ships `grow_value` — PR #505,
+incorporated upstream with authorship preserved — so the verification
+pin is gone and the crates.io release is the dependency)
 **Epic:** Library surface and wasm (`f046`–`f050`, follow-up)
 **Owner:** yqr maintainers
 **Related:** `yqr-f050` (the typed edit API whose `set` defers this),
@@ -122,9 +124,16 @@ The note in the code lives on `edit::set`.
       Pinned by the existing guard tests, which run under the default
       `WritePolicy`.
 
-Remaining before Done: the noyalib `grow_value` PR is accepted upstream
-and released on crates.io, yqr adopts that release, and the
-`[patch.crates-io]` pin comes out of `Cargo.toml`. Sequence-item sites
-keep their refusal by decision (the typed route onto a sequence is
+Completed 2026-11-09: noyalib 0.0.59 carries `grow_value` (#505,
+incorporated upstream into its v0.0.59 release with integration fixes
+for block-scalar comments and CR line endings), the `[patch.crates-io]`
+pin is out of `Cargo.toml`, and the whole suite is byte-identical
+against the release. The same release carries the #499 insert-anchor
+fix (yqr's upstream #506), pinned by
+`new_key_is_inserted_into_a_dash_line_item` in the write tier's tests —
+a new key lands in a sequence-item mapping whose only key sits on the
+`- ` line, the shape that refused before. Sequence-item sites keep
+their re-shape refusal by decision (the typed route onto a sequence is
 `Op::Append`); the mid-path crossing stays refused because writing past
-a scalar would discard it on the way to somewhere else.
+a scalar would discard it on the way to somewhere else. accent's
+fallback deletion (its f434) waits on the next yqr release.
