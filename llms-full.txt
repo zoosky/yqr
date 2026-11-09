@@ -1943,6 +1943,48 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+The release that closes the edit API's one gap. Growing a scalar into a
+collection — the edit the typed `Set` refused and every host had to
+work around — now happens in place, verified, with the mechanics in the
+engine where they belong: both halves of the work shipped upstream in
+noyalib 0.0.59 as this project's contributions. The filter language is
+unchanged; the CLI gains one fix it inherited on the way.
+
+### Added
+
+- **`edit::Op::Set` grows a scalar into a collection.** Setting a
+  collection value on a mapping entry that holds a scalar re-shapes the
+  entry in place: block style one indent step past the key (flow inside
+  a flow collection), a comment trailing the scalar stays on the key's
+  line, and the result must load back as the document with exactly the
+  one path replaced before a byte changes. The engine owns the route —
+  `Document::grow_value`, contributed upstream as noyalib#505 — and the
+  wasm `applyAll` boundary inherits the behavior, so a browser editor
+  performs the same edit. The boundaries are deliberate: the filter
+  language's `=` still refuses the crossing, a sequence *item* still
+  refuses (append is the typed route onto a sequence), and a scalar
+  mid-path still refuses rather than being discarded on the way to
+  somewhere else.
+
+### Fixed
+
+- **A new key lands in a sequence-item mapping whose only key sits on
+  the `- ` line.** `.servers[0].port = 80` over `servers:` /
+  `  - name: web` used to exit 5 with an engine parse error — the
+  insert anchored on the dash's column instead of the key's — which
+  blocked the usual shape right after appending an item. Diagnosed as
+  noyalib#499, fixed upstream as this project's contribution (their
+  #506, shipped in 0.0.59), and pinned here in both the indented and
+  indentless spellings.
+
+### Changed
+
+- **noyalib 0.0.59.** Carries the two contributions above; its breaking
+  span change (block sequences report their full extent) moves nothing
+  yqr reads or writes — every corpus, CLI, fidelity, contract and unit
+  case is byte-identical across the bump. `jsonschema` moves to 0.61
+  alongside, with no observable change to `validate --schema`.
+
 ## [0.12.0] - 2026-11-07
 
 The release for hosts. The engine that was a CLI becomes something you
