@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794260725004,
+  "lastUpdate": 1794261372362,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -3989,6 +3989,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 229153,
             "range": "± 12048",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8635b7763bd22ae9cd521519c4f0c59d33253383",
+          "message": "chore: release v0.13.0 (#192)",
+          "timestamp": "2026-11-09T22:54:48+01:00",
+          "tree_id": "c30669f64d78737a6e6928d47fad37828def3231",
+          "url": "https://github.com/zoosky/yqr/commit/8635b7763bd22ae9cd521519c4f0c59d33253383"
+        },
+        "date": 1794261370939,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 340,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3430,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 186520,
+            "range": "± 3107",
             "unit": "ns/iter"
           }
         ]
