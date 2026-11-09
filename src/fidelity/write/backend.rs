@@ -251,6 +251,20 @@ impl FidelityWriter for NoyalibWriter {
         }
     }
 
+    // The engine owns the whole re-shape — rendering, placement, the
+    // comment move, and the load-back oracle (noyalib's `grow_value`, the
+    // upstream completion of #328) — so yqr adds only its own integrity
+    // comparison around the call. Feature f051.
+    fn reshape_scalar(&mut self, doc: usize, path: &Path, value: &Value) -> Result<()> {
+        let path_str = to_noyalib_path(path);
+        let ny = insertable(value);
+        let before = self.integrity(doc)?;
+        self.doc_mut(doc)?
+            .grow_value(&path_str, &ny)
+            .map_err(|e| YqrError::eval(format!("cannot set at {path_str:?}: {e}")))?;
+        self.check_integrity(doc, before, &path_str)
+    }
+
     fn value_is_borrowed(&self, doc: usize, path: &Path) -> Result<bool> {
         // A node inside bytes that are not their owner's is not its own
         // either, so every ancestor counts, not just the addressed node.

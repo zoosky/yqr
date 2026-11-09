@@ -7,12 +7,12 @@
 //! key order survive; a no-op change set is a no-op on the bytes — so the
 //! convergence cannot silently weaken what accent ships today. The cases
 //! that stay behind are accent-domain: the `---` block split (markdown, not
-//! YAML), the mapping `diff`, the CST path-grammar spelling (yqr paths are
-//! typed segments, so there is nothing to misread), and the
-//! scalar-to-collection fragment fallback, which is deferred with its own
-//! feature spec.
+//! YAML), the mapping `diff`, and the CST path-grammar spelling (yqr paths
+//! are typed segments, so there is nothing to misread). The
+//! scalar-to-collection case, accent's last hand-rendered fragment, ports
+//! here too now that the typed re-shape exists.
 
-// Feature f050.
+// Features f050, f051.
 
 use yqr::Value;
 use yqr::edit::{Op, Path, apply_all};
@@ -98,6 +98,24 @@ fn a_flow_sequence_stays_flow_and_a_block_sequence_stays_block() {
     assert_eq!(out, "tags:\n  - a\n  - c\n");
 }
 
+/// The accent case this convergence existed to retire: its editor rendered
+/// a YAML fragment by hand and spliced it through the CST's text `set`
+/// whenever a scalar had to grow into a collection. The typed re-shape
+/// replaces that fallback; the assertions are accent's own — the result
+/// loads back as what was written and the sibling key survives — plus the
+/// exact bytes, which accent could not promise.
+// Feature f051; accent's a_scalar_grows_into_a_collection_through_the_fragment_fallback.
+#[test]
+fn a_scalar_grows_into_a_collection() {
+    let out = apply_all(&[set(key("tags"), seq(&["a", "b"]))], "tags: solo\nx: 1\n").unwrap();
+    assert_eq!(out, "tags:\n  - a\n  - b\nx: 1\n");
+    assert_eq!(
+        yqr::eval_str(".tags", &out).unwrap(),
+        vec![seq(&["a", "b"])]
+    );
+    assert!(out.contains("x: 1"), "the sibling key survives: {out}");
+}
+
 #[test]
 fn a_set_on_an_empty_document_creates_it() {
     let out = apply_all(&[set(key("title"), s("New"))], "").unwrap();
@@ -109,10 +127,15 @@ fn a_set_on_an_empty_document_creates_it() {
 }
 
 #[test]
-fn a_scalar_to_collection_set_is_refused_not_silently_reshaped() {
-    // Deferred to the typed re-shape feature; accent keeps its fragment
-    // fallback until then. The refusal must be loud, not a silent no-op.
-    let err = apply_all(&[set(key("tags"), seq(&["a", "b"]))], "tags: solo\nx: 1\n").unwrap_err();
+fn a_scalar_to_collection_set_on_a_sequence_item_is_refused_loudly() {
+    // The mapping-entry crossing re-shapes now (the test above); what
+    // stays refused is the sequence-item site, whose typed route is
+    // Op::Append — and the refusal must be loud, not a silent no-op.
+    let err = apply_all(
+        &[set(key("xs").index(0), seq(&["a", "b"]))],
+        "xs:\n  - solo\nx: 1\n",
+    )
+    .unwrap_err();
     let message = err.to_string();
     assert!(message.contains("op 0 (set)"), "{message}");
 }

@@ -78,6 +78,22 @@ pub(crate) use seam::{CommentKind, FidelityWriter};
 
 use guards::{append_item, set_comment_unless_unchanged, set_value_unless_unchanged};
 
+/// What a caller lets a mutation do beyond the tier's defaults.
+///
+/// The filter language and the typed edit API converge on the same
+/// [`apply`] path but promise different things: `=` refuses the
+/// scalar-to-collection crossing, `edit::Op::Set` performs it. The
+/// difference is the caller's, not the mutation's, so it travels as a
+/// policy beside the mutation rather than as a new mutation kind.
+// Feature f051.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct WritePolicy {
+    /// Allow an assignment to replace a **scalar** with a collection,
+    /// through the guarded re-shape ([`FidelityWriter::reshape_scalar`]).
+    /// Off by default: the filter language keeps its refusal.
+    pub(crate) reshape_scalar_to_collection: bool,
+}
+
 /// Apply a single [`Mutation`] to `input` and return the whole emitted stream.
 ///
 /// The mutation is applied to every document whose target resolves; documents
@@ -95,10 +111,17 @@ use guards::{append_item, set_comment_unless_unchanged, set_value_unless_unchang
 /// Returns an error when the input is not valid YAML, the target is
 /// ambiguous, or an edit is refused by the re-parse guard.
 pub fn apply(mutation: &Mutation, input: &str) -> Result<String> {
+    apply_with(mutation, input, WritePolicy::default())
+}
+
+/// [`apply`], with the caller's [`WritePolicy`]. Crate-internal: the one
+/// caller that differs from the default is the typed edit API.
+// Feature f051.
+pub(crate) fn apply_with(mutation: &Mutation, input: &str, policy: WritePolicy) -> Result<String> {
     let mut writer = NoyalibWriter::open(input)?;
     for doc in 0..writer.doc_count() {
         let value = writer.value(doc)?;
-        apply_to_doc(&mut writer, doc, mutation, &value)?;
+        apply_to_doc(&mut writer, doc, mutation, &value, policy)?;
     }
     Ok(writer.emit())
 }
@@ -113,6 +136,7 @@ fn apply_to_doc(
     doc: usize,
     mutation: &Mutation,
     value: &Value,
+    policy: WritePolicy,
 ) -> Result<()> {
     // Resolve the target (and decide whether to skip this document) *before*
     // evaluating the RHS: a document whose target does not resolve is left
@@ -129,7 +153,7 @@ fn apply_to_doc(
             let rhs_value = resolve_rhs(rhs, value)?;
             match target {
                 AssignTarget::Existing { path, current } => {
-                    set_value_unless_unchanged(writer, doc, &path, &rhs_value, &current)
+                    set_value_unless_unchanged(writer, doc, &path, &rhs_value, &current, policy)
                 }
                 // Nothing to compare against: the key is not there yet.
                 AssignTarget::NewKey { parent, key } => {
@@ -202,7 +226,7 @@ fn apply_to_doc(
                 return Ok(());
             };
             let updated = eval_single(rhs, &current, "the update filter")?;
-            set_value_unless_unchanged(writer, doc, &target, &updated, &current)
+            set_value_unless_unchanged(writer, doc, &target, &updated, &current, policy)
         }
         Mutation::Append { path, rhs } => {
             // `resolve_update_target` rather than `resolve_target`: identical
@@ -418,6 +442,30 @@ mod tests {
         )
         .unwrap();
         assert_eq!(out, "metadata:\n  name: app\n  env: prod\n");
+    }
+
+    // noyalib#499, fixed in 0.0.59: the insert anchor took its column from
+    // the line's leading spaces, which on `- name: web` is the dash's
+    // column, so a key could not be added to a sequence-item mapping whose
+    // only key sits on the `- ` line — the usual shape right after
+    // appending an item. Nothing else here would catch its return.
+    #[test]
+    fn new_key_is_inserted_into_a_dash_line_item() {
+        let out = apply(
+            &assign(".servers[0].port", Rhs::Literal(Value::Int(80))),
+            "servers:\n  - name: web\n",
+        )
+        .unwrap();
+        assert_eq!(out, "servers:\n  - name: web\n    port: 80\n");
+
+        // The indentless spelling anchored at column 0 and failed the
+        // same way.
+        let out = apply(
+            &assign(".servers[0].port", Rhs::Literal(Value::Int(80))),
+            "servers:\n- name: web\n",
+        )
+        .unwrap();
+        assert_eq!(out, "servers:\n- name: web\n  port: 80\n");
     }
 
     #[test]
