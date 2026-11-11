@@ -6,6 +6,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-11
+
 A dependency release. yqr moves to noyalib 0.0.60, so a host that
 embeds yqr and also depends on noyalib directly can resolve a single
 noyalib version again. The filter language, the CLI, and the library
