@@ -6,6 +6,21 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+A dependency release. yqr moves to noyalib 0.0.60, so a host that
+embeds yqr and also depends on noyalib directly can resolve a single
+noyalib version again. The filter language, the CLI, and the library
+API are unchanged.
+
+### Changed
+
+- **noyalib 0.0.60.** The release changes only noyalib's CI and release
+  tooling; its core sources, public API, Cargo features, and Rust 1.89
+  minimum are the same as in 0.0.59. Every corpus, CLI, fidelity,
+  contract, and unit case passes unchanged across the bump. yqr's public
+  API exposes no noyalib types, so this is a patch release.
+- **jsonschema 0.61.1**, a patch update with no observable change to
+  `validate --schema`.
+
 ## [0.13.0] - 2026-11-09
 
 The release that closes the edit API's one gap. Growing a scalar into a
