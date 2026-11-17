@@ -1942,6 +1942,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-17
+
 A dependency release that narrows what yqr reads. noyalib 0.0.62 refuses
 two inputs that YAML 1.2.2 forbids and that yqr used to accept, so a file
 that read before can now exit 5. That is a breaking change to the CLI,
