@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-11",
+  "dateModified": "2026-11-17",
   "description": "yqr is a jq-style command-line tool for YAML. Query any field, edit a file in place, and keep every comment, anchor, quote style and blank line byte-for-byte.",
   "inLanguage": "en",
   "name": "jq for YAML -- query and edit without reformatting",
   "url": "https://zoosky.github.io/yqr/",
-  "wordCount": 2750
+  "wordCount": 2738
 }
 </script>
 <link rel="alternate" type="text/plain" href="/yqr/llms.txt" title="LLM-readable site overview"></head>
@@ -839,7 +839,7 @@ error[Y001]: expected a node but found StreamEnd
 3 | b: [1,
   |       ^
 </code></pre>
-<p><code>--strict</code> also flags duplicate mapping keys (<code>Y101</code>) — accepted last-wins by ordinary reads, so a bad edit silently drops data — reporting every duplicate, <code>&lt;&lt;</code> merge keys included, with the positions of both occurrences. Keys that collide after string conversion are refused outright (<code>Y102</code>), non-UTF-8 input is a coded finding (<code>Y003</code>), a mapping value that is not indented past its key is flagged by default (<code>Y103</code>) because yqr’s engine reads such a file and other implementations refuse it, and a file containing unresolved merge-conflict markers gets a dedicated hint anchored at the first marker. A JSON Schema verdict is one flag away (<code>--schema</code>, codes <code>Y201</code>–<code>Y203</code>), with violations located in your file’s own lines. Exit codes are scriptable: 0 all valid, 1 validation findings, 5 an input could not be read. Stdin is explicit (<code>yqr validate -</code>); an empty file list is a usage error, never a silent “all valid”.</p>
+<p><code>--strict</code> also flags duplicate mapping keys (<code>Y101</code>) — accepted last-wins by ordinary reads, so a bad edit silently drops data — reporting every duplicate, <code>&lt;&lt;</code> merge keys included, with the positions of both occurrences. Keys that collide after string conversion are refused outright (<code>Y102</code>), non-UTF-8 input is a coded finding (<code>Y003</code>), a mapping value that is not indented past its key is a located syntax error, and a file containing unresolved merge-conflict markers gets a dedicated hint anchored at the first marker. A JSON Schema verdict is one flag away (<code>--schema</code>, codes <code>Y201</code>–<code>Y203</code>), with violations located in your file’s own lines. Exit codes are scriptable: 0 all valid, 1 validation findings, 5 an input could not be read. Stdin is explicit (<code>yqr validate -</code>); an empty file list is a usage error, never a silent “all valid”.</p>
 </div>
 </section>
 <section id="recipes">
@@ -1090,7 +1090,7 @@ COPY --from=build /src/target/release/yqr /usr/local/bin/yqr
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-11</span>
+        <span>Site last updated: 2026-11-17</span>
         
     </footer>
 
