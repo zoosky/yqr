@@ -81,8 +81,15 @@ clap = { version = "4.6.1", features = ["derive"], optional = true }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.59 release, which carries both of yqr's upstream
-# contributions from the f051 work: `Document::grow_value`, the typed
+# crates.io 0.0.62 release (f052; 0.0.61 was folded into it and never
+# published). It narrows what parses in two ways yqr passes through: an
+# under-indented block value (`on:` / `[]` / `jobs: {}`) is refused, closing
+# the leniency b014 recorded -- validate reports it as Y001 now, and the Y103
+# scan stays as a backstop -- and a byte order mark inside a plain scalar or
+# comment is refused per YAML 1.2.2 production [27]. Every corpus, fidelity,
+# contract and write case is byte-identical; only the four tests built on the
+# b014 shape moved. 0.0.60 changed only upstream CI and release tooling.
+# 0.0.59 carries both of yqr's upstream contributions from the f051 work: `Document::grow_value`, the typed
 # scalar-to-collection re-shape the edit API's Set performs (yqr's
 # noyalib#505, incorporated upstream with authorship preserved), and the
 # insert-anchor fix for a sequence-item mapping whose only key sits on the
@@ -160,7 +167,7 @@ clap = { version = "4.6.1", features = ["derive"], optional = true }
 # b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44, b033 in 0.0.45.
 # Each pin and what it bought is in features f013-f029, f031, f034-f035,
 # f037, f043 and f045; see research r002 and the bug specs.
-noyalib = "0.0.60"
+noyalib = "0.0.62"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"

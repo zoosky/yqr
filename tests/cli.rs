@@ -184,16 +184,19 @@ fn validate_valid_stdin_is_silent_and_exits_zero() {
     assert!(out.stderr.is_empty(), "stderr: {}", out.stderr);
 }
 
-// Bug b014: a document noyalib reads and the rest of the ecosystem refuses.
+// Bug b014: a document the rest of the ecosystem refuses. noyalib read it
+// until 0.0.62 (yqr reported it as Y103); from 0.0.62 the parser refuses it
+// too, so it is a located syntax error and no yqr read accepts the file.
+// Feature f052
 #[test]
 fn validate_reports_an_under_indented_block_value() {
     let out = run(&["validate", "-"], "on:\n[]\njobs: {}\n");
     assert_eq!(out.status, 1);
     let err = &out.stderr;
-    assert!(
-        err.contains("error[Y103]: block mapping value is not indented past its key"),
-        "unexpected stderr: {err}"
-    );
+    assert!(err.contains("error[Y001]"), "unexpected stderr: {err}");
+    assert!(err.contains("<stdin>:2:1"), "unexpected stderr: {err}");
+    let read = run(&["."], "on:\n[]\njobs: {}\n");
+    assert_eq!(read.status, 5, "the file no longer reads: {}", read.stderr);
     // Default mode, not `--strict`: the file is invalid, not merely dubious.
     assert!(
         err.contains("-->"),
@@ -208,6 +211,28 @@ fn validate_accepts_a_block_sequence_at_its_keys_column() {
     let out = run(&["validate", "--strict", "-"], "on:\n- push\njobs: {}\n");
     assert_eq!(out.status, 0);
     assert!(out.stderr.is_empty());
+}
+
+// Feature f052: noyalib 0.0.62 follows YAML 1.2.2 production [27], where a
+// byte order mark is not an `nb-char`: one inside a plain scalar is refused.
+// PyYAML and Psych both still read it, so this is a deliberate narrowing.
+// A BOM opening the stream and one inside a quoted scalar still read.
+#[test]
+fn a_byte_order_mark_inside_a_plain_scalar_is_refused() {
+    let out = run(&["validate", "-"], "a: x\u{feff}y\n");
+    assert_eq!(out.status, 1, "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y001]"), "stderr: {}", out.stderr);
+    let read = run(&["."], "a: x\u{feff}y\n");
+    assert_eq!(read.status, 5, "stderr: {}", read.stderr);
+}
+
+#[test]
+fn a_byte_order_mark_opening_the_stream_or_inside_quotes_still_reads() {
+    let lead = run(&["-r", ".a"], "\u{feff}a: xy\n");
+    assert_eq!(lead.status, 0, "stderr: {}", lead.stderr);
+    assert_eq!(lead.stdout, "xy\n");
+    let quoted = run(&["validate", "-"], "a: \"x\u{feff}y\"\n");
+    assert_eq!(quoted.status, 0, "stderr: {}", quoted.stderr);
 }
 
 #[test]
@@ -2313,16 +2338,23 @@ fn validate_schema_reads_the_input_from_stdin() {
 
 #[test]
 fn validate_schema_runs_alongside_the_default_checks() {
-    // A Y103 finding does not suppress the schema pass: the tree is
-    // usable and each finding is independently actionable.
+    // A lint-class finding (here a strict-mode duplicate key) does not
+    // suppress the schema pass: the tree is usable and each finding is
+    // independently actionable.
     let schema = temp_yaml("type: object\nproperties:\n  jobs:\n    type: integer\n");
     let out = run(
-        &["validate", "--schema", schema.to_str().unwrap(), "-"],
-        "on:\n[]\njobs: {}\n",
+        &[
+            "validate",
+            "--strict",
+            "--schema",
+            schema.to_str().unwrap(),
+            "-",
+        ],
+        "on: push\non: pull_request\njobs: {}\n",
     );
     let _ = std::fs::remove_file(&schema);
     assert_eq!(out.status, 1, "stderr: {}", out.stderr);
-    assert!(out.stderr.contains("error[Y103]"), "stderr: {}", out.stderr);
+    assert!(out.stderr.contains("error[Y101]"), "stderr: {}", out.stderr);
     assert!(out.stderr.contains("error[Y201]"), "stderr: {}", out.stderr);
 }
 

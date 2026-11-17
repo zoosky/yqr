@@ -6,6 +6,24 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **noyalib 0.0.62.** The engine now refuses two inputs it used to read,
+  both invalid under YAML 1.2.2:
+  - A block mapping value on a later line that is not indented past its
+    key (`on:` then `[]` at column 1, with a sibling key after it). PyYAML
+    and Psych already refused it. Reads exit 5, and `yqr validate` reports
+    a located `Y001` at the same position where it used to report `Y103`.
+    The `Y103` check stays as a backstop and fires only if a future engine
+    release accepts the shape again.
+  - A byte order mark (U+FEFF) inside a plain or block scalar or a
+    comment. A BOM that opens the stream or a document, or one inside a
+    quoted scalar, still reads. PyYAML and Psych read the refused case,
+    so this narrows what yqr accepts.
+
+  Every corpus, fidelity, contract, and write case is byte-identical
+  across the bump.
+
 ## [0.13.1] - 2026-11-11
 
 A dependency release. yqr moves to noyalib 0.0.60, so a host that
