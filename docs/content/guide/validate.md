@@ -1,6 +1,7 @@
 ---
 # Traceability: Feature f012 (the validate subcommand); bug b014 §3.2 is
-# the Y103 check. Every console block re-run against v0.10.0 on 2026-10-09
+# the Y103 check, now a backstop: noyalib 0.0.62 refuses the shape (f052).
+# Every console block re-run against v0.10.0 on 2026-10-09
 # (before that v0.8.0 on 2026-09-07, and the --schema blocks against the
 # f040 build on 2026-10-08); the usage-error block now quotes the full
 # output, clap's usage lines included. The indentation error gained its
@@ -68,12 +69,10 @@ Exit 0 when every input is valid, 1 when any input fails, and 5 when an
 input cannot be read at all -- a missing file is a different problem from a
 malformed one, so it gets a different code.
 
-## The file your engine reads and nobody else does
+## A value that is not indented past its key
 
-
-A mapping value on its own line has to be indented past its key. Some
-parsers -- yqr's included -- read one that is not, which is worse than
-refusing it: the file works for you and fails for everyone else.
+A mapping value on its own line has to be indented past its key. yqr
+refuses a file where it is not, as Python's PyYAML and Ruby's Psych do:
 
 ```console
 $ cat workflow.yaml
@@ -81,18 +80,19 @@ on:
 []
 jobs: {}
 $ yqr validate workflow.yaml
-error[Y103]: block mapping value is not indented past its key
+error[Y001]: simple key was required but not found
   --> workflow.yaml:2:1
   |
 2 | []
   | ^
-  = note: its key is at line 1, column 1, so the value must start at column 2 or deeper
-  = help: indent the value, or write it on the key's own line; noyalib reads this file but other YAML implementations reject it
 ```
 
-This one is not a `--strict` opinion, so it is on by default: the document
-is invalid, not merely unusual. Python's PyYAML and Ruby's Psych both refuse
-that file.
+The fix is to indent the value, or to write it on the key's own line
+(`on: []`). Earlier yqr releases read this file, which was worse than
+refusing it: the file worked for you and failed for everyone else, so
+`validate` reported it with a code of its own, `Y103`. The engine now
+refuses it outright. `Y103` stays reserved for the same shape, in case a
+future engine release reads it again.
 
 Two layouts look like this and are perfectly fine, so they are never
 flagged. A block sequence may sit at its key's own column -- the GitHub

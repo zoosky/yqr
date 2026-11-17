@@ -13,9 +13,12 @@ noyalib#284 and **released in noyalib 0.0.25** (2026-08-20): `remove` now
 indents a sole-entry replacement past its key, matching what `delete_entry`
 already wrote, and both PyYAML and Psych accept the result. Verified against
 the published crate by `yqr-f019` §3.4, including the BOM, CRLF, head-comment
-and nested variants. noyalib's parser still *accepts* the shape, which is why
-§3.2's check stays: the leniency is what made the writer defect invisible, and
-yqr's validator is the only thing that reports it. The `yqr-f018` §5 revisit
+and nested variants. The parser leniency itself closed in **noyalib 0.0.62**
+(2026-11-17, `yqr-f052`): every shape §3.2 reports is now a parse error at the
+same position, so `validate` reports `Y001` instead of `Y103`, reads exit 5,
+and noyalib's own guard no longer disagrees between the sole-entry and the
+sibling case. §3.2's check stays as a backstop against a regression, which the
+same-engine re-parse guard could not see. The `yqr-f018` §5 revisit
 this bug gated was run in `yqr-f019` §4 — zero divergence, and the sole-entry
 delete stays in `delete_entry` on the standing `yqr-f007` §6 argument alone
 **Severity:** Medium — nothing in yqr writes this shape today, so there is no
