@@ -92,7 +92,7 @@ and deploys it to `gh-pages`. Documented in `yqr-f010`; the accent binary is
 pinned by `ACCENT_VERSION` and the build runs with `--strict-links`.
 
 Since `yqr-k003` the job also builds the playground's wasm module before
-the site: the pinned 1.99.1 toolchain plus wasm-pack 0.15.1 (both pins
+the site: the pinned 1.100.0 toolchain plus wasm-pack 0.15.1 (both pins
 shared with `ci.yml`'s wasm lane) run
 `.github/scripts/playground-wasm.sh`, which places the module and its JS
 glue in the theme's gitignored `assets/wasm/`. Pushes to `main` touching
