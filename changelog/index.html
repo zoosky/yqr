@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 11160
+  "wordCount": 11249
 }
 </script>
 <script type="application/ld+json">
@@ -256,7 +256,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">56 min read</span>
+                    <span class="reading-time">57 min read</span>
                 </div>
                 
 
@@ -463,6 +463,11 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<p>A dependency release that narrows what yqr reads. noyalib 0.0.62 refuses
+two inputs that YAML 1.2.2 forbids and that yqr used to accept, so a file
+that read before can now exit 5. That is a breaking change to the CLI,
+which is why this is a minor release. The filter language and the library
+API are unchanged.</p>
 <h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
@@ -482,6 +487,14 @@ so this narrows what yqr accepts.</li>
 </ul>
 <p>Every corpus, fidelity, contract, and write case is byte-identical
 across the bump.</p>
+</li>
+<li>
+<p><strong>Rust 1.100.0.</strong> The pinned toolchain moves from 1.99.1. The build,
+every test, and the wasm bindings are unchanged.</p>
+</li>
+<li>
+<p><strong>clap 4.6.8</strong> and <strong>jsonschema 0.61.2</strong>, patch updates with no
+observable change.</p>
 </li>
 </ul>
 <h2 id="0-13-1-2026-11-11">[0.13.1] - 2026-11-11<a class="heading-anchor" href="#0-13-1-2026-11-11" aria-label="Link to this section"></a></h2>

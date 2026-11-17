@@ -1942,6 +1942,12 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+A dependency release that narrows what yqr reads. noyalib 0.0.62 refuses
+two inputs that YAML 1.2.2 forbids and that yqr used to accept, so a file
+that read before can now exit 5. That is a breaking change to the CLI,
+which is why this is a minor release. The filter language and the library
+API are unchanged.
+
 ### Changed
 
 - **noyalib 0.0.62.** The engine now refuses two inputs it used to read,
@@ -1959,6 +1965,10 @@ All notable changes to `yqr` are documented here. The format is based on
 
   Every corpus, fidelity, contract, and write case is byte-identical
   across the bump.
+- **Rust 1.100.0.** The pinned toolchain moves from 1.99.1. The build,
+  every test, and the wasm bindings are unchanged.
+- **clap 4.6.8** and **jsonschema 0.61.2**, patch updates with no
+  observable change.
 
 ## [0.13.1] - 2026-11-11
 
