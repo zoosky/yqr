@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794954633840,
+  "lastUpdate": 1794955317314,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4241,6 +4241,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 226469,
             "range": "± 1956",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a5a7523e14b2723000fd45c30937703f3be6b7a9",
+          "message": "Merge pull request #203 from zoosky/chore/release-v0.14.0\n\nchore: release v0.14.0",
+          "timestamp": "2026-11-17T23:40:05+01:00",
+          "tree_id": "6e63153026ef1654acb287302fe5b21bd804879d",
+          "url": "https://github.com/zoosky/yqr/commit/a5a7523e14b2723000fd45c30937703f3be6b7a9"
+        },
+        "date": 1794955316076,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 485,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4771,
+            "range": "± 34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 230160,
+            "range": "± 1689",
             "unit": "ns/iter"
           }
         ]
