@@ -93,10 +93,10 @@ jobs:
       # The playground's wasm module (yqr-k003): built from source on
       # every site build, never committed. Toolchain and wasm-pack pins
       # match ci.yml's wasm lane.
-      - name: Install Rust toolchain (1.99.1)
+      - name: Install Rust toolchain (1.100.0)
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.99.1"
+          toolchain: "1.100.0"
           targets: wasm32-unknown-unknown
 
       - name: Cache cargo registry and target
