@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794954082637,
+  "lastUpdate": 1794954633840,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4199,6 +4199,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 308310,
             "range": "± 10896",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "005a794f65fdfb9b6a969b930fa29d78e56117bf",
+          "message": "Merge pull request #201 from zoosky/chore/rust-1.100.0\n\nchore: move to the Rust 1.100.0 toolchain",
+          "timestamp": "2026-11-17T23:28:34+01:00",
+          "tree_id": "48bc590763754c0d390ada2e772efcb81f387432",
+          "url": "https://github.com/zoosky/yqr/commit/005a794f65fdfb9b6a969b930fa29d78e56117bf"
+        },
+        "date": 1794954632683,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 489,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4764,
+            "range": "± 130",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 226469,
+            "range": "± 1956",
             "unit": "ns/iter"
           }
         ]
