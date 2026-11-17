@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794433744123,
+  "lastUpdate": 1794954025692,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4073,6 +4073,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 277229,
             "range": "± 1581",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "60f17e35f4730356ad26a4e9956244ab21ea906f",
+          "message": "Merge pull request #200 from zoosky/fix/noyalib-0.0.62\n\nfeat: adopt noyalib 0.0.62 (f052)",
+          "timestamp": "2026-11-17T23:18:33+01:00",
+          "tree_id": "c6d466cee9d0ad0a5bb2824fb5d4151e7dd2daaa",
+          "url": "https://github.com/zoosky/yqr/commit/60f17e35f4730356ad26a4e9956244ab21ea906f"
+        },
+        "date": 1794954024468,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 489,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4810,
+            "range": "± 44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 222066,
+            "range": "± 2900",
             "unit": "ns/iter"
           }
         ]
