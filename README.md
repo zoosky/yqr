@@ -277,7 +277,7 @@ reads.
 | `Y003` | The input bytes are not valid UTF-8                            | default    |
 | `Y101` | Duplicate mapping key (silently last-wins on ordinary reads)   | `--strict` |
 | `Y102` | Distinct keys collide after string conversion (`1:` vs `"1":`) | default    |
-| `Y103` | A block mapping's value is not indented past its key           | default    |
+| `Y103` | A block mapping's value is not indented past its key (reserved: the parser now refuses this shape as `Y001`) | default    |
 | `Y201` | A document violates the provided JSON Schema                   | `--schema` |
 | `Y202` | The provided schema itself is unusable                         | `--schema` |
 | `Y203` | A value has no JSON form (`.nan`), so the schema cannot apply  | `--schema` |
