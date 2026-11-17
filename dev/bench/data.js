@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794954071495,
+  "lastUpdate": 1794954082637,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4157,6 +4157,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 294302,
             "range": "± 3082",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bc7678c59447404f39d6447d88afee1c9942bce6",
+          "message": "Merge pull request #197 from zoosky/renovate/jsonschema-0.x-lockfile\n\nchore(deps): update rust crate jsonschema to v0.61.2",
+          "timestamp": "2026-11-17T23:19:06+01:00",
+          "tree_id": "c54b3d8131b15a3bcf97931249bcf16ac3be250f",
+          "url": "https://github.com/zoosky/yqr/commit/bc7678c59447404f39d6447d88afee1c9942bce6"
+        },
+        "date": 1794954081373,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 577,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6320,
+            "range": "± 77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 308310,
+            "range": "± 10896",
             "unit": "ns/iter"
           }
         ]
