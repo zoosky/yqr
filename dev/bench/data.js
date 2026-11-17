@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794954025692,
+  "lastUpdate": 1794954071495,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4115,6 +4115,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 222066,
             "range": "± 2900",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f676a7f4e3894e3e3f45fee9045196b014658133",
+          "message": "Merge pull request #198 from zoosky/renovate/clap-4.x-lockfile\n\nchore(deps): update rust crate clap to v4.6.8",
+          "timestamp": "2026-11-17T23:18:56+01:00",
+          "tree_id": "b68ce32a7b1e41027f056bc55f9c34a200cd1c22",
+          "url": "https://github.com/zoosky/yqr/commit/f676a7f4e3894e3e3f45fee9045196b014658133"
+        },
+        "date": 1794954070218,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 585,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6209,
+            "range": "± 43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 294302,
+            "range": "± 3082",
             "unit": "ns/iter"
           }
         ]
