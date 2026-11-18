@@ -84,14 +84,14 @@
     
     
     
-    <meta name="build-hash" content="f3e1e6f4f0">
+    <meta name="build-hash" content="d3ecc82435">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-17",
+  "dateModified": "2026-11-18",
   "description": "What yqr preserves when it reads and edits YAML, how to test it with the identity filter, and when you want the --normalize pipeline instead.",
   "inLanguage": "en",
   "name": "Byte-for-byte YAML editing, explained",
@@ -348,7 +348,7 @@ back clean, everything below is safe.</p>
 <p>Take this file, which has a few things that normally do not survive a round
 trip:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">defaults
+<code class="language-yaml"><span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">defaults
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">mode</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">0640      </span><span style="color:#65737e;"># octal, on purpose
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">retries</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3
 </span><span style="color:#c0c5ce;">
@@ -357,7 +357,7 @@ trip:</p>
 </span><span style="color:#c0c5ce;">  </span><span style="color:#d08770;">&lt;&lt;</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">*</span><span style="color:#bf616a;">defaults
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: &#39;</span><span style="color:#a3be8c;">web</span><span style="color:#c0c5ce;">&#39;
 </span><span style="color:#bf616a;">ver</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">1.10
-</span></pre>
+</span></code></pre>
 <p>Read it back with yqr and you get exactly that, including:</p>
 <ul>
 <li><strong>Comments</strong>, and the whitespace that aligns them.</li>
@@ -420,10 +420,10 @@ file – all still the original bytes.</p>
 is an implicit null: it reads as <code>null</code>, and writing to it fills the value in
 on the line that is already there. Given this <code>image.yaml</code>:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">registry.example.com/web:1.4.2
+<code class="language-yaml"><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">registry.example.com/web:1.4.2
 </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">2
 </span><span style="color:#bf616a;">digest</span><span style="color:#c0c5ce;">:          </span><span style="color:#65737e;"># filled by the release job
-</span></pre>
+</span></code></pre>
 <pre><code class="language-console">$ yqr '.digest = "sha256:9f0a"' image.yaml
 image: registry.example.com/web:1.4.2
 replicas: 2
@@ -435,13 +435,13 @@ still there. The same holds for an empty <code>-</code> item in a sequence.</p>
 <p>Adding a key means finding where the entry above it ends, and that is not
 always the line you would guess. Take this <code>deploy.yaml</code>:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+<code class="language-yaml"><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">2
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">template</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web:1.4.2
 </span><span style="color:#65737e;"># set by the release pipeline, do not edit
 </span><span style="color:#bf616a;">revision</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">42
-</span></pre>
+</span></code></pre>
 <p>The last entry under <code>spec</code> is a nested block, and the comment below it
 documents <code>revision</code>, not <code>template</code>. Add a key to <code>spec</code> and the comment
 stays where the author put it:</p>
@@ -595,10 +595,10 @@ afterwards.</li>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.29.0-rc.4 (2060aad)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-17</span>
+        <span>Site last updated: 2026-11-18</span>
         
     </footer>
 

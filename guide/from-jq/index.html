@@ -84,14 +84,14 @@
     
     
     
-    <meta name="build-hash" content="f3e1e6f4f0">
+    <meta name="build-hash" content="d3ecc82435">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-17",
+  "dateModified": "2026-11-18",
   "description": "A guide for jq users picking up yqr: which jq idioms work unchanged, the one operator that means something different, and what each tool can do that the other cannot. Measured against yqr 0.10.0 and jq 1.8.2.",
   "inLanguage": "en",
   "name": "Coming to yqr from jq",
@@ -316,7 +316,7 @@ different, the parts of jq that are not here, and the parts of yqr that jq
 has no way to express.</p>
 <p>Examples run against this file:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#65737e;"># Edge services. Owned by the platform team.
+<code class="language-yaml"><span style="color:#65737e;"># Edge services. Owned by the platform team.
 </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
 </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3
 </span><span style="color:#bf616a;">tags</span><span style="color:#c0c5ce;">:
@@ -327,7 +327,7 @@ has no way to express.</p>
 </span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">port</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080      </span><span style="color:#65737e;"># public
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">cache</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">    </span><span style="color:#bf616a;">port</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">6379
-</span></pre>
+</span></code></pre>
 <h2 id="what-transfers-unchanged">What transfers unchanged<a class="heading-anchor" href="#what-transfers-unchanged" aria-label="Link to this section"></a></h2>
 <table><thead><tr><th>Your jq habit</th><th>In yqr</th></tr></thead><tbody>
 <tr><td><code>.</code></td><td>same</td></tr>
@@ -436,12 +436,12 @@ tags:
 <p>Anchors are addressable the same way, because they are bytes jq’s data
 model never sees. Take a file where one mapping inherits another:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">d
+<code class="language-yaml"><span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">d
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">mode</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">640
 </span><span style="color:#bf616a;">web</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">  </span><span style="color:#d08770;">&lt;&lt;</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">*</span><span style="color:#bf616a;">d
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
-</span></pre>
+</span></code></pre>
 <p>A key inherited through <code>&lt;&lt;: *d</code> can be overridden for one mapping
 alone – the path picks the edit, and the <code>&lt;&lt;</code> line and the definition
 keep their bytes:</p>
@@ -523,10 +523,10 @@ already know.</li>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.29.0-rc.4 (2060aad)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-17</span>
+        <span>Site last updated: 2026-11-18</span>
         
     </footer>
 

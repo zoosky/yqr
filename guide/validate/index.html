@@ -84,14 +84,14 @@
     
     
     
-    <meta name="build-hash" content="f3e1e6f4f0">
+    <meta name="build-hash" content="d3ecc82435">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-17",
+  "dateModified": "2026-11-18",
   "description": "Check a YAML file is still correct after an edit, with compiler-style diagnostics -- use --strict to catch duplicate keys that silently drop data, and --schema to validate against a JSON Schema with source positions.",
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
@@ -379,23 +379,23 @@ future engine release reads it again.</p>
 flagged. A block sequence may sit at its key’s own column – the GitHub
 Actions and Ansible style:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#d08770;">on</span><span style="color:#c0c5ce;">:
+<code class="language-yaml"><span style="color:#d08770;">on</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">- </span><span style="color:#a3be8c;">push
 </span><span style="color:#c0c5ce;">- </span><span style="color:#a3be8c;">pull_request
-</span></pre>
+</span></code></pre>
 <p>And a block scalar sets its own indentation, so its <code>|</code> may sit anywhere:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">script</span><span style="color:#c0c5ce;">:
+<code class="language-yaml"><span style="color:#bf616a;">script</span><span style="color:#c0c5ce;">:
 </span><span style="color:#b48ead;">|
 </span><span style="color:#a3be8c;">  make build
-</span></pre>
+</span></code></pre>
 <h2 id="strict-and-the-bug-it-catches"><code>--strict</code>, and the bug it catches<a class="heading-anchor" href="#strict-and-the-bug-it-catches" aria-label="Link to this section"></a></h2>
 <p>Here is a file that is perfectly legal YAML and almost certainly a mistake:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
+<code class="language-yaml"><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">web
 </span><span style="color:#bf616a;">port</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
 </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">api
-</span></pre>
+</span></code></pre>
 <p><code>name</code> appears twice. The YAML spec says a mapping should not have
 duplicate keys, but almost every parser accepts it anyway and resolves
 last-wins. So does yqr:</p>
@@ -492,18 +492,18 @@ expect.</p>
 <h2 id="in-a-script">In a script<a class="heading-anchor" href="#in-a-script" aria-label="Link to this section"></a></h2>
 <p>The pattern that works:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#8fa1b3;">yqr</span><span style="color:#bf616a;"> -i </span><span style="color:#c0c5ce;">&#39;</span><span style="color:#a3be8c;">.spec.replicas = 5</span><span style="color:#c0c5ce;">&#39; deploy.yaml
+<code class="language-bash"><span style="color:#8fa1b3;">yqr</span><span style="color:#bf616a;"> -i </span><span style="color:#c0c5ce;">&#39;</span><span style="color:#a3be8c;">.spec.replicas = 5</span><span style="color:#c0c5ce;">&#39; deploy.yaml
 </span><span style="color:#8fa1b3;">yqr</span><span style="color:#c0c5ce;"> validate</span><span style="color:#bf616a;"> --strict</span><span style="color:#c0c5ce;"> deploy.yaml || </span><span style="color:#96b5b4;">exit</span><span style="color:#c0c5ce;"> 1
-</span></pre>
+</span></code></pre>
 <p>Edit, then check. yqr already refuses edits that would restructure the
 document, so this is a second net rather than the only one – but it also
 catches problems that were in the file before you touched it, which is
 worth knowing before you ship it.</p>
 <p>In a pre-commit hook, over everything that changed:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> diff</span><span style="color:#bf616a;"> --cached --name-only --diff-filter</span><span style="color:#c0c5ce;">=ACM -- &#39;</span><span style="color:#a3be8c;">*.yaml</span><span style="color:#c0c5ce;">&#39; &#39;</span><span style="color:#a3be8c;">*.yml</span><span style="color:#c0c5ce;">&#39; \
+<code class="language-bash"><span style="color:#8fa1b3;">git</span><span style="color:#c0c5ce;"> diff</span><span style="color:#bf616a;"> --cached --name-only --diff-filter</span><span style="color:#c0c5ce;">=ACM -- &#39;</span><span style="color:#a3be8c;">*.yaml</span><span style="color:#c0c5ce;">&#39; &#39;</span><span style="color:#a3be8c;">*.yml</span><span style="color:#c0c5ce;">&#39; \
 </span><span style="color:#c0c5ce;">  | </span><span style="color:#8fa1b3;">xargs</span><span style="color:#bf616a;"> -r</span><span style="color:#c0c5ce;"> yqr validate</span><span style="color:#bf616a;"> --strict
-</span></pre>
+</span></code></pre>
 <h2 id="reading-from-stdin">Reading from stdin<a class="heading-anchor" href="#reading-from-stdin" aria-label="Link to this section"></a></h2>
 <p>Pass <code>-</code>. Unlike the filter form, <code>validate</code> will not fall back to stdin
 when you give it nothing:</p>
@@ -589,10 +589,10 @@ means.</li>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.29.0-rc.4 (2060aad)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-17</span>
+        <span>Site last updated: 2026-11-18</span>
         
     </footer>
 

@@ -84,14 +84,14 @@
     
     
     
-    <meta name="build-hash" content="f3e1e6f4f0">
+    <meta name="build-hash" content="d3ecc82435">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-17",
+  "dateModified": "2026-11-18",
   "description": "When to reach for yqr and when to reach for yq: editing files that get reviewed, versus querying, building and converting them. Run against yq v4.53.6.",
   "inLanguage": "en",
   "name": "yqr and yq -- which tool for which job",
@@ -352,9 +352,9 @@ two are not really substitutes: yq is a YAML <em>processor</em>, and yqr is a YA
 <h3 id="edits-that-a-human-is-going-to-review">Edits that a human is going to review<a class="heading-anchor" href="#edits-that-a-human-is-going-to-review" aria-label="Link to this section"></a></h3>
 <p>Take a Deployment with a comment aligned the way its author aligned it:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
+<code class="language-yaml"><span style="color:#bf616a;">spec</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">replicas</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3          </span><span style="color:#65737e;"># bumped for the Black Friday load test
-</span></pre>
+</span></code></pre>
 <p>Both tools bump it correctly. The difference is what else arrives in the
 pull request:</p>
 <pre><code class="language-console">$ yq -i '.spec.replicas = 5' deploy.yaml &amp;&amp; diff original.yaml deploy.yaml
@@ -381,7 +381,7 @@ review stops being a review.</p>
 nothing. Here is one with an anchor, a merge key and a blank line doing
 organisational work:</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">defaults
+<code class="language-yaml"><span style="color:#bf616a;">defaults</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">&amp;</span><span style="color:#c0c5ce;">defaults
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">mode</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">0640      </span><span style="color:#65737e;"># octal, on purpose
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">retries</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">3
 </span><span style="color:#c0c5ce;">
@@ -389,7 +389,7 @@ organisational work:</p>
 </span><span style="color:#bf616a;">web</span><span style="color:#c0c5ce;">:
 </span><span style="color:#c0c5ce;">  </span><span style="color:#d08770;">&lt;&lt;</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">*</span><span style="color:#bf616a;">defaults
 </span><span style="color:#c0c5ce;">  </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: &#39;</span><span style="color:#a3be8c;">web</span><span style="color:#c0c5ce;">&#39;
-</span></pre>
+</span></code></pre>
 <pre><code class="language-console">$ yqr '.' anchors.yaml | diff anchors.yaml - &amp;&amp; echo identical
 identical
 </code></pre>
@@ -553,10 +553,10 @@ real workflow.</li>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.29.0-rc.4 (2060aad)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-17</span>
+        <span>Site last updated: 2026-11-18</span>
         
     </footer>
 

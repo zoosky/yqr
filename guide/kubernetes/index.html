@@ -84,14 +84,14 @@
     
     
     
-    <meta name="build-hash" content="f3e1e6f4f0">
+    <meta name="build-hash" content="d3ecc82435">
     
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-17",
+  "dateModified": "2026-11-18",
   "description": "Bump an image tag or replica count in a Kubernetes manifest so the git diff is exactly one line, with comments and formatting left alone.",
   "inLanguage": "en",
   "name": "Editing Kubernetes manifests without reformatting them",
@@ -351,7 +351,7 @@ changes.</p>
 <p>Here is a manifest with the things real ones have: an ownership comment, a
 comment explaining a number, and a quoted image reference.</p>
 <pre style="background-color:#2b303b;">
-<span style="color:#65737e;"># Web tier. Owned by the platform team.
+<code class="language-yaml"><span style="color:#65737e;"># Web tier. Owned by the platform team.
 </span><span style="color:#bf616a;">apiVersion</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">apps/v1
 </span><span style="color:#bf616a;">kind</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">Deployment
 </span><span style="color:#bf616a;">metadata</span><span style="color:#c0c5ce;">:
@@ -371,7 +371,7 @@ comment explaining a number, and a quoted image reference.</p>
 </span><span style="color:#c0c5ce;">            - </span><span style="color:#bf616a;">containerPort</span><span style="color:#c0c5ce;">: </span><span style="color:#d08770;">8080
 </span><span style="color:#c0c5ce;">        - </span><span style="color:#bf616a;">name</span><span style="color:#c0c5ce;">: </span><span style="color:#a3be8c;">log-shipper
 </span><span style="color:#c0c5ce;">          </span><span style="color:#bf616a;">image</span><span style="color:#c0c5ce;">: &quot;</span><span style="color:#a3be8c;">registry.example.com/shipper:2.0</span><span style="color:#c0c5ce;">&quot;
-</span></pre>
+</span></code></pre>
 <h2 id="reading-a-field">Reading a field<a class="heading-anchor" href="#reading-a-field" aria-label="Link to this section"></a></h2>
 <p>Paths look like jq, because that is the idea:</p>
 <pre><code class="language-console">$ yqr '.spec.template.spec.containers[0].image' deploy.yaml
@@ -396,9 +396,9 @@ run cannot leave you with half a manifest.</p>
 $ git diff deploy.yaml
 </code></pre>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">-  replicas: 3          # bumped for the Black Friday load test
+<code class="language-diff"><span style="color:#bf616a;">-  replicas: 3          # bumped for the Black Friday load test
 </span><span style="color:#a3be8c;">+  replicas: 5          # bumped for the Black Friday load test
-</span></pre>
+</span></code></pre>
 <p>One line. The comment is still aligned where it was, the quoting elsewhere
 is untouched, the blank lines are where you left them. A reviewer reads one
 line and moves on.</p>
@@ -457,20 +457,20 @@ scalar. That is how you copy one block over another:</p>
 <pre><code class="language-console">$ yqr -i '.spec.template.spec.containers[0].resources.requests = .spec.template.spec.containers[0].resources.limits' deploy.yaml
 </code></pre>
 <pre style="background-color:#2b303b;">
-<span style="color:#bf616a;">-              cpu: 250m
+<code class="language-diff"><span style="color:#bf616a;">-              cpu: 250m
 </span><span style="color:#bf616a;">-              memory: 256Mi
 </span><span style="color:#a3be8c;">+              cpu: &quot;1&quot;
 </span><span style="color:#a3be8c;">+              memory: 512Mi
-</span></pre>
+</span></code></pre>
 <p>The same right-hand side creates a key that is not there yet, which is the
 usual way to seed a block:</p>
 <pre><code class="language-console">$ yqr -i '.metadata.annotations = .metadata.labels' deploy.yaml
 </code></pre>
 <pre style="background-color:#2b303b;">
-<span style="color:#c0c5ce;">     app: web
+<code class="language-diff"><span style="color:#c0c5ce;">     app: web
 </span><span style="color:#a3be8c;">+  annotations:
 </span><span style="color:#a3be8c;">+    app: web
-</span></pre>
+</span></code></pre>
 <p><code>+=</code> takes one too, appending a whole mapping as a sequence item – a
 container, a step, an env entry.</p>
 <p>What is copied is the <strong>value</strong>, not the bytes. The block is written at its
@@ -714,10 +714,10 @@ reshape them.</li>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span><a href="https://github.com/zoosky/yqr">github.com/zoosky/yqr</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.28.1 (6bd7488)</span>
+        <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.29.0-rc.4 (2060aad)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-17</span>
+        <span>Site last updated: 2026-11-18</span>
         
     </footer>
 
