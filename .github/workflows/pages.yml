@@ -19,12 +19,14 @@ name: Website
 # preserves that directory.
 #
 # The accent binary is fetched from the upstream GitHub release and verified
-# against the published checksums. Pinned to v0.28.1: v0.27.0 brings span
-# marks in processed fences (accentcms f399), which the home page's
-# instructional highlights are authored with (yqr-b037); v0.28.1 is the
-# current release at adoption, carrying the 0.27.x security respins
-# (wasmtime, TLS trust store, diagram sanitizing) and the 0.28 identity
-# and computed-values features this site does not use. Requires accent
+# against the published checksums. Pinned to v0.29.0-rc.4, a pre-release
+# adopted ahead of 0.29.0 to test it on a production site. Against v0.28.1
+# the built site differs only in the footer version stamp and in highlighted
+# fences gaining an inner <code class="language-..."> element, which the
+# theme's `article .content pre code` rule already resets; validate is clean
+# on both sites. Move to 0.29.0 once it ships. v0.27.0 brings span marks in
+# processed fences (accentcms f399), which the home page's instructional
+# highlights are authored with (yqr-b037). Requires accent
 # >= v0.27.0 (the mark component; v0.26.0 brought the canonical-component
 # contract the theme implements, yqr-f042, and made a broken internal
 # link fail the build by default; v0.25.0 base-path support and the five
@@ -67,7 +69,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  ACCENT_VERSION: v0.28.1
+  ACCENT_VERSION: v0.29.0-rc.4
   SITE_URL: https://zoosky.github.io/yqr
 
 jobs:
