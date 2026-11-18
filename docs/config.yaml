@@ -14,7 +14,7 @@
 # theme provides the header menu and the footer; the rest of the site uses
 # the standard theme, restyled with the home page's ink/brass/teal tokens.
 #
-# Requires accent >= v0.25.0, the version pages.yml pins. Two floors are
+# Requires accent >= v0.25.0; pages.yml pins the exact version. Two floors are
 # load-bearing rather than incidental. v0.24.0 stopped raw HTML in a page body
 # being tokenized as searchable text, which kept traceability comments and the
 # home page's leading comment block out of _search/index.json, and escaped

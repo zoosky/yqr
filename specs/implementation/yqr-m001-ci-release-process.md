@@ -89,7 +89,9 @@ than a red mark to clear. Full rationale in `yqr-m007`.
 Builds the public Accent CMS site from `docs/` (the spec tree is not part
 of it -- `yqr-f021`)
 and deploys it to `gh-pages`. Documented in `yqr-f010`; the accent binary is
-pinned by `ACCENT_VERSION` and the build runs with `--strict-links`.
+pinned by `ACCENT_VERSION`. A broken internal link fails the build by
+default since accent v0.26.0, so the build no longer passes
+`--strict-links` (`yqr-f041`).
 
 Since `yqr-k003` the job also builds the playground's wasm module before
 the site: the pinned 1.100.0 toolchain plus wasm-pack 0.15.1 (both pins
