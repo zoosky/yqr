@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794955317314,
+  "lastUpdate": 1795249846009,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4283,6 +4283,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 230160,
             "range": "± 1689",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ad87ad58a42b99a7e4e29b09bcce049827b5ca58",
+          "message": "chore: release v0.14.1 (#208)\n\nMove to noyalib 0.0.63. It double-quotes an inserted multi-line string\nwith a C1 control, U+FFFE, U+FFFF or a BOM. noyalib 0.0.62 wrote such a\nstring as a block literal that its own parser refuses, so the insert\nfailed with exit 5 (b040, noyalib#533, fixed by noyalib#534).\n\nAdd a unit test that fails on 0.0.62 and passes on 0.0.63. The lockfile\nchanges only noyalib.",
+          "timestamp": "2026-11-21T09:28:34+01:00",
+          "tree_id": "beba03a05efd902094c0f4d2766ce6864ea70193",
+          "url": "https://github.com/zoosky/yqr/commit/ad87ad58a42b99a7e4e29b09bcce049827b5ca58"
+        },
+        "date": 1795249844828,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 584,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6252,
+            "range": "± 71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 292681,
+            "range": "± 5659",
             "unit": "ns/iter"
           }
         ]
