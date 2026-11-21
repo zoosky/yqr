@@ -9,8 +9,10 @@
 /// The `.acms-search-stale` class is added by the DocFind JS when the
 /// WASM index is being rebuilt after a content change in serve mode.
 
-// Trigger button in the nav bar
-.search-trigger {
+// Trigger button in the nav bar. The repository link next to it shares
+// the same icon-button look.
+.search-trigger,
+.repo-link {
   display: flex;
   align-items: center;
   justify-content: center;
