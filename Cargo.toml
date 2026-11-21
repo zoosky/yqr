@@ -1,6 +1,6 @@
 [package]
 name = "yqr"
-version = "0.14.0"
+version = "0.14.1"
 edition = "2024"
 rust-version = "1.99"
 description = "A jq-style CLI for YAML: query and surgically edit while preserving comments, quoting, and formatting byte-for-byte"
@@ -81,14 +81,18 @@ clap = { version = "4.6.1", features = ["derive"], optional = true }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.62 release (f052; 0.0.61 was folded into it and never
-# published). It narrows what parses in two ways yqr passes through: an
-# under-indented block value (`on:` / `[]` / `jobs: {}`) is refused, closing
-# the leniency b014 recorded -- validate reports it as Y001 now, and the Y103
-# scan stays as a backstop -- and a byte order mark inside a plain scalar or
-# comment is refused per YAML 1.2.2 production [27]. Every corpus, fidelity,
-# contract and write case is byte-identical; only the four tests built on the
-# b014 shape moved. 0.0.60 changed only upstream CI and release tooling.
+# crates.io 0.0.63 release. It carries one fix, noyalib#534: an inserted
+# multi-line string with a C1 control, U+FFFE, U+FFFF or a BOM is now
+# double-quoted, where 0.0.62 wrote a `|` block its own parser refuses (b040).
+# 0.0.62 (f052) followed 0.0.60 directly: upstream folded 0.0.61 into it
+# and never published it. It narrows what parses in two ways yqr passes
+# through: an under-indented block value (`on:` / `[]` / `jobs: {}`) is
+# refused, closing the leniency b014 recorded -- validate reports it as
+# Y001 now, and the Y103 scan stays as a backstop -- and a byte order mark
+# inside a plain scalar or comment is refused per YAML 1.2.2 production
+# [27]. Every corpus, fidelity, contract and write case is byte-identical;
+# only the four tests built on the b014 shape moved. 0.0.60 changed only
+# upstream CI and release tooling.
 # 0.0.59 carries both of yqr's upstream contributions from the f051 work: `Document::grow_value`, the typed
 # scalar-to-collection re-shape the edit API's Set performs (yqr's
 # noyalib#505, incorporated upstream with authorship preserved), and the
@@ -167,7 +171,7 @@ clap = { version = "4.6.1", features = ["derive"], optional = true }
 # b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44, b033 in 0.0.45.
 # Each pin and what it bought is in features f013-f029, f031, f034-f035,
 # f037, f043 and f045; see research r002 and the bug specs.
-noyalib = "0.0.62"
+noyalib = "0.0.63"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.
 indexmap = "2"

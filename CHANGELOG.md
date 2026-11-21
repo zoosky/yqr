@@ -6,6 +6,32 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-11-21
+
+A fix release. yqr moves to noyalib 0.0.63, which corrects one write
+that 0.14.0 refused. The filter language, the CLI, and the library API
+are unchanged.
+
+### Fixed
+
+- **A new key with a non-printable character.** On 0.14.0, an
+  assignment that added a new key failed with exit 5 when the value was a
+  multi-line string with one of these characters:
+  - a C1 control (U+0080 to U+009F), except NEL (U+0085)
+  - U+FFFE or U+FFFF
+  - a byte order mark (U+FEFF)
+
+  noyalib 0.0.62 wrote such a string as a `|` block, which its own parser
+  refuses, so the write stopped and left the file unchanged. noyalib
+  0.0.63 writes the string double-quoted, and the value reads back. A
+  write over an existing key was not affected.
+
+### Changed
+
+- **noyalib 0.0.63.** The release carries only the fix above. Its parse
+  behavior, Cargo features, and Rust 1.89 minimum are the same as in
+  0.0.62. The lockfile changes only noyalib.
+
 ## [0.14.0] - 2026-11-17
 
 A dependency release that narrows what yqr reads. noyalib 0.0.62 refuses

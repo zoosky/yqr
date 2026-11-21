@@ -522,6 +522,24 @@ mod tests {
     }
 
     #[test]
+    fn a_new_multi_line_key_with_a_non_printable_character_reads_back() {
+        // noyalib 0.0.62 spelled these strings as a `|` block, which its own
+        // parser refuses, so the insert failed (noyalib#533, fixed in
+        // 0.0.63). The string must now take the double-quoted spelling.
+        for s in ["a\u{fffe}\nb", "a\u{ffff}\nb", "a\u{80}\nb", "a\u{feff}\nb"] {
+            let filter = format!(".k = {}", serde_json::to_string(s).unwrap());
+            let out = assign(&filter, "title: T\n")
+                .unwrap_or_else(|e| panic!("insert of {s:?} failed: {e}"));
+            assert!(out.starts_with("title: T\nk: \""), "{s:?} -> {out:?}");
+            assert_eq!(
+                crate::eval_str(".k", &out).unwrap().remove(0),
+                crate::Value::String(s.to_owned()),
+                "{s:?} reads back"
+            );
+        }
+    }
+
+    #[test]
     fn the_merge_only_refusal_marker_is_pinned() {
         // The splice route is chosen by the engine's wording; if upstream
         // rewords it, this fails loudly instead of the route silently

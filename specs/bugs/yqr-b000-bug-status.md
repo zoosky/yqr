@@ -15,6 +15,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b040](yqr-b040-a-new-multi-line-key-with-a-non-printable-character-is-refused.md) | A new multi-line key with a non-printable character is refused | Low | Resolved **2026-11-21** by noyalib 0.0.63 (yqr v0.14.1). On 0.14.0, `.k = "a\uFFFE\nb"` over a file without `k` exited 5: noyalib 0.0.62 wrote the string as a `\|` block that its own parser refuses (C1 controls except NEL, U+FFFE, U+FFFF, a BOM). Reported as noyalib#533, fixed by noyalib#534 | `yqr-f052`, noyalib#533, noyalib#534 |
 | [b039](yqr-b039-dev-serve-csp-blocks-the-themes-inline-scripts.md) | Dev serve's CSP blocks the theme's own scripts | Low | Resolved **2026-11-06**, the day it was root-caused. Surfaced by `b037`'s verification: two CSP errors per page load under `accent serve`, blocking the theme-toggle init and the Mermaid dev loader. First read as an upstream gap; review from the accentcms side corrected it — nonce stamping is explicit by design (the nonce attribute is what distinguishes template-authored scripts from content-injected ones), `{{ nonce }}` is available in every template, the theming guide and the 0.26.0 changelog both say so, and yqr's theme is a pre-0.26 fork of accent's default theme that never picked up the stamps. Fixed by writing `nonce="{{ nonce }}"` on all 12 executable script tags across five templates (JSON-LD blocks are data and carry none). Static output byte-unchanged; dev-serve console clean and the theme toggle works | `yqr-b037`, `yqr-f041`, accentcms f185 |
 | [b037](yqr-b037-the-home-pages-instructional-highlights-are-gone.md) | The home page's instructional highlights are gone | Low | Resolved **2026-11-06** by adopting accent v0.28.1: accentcms `f399` (span marks in processed fences) shipped in v0.27.0 exactly as filed, and the emphasis `f042` had to flatten is authored in `content/index.md` again — `role="filter"` marks on the 16 recipe commands that have one, key tints and the nested hit line, and the Dockerfile tints the filing had not tracked. The chart's YAML pane and both outcome panes moved from template art back into content (`chart` grew a body, a new `outcome` component holds a pane), which is `f042` §2's preferred end state. The `recipe` component's `cmd`/`out` attributes gave way to a fence-opening body, since an attribute string cannot carry marks, and the `$` prompt is theme chrome so the fence holds only what the user copies. Filed 2026-10-09 as the other half of `f042`'s accepted normalizations; verified span-for-span against the pre-f042 markup with a Playwright pass, both themes, no mobile overflow, `llms-full.txt` clean of mark syntax | `yqr-f042`, `yqr-f041`, accentcms `f399` |
 | [b038](yqr-b038-the-changelog-toc-swallows-the-page.md) | The changelog's table of contents swallows the page | Medium | Resolved **2026-10-09**, filed and fixed the same day from a report on the deployed site: 56 TOC entries at 1,675px before any content. The TOC partial now chooses by scale — over 12 entries renders a compact top-level chip index — because the changelog mount carries no frontmatter by design (`f039`), so configuration was never available | `yqr-f039`, `yqr-f041` |
@@ -57,8 +58,9 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 36
-- Open: **0**. Resolved since the last count: `b037` and `b039`, both closed 2026-11-06
+- Total bugs: 37
+- Open: **0**. Resolved since the last count: `b040`, closed 2026-11-21 by
+  noyalib 0.0.63 (yqr v0.14.1). Before that: `b037` and `b039`, both closed 2026-11-06
   by the accent v0.28.1 adoption — accentcms `f399` shipped in v0.27.0,
   and the home page's instructional highlights are authored as `mark`
   components in content again, with the chart and outcome panes back in
@@ -130,7 +132,7 @@ status tracker convention).
   yqr's noyalib#296, released hours after it merged. Verified against the
   published crate on its own reproduction with all four controls
   (`yqr-f020` §3).
-- Resolved: 35 (b037 — see above; b033, b032 and b034, b031, b029, b030, b028, b027, b026,
+- Resolved: 36 (b040 — closed by noyalib 0.0.63, see its row; b037 — see above; b033, b032 and b034, b031, b029, b030, b028, b027, b026,
   b025 and b024 — see above;
   b022 and b021 — closed by noyalib 0.0.28, see above;
   b023, b020, b019, b018, b017, b016, b015 — see above; b014, b013, b012, b011 —
