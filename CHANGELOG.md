@@ -6,6 +6,15 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **noyalib 0.0.64.** A performance release. A plain or block scalar
+  made only of printable ASCII now passes an eight-bytes-at-a-time
+  screen and skips the per-character printable checks that 0.0.62
+  added. What yqr reads, writes, and refuses is unchanged, and so are
+  noyalib's Rust 1.89 minimum and default Cargo features. The lockfile
+  changes only noyalib.
+
 ## [0.14.1] - 2026-11-21
 
 A fix release. yqr moves to noyalib 0.0.63, which corrects one write
