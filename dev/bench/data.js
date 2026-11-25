@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795647439982,
+  "lastUpdate": 1795649376076,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4409,6 +4409,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 296210,
             "range": "± 7113",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e137f856443b3b1cfce4fd5e1fe64487425abb33",
+          "message": "chore: adopt clap 4.6.10 (#212)\n\nclap moves from 4.6.8 to 4.6.10. The published clap_builder (4.6.7 to\n4.6.10) changes how the parser finds argument overrides, refactors the\nsubcommand lookup by argument, and drops an unreachable! after the help\nsubcommand. yqr declares no overrides and turns the help subcommand off,\nso the CLI parses and prints as before: 13 invocations are identical on\na 4.6.8 control build. clap_derive 4.6.9 only quiets an unused_result\nlint in generated code.\n\nThe lockfile changes only clap, clap_builder, and clap_derive, with the\nsame checksums as #205.\n\nSupersedes #205.",
+          "timestamp": "2026-11-26T00:27:49+01:00",
+          "tree_id": "55a580e1ed87f87cbbaa67df1fbfe6a0fa9b6bac",
+          "url": "https://github.com/zoosky/yqr/commit/e137f856443b3b1cfce4fd5e1fe64487425abb33"
+        },
+        "date": 1795649374716,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 590,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6229,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 291609,
+            "range": "± 34659",
             "unit": "ns/iter"
           }
         ]
