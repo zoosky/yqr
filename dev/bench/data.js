@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795649376076,
+  "lastUpdate": 1795650349005,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4451,6 +4451,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 291609,
             "range": "± 34659",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7f17ba7448bb2938efb3290492b1d63ef5f749e2",
+          "message": "feat: adopt jsonschema 0.63 (f053) (#213)\n\nvalidate --schema moves from jsonschema 0.61.2 to 0.63.1. Measured\nagainst a 0.61.2 control build:\n\n- In a pattern with a backreference, a lookbehind, or a negative\n  lookahead, \\w, \\d, \\s and . now follow ECMA 262. The verdicts move\n  both ways. ^(\\w)\\1$ now rejects \"éé\", so a document that passed can\n  exit 1. ^(\\W)\\1$ now accepts it, and a patternProperties key pattern\n  matches fewer keys, so the value under a non-ASCII key goes unchecked.\n- A named backreference compiles instead of making the schema a Y202.\n- A $ref to the bundled 2019-09, Draft 7, 6, or 4 meta-schema resolves\n  under its own $id without a fetch. Everything else is still a Y202.\n- The empty-enum, minContains, and maxContains messages are reworded.\n  The order of violations on one node, and their count for a\n  self-referencing schema, can change.\n\nFive unit tests pin the verdict changes, each failing on 0.61.2. The\nvalidate guide says which meta-schemas are built in. b041 and b042 are\nfiled for two message problems that predate the bump.\n\nSupersedes #207.",
+          "timestamp": "2026-11-26T00:43:59+01:00",
+          "tree_id": "5007769312a8890a2215b9f819fe90c78875f7d6",
+          "url": "https://github.com/zoosky/yqr/commit/7f17ba7448bb2938efb3290492b1d63ef5f749e2"
+        },
+        "date": 1795650347524,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 392,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3752,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 196835,
+            "range": "± 735",
             "unit": "ns/iter"
           }
         ]
