@@ -81,13 +81,16 @@ clap = { version = "4.6.1", features = ["derive"], optional = true }
 # the lossless CST behind the fidelity engine (src/fidelity/noyalib.rs). It is
 # converted to yqr's own `Value` model (src/value.rs) at the parse/emit
 # boundary, so the engine is a swappable implementation detail. Pinned to the
-# crates.io 0.0.64 release, a performance release: a plain or block scalar
-# made only of printable ASCII (0x20..=0x7E) passes an eight-bytes-at-a-time
-# screen and returns before the per-character printable checks 0.0.62 added.
-# Those bytes pass both checks anyway, so nothing yqr reads, writes or refuses
-# moves; every test is unchanged across the bump. Its other change, `url`
-# 2.5.9 behind the `validator` feature, is on a feature yqr does not enable,
-# and the lockfile moves only noyalib.
+# crates.io 0.0.64 release, a performance release: a scalar made only of
+# printable ASCII (0x20..=0x7E) passes an eight-bytes-at-a-time screen and
+# returns before both printable checks -- the raw C0/DEL scan, older than
+# 0.0.62, and the C1/U+FFFE/U+FFFF/BOM scan 0.0.62 added. In practice that is
+# a plain scalar: a block scalar's content keeps its `\n` unless it is
+# stripped to one line, so it still takes the full checks. Those bytes pass
+# both checks anyway, so nothing yqr reads, writes or refuses moves; every
+# test is unchanged across the bump. Its other change, `url` 2.5.9 behind the
+# `validator` feature, is on a feature yqr does not enable, and the lockfile
+# moves only noyalib.
 # 0.0.63 carries one fix, noyalib#534: an inserted
 # multi-line string with a C1 control, U+FFFE, U+FFFF or a BOM is now
 # double-quoted, where 0.0.62 wrote a `|` block its own parser refuses (b040).
@@ -175,9 +178,11 @@ clap = { version = "4.6.1", features = ["derive"], optional = true }
 # refuses multi-document streams (#351), absorbed via `load_all_with_config`.
 # Every bug yqr has filed against this engine is fixed in a published release:
 # b011-b014 in 0.0.25, b015 in 0.0.26, b016 in 0.0.27, b021-b022 in 0.0.28,
-# b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44, b033 in 0.0.45.
+# b025 in 0.0.31, b028 in 0.0.36, b032 and b034 in 0.0.44, b033 in 0.0.45,
+# b035 and b036 in 0.0.57, b014's parser leniency in 0.0.62, b040 in 0.0.63.
 # Each pin and what it bought is in features f013-f029, f031, f034-f035,
-# f037, f043 and f045; see research r002 and the bug specs.
+# f037, f043, f045, f051 and f052, and in b040; see research r002 and the
+# bug specs. 0.0.64 has no spec: it moves nothing yqr pins.
 noyalib = "0.0.64"
 # Backs `value::Mapping` — an insertion-ordered, `Value`-keyed map (the same
 # shape yqr's evaluator has always used). noyalib already depends on indexmap.

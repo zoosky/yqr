@@ -8,12 +8,13 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
-- **noyalib 0.0.64.** A performance release. A plain or block scalar
-  made only of printable ASCII now passes an eight-bytes-at-a-time
-  screen and skips the per-character printable checks that 0.0.62
-  added. What yqr reads, writes, and refuses is unchanged, and so are
-  noyalib's Rust 1.89 minimum and default Cargo features. The lockfile
-  changes only noyalib.
+- **noyalib 0.0.64.** A performance release. A plain scalar made only
+  of printable ASCII now passes an eight-bytes-at-a-time screen and
+  skips the two printable checks behind it: the scan for control
+  characters, and the scan for C1 controls, U+FFFE, U+FFFF, and a byte
+  order mark that 0.0.62 added. What yqr reads, writes, and refuses is
+  unchanged, and so are noyalib's Rust 1.89 minimum and default Cargo
+  features. The lockfile changes only noyalib.
 
 ## [0.14.1] - 2026-11-21
 
