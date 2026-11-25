@@ -6,6 +6,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-26
+
 ### Changed
 
 - **jsonschema 0.63.1.** `validate --schema` moves from jsonschema
