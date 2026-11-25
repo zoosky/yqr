@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795650349005,
+  "lastUpdate": 1795650613845,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4493,6 +4493,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 196835,
             "range": "± 735",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ab40b2c1fdb41e8cf6f5dc213d7444a9ed18726",
+          "message": "chore: release v0.15.0 (#214)\n\nA schema-validation release, and a minor because it changes verdicts:\nwith jsonschema 0.63.1, validate --schema follows ECMA 262 in a pattern\nwith a backreference, a lookbehind, or a negative lookahead. A document\nthat validated on 0.14.2 can now fail, and one that failed can now pass.\nclap moves to 4.6.10 with no change to the CLI. The filter language and\nthe library API are unchanged.",
+          "timestamp": "2026-11-26T00:48:35+01:00",
+          "tree_id": "e105883f5db61ff0ef022b0a787ec7f4c7410b89",
+          "url": "https://github.com/zoosky/yqr/commit/9ab40b2c1fdb41e8cf6f5dc213d7444a9ed18726"
+        },
+        "date": 1795650612681,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 575,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6340,
+            "range": "± 44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 292645,
+            "range": "± 1305",
             "unit": "ns/iter"
           }
         ]
