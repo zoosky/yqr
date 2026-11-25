@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795249846009,
+  "lastUpdate": 1795647139200,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4325,6 +4325,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 292681,
             "range": "± 5659",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6bf8761f90854123705e030349bff617315839dd",
+          "message": "chore: adopt noyalib 0.0.64 (#210)\n\nnoyalib 0.0.64 is a performance release. A plain scalar made only of\nprintable ASCII passes an eight-bytes-at-a-time screen and skips the\ntwo printable checks behind it: the raw C0/DEL scan and the\nC1/U+FFFE/U+FFFF/BOM scan that 0.0.62 added. Those bytes pass both\nchecks anyway, so nothing yqr reads, writes, or refuses changes, and\nevery test passes unchanged. The eval and corpus benchmarks are faster\nor unchanged against main, with no regressions.\n\nThe lockfile changes only noyalib, and its checksum matches the\nupstream v0.0.64 release. The engine index at the end of the noyalib\nnotes in Cargo.toml now lists the bugs and specs from 0.0.57 to 0.0.63.\n\nSupersedes #206.",
+          "timestamp": "2026-11-25T23:50:24+01:00",
+          "tree_id": "c5572f8ca90df78d78ba4b7bbe6b8580784d1c72",
+          "url": "https://github.com/zoosky/yqr/commit/6bf8761f90854123705e030349bff617315839dd"
+        },
+        "date": 1795647137598,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 378,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3751,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 197631,
+            "range": "± 778",
             "unit": "ns/iter"
           }
         ]
