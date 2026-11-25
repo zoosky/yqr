@@ -1942,6 +1942,15 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **clap 4.6.10**, a patch update. Its parser changes touch argument
+  overrides and the `help` subcommand. yqr declares no overrides and
+  turns that subcommand off, so the CLI parses and prints exactly as
+  before. `clap_derive` 4.6.9 only quiets an `unused_result` lint in
+  generated code. The lockfile changes only clap, `clap_builder`, and
+  `clap_derive`.
+
 ## [0.14.2] - 2026-11-25
 
 A dependency release. yqr moves to noyalib 0.0.64, which parses plain
