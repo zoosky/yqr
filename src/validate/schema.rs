@@ -608,6 +608,44 @@ mod tests {
     }
 
     #[test]
+    fn bundled_meta_schema_of_another_draft_resolves() {
+        // The validator bundles the Draft 4, 6, 7 and 2019-09
+        // meta-schemas beside 2020-12's, so a `$ref` to one resolves
+        // without a fetch. Draft 3 is not bundled, so it stays a `Y202`,
+        // like any other resource the validator would have to retrieve.
+        // jsonschema 0.61 resolved only the 2020-12 meta-schema.
+        let s = schema("$ref: \"http://json-schema.org/draft-07/schema#\"\n");
+        let found = findings("type: 5\n", &s);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].code, Code::SchemaViolation);
+        let err = Schema::compile("$ref: \"http://json-schema.org/draft-03/schema#\"\n")
+            .expect_err("refused");
+        assert_eq!(err.code, Code::SchemaUnusable);
+    }
+
+    #[test]
+    fn named_backreference_in_a_pattern_compiles() {
+        // ECMA 262 has named groups and `\k<name>`; jsonschema 0.61
+        // refused the pattern, so the whole schema was a `Y202`.
+        let s = schema(r#"{"type": "string", "pattern": "^(?<n>x)\\k<n>$"}"#);
+        assert!(findings("\"xx\"\n", &s).is_empty());
+        assert_eq!(findings("\"xy\"\n", &s).len(), 1);
+    }
+
+    #[test]
+    fn pattern_classes_follow_ecma_262_beside_a_backreference() {
+        // JSON Schema patterns are ECMA 262, whose `\w` and `\d` are
+        // ASCII. jsonschema 0.61 matched them as Unicode classes in a
+        // pattern with a backreference, so "éé" passed; it is a
+        // violation now.
+        let s = schema(r#"{"type": "string", "pattern": "^(\\w)\\1$"}"#);
+        assert!(findings("\"aa\"\n", &s).is_empty());
+        let found = findings("\"éé\"\n", &s);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].code, Code::SchemaViolation);
+    }
+
+    #[test]
     fn json_schema_file_reads_as_yaml() {
         // JSON is a subset of YAML, so a .json schema file needs no
         // special path.

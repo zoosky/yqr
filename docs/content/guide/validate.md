@@ -6,7 +6,8 @@
 # f040 build on 2026-10-08); the usage-error block now quotes the full
 # output, clap's usage lines included. The indentation error gained its
 # position with noyalib 0.0.36 (f029). The --schema section is Feature
-# f040.
+# f040; its blocks re-run against jsonschema 0.63.1 on 2026-11-26, with
+# the bundled meta-schema sentence added (f053).
 title: Validating YAML from the command line
 lead: >-
   How to check a file is still correct after an edit, what each exit code means, how duplicate keys are reported, and how to validate against a JSON Schema.
@@ -226,7 +227,9 @@ $ echo $?
 
 Two boundaries worth knowing. The validator never touches the network: a
 schema that `$ref`s an external resource is refused as `Y202`, by
-construction. And the dialect is 2020-12, which covers SchemaStore-style
+construction. The JSON Schema meta-schemas are built in, so a `$ref` to
+the 2020-12, 2019-09, Draft 7, Draft 6, or Draft 4 meta-schema resolves
+without a fetch. And the dialect is 2020-12, which covers SchemaStore-style
 schemas (GitHub Actions, docker-compose) well; Kubernetes CRD schemas are
 an older OpenAPI dialect and remain a job for kubeconform.
 

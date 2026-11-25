@@ -8,6 +8,33 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ### Changed
 
+- **jsonschema 0.63.1.** `validate --schema` moves from jsonschema
+  0.61.2. These changes are visible to you:
+  - In a pattern with a backreference, a lookbehind, or a negative
+    lookahead, `\w`, `\d`, `\s`, and `.` now match what ECMA 262
+    defines. `\w` and `\d` are ASCII only, `\s` no longer matches U+0085,
+    and `.` no longer matches a line terminator such as `\r` or U+2028.
+    This cuts both ways:
+    - A document that passed can now fail. `^(\w)\1$` used to accept
+      `"éé"` and now reports a `Y201`, so the run exits 1.
+    - A document that failed can now pass. `\W` and `\D` match more, so
+      `^(\W)\1$` now accepts `"éé"`. A `patternProperties` key pattern
+      such as `^(\w)\1$` no longer matches the key `éé`, so that key's
+      value is no longer checked.
+  - A named backreference, such as `^(?<n>x)\k<n>$`, compiles. It used
+    to make the whole schema a `Y202`.
+  - A `$ref` to the Draft 4, 6, 7, or 2019-09 meta-schema resolves from
+    a copy built into the validator, as the 2020-12 one already did. Use
+    the meta-schema's own `$id`, such as
+    `http://json-schema.org/draft-07/schema#`. Draft 3 and every other
+    external `$ref` are still a `Y202`, and nothing is fetched.
+  - The messages for an empty `enum`, `minContains`, and `maxContains`
+    name the actual problem. The order of the violations on one node can
+    change, and so can their count for a schema that references itself.
+    `not: {$ref: "#"}` no longer rejects every document.
+
+  The lockfile also moves `regex` to 1.13.2, which yqr uses only
+  through jsonschema.
 - **clap 4.6.10**, a patch update. Its parser changes touch argument
   overrides and the `help` subcommand. yqr declares no overrides and
   turns that subcommand off, so the CLI parses and prints exactly as
