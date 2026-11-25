@@ -6,6 +6,13 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **clap 4.6.10**, a patch update. It finds the arguments that override
+  a given argument in one pass, and yqr declares no overrides, so the CLI
+  parses and prints exactly as before. The lockfile changes only clap,
+  `clap_builder`, and `clap_derive`.
+
 ## [0.14.2] - 2026-11-25
 
 A dependency release. yqr moves to noyalib 0.0.64, which parses plain
