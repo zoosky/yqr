@@ -607,6 +607,75 @@ mod tests {
         assert_eq!(err.code, Code::SchemaUnusable);
     }
 
+    // Feature f053
+    #[test]
+    fn bundled_meta_schema_of_another_draft_resolves() {
+        // The validator bundles the Draft 4, 6, 7 and 2019-09
+        // meta-schemas beside 2020-12's, so a `$ref` to one resolves
+        // without a fetch -- under the meta-schema's own `$id` only.
+        // Draft 3 is not bundled, and neither is another spelling of a
+        // bundled URI, so both stay a `Y202`, like any other resource
+        // the validator would have to retrieve. jsonschema 0.61 resolved
+        // only the 2020-12 meta-schema.
+        let s = schema("$ref: \"http://json-schema.org/draft-07/schema#\"\n");
+        let found = findings("type: 5\n", &s);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].code, Code::SchemaViolation);
+        for unbundled in [
+            "http://json-schema.org/draft-03/schema#",
+            "https://json-schema.org/draft-07/schema#",
+        ] {
+            let err = Schema::compile(&format!("$ref: \"{unbundled}\"\n")).expect_err(unbundled);
+            assert_eq!(err.code, Code::SchemaUnusable, "{unbundled}");
+        }
+    }
+
+    // Feature f053
+    #[test]
+    fn named_backreference_in_a_pattern_compiles() {
+        // ECMA 262 has named groups and `\k<name>`; jsonschema 0.61
+        // refused the pattern, so the whole schema was a `Y202`.
+        let s = schema(r#"{"type": "string", "pattern": "^(?<n>x)\\k<n>$"}"#);
+        assert!(findings("\"xx\"\n", &s).is_empty());
+        assert_eq!(findings("\"xy\"\n", &s).len(), 1);
+    }
+
+    // Feature f053
+    #[test]
+    fn pattern_classes_follow_ecma_262_beside_a_backreference() {
+        // JSON Schema patterns are ECMA 262, whose `\w` and `\d` are
+        // ASCII. jsonschema 0.61 matched them as Unicode classes in a
+        // pattern with a backreference, so "éé" passed; it is a
+        // violation now.
+        let s = schema(r#"{"type": "string", "pattern": "^(\\w)\\1$"}"#);
+        assert!(findings("\"aa\"\n", &s).is_empty());
+        let found = findings("\"éé\"\n", &s);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].code, Code::SchemaViolation);
+    }
+
+    // Feature f053
+    #[test]
+    fn pattern_classes_follow_ecma_262_beside_a_lookbehind() {
+        // The same narrowing reaches a pattern with a lookbehind (or a
+        // negative lookahead): on 0.61 `\w` matched "é" here.
+        let s = schema(r#"{"type": "string", "pattern": "(?<=a)\\w$"}"#);
+        assert!(findings("\"ab\"\n", &s).is_empty());
+        assert_eq!(findings("\"aé\"\n", &s).len(), 1);
+    }
+
+    // Feature f053
+    #[test]
+    fn pattern_property_key_outside_ecma_262_goes_unchecked() {
+        // The other direction: a `patternProperties` key pattern matches
+        // fewer keys, so the value under a non-ASCII key is no longer
+        // checked. On 0.61 `éé: s` was a type violation; it passes now,
+        // while the ASCII key is still checked.
+        let s = schema(r#"{"patternProperties": {"^(\\w)\\1$": {"type": "integer"}}}"#);
+        assert!(findings("éé: s\n", &s).is_empty());
+        assert_eq!(findings("aa: s\n", &s).len(), 1);
+    }
+
     #[test]
     fn json_schema_file_reads_as_yaml() {
         // JSON is a subset of YAML, so a .json schema file needs no

@@ -192,8 +192,14 @@ indexmap = "2"
 # resolvers stay out, so no build of yqr can resolve an external `$ref` --
 # a validator must not touch the network. Violations are consumed through
 # `iter_errors`, whose typed instance paths map onto the fidelity engine's
-# `Path` for source-span diagnostics.
-jsonschema = { version = "0.61", default-features = false, optional = true }
+# `Path` for source-span diagnostics. 0.63 (f053) resolves a `$ref` to the
+# bundled 2019-09, Draft 7, 6 and 4 meta-schemas, which are not fetched;
+# follows ECMA 262 in a pattern with a backreference, a lookbehind or a
+# negative lookahead (`\w` and `\d` are ASCII, so verdicts move both ways,
+# and named backreferences compile); and rewords the empty-`enum`,
+# `minContains` and `maxContains` messages. Its one removal,
+# `ValidationErrorKind::RegexEngineFailure`, is a kind yqr never matches.
+jsonschema = { version = "0.63", default-features = false, optional = true }
 # The instance model `jsonschema` validates; yqr's `Value` is converted
 # into it (and never out of it) in src/validate/schema.rs.
 serde_json = { version = "1", optional = true }
