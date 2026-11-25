@@ -1942,6 +1942,12 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-11-25
+
+A dependency release. yqr moves to noyalib 0.0.64, which parses plain
+scalars faster. What yqr reads, writes, and refuses is unchanged, and so
+are the filter language, the CLI, and the library API.
+
 ### Changed
 
 - **noyalib 0.0.64.** A performance release. A plain scalar made only
