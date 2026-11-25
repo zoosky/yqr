@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 11579
+  "wordCount": 11830
 }
 </script>
 <script type="application/ld+json">
@@ -260,7 +260,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">58 min read</span>
+                    <span class="reading-time">60 min read</span>
                 </div>
                 
 
@@ -489,12 +489,47 @@
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
 <h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
 <ul>
-<li><strong>clap 4.6.10</strong>, a patch update. Its parser changes touch argument
+<li>
+<p><strong>jsonschema 0.63.1.</strong> <code>validate --schema</code> moves from jsonschema
+0.61.2. These changes are visible to you:</p>
+<ul>
+<li>In a pattern with a backreference, a lookbehind, or a negative
+lookahead, <code>\w</code>, <code>\d</code>, <code>\s</code>, and <code>.</code> now match what ECMA 262
+defines. <code>\w</code> and <code>\d</code> are ASCII only, <code>\s</code> no longer matches U+0085,
+and <code>.</code> no longer matches a line terminator such as <code>\r</code> or U+2028.
+This cuts both ways:
+<ul>
+<li>A document that passed can now fail. <code>^(\w)\1$</code> used to accept
+<code>"éé"</code> and now reports a <code>Y201</code>, so the run exits 1.</li>
+<li>A document that failed can now pass. <code>\W</code> and <code>\D</code> match more, so
+<code>^(\W)\1$</code> now accepts <code>"éé"</code>. A <code>patternProperties</code> key pattern
+such as <code>^(\w)\1$</code> no longer matches the key <code>éé</code>, so that key’s
+value is no longer checked.</li>
+</ul>
+</li>
+<li>A named backreference, such as <code>^(?&lt;n&gt;x)\k&lt;n&gt;$</code>, compiles. It used
+to make the whole schema a <code>Y202</code>.</li>
+<li>A <code>$ref</code> to the Draft 4, 6, 7, or 2019-09 meta-schema resolves from
+a copy built into the validator, as the 2020-12 one already did. Use
+the meta-schema’s own <code>$id</code>, such as
+<code>http://json-schema.org/draft-07/schema#</code>. Draft 3 and every other
+external <code>$ref</code> are still a <code>Y202</code>, and nothing is fetched.</li>
+<li>The messages for an empty <code>enum</code>, <code>minContains</code>, and <code>maxContains</code>
+name the actual problem. The order of the violations on one node can
+change, and so can their count for a schema that references itself.
+<code>not: {$ref: "#"}</code> no longer rejects every document.</li>
+</ul>
+<p>The lockfile also moves <code>regex</code> to 1.13.2, which yqr uses only
+through jsonschema.</p>
+</li>
+<li>
+<p><strong>clap 4.6.10</strong>, a patch update. Its parser changes touch argument
 overrides and the <code>help</code> subcommand. yqr declares no overrides and
 turns that subcommand off, so the CLI parses and prints exactly as
 before. <code>clap_derive</code> 4.6.9 only quiets an <code>unused_result</code> lint in
 generated code. The lockfile changes only clap, <code>clap_builder</code>, and
-<code>clap_derive</code>.</li>
+<code>clap_derive</code>.</p>
+</li>
 </ul>
 <h2 id="0-14-2-2026-11-25">[0.14.2] - 2026-11-25<a class="heading-anchor" href="#0-14-2-2026-11-25" aria-label="Link to this section"></a></h2>
 <p>A dependency release. yqr moves to noyalib 0.0.64, which parses plain

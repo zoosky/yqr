@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Validating YAML from the command line",
   "url": "https://zoosky.github.io/yqr/guide/validate",
-  "wordCount": 1274
+  "wordCount": 1328
 }
 </script>
 <script type="application/ld+json">
@@ -487,7 +487,13 @@ $ echo $?
 </code></pre>
 <p>Two boundaries worth knowing. The validator never touches the network: a
 schema that <code>$ref</code>s an external resource is refused as <code>Y202</code>, by
-construction. And the dialect is 2020-12, which covers SchemaStore-style
+construction. The 2020-12, 2019-09, Draft 7, Draft 6, and Draft 4
+meta-schemas are the exception: they are built in, so a <code>$ref</code> to one
+resolves without a fetch. Write the meta-schema’s own <code>$id</code>, such as
+<code>http://json-schema.org/draft-07/schema#</code> or
+<code>https://json-schema.org/draft/2020-12/schema</code>; another spelling of the
+same URI, and the Draft 3 meta-schema, are refused like any external
+<code>$ref</code>. And the dialect is 2020-12, which covers SchemaStore-style
 schemas (GitHub Actions, docker-compose) well; Kubernetes CRD schemas are
 an older OpenAPI dialect and remain a job for kubeconform.</p>
 <p>The default checks still run first – <code>--schema</code> adds to the verdict, it
