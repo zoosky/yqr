@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795647139200,
+  "lastUpdate": 1795647439982,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4367,6 +4367,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 197631,
             "range": "± 778",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "26bde17257286e6b5a6c359c51a9c024b9788c30",
+          "message": "chore: release v0.14.2 (#211)\n\nMove to noyalib 0.0.64, a performance release. A plain scalar made only\nof printable ASCII skips the two printable checks behind a word-at-a-time\nscreen, so parsing does less work. What yqr reads, writes, and refuses\nis unchanged, and so are the filter language, the CLI, and the library\nAPI. The lockfile changes only noyalib and yqr's own version.",
+          "timestamp": "2026-11-25T23:55:38+01:00",
+          "tree_id": "8e1b496dc87fafc2828603feaced8127ecf5dbca",
+          "url": "https://github.com/zoosky/yqr/commit/26bde17257286e6b5a6c359c51a9c024b9788c30"
+        },
+        "date": 1795647438433,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 555,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6128,
+            "range": "± 84",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 296210,
+            "range": "± 7113",
             "unit": "ns/iter"
           }
         ]
