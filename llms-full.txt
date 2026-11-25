@@ -1948,6 +1948,15 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-26
+
+A schema-validation release. With jsonschema 0.63.1, `validate --schema`
+follows ECMA 262 in a pattern with a backreference, a lookbehind, or a
+negative lookahead. A document that validated before can now fail, and
+one that failed can now pass. That is a breaking change to the CLI,
+which is why this is a minor release. clap moves to 4.6.10 with no change
+to the CLI. The filter language and the library API are unchanged.
+
 ### Changed
 
 - **jsonschema 0.63.1.** `validate --schema` moves from jsonschema

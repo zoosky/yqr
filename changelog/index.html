@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 11830
+  "wordCount": 11907
 }
 </script>
 <script type="application/ld+json">
@@ -273,6 +273,10 @@
     
         
         <li><a href="#unreleased">[Unreleased]</a></li>
+        
+    
+        
+        <li><a href="#0-15-0-2026-11-26">[0.15.0] - 2026-11-26</a></li>
         
     
         
@@ -487,6 +491,13 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<h2 id="0-15-0-2026-11-26">[0.15.0] - 2026-11-26<a class="heading-anchor" href="#0-15-0-2026-11-26" aria-label="Link to this section"></a></h2>
+<p>A schema-validation release. With jsonschema 0.63.1, <code>validate --schema</code>
+follows ECMA 262 in a pattern with a backreference, a lookbehind, or a
+negative lookahead. A document that validated before can now fail, and
+one that failed can now pass. That is a breaking change to the CLI,
+which is why this is a minor release. clap moves to 4.6.10 with no change
+to the CLI. The filter language and the library API are unchanged.</p>
 <h3 id="changed">Changed<a class="heading-anchor" href="#changed" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
