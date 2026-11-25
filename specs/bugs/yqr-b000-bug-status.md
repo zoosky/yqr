@@ -10,6 +10,8 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b041](yqr-b041-a-lone-additional-properties-false-reports-only-the-first-extra-key.md) | A lone `additionalProperties: false` reports only the first extra key | Low | Open — filed **2026-11-26**. Two extra keys give one `Y201`, `False schema does not allow 1`, at the root; jsonschema's `iter_errors` yields only that error on 0.61.2 and 0.63.1. Upstream cause, not yet reported | `yqr-f040`, `yqr-f053` |
+| [b042](yqr-b042-a-refused-ref-advises-a-feature-yqr-leaves-out.md) | A refused `$ref` advises a feature yqr leaves out | Low | Open — filed **2026-11-26**. The `Y202` for an unretrievable `$ref` passes through jsonschema's advice to enable `resolve-http`, which yqr leaves out by design; fix is a rewording in `Schema::compile` | `yqr-f040`, `yqr-f053` |
 
 ## Resolved
 
@@ -58,8 +60,9 @@ status tracker convention).
 
 ## Summary
 
-- Total bugs: 37
-- Open: **0**. Resolved since the last count: `b040`, closed 2026-11-21 by
+- Total bugs: 39
+- Open: **2** (`b041`, `b042`, both filed 2026-11-26 from the `f053`
+  review; both predate it). Resolved since the last count: `b040`, closed 2026-11-21 by
   noyalib 0.0.63 (yqr v0.14.1). Before that: `b037` and `b039`, both closed 2026-11-06
   by the accent v0.28.1 adoption — accentcms `f399` shipped in v0.27.0,
   and the home page's instructional highlights are authored as `mark`

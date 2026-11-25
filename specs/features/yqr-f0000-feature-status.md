@@ -373,7 +373,7 @@ run-order drift `f035` §3 characterised.
 |---------|-------|--------|
 | [f012](yqr-f012-validate-command.md) | `yqr validate`: actionable YAML correctness checking (rustc-style diagnostics, exit 0/1/5, `--strict`) | Done |
 | [f040](yqr-f040-validate-schema.md) | `validate --schema`: JSON Schema 2020-12 validation with source spans | Done (2026-10-08: the `f012` §5.1 follow-up; violations map through `FidelityEngine::resolve` to rustc-style diagnostics on the original bytes, codes `Y201`–`Y203`; `jsonschema` 0.58 with resolvers off, so no build can resolve an external `$ref`) |
-| [f053](yqr-f053-jsonschema-0-63-adoption.md) | Adopt jsonschema 0.63: bundled meta-schemas, ECMA 262 patterns, clearer messages | Done (2026-11-26: from 0.61.2; a pattern with a backreference matches `\w` and `\d` as ASCII, so `^(\w)\1$` now rejects `"éé"`; named backreferences compile; a `$ref` to the bundled 2019-09, Draft 7, 6 and 4 meta-schemas resolves without a fetch; three verdict pins, each failing on 0.61.2) |
+| [f053](yqr-f053-jsonschema-0-63-adoption.md) | Adopt jsonschema 0.63: bundled meta-schemas, ECMA 262 patterns, clearer messages | Done (2026-11-26: from 0.61.2; in a pattern with a backreference, a lookbehind or a negative lookahead, `\w`, `\d`, `\s` and `.` follow ECMA 262, so verdicts move both ways -- `^(\w)\1$` now rejects `"éé"`, `^(\W)\1$` accepts it; named backreferences compile; a `$ref` to the bundled 2019-09, Draft 7, 6 and 4 meta-schemas resolves under its `$id` without a fetch; five verdict pins, each failing on 0.61.2; `b041` and `b042` filed) |
 
 Progress: shipped, then hardened by a full-branch code review (15
 confirmed findings, all fixed). yqr's first subcommand parses every

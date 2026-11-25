@@ -227,9 +227,13 @@ $ echo $?
 
 Two boundaries worth knowing. The validator never touches the network: a
 schema that `$ref`s an external resource is refused as `Y202`, by
-construction. The JSON Schema meta-schemas are built in, so a `$ref` to
-the 2020-12, 2019-09, Draft 7, Draft 6, or Draft 4 meta-schema resolves
-without a fetch. And the dialect is 2020-12, which covers SchemaStore-style
+construction. The 2020-12, 2019-09, Draft 7, Draft 6, and Draft 4
+meta-schemas are the exception: they are built in, so a `$ref` to one
+resolves without a fetch. Write the meta-schema's own `$id`, such as
+`http://json-schema.org/draft-07/schema#` or
+`https://json-schema.org/draft/2020-12/schema`; another spelling of the
+same URI, and the Draft 3 meta-schema, are refused like any external
+`$ref`. And the dialect is 2020-12, which covers SchemaStore-style
 schemas (GitHub Actions, docker-compose) well; Kubernetes CRD schemas are
 an older OpenAPI dialect and remain a job for kubeconform.
 
