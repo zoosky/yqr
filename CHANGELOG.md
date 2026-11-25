@@ -6,6 +6,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-11-25
+
 ### Changed
 
 - **noyalib 0.0.64.** A performance release. A plain scalar made only
