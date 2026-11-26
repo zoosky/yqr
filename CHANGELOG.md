@@ -6,6 +6,8 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-26
+
 ### Fixed
 
 - **The message for a refused reference.** When a schema refers to
