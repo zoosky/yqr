@@ -96,7 +96,7 @@
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 12009
+  "wordCount": 12093
 }
 </script>
 <script type="application/ld+json">
@@ -506,6 +506,18 @@ fetches it:</p>
 <p>It used to pass through the validator’s advice to enable a
 <code>resolve-http</code> or <code>resolve-file</code> feature, which no yqr build includes.
 Every other <code>Y202</code> message is unchanged.</p>
+</li>
+<li>
+<p><strong>Every unexpected key under a lone <code>additionalProperties: false</code>.</strong>
+Without <code>properties</code> or <code>patternProperties</code> beside it,
+<code>additionalProperties: false</code> reported one violation for the first
+key’s value, such as <code>False schema does not allow 1</code>, and nothing for
+the other keys. It now reports one violation that names every
+unexpected key, as it already did beside <code>properties</code>:</p>
+<pre><code class="language-text">error[Y201]: Additional properties are not allowed ('a', 'c' were unexpected)
+</code></pre>
+<p>The verdict and the position are unchanged. The fix is in jsonschema
+0.63.2, which yqr now requires.</p>
 </li>
 </ul>
 <h2 id="0-15-0-2026-11-26">[0.15.0] - 2026-11-26<a class="heading-anchor" href="#0-15-0-2026-11-26" aria-label="Link to this section"></a></h2>

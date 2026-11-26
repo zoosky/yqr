@@ -1963,6 +1963,19 @@ All notable changes to `yqr` are documented here. The format is based on
   It used to pass through the validator's advice to enable a
   `resolve-http` or `resolve-file` feature, which no yqr build includes.
   Every other `Y202` message is unchanged.
+- **Every unexpected key under a lone `additionalProperties: false`.**
+  Without `properties` or `patternProperties` beside it,
+  `additionalProperties: false` reported one violation for the first
+  key's value, such as `False schema does not allow 1`, and nothing for
+  the other keys. It now reports one violation that names every
+  unexpected key, as it already did beside `properties`:
+
+  ```text
+  error[Y201]: Additional properties are not allowed ('a', 'c' were unexpected)
+  ```
+
+  The verdict and the position are unchanged. The fix is in jsonschema
+  0.63.2, which yqr now requires.
 
 ## [0.15.0] - 2026-11-26
 
