@@ -114,3 +114,29 @@ build, which is a worse failure than one that is too large.
       release's own features from the installed binary — which is how
       `yqr-b023` was found, since a locally built binary could not have shown
       it.
+
+### 6.2 The testbed (added 2026-11-26)
+
+The denylist failed the same way a second time. `testbed/` (`yqr-m007`)
+landed on 2026-09-09, after `0.7.0`, and neither `exclude` nor the gate
+named it. Every release from `0.8.0` through `0.14.2` carried its 14 files:
+the Python, Ruby, TypeScript and Go adapters, `run.py`, the case table and
+the recorded answers, about 63 KB. `renovate.json`, the dependency bot's
+configuration, rode along the same way. `0.15.0` was never published to
+crates.io.
+
+It was found on 2026-11-26, while publishing `0.15.1`. `cargo publish
+--dry-run` reported 69 files, 1.0 MiB, against `0.7.0`'s 38 files, and
+`cargo package --list` named the `testbed/` files. Most of the rest of the
+growth is yqr's own source and tests. The release PR had merged by then, so
+`0.15.1` was published from its tag with the testbed in it, like the seven
+releases before it; this fix takes effect from the next release.
+
+**Fix.** `exclude` gains `"testbed/"` and `"renovate.json"`, and the gate's
+pattern gains both, so the gate fails if either re-enters the package. The
+gate still matches named paths, so a new dev-only top-level directory needs
+an entry in both places. Check `cargo package --list` before each publish
+for a new top-level path.
+
+- [x] `testbed/` and `renovate.json` excluded from the published crate.
+- [x] `local-ci.sh` fails when either re-enters the package.
