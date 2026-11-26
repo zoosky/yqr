@@ -49,6 +49,7 @@ with different advice:
 | `other.json` with no `$id` | `other.json` | "No base URI is available" |
 | `urn:example:s` | as written | "Unknown scheme urn" |
 | `$dynamicRef` to a URL | the URL, without the fragment | "not supported once the registry is populated" |
+| `$dynamicRef: d.json#meta`, no `$id` | `json-schema:///d.json` | "not supported once the registry is populated" |
 | A nested `$ref`, under `properties` | the URL, without the fragment | enable `resolve-http` |
 
 `#/$defs/missing` is a different kind, `PointerToNowhere`
@@ -70,6 +71,14 @@ Every other compile error keeps the upstream text after
 `schema does not compile as JSON Schema 2020-12:`. The help line and the
 exit code are unchanged.
 
+A `$ref` arrives as written, because the validator swaps the original
+spelling back in. A relative `$dynamicRef` does not: it arrives resolved
+against the validator's default base, `json-schema:///`, which the schema
+never contains. `compile_message` strips that prefix, so
+`$dynamicRef: d.json#meta` is named `d.json`. The base is crate-private
+upstream, so yqr spells it out as `DEFAULT_BASE`, and the unit test's
+`$dynamicRef` case pins it. The PR's code review found this case.
+
 The wording departs from the first draft of this spec ("schema `$ref`s
 '<uri>' ...; only the built-in meta-schemas resolve") for two reasons:
 
@@ -85,6 +94,20 @@ and the unit test fails.
 
 No `docs/content` page quotes the old message, so the guide is unchanged.
 
+Not changed, after the code review raised them:
+
+- An `$id` under an unknown keyword, such as `x-defs`, is not indexed, so
+  a `$ref` to it gets this message although the target is in the file.
+  2020-12 does not require a validator to look for schemas under unknown
+  keywords; `$defs` is the keyword for that, and a target there resolves.
+- Another spelling of a built-in meta-schema, such as `https://` for
+  Draft 7, gets no hint about the canonical `$id`. The validate guide
+  already says to write the meta-schema's own `$id`, and a hint would
+  add a host check for one case.
+- The URI is quoted with `'...'`, as in the validator's own messages,
+  without escaping. An apostrophe in a reference is rare enough not to
+  justify a different quoting style.
+
 ## 4. Acceptance criteria
 
 - [x] An unretrievable `$ref` is a `Y202` whose message names the URI and
@@ -93,5 +116,6 @@ No `docs/content` page quotes the old message, so the guide is unchanged.
 - [x] A unit test pins the reworded message for an arbitrary URL and for
       the Draft 3 meta-schema
       (`refused_ref_names_the_uri_without_resolver_advice`, which also
-      covers a `file:` URI and a relative path, and pins a missing pointer
-      keeping its upstream text).
+      covers a `file:` URI, a URN, a relative path, a nested `$ref` and
+      two `$dynamicRef`s, and pins a missing pointer keeping its upstream
+      text).

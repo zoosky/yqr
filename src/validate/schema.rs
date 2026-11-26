@@ -111,6 +111,10 @@ fn compile_message(err: &jsonschema::ValidationError<'_>) -> String {
         jsonschema::ReferencingError::Unretrievable { uri, .. },
     ) = err.kind()
     {
+        // A `$ref` arrives as written, but a relative `$dynamicRef`
+        // arrives resolved against the default base, which the schema
+        // never contains.
+        let uri = uri.strip_prefix(DEFAULT_BASE).unwrap_or(uri);
         return format!(
             "schema refers to '{uri}', which yqr never fetches; references resolve \
              only within the schema file and to the built-in meta-schemas"
@@ -118,6 +122,11 @@ fn compile_message(err: &jsonschema::ValidationError<'_>) -> String {
     }
     format!("schema does not compile as JSON Schema 2020-12: {err}")
 }
+
+/// The base the validator resolves a relative reference against when the
+/// schema has no `$id`. The validator keeps it private, so it is spelled
+/// out here, and the tests pin it.
+const DEFAULT_BASE: &str = "json-schema:///";
 
 /// The help line every schema-side `Y202` carries, whatever made the
 /// schema unusable.
@@ -629,7 +638,10 @@ mod tests {
         // The validator's own text advises enabling a resolver that no
         // yqr build includes, so the message is worded in yqr's terms,
         // whatever the reference: a URL, the unbundled Draft 3
-        // meta-schema, a file, or a relative path with no base URI.
+        // meta-schema, a file, a URN, a relative path with no base URI,
+        // a nested `$ref`, or a `$dynamicRef`. A relative `$dynamicRef`
+        // arrives against the validator's default base, so this also pins
+        // that base.
         for (src, uri) in [
             (
                 "$ref: \"https://example.com/s.json\"\n",
@@ -640,7 +652,17 @@ mod tests {
                 "http://json-schema.org/draft-03/schema",
             ),
             ("$ref: \"file:///tmp/s.json\"\n", "file:///tmp/s.json"),
+            ("$ref: \"urn:example:s\"\n", "urn:example:s"),
             ("$ref: \"other.json\"\n", "other.json"),
+            (
+                "properties:\n  a:\n    $ref: \"https://example.com/s.json#/x\"\n",
+                "https://example.com/s.json",
+            ),
+            (
+                "$dynamicRef: \"https://example.com/d.json#meta\"\n",
+                "https://example.com/d.json",
+            ),
+            ("$dynamicRef: \"d.json#meta\"\n", "d.json"),
         ] {
             let err = Schema::compile(src).expect_err(src);
             assert_eq!(err.code, Code::SchemaUnusable, "{src}");
