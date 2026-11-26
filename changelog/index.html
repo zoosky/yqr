@@ -91,12 +91,12 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "dateModified": "2026-11-25",
+  "dateModified": "2026-11-26",
   "description": "All notable changes to yqr are documented here. The format is based on Keep a Changelog, and the project adheres to Semantic Versioning.",
   "inLanguage": "en",
   "name": "Changelog",
   "url": "https://zoosky.github.io/yqr/changelog",
-  "wordCount": 11907
+  "wordCount": 12009
 }
 </script>
 <script type="application/ld+json">
@@ -260,7 +260,7 @@
                 <div class="page-meta">
                     
                     
-                    <span class="reading-time">60 min read</span>
+                    <span class="reading-time">61 min read</span>
                 </div>
                 
 
@@ -273,6 +273,8 @@
     
         
         <li><a href="#unreleased">[Unreleased]</a></li>
+        
+    
         
     
         
@@ -491,6 +493,21 @@
 <a href="https://keepachangelog.com/">Keep a Changelog</a>, and the project adheres to
 <a href="https://semver.org/">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="heading-anchor" href="#unreleased" aria-label="Link to this section"></a></h2>
+<h3 id="fixed">Fixed<a class="heading-anchor" href="#fixed" aria-label="Link to this section"></a></h3>
+<ul>
+<li>
+<p><strong>The message for a refused reference.</strong> When a schema refers to
+something yqr would have to fetch, such as a URL, a file, or the
+Draft 3 meta-schema, <code>validate --schema</code> still reports a <code>Y202</code> and
+exits 1, but the message now names the reference and says yqr never
+fetches it:</p>
+<pre><code class="language-text">error[Y202]: schema refers to 'https://example.com/s.json', which yqr never fetches; references resolve only within the schema file and to the built-in meta-schemas
+</code></pre>
+<p>It used to pass through the validator’s advice to enable a
+<code>resolve-http</code> or <code>resolve-file</code> feature, which no yqr build includes.
+Every other <code>Y202</code> message is unchanged.</p>
+</li>
+</ul>
 <h2 id="0-15-0-2026-11-26">[0.15.0] - 2026-11-26<a class="heading-anchor" href="#0-15-0-2026-11-26" aria-label="Link to this section"></a></h2>
 <p>A schema-validation release. With jsonschema 0.63.1, <code>validate --schema</code>
 follows ECMA 262 in a pattern with a backreference, a lookbehind, or a
@@ -560,7 +577,7 @@ features. The lockfile changes only noyalib.</li>
 <p>A fix release. yqr moves to noyalib 0.0.63, which corrects one write
 that 0.14.0 refused. The filter language, the CLI, and the library API
 are unchanged.</p>
-<h3 id="fixed">Fixed<a class="heading-anchor" href="#fixed" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-1">Fixed<a class="heading-anchor" href="#fixed-1" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
 <p><strong>A new key with a non-printable character.</strong> On 0.14.0, an
@@ -656,7 +673,7 @@ refuses (append is the typed route onto a sequence), and a scalar
 mid-path still refuses rather than being discarded on the way to
 somewhere else.</li>
 </ul>
-<h3 id="fixed-1">Fixed<a class="heading-anchor" href="#fixed-1" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-2">Fixed<a class="heading-anchor" href="#fixed-2" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>A new key lands in a sequence-item mapping whose only key sits on
 the <code>- </code> line.</strong> <code>.servers[0].port = 80</code> over <code>servers:</code> /
@@ -808,7 +825,7 @@ anchor’s own bytes still refuses, saying so. With this, the refusal
 for deleting a still-referenced <code>&amp;name</code> names remedies that run.
 (noyalib 0.0.57, carrying this project’s upstream fixes.)</li>
 </ul>
-<h3 id="fixed-2">Fixed<a class="heading-anchor" href="#fixed-2" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-3">Fixed<a class="heading-anchor" href="#fixed-3" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>Deleting an item of an indented sequence under an anchored key.</strong>
 <code>del(.a[0])</code> on <code>a: &amp;x</code> with indented items was refused with “its
@@ -936,7 +953,7 @@ From 0.0.46 the engine’s single-document entry point refuses a file
 holding more than one document; yqr reads every document through the
 stream entry point, so multi-document files are unaffected.</li>
 </ul>
-<h3 id="fixed-3">Fixed<a class="heading-anchor" href="#fixed-3" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-4">Fixed<a class="heading-anchor" href="#fixed-4" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>Writing a scalar over a block collection no longer damages the
 file.</strong> <code>.k = 5</code> where <code>k:</code> held an indented block emitted the value at
@@ -1028,7 +1045,7 @@ segments supply the engine side; yqr lowers every key through them.</li>
 head of a path and after any later dot:
 <code>.metadata.labels."app.kubernetes.io/name"</code>.</li>
 </ul>
-<h3 id="fixed-4">Fixed<a class="heading-anchor" href="#fixed-4" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-5">Fixed<a class="heading-anchor" href="#fixed-5" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong><code>validate</code> explains an alias that reaches into an earlier document.</strong>
 <code>b: *x</code> after a <code>---</code>, with <code>&amp;x</code> defined in the document before, was an
@@ -1142,7 +1159,7 @@ something about the rest. Every console block on every page was re-run
 against the binary. Four pages promised something yqr does not do – among
 them a <code>validate</code> snippet that exits 2, and a front page still telling
 visitors arithmetic was unavailable nine days after it shipped.</p>
-<h3 id="fixed-5">Fixed<a class="heading-anchor" href="#fixed-5" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-6">Fixed<a class="heading-anchor" href="#fixed-6" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
 <p><strong><code>+=</code> explains itself when it declines.</strong> Pointed at anything that is not a
@@ -1192,7 +1209,7 @@ command whose whole job is to answer “is this file correct” was answering no
 about files two reference implementations accept.</p>
 <p>The third fix is cosmetic but had been wrong in every published binary:
 <code>yqr --version</code> printed an empty commit hash when installed from crates.io.</p>
-<h3 id="fixed-6">Fixed<a class="heading-anchor" href="#fixed-6" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-7">Fixed<a class="heading-anchor" href="#fixed-7" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
 <p><strong>You can fill in a blank value.</strong> A key written with nothing after it –
@@ -1307,7 +1324,7 @@ edit was never performed. A no-op on an <em>ordinary</em> entry is still a no-op
 including on one that carries an anchor.</p>
 </li>
 </ul>
-<h3 id="fixed-7">Fixed<a class="heading-anchor" href="#fixed-7" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-8">Fixed<a class="heading-anchor" href="#fixed-8" aria-label="Link to this section"></a></h3>
 <ul>
 <li>
 <p><strong>An assignment that changes nothing no longer re-spells the value.</strong>
@@ -1558,7 +1575,7 @@ disk and said nothing. yqr now hands values to the YAML engine as values rather
 than as pre-rendered text, so the engine places and spells them and rejects an
 edit that would not read back as what was given. Reading files, replacing
 existing values, and <code>del</code> were never affected.</p>
-<h3 id="fixed-8">Fixed<a class="heading-anchor" href="#fixed-8" aria-label="Link to this section"></a></h3>
+<h3 id="fixed-9">Fixed<a class="heading-anchor" href="#fixed-9" aria-label="Link to this section"></a></h3>
 <ul>
 <li><strong>Adding a multi-line string could corrupt the file.</strong> Creating a new key or
 appending a list item whose value contained a newline – <code>yqr '.s += "line one\nline two"'</code> – wrote the value at the wrong indentation. Appending to a
@@ -1887,7 +1904,7 @@ and optional error suppression (<code>f?</code>).</li>
         <span>Powered by <a href="https://accentcms.dev">Accent CMS</a> 0.29.0-rc.4 (2060aad)</span>
         
         <span class="footer-sep" aria-hidden="true">&middot;</span>
-        <span>Site last updated: 2026-11-25</span>
+        <span>Site last updated: 2026-11-26</span>
         
     </footer>
 
