@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795720900976,
+  "lastUpdate": 1795724718005,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4619,6 +4619,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 295317,
             "range": "± 2806",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fd7eccca98f755de95a3ee9d9ccf21ce3d6dbf87",
+          "message": "fix(b041): require jsonschema 0.63.2 and pin every unexpected key (#218)\n\njsonschema 0.63.2 carries the upstream fix (#2047) for #2046: alone,\n`additionalProperties: false` now reports one violation naming every\nunexpected key, as it does beside `properties`, instead of a false-schema\nerror for the first key's value. Renovate already moved Cargo.lock to\n0.63.2; Cargo.toml now requires it, so a fresh resolve cannot pick 0.63.1.\n\n`lone_additional_properties_false_names_every_key` pins the lone and the\n`properties: {}` forms to the same message and fails on 0.63.1. The b041\nspec records the control/candidate measurement: every verdict, exit code\nand position is unchanged, and only the lone form's message moves.",
+          "timestamp": "2026-11-26T21:23:56+01:00",
+          "tree_id": "b2443f4f03a34d797483a0de19296c3ed6312ab5",
+          "url": "https://github.com/zoosky/yqr/commit/fd7eccca98f755de95a3ee9d9ccf21ce3d6dbf87"
+        },
+        "date": 1795724716519,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 328,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 3636,
+            "range": "± 101",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 196680,
+            "range": "± 6131",
             "unit": "ns/iter"
           }
         ]
