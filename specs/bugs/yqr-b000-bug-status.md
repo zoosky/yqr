@@ -10,12 +10,12 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b041](yqr-b041-a-lone-additional-properties-false-reports-only-the-first-extra-key.md) | A lone `additionalProperties: false` reports only the first extra key | Low | Open — filed **2026-11-26**. Two extra keys give one `Y201`, `False schema does not allow 1`, at the root; jsonschema's `iter_errors` yields only that error on 0.61.2 and 0.63.1. Upstream cause in `AdditionalPropertiesFalseValidator`; reported as jsonschema #2046, fix proposed in #2047 | `yqr-f040`, `yqr-f053` |
 
 ## Resolved
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b041](yqr-b041-a-lone-additional-properties-false-reports-only-the-first-extra-key.md) | A lone `additionalProperties: false` reports only the first extra key | Low | Resolved **2026-11-26** (unreleased) by jsonschema 0.63.2. Two extra keys gave one `Y201`, `False schema does not allow 1`, for the first key's value. Reported as jsonschema #2046 and fixed by #2047, filed from this bug and released the same day; now one `Y201` names every unexpected key, as beside `properties`. `Cargo.toml` requires 0.63.2 | `yqr-f040`, `yqr-f053`, jsonschema #2046, #2047 |
 | [b042](yqr-b042-a-refused-ref-advises-a-feature-yqr-leaves-out.md) | A refused `$ref` advises a feature yqr leaves out | Low | Resolved **2026-11-26** (unreleased). The `Y202` for a reference the validator would have to retrieve passed through jsonschema's advice to enable `resolve-http` or `resolve-file`, which yqr leaves out by design. `Schema::compile` now words it as "schema refers to '<uri>', which yqr never fetches; ..."; every other compile error keeps the upstream text | `yqr-f040`, `yqr-f053` |
 | [b040](yqr-b040-a-new-multi-line-key-with-a-non-printable-character-is-refused.md) | A new multi-line key with a non-printable character is refused | Low | Resolved **2026-11-21** by noyalib 0.0.63 (yqr v0.14.1). On 0.14.0, `.k = "a\uFFFE\nb"` over a file without `k` exited 5: noyalib 0.0.62 wrote the string as a `\|` block that its own parser refuses (C1 controls except NEL, U+FFFE, U+FFFF, a BOM). Reported as noyalib#533, fixed by noyalib#534 | `yqr-f052`, noyalib#533, noyalib#534 |
 | [b039](yqr-b039-dev-serve-csp-blocks-the-themes-inline-scripts.md) | Dev serve's CSP blocks the theme's own scripts | Low | Resolved **2026-11-06**, the day it was root-caused. Surfaced by `b037`'s verification: two CSP errors per page load under `accent serve`, blocking the theme-toggle init and the Mermaid dev loader. First read as an upstream gap; review from the accentcms side corrected it — nonce stamping is explicit by design (the nonce attribute is what distinguishes template-authored scripts from content-injected ones), `{{ nonce }}` is available in every template, the theming guide and the 0.26.0 changelog both say so, and yqr's theme is a pre-0.26 fork of accent's default theme that never picked up the stamps. Fixed by writing `nonce="{{ nonce }}"` on all 12 executable script tags across five templates (JSON-LD blocks are data and carry none). Static output byte-unchanged; dev-serve console clean and the theme toggle works | `yqr-b037`, `yqr-f041`, accentcms f185 |
@@ -61,9 +61,10 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 39
-- Open: **1** (`b041`, filed 2026-11-26 from the `f053` review; it
-  predates it, and waits on jsonschema #2047). Resolved since the last
-  count: `b042`, filed the same day and fixed 2026-11-26 (unreleased).
+- Open: **0**. Resolved since the last count: `b041` and `b042`, both
+  filed 2026-11-26 from the `f053` review and fixed the same day
+  (unreleased). `b041` was fixed upstream by jsonschema #2047, released
+  in 0.63.2; `b042` in `Schema::compile`.
   Before that: `b040`, closed 2026-11-21 by
   noyalib 0.0.63 (yqr v0.14.1). Before that: `b037` and `b039`, both closed 2026-11-06
   by the accent v0.28.1 adoption — accentcms `f399` shipped in v0.27.0,
