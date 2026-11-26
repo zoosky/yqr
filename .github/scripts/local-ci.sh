@@ -101,7 +101,7 @@ cargo doc --no-deps
 # this way (yqr-m004 s6).
 echo "=== package contents ==="
 if stray=$(cargo package --list --allow-dirty 2>/dev/null |
-    grep -E '^(docs|specs|[.]github|[.]agent)/|^(CLAUDE|AGENT)[.]md$'); then
+    grep -E '^(docs|specs|testbed|[.]github|[.]agent)/|^(CLAUDE|AGENT)[.]md$|^renovate[.]json$'); then
   echo "error: dev-only files would be published to crates.io:" >&2
   echo "$stray" | sed 's/^/  /' >&2
   echo "Add them to \`exclude\` in Cargo.toml." >&2
