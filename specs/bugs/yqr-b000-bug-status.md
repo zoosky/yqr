@@ -10,7 +10,7 @@ status tracker convention).
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
-| [b041](yqr-b041-a-lone-additional-properties-false-reports-only-the-first-extra-key.md) | A lone `additionalProperties: false` reports only the first extra key | Low | Open — filed **2026-11-26**. Two extra keys give one `Y201`, `False schema does not allow 1`, at the root; jsonschema's `iter_errors` yields only that error on 0.61.2 and 0.63.1. Upstream cause, not yet reported | `yqr-f040`, `yqr-f053` |
+| [b041](yqr-b041-a-lone-additional-properties-false-reports-only-the-first-extra-key.md) | A lone `additionalProperties: false` reports only the first extra key | Low | Open — filed **2026-11-26**. Two extra keys give one `Y201`, `False schema does not allow 1`, at the root; jsonschema's `iter_errors` yields only that error on 0.61.2 and 0.63.1. Upstream cause in `AdditionalPropertiesFalseValidator`; reported as jsonschema #2046, fix proposed in #2047 | `yqr-f040`, `yqr-f053` |
 | [b042](yqr-b042-a-refused-ref-advises-a-feature-yqr-leaves-out.md) | A refused `$ref` advises a feature yqr leaves out | Low | Open — filed **2026-11-26**. The `Y202` for an unretrievable `$ref` passes through jsonschema's advice to enable `resolve-http`, which yqr leaves out by design; fix is a rewording in `Schema::compile` | `yqr-f040`, `yqr-f053` |
 
 ## Resolved
