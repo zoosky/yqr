@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795650613845,
+  "lastUpdate": 1795720833705,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4535,6 +4535,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 292645,
             "range": "± 1305",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eee69a84e0c561c4b82cabeaff9e38b7fd8e1d9f",
+          "message": "fix(b042): word a refused schema reference in yqr's terms (#216)\n\n* fix(b042): word a refused schema reference in yqr's terms\n\nA schema reference the validator would have to retrieve now gives \"schema refers to '<uri>', which yqr never fetches; references resolve only within the schema file and to the built-in meta-schemas\" instead of jsonschema's advice to enable resolve-http or resolve-file. Every other compile error keeps its text; the code, help line and exit code are unchanged.\n\n* fix(b042): name a relative $dynamicRef as written\n\nA relative $dynamicRef arrives resolved against the validator's default base, json-schema:///, which the schema never contains. Strip it, and extend the unit test to a URN, a nested $ref and two $dynamicRefs. Records the review's skipped nits in the b042 spec.",
+          "timestamp": "2026-11-26T20:19:04+01:00",
+          "tree_id": "635ffc3d8e44017bb6e7a7931668612f0c74efaa",
+          "url": "https://github.com/zoosky/yqr/commit/eee69a84e0c561c4b82cabeaff9e38b7fd8e1d9f"
+        },
+        "date": 1795720832358,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 479,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 4742,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 226862,
+            "range": "± 4503",
             "unit": "ns/iter"
           }
         ]
