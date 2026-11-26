@@ -1948,6 +1948,15 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-26
+
+A fix release for `validate --schema`. Two messages now say what
+happened in yqr's terms. A refused reference names the reference
+instead of advising a feature yqr leaves out. A lone
+`additionalProperties: false` names every unexpected key, through
+jsonschema 0.63.2. Every verdict and exit code is unchanged, and so are
+the filter language and the library API.
+
 ### Fixed
 
 - **The message for a refused reference.** When a schema refers to
