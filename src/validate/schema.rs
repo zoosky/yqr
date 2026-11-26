@@ -753,6 +753,31 @@ mod tests {
         assert_eq!(findings("aa: s\n", &s).len(), 1);
     }
 
+    // Bug b041
+    #[test]
+    fn lone_additional_properties_false_names_every_key() {
+        // Alone, `additionalProperties: false` reports as it does beside
+        // `properties`: one violation naming each unexpected key. Before
+        // jsonschema 0.63.2 the lone form gave a false-schema error for
+        // the first key's value, `False schema does not allow 1`, and
+        // nothing for the other keys.
+        for src in [
+            "additionalProperties: false\n",
+            "properties: {}\nadditionalProperties: false\n",
+        ] {
+            let s = schema(src);
+            assert!(findings("{}\n", &s).is_empty(), "{src}");
+            let found = findings("a: 1\nc: 2\n", &s);
+            assert_eq!(found.len(), 1, "{src}: {found:?}");
+            assert_eq!(found[0].code, Code::SchemaViolation, "{src}");
+            assert_eq!(
+                found[0].message,
+                "Additional properties are not allowed ('a', 'c' were unexpected)",
+                "{src}"
+            );
+        }
+    }
+
     #[test]
     fn json_schema_file_reads_as_yaml() {
         // JSON is a subset of YAML, so a .json schema file needs no

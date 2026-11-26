@@ -199,7 +199,9 @@ indexmap = "2"
 # and named backreferences compile); and rewords the empty-`enum`,
 # `minContains` and `maxContains` messages. Its one removal,
 # `ValidationErrorKind::RegexEngineFailure`, is a kind yqr never matches.
-jsonschema = { version = "0.63", default-features = false, optional = true }
+# 0.63.2 (b041) names every unexpected key under an `additionalProperties:
+# false` with no `properties` or `patternProperties` beside it.
+jsonschema = { version = "0.63.2", default-features = false, optional = true }
 # The instance model `jsonschema` validates; yqr's `Value` is converted
 # into it (and never out of it) in src/validate/schema.rs.
 serde_json = { version = "1", optional = true }
