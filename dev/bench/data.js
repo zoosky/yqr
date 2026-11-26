@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795720833705,
+  "lastUpdate": 1795720900976,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4577,6 +4577,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 226862,
             "range": "± 4503",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba2cbf24a3dcf429043029f84c3da6a9879e2eda",
+          "message": "chore(deps): update rust crate jsonschema to v0.63.2 (#217)",
+          "timestamp": "2026-11-26T20:19:45+01:00",
+          "tree_id": "302abbea58bd38a8b2d575b8f1be4f9026d0a454",
+          "url": "https://github.com/zoosky/yqr/commit/ba2cbf24a3dcf429043029f84c3da6a9879e2eda"
+        },
+        "date": 1795720899035,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 573,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6209,
+            "range": "± 62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 295317,
+            "range": "± 2806",
             "unit": "ns/iter"
           }
         ]
