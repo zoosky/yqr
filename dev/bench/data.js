@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795725466874,
+  "lastUpdate": 1795725856865,
   "repoUrl": "https://github.com/zoosky/yqr",
   "entries": {
     "Benchmark": [
@@ -4703,6 +4703,48 @@ window.BENCHMARK_DATA = {
             "name": "eval_str/iterate_100",
             "value": 291718,
             "range": "± 2803",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127824+zoosky@users.noreply.github.com",
+            "name": "Zoo Sky",
+            "username": "zoosky"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dbd7fa75e74a6726df1898fdf60c61a4dfb71b56",
+          "message": "fix(package): keep the testbed and renovate.json out of the crate (#220)\n\n`exclude` is a denylist, and `testbed/` (yqr-m007) landed after the\npackage-contents gate was written, so every release from 0.8.0 through\n0.15.1 carried its 14 files, about 63 KB. `renovate.json` rode along too.\nBoth join `exclude` and the gate's pattern; the package goes from 69 files\nto 54. m004 section 6.2 records it.",
+          "timestamp": "2026-11-26T21:42:36+01:00",
+          "tree_id": "584cc089af1480c4dc6afbd5691bbd0301d0b9f4",
+          "url": "https://github.com/zoosky/yqr/commit/dbd7fa75e74a6726df1898fdf60c61a4dfb71b56"
+        },
+        "date": 1795725855520,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse/nested_path",
+            "value": 573,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/field_access",
+            "value": 6198,
+            "range": "± 71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "eval_str/iterate_100",
+            "value": 296194,
+            "range": "± 1789",
             "unit": "ns/iter"
           }
         ]
