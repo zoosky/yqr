@@ -11,12 +11,12 @@ status tracker convention).
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
 | [b041](yqr-b041-a-lone-additional-properties-false-reports-only-the-first-extra-key.md) | A lone `additionalProperties: false` reports only the first extra key | Low | Open — filed **2026-11-26**. Two extra keys give one `Y201`, `False schema does not allow 1`, at the root; jsonschema's `iter_errors` yields only that error on 0.61.2 and 0.63.1. Upstream cause in `AdditionalPropertiesFalseValidator`; reported as jsonschema #2046, fix proposed in #2047 | `yqr-f040`, `yqr-f053` |
-| [b042](yqr-b042-a-refused-ref-advises-a-feature-yqr-leaves-out.md) | A refused `$ref` advises a feature yqr leaves out | Low | Open — filed **2026-11-26**. The `Y202` for an unretrievable `$ref` passes through jsonschema's advice to enable `resolve-http`, which yqr leaves out by design; fix is a rewording in `Schema::compile` | `yqr-f040`, `yqr-f053` |
 
 ## Resolved
 
 | Bug | Title | Severity | Status | Related |
 |-----|-------|----------|--------|---------|
+| [b042](yqr-b042-a-refused-ref-advises-a-feature-yqr-leaves-out.md) | A refused `$ref` advises a feature yqr leaves out | Low | Resolved **2026-11-26** (unreleased). The `Y202` for a reference the validator would have to retrieve passed through jsonschema's advice to enable `resolve-http` or `resolve-file`, which yqr leaves out by design. `Schema::compile` now words it as "schema refers to '<uri>', which yqr never fetches; ..."; every other compile error keeps the upstream text | `yqr-f040`, `yqr-f053` |
 | [b040](yqr-b040-a-new-multi-line-key-with-a-non-printable-character-is-refused.md) | A new multi-line key with a non-printable character is refused | Low | Resolved **2026-11-21** by noyalib 0.0.63 (yqr v0.14.1). On 0.14.0, `.k = "a\uFFFE\nb"` over a file without `k` exited 5: noyalib 0.0.62 wrote the string as a `\|` block that its own parser refuses (C1 controls except NEL, U+FFFE, U+FFFF, a BOM). Reported as noyalib#533, fixed by noyalib#534 | `yqr-f052`, noyalib#533, noyalib#534 |
 | [b039](yqr-b039-dev-serve-csp-blocks-the-themes-inline-scripts.md) | Dev serve's CSP blocks the theme's own scripts | Low | Resolved **2026-11-06**, the day it was root-caused. Surfaced by `b037`'s verification: two CSP errors per page load under `accent serve`, blocking the theme-toggle init and the Mermaid dev loader. First read as an upstream gap; review from the accentcms side corrected it — nonce stamping is explicit by design (the nonce attribute is what distinguishes template-authored scripts from content-injected ones), `{{ nonce }}` is available in every template, the theming guide and the 0.26.0 changelog both say so, and yqr's theme is a pre-0.26 fork of accent's default theme that never picked up the stamps. Fixed by writing `nonce="{{ nonce }}"` on all 12 executable script tags across five templates (JSON-LD blocks are data and carry none). Static output byte-unchanged; dev-serve console clean and the theme toggle works | `yqr-b037`, `yqr-f041`, accentcms f185 |
 | [b037](yqr-b037-the-home-pages-instructional-highlights-are-gone.md) | The home page's instructional highlights are gone | Low | Resolved **2026-11-06** by adopting accent v0.28.1: accentcms `f399` (span marks in processed fences) shipped in v0.27.0 exactly as filed, and the emphasis `f042` had to flatten is authored in `content/index.md` again — `role="filter"` marks on the 16 recipe commands that have one, key tints and the nested hit line, and the Dockerfile tints the filing had not tracked. The chart's YAML pane and both outcome panes moved from template art back into content (`chart` grew a body, a new `outcome` component holds a pane), which is `f042` §2's preferred end state. The `recipe` component's `cmd`/`out` attributes gave way to a fence-opening body, since an attribute string cannot carry marks, and the `$` prompt is theme chrome so the fence holds only what the user copies. Filed 2026-10-09 as the other half of `f042`'s accepted normalizations; verified span-for-span against the pre-f042 markup with a Playwright pass, both themes, no mobile overflow, `llms-full.txt` clean of mark syntax | `yqr-f042`, `yqr-f041`, accentcms `f399` |
@@ -61,8 +61,10 @@ status tracker convention).
 ## Summary
 
 - Total bugs: 39
-- Open: **2** (`b041`, `b042`, both filed 2026-11-26 from the `f053`
-  review; both predate it). Resolved since the last count: `b040`, closed 2026-11-21 by
+- Open: **1** (`b041`, filed 2026-11-26 from the `f053` review; it
+  predates it, and waits on jsonschema #2047). Resolved since the last
+  count: `b042`, filed the same day and fixed 2026-11-26 (unreleased).
+  Before that: `b040`, closed 2026-11-21 by
   noyalib 0.0.63 (yqr v0.14.1). Before that: `b037` and `b039`, both closed 2026-11-06
   by the accent v0.28.1 adoption — accentcms `f399` shipped in v0.27.0,
   and the home page's instructional highlights are authored as `mark`

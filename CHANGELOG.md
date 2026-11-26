@@ -6,6 +6,22 @@ All notable changes to `yqr` are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- **The message for a refused reference.** When a schema refers to
+  something yqr would have to fetch, such as a URL, a file, or the
+  Draft 3 meta-schema, `validate --schema` still reports a `Y202` and
+  exits 1, but the message now names the reference and says yqr never
+  fetches it:
+
+  ```text
+  error[Y202]: schema refers to 'https://example.com/s.json', which yqr never fetches; references resolve only within the schema file and to the built-in meta-schemas
+  ```
+
+  It used to pass through the validator's advice to enable a
+  `resolve-http` or `resolve-file` feature, which no yqr build includes.
+  Every other `Y202` message is unchanged.
+
 ## [0.15.0] - 2026-11-26
 
 A schema-validation release. With jsonschema 0.63.1, `validate --schema`

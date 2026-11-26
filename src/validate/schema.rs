@@ -94,14 +94,39 @@ impl Schema {
             diag.note = Some(instance_note(&path));
             diag
         })?;
-        let validator = jsonschema::draft202012::new(&json).map_err(|err| {
-            schema_unusable(format!(
-                "schema does not compile as JSON Schema 2020-12: {err}"
-            ))
-        })?;
+        let validator = jsonschema::draft202012::new(&json)
+            .map_err(|err| schema_unusable(compile_message(&err)))?;
         Ok(Schema { validator })
     }
 }
+
+/// Word the validator's compile error for the `Y202` message.
+///
+/// A reference the validator would have to retrieve is named in yqr's
+/// terms: the validator's own text advises enabling a resolver, and no
+/// yqr build includes one. Every other compile error keeps its text.
+fn compile_message(err: &jsonschema::ValidationError<'_>) -> String {
+    // Bug b042
+    if let jsonschema::error::ValidationErrorKind::Referencing(
+        jsonschema::ReferencingError::Unretrievable { uri, .. },
+    ) = err.kind()
+    {
+        // A `$ref` arrives as written, but a relative `$dynamicRef`
+        // arrives resolved against the default base, which the schema
+        // never contains.
+        let uri = uri.strip_prefix(DEFAULT_BASE).unwrap_or(uri);
+        return format!(
+            "schema refers to '{uri}', which yqr never fetches; references resolve \
+             only within the schema file and to the built-in meta-schemas"
+        );
+    }
+    format!("schema does not compile as JSON Schema 2020-12: {err}")
+}
+
+/// The base the validator resolves a relative reference against when the
+/// schema has no `$id`. The validator keeps it private, so it is spelled
+/// out here, and the tests pin it.
+const DEFAULT_BASE: &str = "json-schema:///";
 
 /// The help line every schema-side `Y202` carries, whatever made the
 /// schema unusable.
@@ -605,6 +630,58 @@ mod tests {
         let err =
             Schema::compile("$ref: \"https://example.com/schema.json\"\n").expect_err("refused");
         assert_eq!(err.code, Code::SchemaUnusable);
+    }
+
+    // Bug b042
+    #[test]
+    fn refused_ref_names_the_uri_without_resolver_advice() {
+        // The validator's own text advises enabling a resolver that no
+        // yqr build includes, so the message is worded in yqr's terms,
+        // whatever the reference: a URL, the unbundled Draft 3
+        // meta-schema, a file, a URN, a relative path with no base URI,
+        // a nested `$ref`, or a `$dynamicRef`. A relative `$dynamicRef`
+        // arrives against the validator's default base, so this also pins
+        // that base.
+        for (src, uri) in [
+            (
+                "$ref: \"https://example.com/s.json\"\n",
+                "https://example.com/s.json",
+            ),
+            (
+                "$ref: \"http://json-schema.org/draft-03/schema#\"\n",
+                "http://json-schema.org/draft-03/schema",
+            ),
+            ("$ref: \"file:///tmp/s.json\"\n", "file:///tmp/s.json"),
+            ("$ref: \"urn:example:s\"\n", "urn:example:s"),
+            ("$ref: \"other.json\"\n", "other.json"),
+            (
+                "properties:\n  a:\n    $ref: \"https://example.com/s.json#/x\"\n",
+                "https://example.com/s.json",
+            ),
+            (
+                "$dynamicRef: \"https://example.com/d.json#meta\"\n",
+                "https://example.com/d.json",
+            ),
+            ("$dynamicRef: \"d.json#meta\"\n", "d.json"),
+        ] {
+            let err = Schema::compile(src).expect_err(src);
+            assert_eq!(err.code, Code::SchemaUnusable, "{src}");
+            assert_eq!(
+                err.message,
+                format!(
+                    "schema refers to '{uri}', which yqr never fetches; references \
+                     resolve only within the schema file and to the built-in meta-schemas"
+                ),
+                "{src}"
+            );
+            assert_eq!(err.help.as_deref(), Some(SCHEMA_HELP), "{src}");
+        }
+        // Any other compile error keeps the validator's text.
+        let err = Schema::compile("$ref: \"#/$defs/missing\"\n").expect_err("missing");
+        assert_eq!(
+            err.message,
+            "schema does not compile as JSON Schema 2020-12: Pointer '/$defs/missing' does not exist"
+        );
     }
 
     // Feature f053
