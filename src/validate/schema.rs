@@ -94,13 +94,29 @@ impl Schema {
             diag.note = Some(instance_note(&path));
             diag
         })?;
-        let validator = jsonschema::draft202012::new(&json).map_err(|err| {
-            schema_unusable(format!(
-                "schema does not compile as JSON Schema 2020-12: {err}"
-            ))
-        })?;
+        let validator = jsonschema::draft202012::new(&json)
+            .map_err(|err| schema_unusable(compile_message(&err)))?;
         Ok(Schema { validator })
     }
+}
+
+/// Word the validator's compile error for the `Y202` message.
+///
+/// A reference the validator would have to retrieve is named in yqr's
+/// terms: the validator's own text advises enabling a resolver, and no
+/// yqr build includes one. Every other compile error keeps its text.
+fn compile_message(err: &jsonschema::ValidationError<'_>) -> String {
+    // Bug b042
+    if let jsonschema::error::ValidationErrorKind::Referencing(
+        jsonschema::ReferencingError::Unretrievable { uri, .. },
+    ) = err.kind()
+    {
+        return format!(
+            "schema refers to '{uri}', which yqr never fetches; references resolve \
+             only within the schema file and to the built-in meta-schemas"
+        );
+    }
+    format!("schema does not compile as JSON Schema 2020-12: {err}")
 }
 
 /// The help line every schema-side `Y202` carries, whatever made the
@@ -605,6 +621,45 @@ mod tests {
         let err =
             Schema::compile("$ref: \"https://example.com/schema.json\"\n").expect_err("refused");
         assert_eq!(err.code, Code::SchemaUnusable);
+    }
+
+    // Bug b042
+    #[test]
+    fn refused_ref_names_the_uri_without_resolver_advice() {
+        // The validator's own text advises enabling a resolver that no
+        // yqr build includes, so the message is worded in yqr's terms,
+        // whatever the reference: a URL, the unbundled Draft 3
+        // meta-schema, a file, or a relative path with no base URI.
+        for (src, uri) in [
+            (
+                "$ref: \"https://example.com/s.json\"\n",
+                "https://example.com/s.json",
+            ),
+            (
+                "$ref: \"http://json-schema.org/draft-03/schema#\"\n",
+                "http://json-schema.org/draft-03/schema",
+            ),
+            ("$ref: \"file:///tmp/s.json\"\n", "file:///tmp/s.json"),
+            ("$ref: \"other.json\"\n", "other.json"),
+        ] {
+            let err = Schema::compile(src).expect_err(src);
+            assert_eq!(err.code, Code::SchemaUnusable, "{src}");
+            assert_eq!(
+                err.message,
+                format!(
+                    "schema refers to '{uri}', which yqr never fetches; references \
+                     resolve only within the schema file and to the built-in meta-schemas"
+                ),
+                "{src}"
+            );
+            assert_eq!(err.help.as_deref(), Some(SCHEMA_HELP), "{src}");
+        }
+        // Any other compile error keeps the validator's text.
+        let err = Schema::compile("$ref: \"#/$defs/missing\"\n").expect_err("missing");
+        assert_eq!(
+            err.message,
+            "schema does not compile as JSON Schema 2020-12: Pointer '/$defs/missing' does not exist"
+        );
     }
 
     // Feature f053
