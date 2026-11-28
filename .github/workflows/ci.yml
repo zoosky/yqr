@@ -27,7 +27,7 @@ jobs:
       - name: Install Rust toolchain (1.100.0)
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.100.0"
+          toolchain: "1.100.1"
           components: rustfmt, clippy
           # Feature f049: the lib's wasm compatibility is CI-pinned.
           targets: wasm32-unknown-unknown
